@@ -1,6 +1,6 @@
 # memfs
 
-A `fs` API to workd with *virtual in-memory* files.
+A `fs` API to work with *virtual in-memory* files.
 
 ```javascript
 var memfs = require('memfs');

@@ -14,7 +14,7 @@ mem.mountSync('./', {
 console.log(mem.readFileSync('./dir/hello.js').toString());
 ```
 
-Use it together with `unionfs`:
+Use it together with [`unionfs`](http://www.npmjs.com/package/unionfs):
 
 ```javascript
 var unionfs = require('unionfs');

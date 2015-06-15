@@ -1,0 +1,10 @@
+{
+  "name": "memfs",
+  "version": "0.0.1",
+  "description": "In-memory file-system with node.js `fs` API",
+  "main": "index.js",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/streamich/memfs.git"
+  }
+}

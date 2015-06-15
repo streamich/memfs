@@ -1,5 +1,5 @@
 /// <reference path="typings/tsd.d.ts" />
-//var unionfs = require('../unionfs/unionfs');
+var unionfs = require('../unionfs/index');
 var memfs = require('./index');
 var fs = require('fs');
 
@@ -9,82 +9,13 @@ mem.mountSync('./', {
     "test.js": "console.log(123);",
     "dir/hello.js": "console.log('hello world');"
 });
-//console.log(mem);
-//console.log(mem.getNode('./test.js'));
-//console.log(mem.getNode('./test.js').getData());
+
+
+unionfs
+    .use(fs)
+    .use(mem)
+    .replace(fs);
 
 //console.log(mem.readFileSync('./test.js').toString());
-//mem.readFile('./test.js', function(err, buf) {
-//    console.log(err);
-//    console.log(buf.toString());
-//});
-
-//console.log(mem.realpathSync('./test2.js'));
-//mem.realpath('./test.js', function(err, path) {
-//    console.log(err, path);
-//});
-
-//console.log(mem.statSync('./test.js').isFile());
-//console.log(mem.statSync('./test.js').isDirectory());
-
-//mem.lstat('./test.js', function(err, stat) {
-//    console.log(stat);
-//});
-
-//mem.renameSync('./test.js', './test2.js');
-//mem.rename('./test.js', './test2.js', (err) => {
-//    console.log(mem);
-//});
-
-//console.log(mem.fstatSync(-2));
-
-//console.log(mem.readdirSync('./'));
-//mem.readdir('./', function(err, res) {
-//    console.log(err, res);
-//});
-//console.log(mem.existsSync('./test.js'));
-//mem.writeFileSync('./test.js', 'lalal');
-//console.log(mem.readFileSync('./test.js').toString());
-
-//console.log(mem);
-
-//console.log(mem.openSync('./test.js'));
-//console.log(mem.writeSync(-1, 'test', 2));
-//console.log(mem.writeSync(-1, '!'));
-//mem.linkSync('./test.js', './gg.lala');
-//console.log(mem.readFileSync('./gg.lala').toString());
-//console.log(mem.readlinkSync('./gg.lala'));
-
-//var str = mem.createReadStream('./test.js');
-//str.on('data', function(data) {
-//    console.log(data.toString());
-//});
-
-var str = mem.createWriteStream('./test.js');
-str.write('lalala');
-console.log(mem.readFileSync('./test.js').toString());
-
-//console.log(mem.getFile('./test.js'));
-
-//var buf = new Buffer(20);
-//console.log(mem.readSync(-1, buf, 0, 5, 3));
-//console.log(buf.toString());
-//
-//console.log(mem.mkdirSync('./haha'));
-//console.log(mem.readdirSync('./'));
-//mem.chownSync('./test.js', 5, 6);
-//console.log(mem.statSync('./test.js'));
-//mem.appendFile('./test23.js', '  // ...', function() {
-//    console.log(mem.readFileSync('./test23.js').toString());
-//    console.log(mem.readdirSync('./'));
-//});
-
-
-//unionfs
-//    .use(fs)
-//    .replace(fs);
-//
-//
-//console.log(fs.statSync('./example.js'));
-
-
+//console.log(fs.readFileSync('./test.js').toString());
+require('./test.js');

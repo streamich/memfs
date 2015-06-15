@@ -249,7 +249,7 @@ var memfs;
         // fs.readFile(filename[, options])
         Volume.prototype.readFileSync = function (file, opts) {
             var f = this.getFile(file);
-            if (opts && opts.encoding) {
+            if (opts) {
                 return f.getData(); // String
             }
             else {

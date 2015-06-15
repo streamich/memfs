@@ -1,0 +1,4 @@
+*.ts
+/typings
+example.js
+tsd.json

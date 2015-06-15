@@ -291,7 +291,7 @@ module memfs {
         // fs.readFile(filename[, options])
         readFileSync(file, opts) {
             var f = this.getFile(file);
-            if(opts && opts.encoding) {
+            if(opts) {
                 return f.getData(); // String
             } else {
                 var Buffer = require('buffer').Buffer;

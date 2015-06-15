@@ -48,11 +48,28 @@ mem.mountSync('./', {
 
 //console.log(mem);
 
-console.log(mem.openSync('./test.js'));
-console.log(mem.writeSync(-1, 'test', 2));
-console.log(mem.writeSync(-1, '!'));
+//console.log(mem.openSync('./test.js'));
+//console.log(mem.writeSync(-1, 'test', 2));
+//console.log(mem.writeSync(-1, '!'));
+//mem.linkSync('./test.js', './gg.lala');
+//console.log(mem.readFileSync('./gg.lala').toString());
+//console.log(mem.readlinkSync('./gg.lala'));
+
+//var str = mem.createReadStream('./test.js');
+//str.on('data', function(data) {
+//    console.log(data.toString());
+//});
+
+var str = mem.createWriteStream('./test.js');
+str.write('lalala');
 console.log(mem.readFileSync('./test.js').toString());
-console.log(mem.getFile('./test.js'));
+
+//console.log(mem.getFile('./test.js'));
+
+//var buf = new Buffer(20);
+//console.log(mem.readSync(-1, buf, 0, 5, 3));
+//console.log(buf.toString());
+//
 //console.log(mem.mkdirSync('./haha'));
 //console.log(mem.readdirSync('./'));
 //mem.chownSync('./test.js', 5, 6);

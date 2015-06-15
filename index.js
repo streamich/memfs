@@ -232,14 +232,19 @@ var memfs;
         Volume.prototype.err404 = function (file) {
             return Error('File not found: ' + file);
         };
+        /**
+         * Mount virtual in-memory files.
+         * @param mountpoint Path to the root of the mounting point.
+         * @param files A dictionary of relative file paths to their contents.
+         */
         Volume.prototype.mountSync = function (mountpoint, files) {
             var layer = new Layer(mountpoint, files);
             this.addLayer(layer);
         };
-        // TODO: Mount from URL:
+        // TODO: Mount from URL?
         // TODO: `mount('/usr/lib', 'http://example.com/volumes/usr/lib.json', callback)`
         // TODO: ...also cache that it has been loaded...
-        Volume.prototype.mount = function (mountpoint, files) {
+        Volume.prototype.mount = function (mountpoint, files, callback) {
         };
         // fs.readFile(filename[, options])
         Volume.prototype.readFileSync = function (file, opts) {
@@ -771,28 +776,204 @@ var memfs;
                 }
             });
         };
-        // fs.writeSync(fd, data[, position[, encoding]])
-        // fs.writeSync(fd, buffer, offset, length[, position])
         Volume.prototype.writeSync = function (fd, data, position, encoding) {
             var file = this.getByFd(fd);
             if (!(file instanceof File))
                 throw Error('Is not a file: ' + file.path);
-            if (typeof position == 'undefined')
-                position = file.position;
             var Buffer = require('buffer').Buffer;
             if (!(data instanceof Buffer)) {
-                data = data.toString(); // Docs: "If data is not a Buffer instance then the value will be coerced to a string."
-                var cont = file.getData();
-                cont = cont.substr(0, position) + data + cont.substr(position + data.length);
-                file.setData(cont);
-                file.position = position + data.length;
-                //return data.length;
-                var Buffer = require('buffer').Buffer;
-                return Buffer.byteLength(data, encoding);
-            }
-            else {
+                // Docs: "If data is not a Buffer instance then the value will be coerced to a string."
                 data = data.toString();
             }
+            else {
+                var buffer = data;
+                var offset = position;
+                var length = encoding;
+                position = arguments[4];
+                data = buffer.slice(offset, length);
+                data = data.toString();
+            }
+            if (typeof position == 'undefined')
+                position = file.position;
+            var cont = file.getData();
+            cont = cont.substr(0, position) + data + cont.substr(position + data.length);
+            file.setData(cont);
+            file.position = position + data.length;
+            //return data.length;
+            return Buffer.byteLength(data, encoding);
+        };
+        //fs.write(fd, data[, position[, encoding]], callback)
+        //fs.write(fd, buffer, offset, length[, position], callback)
+        Volume.prototype.write = function (fd, buffer, offset, length, position, callback) {
+            if (typeof position == 'function') {
+                callback = position;
+                position = void 0;
+            }
+            if (typeof length == 'function') {
+                callback = length;
+                length = position = void 0;
+            }
+            if (typeof offset == 'function') {
+                callback = offset;
+                offset = length = position = void 0;
+            }
+            var self = this;
+            process.nextTick(function () {
+                try {
+                    var bytes = self.writeSync(fd, buffer, offset, length, position);
+                    if (callback)
+                        callback(null, bytes);
+                }
+                catch (e) {
+                    if (callback)
+                        callback(e);
+                }
+            });
+        };
+        // fs.readSync(fd, buffer, offset, length, position)
+        Volume.prototype.readSync = function (fd, buffer, offset, length, position) {
+            var file = this.getByFd(fd);
+            if (!(file instanceof File))
+                throw Error('Not a file: ' + file.path);
+            var data = file.getData();
+            if (position === null)
+                position = file.position;
+            var chunk = data.substr(position, length);
+            buffer.write(chunk, offset, length);
+            return chunk.length;
+        };
+        // fs.read(fd, buffer, offset, length, position, callback)
+        Volume.prototype.read = function (fd, buffer, offset, length, position, callback) {
+            var self = this;
+            process.nextTick(function () {
+                try {
+                    var bytes = self.readSync(fd, buffer, offset, length, position);
+                    callback(null, bytes, buffer);
+                }
+                catch (e) {
+                    callback(e);
+                }
+            });
+        };
+        // fs.linkSync(srcpath, dstpath)
+        Volume.prototype.linkSync = function (srcpath, dstpath) {
+            var node = this.getNode(srcpath);
+            dstpath = path.resolve(dstpath);
+            if (this.flattened[dstpath])
+                throw Error('Destination path already in use: ' + dstpath);
+            this.flattened[dstpath] = node;
+        };
+        // fs.link(srcpath, dstpath, callback)
+        Volume.prototype.link = function (srcpath, dstpath, callback) {
+            var self = this;
+            process.nextTick(function () {
+                try {
+                    self.linkSync(srcpath, dstpath);
+                    if (callback)
+                        callback();
+                }
+                catch (e) {
+                    if (callback)
+                        callback(e);
+                }
+            });
+        };
+        // fs.symlinkSync(srcpath, dstpath[, type])
+        Volume.prototype.symlinkSync = function (srcpath, dstpath, t) {
+            this.linkSync(srcpath, dstpath);
+        };
+        // fs.symlink(srcpath, dstpath[, type], callback)
+        Volume.prototype.symlink = function (srcpath, dstpath, t, callback) {
+            if (typeof t == 'function') {
+                callback = t;
+                t = void 0;
+            }
+            this.link(srcpath, dstpath, callback);
+        };
+        // fs.readlinkSync(path)
+        Volume.prototype.readlinkSync = function (p) {
+            var node = this.getNode(p);
+            return node.path;
+        };
+        // fs.readlink(path, callback)
+        Volume.prototype.readlink = function (p, callback) {
+            var self = this;
+            process.nextTick(function () {
+                try {
+                    callback(null, self.readlinkSync(p));
+                }
+                catch (e) {
+                    callback(e);
+                }
+            });
+        };
+        // fs.fsyncSync(fd)
+        Volume.prototype.fsyncSync = function (fd) {
+            this.getByFd(fd);
+        };
+        // fs.fsync(fd, callback)
+        Volume.prototype.fsync = function (fd, callback) {
+            var self = this;
+            process.nextTick(function () {
+                try {
+                    self.fsyncSync(fd);
+                    if (callback)
+                        callback();
+                }
+                catch (e) {
+                    if (callback)
+                        callback(e);
+                }
+            });
+        };
+        // fs.createReadStream(path[, options])
+        Volume.prototype.createReadStream = function (p, options) {
+            options = options || {};
+            var file = options.fd ? this.getByFd(options.fd) : this.getFile(p);
+            if (!(file instanceof File))
+                throw Error('Not a file: ' + file.path);
+            var util = require('util');
+            var Readable = require('stream').Readable;
+            var Buffer = require('buffer').Buffer;
+            function MemFileReadStream(opt) {
+                Readable.call(this, opt);
+                this.done = false;
+            }
+            util.inherits(MemFileReadStream, Readable);
+            MemFileReadStream.prototype._read = function () {
+                if (!this.done) {
+                    this.push(new Buffer(file.getData()));
+                    this.done = true;
+                }
+                else {
+                    this.push(null);
+                }
+            };
+            return new MemFileReadStream();
+        };
+        // fs.createWriteStream(path[, options])
+        Volume.prototype.createWriteStream = function (p, options) {
+            options = options || {};
+            var file = (options.fd ? this.getByFd(options.fd) : this.getFile(p));
+            if (!(file instanceof File))
+                throw Error('Not a file: ' + file.path);
+            if (options.start)
+                file.position = options.start;
+            var util = require('util');
+            var Writable = require('stream').Writable;
+            var Buffer = require('buffer').Buffer;
+            function MemFileWriteStream(opt) {
+                Writable.call(this, opt);
+            }
+            util.inherits(MemFileWriteStream, Writable);
+            MemFileWriteStream.prototype._write = function (chunk) {
+                chunk = chunk.toString();
+                var cont = file.getData();
+                cont = cont.substr(0, file.position) + chunk + cont.substr(file.position + chunk.length);
+                file.setData(cont);
+                file.position += chunk.length;
+            };
+            return new MemFileWriteStream();
         };
         return Volume;
     })();

@@ -270,17 +270,20 @@ module memfs {
             return Error('File not found: ' + file);
         }
 
-
-
-        mountSync(mountpoint: string, files: {[s: string] : string}) {
+        /**
+         * Mount virtual in-memory files.
+         * @param mountpoint Path to the root of the mounting point.
+         * @param files A dictionary of relative file paths to their contents.
+         */
+        mountSync(mountpoint: string, files: {[s: string]: string}) {
             var layer = new Layer(mountpoint, files);
             this.addLayer(layer);
         }
 
-        // TODO: Mount from URL:
+        // TODO: Mount from URL?
         // TODO: `mount('/usr/lib', 'http://example.com/volumes/usr/lib.json', callback)`
         // TODO: ...also cache that it has been loaded...
-        mount(mountpoint: string, files: {[s: string] : string}|string) {
+        mount(mountpoint: string, files: {[s: string] : string}|string, callback) {
 
         }
 
@@ -817,58 +820,214 @@ module memfs {
 
         // fs.writeSync(fd, data[, position[, encoding]])
         // fs.writeSync(fd, buffer, offset, length[, position])
+        writeSync(fd: number, buffer, offset, length, position?);
         writeSync(fd: number, data, position?, encoding?) {
             var file = <File> this.getByFd(fd);
             if(!(file instanceof File)) throw Error('Is not a file: ' + file.path);
 
-            if(typeof position == 'undefined') position = file.position;
-
             var Buffer = require('buffer').Buffer;
             if(!(data instanceof Buffer)) {
-                data = data.toString(); // Docs: "If data is not a Buffer instance then the value will be coerced to a string."
-                var cont = file.getData();
-                cont = cont.substr(0, position) + data + cont.substr(position + data.length);
-                file.setData(cont);
-                file.position = position + data.length;
-
-                //return data.length;
-                var Buffer = require('buffer').Buffer;
-                return Buffer.byteLength(data, encoding);
+                // Docs: "If data is not a Buffer instance then the value will be coerced to a string."
+                data = data.toString();
             } else { // typeof data is Buffer
+                var buffer = data;
+                var offset = position;
+                var length = encoding;
+                position = arguments[4];
+                data = buffer.slice(offset, length);
                 data = data.toString();
             }
+
+            if(typeof position == 'undefined') position = file.position;
+
+            var cont = file.getData();
+            cont = cont.substr(0, position) + data + cont.substr(position + data.length);
+            file.setData(cont);
+            file.position = position + data.length;
+
+            //return data.length;
+            return Buffer.byteLength(data, encoding);
         }
 
-
-        //fs.write(fd, buffer, offset, length[, position], callback)
         //fs.write(fd, data[, position[, encoding]], callback)
+        //fs.write(fd, buffer, offset, length[, position], callback)
+        write(fd: number, buffer, offset, length, position, callback?) {
+            if(typeof position == 'function') {
+                callback = position;
+                position = void 0;
+            }
+            if(typeof length == 'function') {
+                callback = length;
+                length = position = void 0;
+            }
+            if(typeof offset == 'function') {
+                callback = offset;
+                offset = length = position = void 0;
+            }
 
+            var self = this;
+            process.nextTick(() => {
+                try {
+                    var bytes = self.writeSync(fd, buffer, offset, length, position);
+                    if(callback) callback(null, bytes);
+                } catch(e) {
+                    if(callback) callback(e);
+                }
+            });
+        }
 
-        //fs.link(srcpath, dstpath, callback)
-        //fs.linkSync(srcpath, dstpath)
-        //fs.symlink(srcpath, dstpath[, type], callback)
-        //fs.symlinkSync(srcpath, dstpath[, type])
-        //fs.readlink(path, callback)
-        //fs.readlinkSync(path)
+        // fs.readSync(fd, buffer, offset, length, position)
+        readSync(fd: number, buffer: Buffer, offset: number, length: number, position: number) {
+            var file = <File> this.getByFd(fd);
+            if(!(file instanceof File)) throw Error('Not a file: ' + file.path);
+            var data = file.getData();
+            if(position === null) position = file.position;
+            var chunk = data.substr(position, length);
+            buffer.write(chunk, offset, length);
+            return chunk.length;
+        }
 
+        // fs.read(fd, buffer, offset, length, position, callback)
+        read(fd: number, buffer: Buffer, offset: number, length: number, position: number, callback) {
+            var self = this;
+            process.nextTick(() => {
+                try {
+                    var bytes = self.readSync(fd, buffer, offset, length, position);
+                    callback(null, bytes, buffer);
+                } catch(e) {
+                    callback(e);
+                }
+            });
+        }
 
+        // fs.linkSync(srcpath, dstpath)
+        linkSync(srcpath, dstpath) {
+            var node = this.getNode(srcpath);
+            dstpath = path.resolve(dstpath);
+            if(this.flattened[dstpath]) throw Error('Destination path already in use: ' + dstpath);
+            this.flattened[dstpath] = node;
+        }
 
+        // fs.link(srcpath, dstpath, callback)
+        link(srcpath, dstpath, callback) {
+            var self = this;
+            process.nextTick(() => {
+                try {
+                    self.linkSync(srcpath, dstpath);
+                    if(callback) callback();
+                } catch(e) {
+                    if(callback) callback(e);
+                }
+            });
+        }
 
-        //fs.fsync(fd, callback)
-        //fs.fsyncSync(fd)
+        // fs.symlinkSync(srcpath, dstpath[, type])
+        symlinkSync(srcpath, dstpath, t?) {
+            this.linkSync(srcpath, dstpath);
+        }
 
+        // fs.symlink(srcpath, dstpath[, type], callback)
+        symlink(srcpath, dstpath, t, callback?) {
+            if(typeof t == 'function') {
+                callback = t;
+                t = void 0;
+            }
+            this.link(srcpath, dstpath, callback);
+        }
 
+        // fs.readlinkSync(path)
+        readlinkSync(p: string) {
+            var node = this.getNode(p);
+            return node.path;
+        }
 
-        //fs.read(fd, buffer, offset, length, position, callback)
-        //fs.readSync(fd, buffer, offset, length, position)
+        // fs.readlink(path, callback)
+        readlink(p: string, callback) {
+            var self = this;
+            process.nextTick(() => {
+                try {
+                    callback(null, self.readlinkSync(p));
+                } catch(e) {
+                    callback(e);
+                }
+            });
+        }
+
+        // fs.fsyncSync(fd)
+        fsyncSync(fd: number) {
+            this.getByFd(fd);
+        }
+
+        // fs.fsync(fd, callback)
+        fsync(fd, callback) {
+            var self = this;
+            process.nextTick(() => {
+                try {
+                    self.fsyncSync(fd);
+                    if(callback) callback();
+                } catch(e) {
+                    if(callback) callback(e);
+                }
+            });
+        }
+
+        // fs.createReadStream(path[, options])
+        createReadStream(p: string, options?) {
+            options = options || {};
+            var file = options.fd ? this.getByFd(options.fd) : this.getFile(p);
+            if(!(file instanceof File)) throw Error('Not a file: ' + file.path);
+
+            var util = require('util');
+            var Readable = require('stream').Readable;
+            var Buffer = require('buffer').Buffer;
+
+            function MemFileReadStream(opt?) {
+                Readable.call(this, opt);
+                this.done = false;
+            }
+            util.inherits(MemFileReadStream, Readable);
+            MemFileReadStream.prototype._read = function() {
+                if(!this.done) {
+                    this.push(new Buffer(file.getData()));
+                    this.done = true;
+                } else {
+                    this.push(null);
+                }
+            };
+
+            return new MemFileReadStream();
+        }
+
+        // fs.createWriteStream(path[, options])
+        createWriteStream(p: string, options?) {
+            options = options || {};
+            var file = <File> (options.fd ? this.getByFd(options.fd) : this.getFile(p));
+            if(!(file instanceof File)) throw Error('Not a file: ' + file.path);
+
+            if(options.start) file.position = options.start;
+
+            var util = require('util');
+            var Writable = require('stream').Writable;
+            var Buffer = require('buffer').Buffer;
+
+            function MemFileWriteStream(opt?) {
+                Writable.call(this, opt);
+            }
+            util.inherits(MemFileWriteStream, Writable);
+            MemFileWriteStream.prototype._write = function(chunk) {
+                chunk = chunk.toString();
+                var cont = file.getData();
+                cont = cont.substr(0, file.position) + chunk + cont.substr(file.position + chunk.length);
+                file.setData(cont);
+                file.position += chunk.length;
+            };
+
+            return new MemFileWriteStream();
+        }
+
         //fs.watchFile(filename[, options], listener)
-
         //fs.unwatchFile(filename[, listener])
         //fs.watch(filename[, options][, listener])
-
-
-        //fs.createReadStream(path[, options])
-        //fs.createWriteStream(path[, options])
     }
 
 }

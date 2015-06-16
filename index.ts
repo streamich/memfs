@@ -434,6 +434,11 @@ module memfs {
 
         // fs.existsSync(filename)
         existsSync(filename) {
+
+            // This will make `unionfs` to forward ask next file system for `existsSync`.
+            var fullpath = path.resolve(filename);
+            if(!this.getLayerContainingPath(fullpath)) throw('Path not in mount point.');
+
             try {
                 this.getNode(filename);
                 return true;

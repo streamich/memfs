@@ -18,5 +18,7 @@ unionfs
     .use(mem)
     .replace(fs);
 
-console.log(mem.readFileSync('/test/dir/dir2\\test.js').toString());
+//console.log(mem.readFileSync('/test/dir/dir2\\test.js').toString());
+console.log(mem.existsSync('/test/dir/dir2\\test.js').toString());
+console.log(mem.existsSync('/test2/dir/dir2\\test.js').toString());
 //console.log(mem.readdirSync('/test/dir/dir2'));

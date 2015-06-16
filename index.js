@@ -183,7 +183,7 @@ var memfs;
             this.layers.push(layer);
             var mountpoint = path.resolve(layer.mountpoint) + path.sep;
             for (var relative in layer.files) {
-                var filepath = relative.replace('/', path.sep);
+                var filepath = relative.replace(/\//g, path.sep);
                 var fullpath = mountpoint + filepath;
                 this.addFile(fullpath, layer);
             }

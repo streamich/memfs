@@ -5,9 +5,11 @@ var fs = require('fs');
 
 
 var mem = new memfs.Volume;
-mem.mountSync('./', {
+mem.mountSync('/test/dir/dir2', {
     "test.js": "console.log(123);",
-    "dir/hello.js": "console.log('hello world');"
+    "dir/hello.js": "console.log('hello world');",
+    "dir/more/hello.js": "console.log('hello world');",
+    "asdf/asdf/hello.js": "console.log('hello world');",
 });
 
 
@@ -16,6 +18,5 @@ unionfs
     .use(mem)
     .replace(fs);
 
-//console.log(mem.readFileSync('./test.js').toString());
-//console.log(fs.readFileSync('./test.js').toString());
-require('./test.js');
+console.log(mem.flattened);
+//console.log(mem.readdirSync('/test/dir/dir2'));

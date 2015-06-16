@@ -189,7 +189,8 @@ module memfs {
 
         addDir(fullpath: string, layer: Layer) {
             var relative = path.relative(layer.mountpoint, fullpath);
-            relative = relative.replace(path.sep, '/'); // Always use forward slashed in our virtual relative paths.
+            var regex = new RegExp(path.sep, 'g');
+            relative = relative.replace(regex, '/'); // Always use forward slashed in our virtual relative paths.
 
             var directory = new Directory(relative, layer);
             this.flattened[fullpath] = directory;
@@ -199,7 +200,8 @@ module memfs {
 
         addFile(fullpath: string, layer: Layer) {
             var relative = path.relative(layer.mountpoint, fullpath);
-            relative = relative.replace(path.sep, '/'); // Always use forward slashed in our virtual relative paths.
+            var regex = new RegExp(path.sep, 'g');
+            relative = relative.replace(regex, '/'); // Always use forward slashed in our virtual relative paths.
             var node = new File(relative, layer);
 
             this.flattened[fullpath] = node;
@@ -289,11 +291,12 @@ module memfs {
 
 
         // fs.readFile(filename[, options])
-        readFileSync(file, opts) {
+        readFileSync(file, encoding) {
             var f = this.getFile(file);
-            if(opts) {
+            if(encoding) {
                 return f.getData(); // String
             } else {
+                return f.getData(); // String
                 var Buffer = require('buffer').Buffer;
                 return new Buffer(f.getData()); // Buffer
             }

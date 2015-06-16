@@ -158,7 +158,8 @@ var memfs;
         }
         Volume.prototype.addDir = function (fullpath, layer) {
             var relative = path.relative(layer.mountpoint, fullpath);
-            relative = relative.replace(path.sep, '/'); // Always use forward slashed in our virtual relative paths.
+            var regex = new RegExp(path.sep, 'g');
+            relative = relative.replace(regex, '/'); // Always use forward slashed in our virtual relative paths.
             var directory = new Directory(relative, layer);
             this.flattened[fullpath] = directory;
             this.fds[directory.fd] = directory;
@@ -166,7 +167,8 @@ var memfs;
         };
         Volume.prototype.addFile = function (fullpath, layer) {
             var relative = path.relative(layer.mountpoint, fullpath);
-            relative = relative.replace(path.sep, '/'); // Always use forward slashed in our virtual relative paths.
+            var regex = new RegExp(path.sep, 'g');
+            relative = relative.replace(regex, '/'); // Always use forward slashed in our virtual relative paths.
             var node = new File(relative, layer);
             this.flattened[fullpath] = node;
             this.fds[node.fd] = node;
@@ -247,12 +249,13 @@ var memfs;
         Volume.prototype.mount = function (mountpoint, files, callback) {
         };
         // fs.readFile(filename[, options])
-        Volume.prototype.readFileSync = function (file, opts) {
+        Volume.prototype.readFileSync = function (file, encoding) {
             var f = this.getFile(file);
-            if (opts) {
+            if (encoding) {
                 return f.getData(); // String
             }
             else {
+                return f.getData(); // String
                 var Buffer = require('buffer').Buffer;
                 return new Buffer(f.getData()); // Buffer
             }

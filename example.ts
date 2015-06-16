@@ -18,5 +18,5 @@ unionfs
     .use(mem)
     .replace(fs);
 
-console.log(mem.flattened);
+console.log(mem.readFileSync('/test/dir/dir2\\test.js').toString());
 //console.log(mem.readdirSync('/test/dir/dir2'));

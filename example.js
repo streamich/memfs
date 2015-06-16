@@ -10,5 +10,5 @@ mem.mountSync('/test/dir/dir2', {
     "asdf/asdf/hello.js": "console.log('hello world');"
 });
 unionfs.use(fs).use(mem).replace(fs);
-console.log(mem.flattened);
+console.log(mem.readFileSync('/test/dir/dir2\\test.js').toString());
 //console.log(mem.readdirSync('/test/dir/dir2'));

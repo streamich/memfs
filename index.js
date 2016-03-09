@@ -364,8 +364,19 @@ var memfs;
         };
         // fs.writeFileSync(filename, data[, options])
         Volume.prototype.writeFileSync = function (filename, data, options) {
-            var file = this.getFile(filename);
-            file.setData(data);
+            try{
+                var file = this.getFile(filename);
+                file.setData(data);
+            }
+            catch (e) {
+                var fullpath = path.resolve(filename);
+                var layer = this.getLayerContainingPath(fullpath);
+                if (!layer)
+                    throw Error('Cannot create new file at this path: ' + fullpath);
+                var file = this.addFile(fullpath, layer);
+                file.setData(data.toString());
+            }
+
         };
         // fs.writeFile(filename, data[, options], callback)
         Volume.prototype.writeFile = function (filename, data, options, callback) {

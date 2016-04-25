@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "target": "es3",
+    "module": "commonjs",
+    "removeComments": false
+  }
+}

@@ -151,7 +151,7 @@ module memfs {
 
 
     // A single `JSON` file of data mounted to a single mount point.
-    // We have it so that we can store file contents in a single `.files` map.
+    // We have it so that we can store file contents in a single JS string dictionary.
     export class Layer {
 
         // The root directory at which this layer was mounted.
@@ -294,7 +294,7 @@ module memfs {
             if(encoding) {
                 return f.getData(); // String
             } else {
-                return f.getData(); // String
+                // return f.getData(); // String
                 var Buffer = require('buffer').Buffer;
                 return new Buffer(f.getData()); // Buffer
             }
@@ -410,8 +410,15 @@ module memfs {
 
         // fs.writeFileSync(filename, data[, options])
         writeFileSync(filename, data, options?: any) {
-            var file = this.getFile(filename);
-            file.setData(data);
+            try {
+                var file = this.getFile(filename);
+            } catch(e) { // Try to create a new file.
+                var fullpath = path.resolve(filename);
+                var layer = this.getLayerContainingPath(fullpath);
+                if(!layer) throw Error('Cannot create new file at this path: ' + fullpath);
+                var file = this.addFile(fullpath, layer);
+            }
+            file.setData(data.toString());
         }
 
         // fs.writeFile(filename, data[, options], callback)
@@ -706,7 +713,7 @@ module memfs {
         open(p: string, flags, mode, callback?) {
             if(typeof mode == 'function') {
                 callback = mode;
-                mode = 0666;
+                mode = 438; // 0666
             }
             var self = this;
             process.nextTick(() => {
@@ -810,7 +817,7 @@ module memfs {
         mkdir(p: string, mode, callback?) {
             if(typeof mode == 'function') {
                 callback = mode;
-                mode = 0777;
+                mode = 511; // 0777
             }
 
             var self = this;

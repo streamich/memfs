@@ -1,8 +1,9 @@
 {
   "name": "memfs",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "In-memory file-system with node.js `fs` API",
   "main": "index.js",
+  "keywords": ["fs", "file", "file system", "mount", "memory", "in-memory", "virtual"],
   "repository": {
     "type" : "git",
     "url" : "https://github.com/streamich/memfs.git"

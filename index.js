@@ -1,9 +1,9 @@
 /// <reference path="typings/tsd.d.ts" />
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 /**
  * path.resolve
@@ -63,7 +63,7 @@ var memfs;
             return false;
         };
         return Stats;
-    })();
+    }());
     memfs.Stats = Stats;
     var Node = (function () {
         function Node(relative, layer) {
@@ -97,7 +97,7 @@ var memfs;
         };
         Node.fd = -1;
         return Node;
-    })();
+    }());
     memfs.Node = Node;
     var File = (function (_super) {
         __extends(File, _super);
@@ -117,7 +117,7 @@ var memfs;
             this.setData(this.getData().substr(0, len));
         };
         return File;
-    })(Node);
+    }(Node));
     memfs.File = File;
     var Directory = (function (_super) {
         __extends(Directory, _super);
@@ -125,10 +125,10 @@ var memfs;
             _super.apply(this, arguments);
         }
         return Directory;
-    })(Node);
+    }(Node));
     memfs.Directory = Directory;
     // A single `JSON` file of data mounted to a single mount point.
-    // We have it so that we can store file contents in a single `.files` map.
+    // We have it so that we can store file contents in a single JS string dictionary.
     var Layer = (function () {
         function Layer(mountpoint, files) {
             /**
@@ -143,7 +143,7 @@ var memfs;
             this.files = files;
         }
         return Layer;
-    })();
+    }());
     memfs.Layer = Layer;
     // A collection of layers, we have this, so that we override functions with `.attach()` only once.
     var Volume = (function () {
@@ -253,7 +253,7 @@ var memfs;
                 return f.getData(); // String
             }
             else {
-                return f.getData(); // String
+                // return f.getData(); // String
                 var Buffer = require('buffer').Buffer;
                 return new Buffer(f.getData()); // Buffer
             }
@@ -364,8 +364,17 @@ var memfs;
         };
         // fs.writeFileSync(filename, data[, options])
         Volume.prototype.writeFileSync = function (filename, data, options) {
-            var file = this.getFile(filename);
-            file.setData(data);
+            try {
+                var file = this.getFile(filename);
+            }
+            catch (e) {
+                var fullpath = path.resolve(filename);
+                var layer = this.getLayerContainingPath(fullpath);
+                if (!layer)
+                    throw Error('Cannot create new file at this path: ' + fullpath);
+                var file = this.addFile(fullpath, layer);
+            }
+            file.setData(data.toString());
         };
         // fs.writeFile(filename, data[, options], callback)
         Volume.prototype.writeFile = function (filename, data, options, callback) {
@@ -664,7 +673,7 @@ var memfs;
         Volume.prototype.open = function (p, flags, mode, callback) {
             if (typeof mode == 'function') {
                 callback = mode;
-                mode = 0666;
+                mode = 438; // 0666
             }
             var self = this;
             process.nextTick(function () {
@@ -766,7 +775,7 @@ var memfs;
         Volume.prototype.mkdir = function (p, mode, callback) {
             if (typeof mode == 'function') {
                 callback = mode;
-                mode = 0777;
+                mode = 511; // 0777
             }
             var self = this;
             process.nextTick(function () {
@@ -981,7 +990,7 @@ var memfs;
             return new MemFileWriteStream();
         };
         return Volume;
-    })();
+    }());
     memfs.Volume = Volume;
 })(memfs || (memfs = {}));
 module.exports = memfs;

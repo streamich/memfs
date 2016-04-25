@@ -9,7 +9,10 @@ mem.mountSync('/test/dir/dir2', {
     "dir/more/hello.js": "console.log('hello world');",
     "asdf/asdf/hello.js": "console.log('hello world');"
 });
-unionfs.use(fs).use(mem).replace(fs);
+unionfs
+    .use(fs)
+    .use(mem)
+    .replace(fs);
 //console.log(mem.readFileSync('/test/dir/dir2\\test.js').toString());
 console.log(mem.existsSync('/test/dir/dir2\\test.js').toString());
 console.log(mem.existsSync('/test2/dir/dir2\\test.js').toString());

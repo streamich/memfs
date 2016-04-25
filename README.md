@@ -1,6 +1,6 @@
 # memfs
 
-A `fs` API to work with *virtual in-memory* files.
+A [`fs`](https://nodejs.org/api/fs.html) API to work with *virtual in-memory* files.
 
 ```javascript
 var memfs = require('memfs');
@@ -28,7 +28,7 @@ unionfs
 // Now `unionfs` has the `fs` API but on both file systems.
 console.log(unionfs.readFileSync('./test.js').toString()); // console.log(123);
     
-// Replace `fs` with the union of thos file systems.
+// Replace `fs` with the union of those file systems.
 unionfs.replace(fs);
 
 // Now you can do this.

@@ -3,3 +3,5 @@
 example.js
 tsd.json
 simple.js
+node_modules
+/test

@@ -289,7 +289,7 @@ module memfs {
 
 
         // fs.readFile(filename[, options])
-        readFileSync(file, encoding) {
+        readFileSync(file, encoding?) {
             var f = this.getFile(file);
             if(encoding) {
                 return f.getData(); // String

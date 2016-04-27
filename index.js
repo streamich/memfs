@@ -9,6 +9,7 @@ var __extends = (this && this.__extends) || function (d, b) {
  * path.resolve
  * path.sep
  * path.relative
+ * path.dirname
  */
 var path = require('path');
 var time = new Date;
@@ -156,7 +157,17 @@ var memfs;
             // A map of pseudo 'file descriptors' to LNodes.
             this.fds = {};
         }
+        Volume.prototype.normalize = function (somepath) {
+            somepath = path.normalize(somepath);
+            // Remove trailing slash.
+            if (somepath[somepath.length - 1] == path.sep)
+                somepath = somepath.substr(0, somepath.length - 1);
+            return somepath;
+        };
         Volume.prototype.addDir = function (fullpath, layer) {
+            fullpath = this.normalize(fullpath);
+            if (this.flattened[fullpath])
+                throw Error('Node already exists: ' + fullpath);
             var relative = path.relative(layer.mountpoint, fullpath);
             relative = relative.replace(/\\/g, '/'); // Always use forward slashed in our virtual relative paths.
             var directory = new Directory(relative, layer);
@@ -165,23 +176,29 @@ var memfs;
             return directory;
         };
         Volume.prototype.addFile = function (fullpath, layer) {
+            fullpath = this.normalize(fullpath);
+            if (this.flattened[fullpath])
+                throw Error('Node already exists: ' + fullpath);
             var relative = path.relative(layer.mountpoint, fullpath);
             relative = relative.replace(/\\/g, '/'); // Always use forward slashed in our virtual relative paths.
             var node = new File(relative, layer);
             this.flattened[fullpath] = node;
             this.fds[node.fd] = node;
             var steps = relative.split('/');
-            var dir_rel = '';
+            var dirfullpath = layer.mountpoint;
             for (var i = 0; i < steps.length - 1; i++) {
-                dir_rel += steps[i] + (dir_rel ? path.sep : '');
-                var dirpath = layer.mountpoint + path.sep + dir_rel;
-                this.addDir(dirpath, layer);
+                dirfullpath += path.sep + steps[i];
+                var exists = !!this.flattened[fullpath];
+                if (!exists)
+                    this.addDir(dirfullpath, layer);
             }
             return node;
         };
         Volume.prototype.addLayer = function (layer) {
             this.layers.push(layer);
             var mountpoint = path.resolve(layer.mountpoint) + path.sep;
+            // Add the root dir at the mount point.
+            this.addDir(mountpoint, layer);
             for (var relative in layer.files) {
                 var filepath = relative.replace(/\//g, path.sep);
                 var fullpath = mountpoint + filepath;
@@ -238,6 +255,7 @@ var memfs;
          * @param files A dictionary of relative file paths to their contents.
          */
         Volume.prototype.mountSync = function (mountpoint, files) {
+            if (files === void 0) { files = {}; }
             var layer = new Layer(mountpoint, files);
             this.addLayer(layer);
         };
@@ -419,13 +437,30 @@ var memfs;
         // fs.readdirSync(path)
         Volume.prototype.readdirSync = function (p) {
             var fullpath = path.resolve(p);
-            // Check the path points into at least on of the directories our layers are mounted to.
-            if (!this.getLayerContainingPath(fullpath))
+            // Check the path points into at least one of the directories our layers are mounted to.
+            var layer = this.getLayerContainingPath(fullpath);
+            if (!layer) {
                 throw Error('Directory not found: ' + fullpath);
+            }
+            // Check directory exists.
+            try {
+                var dir = this.getDirectory(fullpath);
+            }
+            catch (e) {
+                throw Error("ENOENT: no such file or directory, scandir '" + fullpath + "'");
+            }
             var len = fullpath.length;
             var index = {};
             for (var nodepath in this.flattened) {
                 if (nodepath.indexOf(fullpath) === 0) {
+                    try {
+                        var node = this.getNode(nodepath);
+                    }
+                    catch (e) {
+                        // This should never happen.
+                        throw e;
+                    }
+                    // console.log(node);
                     var relative = nodepath.substr(len + 1);
                     var sep_pos = relative.indexOf(path.sep);
                     if (sep_pos > -1)
@@ -769,6 +804,14 @@ var memfs;
             var layer = this.getLayerContainingPath(fullpath);
             if (!layer)
                 throw Error('Cannot create directory at this path: ' + fullpath);
+            // Check if parent directory exists.
+            try {
+                var parent = path.dirname(fullpath);
+                var dir = this.getDirectory(parent);
+            }
+            catch (e) {
+                throw Error("ENOENT: no such file or directory, mkdir '" + fullpath + "'");
+            }
             this.addDir(fullpath, layer);
         };
         // fs.mkdir(path[, mode], callback)

@@ -42,4 +42,18 @@ describe("API", function() {
             expect(mem.readFileSync(f, 'utf8')).to.equal(c);
         });
     });
+
+    // https://github.com/streamich/memfs/issues/4
+    describe('readdirSync', function() {
+        it('create directories above file', function() {
+            var mem = new memfs.Volume;
+            mem.mountSync('/a', {});
+            mem.mkdirSync('/a/b/');
+            mem.mkdirSync('/a/b/c/');
+            mem.writeFileSync('/a/b/c/d.stuff', 'wat');
+            var list = mem.readdirSync('/a');
+            expect(list.length).to.equal(1);
+            expect(list[0]).to.equal('b');
+        });
+    });
 });

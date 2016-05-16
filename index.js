@@ -889,6 +889,10 @@ var memfs;
         };
         // fs.readSync(fd, buffer, offset, length, position)
         Volume.prototype.readSync = function (fd, buffer, offset, length, position) {
+            // TODO: Node.js will read the file forever in `.creatReadStream` mode.
+            // TODO: We need to generate new file descriptor `fd` for every new `openSync`
+            // TODO: and track position in file for every `readSync` and then when we are at the EOF
+            // TODO: we should return 0 (zero bytes read) so the stream closes.
             var file = this.getByFd(fd);
             if (!(file instanceof File))
                 throw Error('Not a file: ' + file.path);
@@ -1000,6 +1004,7 @@ var memfs;
             MemFileReadStream.prototype._read = function () {
                 if (!this.done) {
                     this.push(new Buffer(file.getData()));
+                    // this.push(null);
                     this.done = true;
                 }
                 else {

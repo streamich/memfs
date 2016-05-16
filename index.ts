@@ -942,6 +942,10 @@ module memfs {
 
         // fs.readSync(fd, buffer, offset, length, position)
         readSync(fd: number, buffer: Buffer, offset: number, length: number, position: number) {
+            // TODO: Node.js will read the file forever in `.creatReadStream` mode.
+            // TODO: We need to generate new file descriptor `fd` for every new `openSync`
+            // TODO: and track position in file for every `readSync` and then when we are at the EOF
+            // TODO: we should return 0 (zero bytes read) so the stream closes.
             var file = <File> this.getByFd(fd);
             if(!(file instanceof File)) throw Error('Not a file: ' + file.path);
             var data = file.getData();
@@ -1053,6 +1057,7 @@ module memfs {
             MemFileReadStream.prototype._read = function() {
                 if(!this.done) {
                     this.push(new Buffer(file.getData()));
+                    // this.push(null);
                     this.done = true;
                 } else {
                     this.push(null);

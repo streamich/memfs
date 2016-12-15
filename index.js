@@ -5,6 +5,16 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+function SystemError(message, code) {
+  this.name = 'SystemError';
+  this.message = message || 'Default Message';
+  if (code) {
+    this.code = code;
+  }
+  this.stack = (new Error()).stack;
+}
+SystemError.prototype = Object.create(Error.prototype);
+SystemError.prototype.constructor = SystemError;
 /**
  * path.resolve
  * path.sep
@@ -167,7 +177,7 @@ var memfs;
         Volume.prototype.addDir = function (fullpath, layer) {
             fullpath = this.normalize(fullpath);
             if (this.flattened[fullpath])
-                throw Error('Node already exists: ' + fullpath);
+                throw SystemError('Node already exists: ' + fullpath, 'EEXIST');
             var relative = path.relative(layer.mountpoint, fullpath);
             relative = relative.replace(/\\/g, '/'); // Always use forward slashed in our virtual relative paths.
             var directory = new Directory(relative, layer);
@@ -178,7 +188,7 @@ var memfs;
         Volume.prototype.addFile = function (fullpath, layer) {
             fullpath = this.normalize(fullpath);
             if (this.flattened[fullpath])
-                throw Error('Node already exists: ' + fullpath);
+                throw SystemError('Node already exists: ' + fullpath, 'EEXIST');
             var relative = path.relative(layer.mountpoint, fullpath);
             relative = relative.replace(/\\/g, '/'); // Always use forward slashed in our virtual relative paths.
             var node = new File(relative, layer);

@@ -1,5 +1,7 @@
 # memfs
 
+[See example in browser.](https://jsfiddle.net/6a96vLoj/2/)
+
 A [`fs`](https://nodejs.org/api/fs.html) API to work with *virtual in-memory* files.
 
 ```javascript

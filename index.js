@@ -12,6 +12,7 @@ var __extends = (this && this.__extends) || function (d, b) {
  * path.dirname
  */
 var path = require('path');
+var process = require('process');
 var time = new Date;
 var memfs;
 (function (memfs) {

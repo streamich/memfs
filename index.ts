@@ -7,6 +7,7 @@
  * path.dirname
  */
 var path = require('path');
+var process = require('process');
 var time = new Date;
 
 

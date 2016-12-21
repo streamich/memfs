@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "In-memory file-system with node.js `fs` API",
   "main": "index.js",
   "keywords": ["fs", "file", "file system", "mount", "memory", "in-memory", "virtual"],
@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "path": "0.12.7",
-    "process": "0.11.9"
+    "process": "0.11.9",
+    "buffer": "5.0.2"
   },
   "devDependencies": {
     "chai": "*"

@@ -6,8 +6,13 @@
  * path.relative
  * path.dirname
  */
-var path = require('path');
+
 var process = require('process');
+
+if(typeof window === 'object')
+    (window as any).process = process;
+
+var path = require('path');
 var time = new Date;
 
 

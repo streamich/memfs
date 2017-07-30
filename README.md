@@ -1,5 +1,7 @@
 # memfs
 
+In-memory file-system with Node's `fs` API.
+
 [See example in browser.](https://jsfiddle.net/6a96vLoj/2/)
 
 A [`fs`](https://nodejs.org/api/fs.html) API to work with *virtual in-memory* files.
@@ -40,3 +42,23 @@ console.log(fs.readFileSync('./test.js').toString()); // console.log(123);
 require('./test.js'); // 123
 
 ```
+
+This package assumes you are running on Node or have a
+[`path`](https://www.npmjs.com/package/path) and `buffer` modules available.
+
+It also uses `process` and `setImmediate` globals, but mocks them, if not
+available.
+
+## Contributing
+
+TODOs:
+
+
+Testing:
+
+    npm test
+    npm run test-watch
+
+Building:
+
+    npm run build

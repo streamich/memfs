@@ -1,4 +1,4 @@
-/// <reference path="typings/tsd.d.ts" />
+/*
 var unionfs = require('../unionfs/index');
 var memfs = require('./index');
 var fs = require('fs');
@@ -22,3 +22,4 @@ unionfs
 console.log(mem.existsSync('/test/dir/dir2\\test.js').toString());
 console.log(mem.existsSync('/test2/dir/dir2\\test.js').toString());
 //console.log(mem.readdirSync('/test/dir/dir2'));
+*/

@@ -1,7 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es3",
+    "target": "es5",
     "module": "commonjs",
-    "removeComments": false
-  }
+    "removeComments": true,
+    "noImplicitAny": false,
+    "sourceMap": false,
+    "outDir": "./build"
+  },
+  "exclude": [
+    "node_modules"
+  ]
 }

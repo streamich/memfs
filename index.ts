@@ -1,11 +1,11 @@
-/// <reference path="typings/tsd.d.ts" />
+/*
 
-/**
+/!**
  * path.resolve
  * path.sep
  * path.relative
  * path.dirname
- */
+ *!/
 
 var process = require('process');
 
@@ -172,13 +172,13 @@ module memfs {
         // The root directory at which this layer was mounted.
         mountpoint;
 
-        /**
+        /!**
          * A map of relative file names to file contents 'string'.
          * {
          *  "test.txt": "...."
          *  "some/path/hello.txt": "world ..."
          * }
-         */
+         *!/
         files = {};
 
         constructor(mountpoint, files) {
@@ -301,11 +301,11 @@ module memfs {
             return Error('File not found: ' + file);
         }
 
-        /**
+        /!**
          * Mount virtual in-memory files.
          * @param mountpoint Path to the root of the mounting point.
          * @param files A dictionary of relative file paths to their contents.
-         */
+         *!/
         mountSync(mountpoint: string, files: {[s: string]: string} = {}) {
             var layer = new Layer(mountpoint, files);
             this.addLayer(layer);
@@ -619,8 +619,8 @@ module memfs {
 
         // fs.ftruncateSync(fd, len)
         ftruncateSync(fd, len) {
-            var node = <File> this.getByFd(fd);
-            if(!(node instanceof File)) this.err404(node.path);
+            const node = this.getByFd(fd) as File;
+            if(!(node instanceof File)) this.err404((node as Node).path);
             node.truncate(len);
         }
 
@@ -1109,3 +1109,4 @@ module memfs {
 
 
 export = memfs;
+*/

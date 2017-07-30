@@ -1,8 +1,7 @@
-import {mountSync, readFileSync} from '../src/index';
+import {fs, readFileSync, writeFileSync} from '../src/index';
 
 
-mountSync('/', {
-    'test.txt': 'Hello world...',
-});
 
 
+fs.writeFileSync('test.txt', 'Hello there...');
+console.log(fs.readFileSync('test.txt').toString());

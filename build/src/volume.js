@@ -32,9 +32,9 @@ var Volume = (function () {
         fullpath = this.normalize(fullpath);
         if (this.flattened[fullpath])
             throw Error('Node already exists: ' + fullpath);
-        var relative = relative(layer.mountpoint, fullpath);
-        relative = relative.replace(/\\/g, '/');
-        var directory = new node_1.Directory(relative, layer);
+        var relativePath = path_1.relative(layer.mountpoint, fullpath);
+        relativePath = relativePath.replace(/\\/g, '/');
+        var directory = new node_1.Directory(relativePath, layer);
         this.flattened[fullpath] = directory;
         this.fds[directory.fd] = directory;
         return directory;
@@ -43,12 +43,12 @@ var Volume = (function () {
         fullpath = this.normalize(fullpath);
         if (this.flattened[fullpath])
             throw Error('Node already exists: ' + fullpath);
-        var relative = relative(layer.mountpoint, fullpath);
-        relative = relative.replace(/\\/g, '/');
-        var node = new node_1.File(relative, layer);
+        var relativePath = path_1.relative(layer.mountpoint, fullpath);
+        relativePath = relativePath.replace(/\\/g, '/');
+        var node = new node_1.File(relativePath, layer);
         this.flattened[fullpath] = node;
         this.fds[node.fd] = node;
-        var steps = relative.split('/');
+        var steps = relativePath.split('/');
         var dirfullpath = layer.mountpoint;
         for (var i = 0; i < steps.length - 1; i++) {
             dirfullpath += path_1.sep + steps[i];
@@ -62,8 +62,8 @@ var Volume = (function () {
         this.layers.push(layer);
         var mountpoint = path_1.resolve(layer.mountpoint) + path_1.sep;
         this.addDir(mountpoint, layer);
-        for (var relative in layer.files) {
-            var filepath = relative.replace(/\//g, path_1.sep);
+        for (var relativePath in layer.files) {
+            var filepath = relativePath.replace(/\//g, path_1.sep);
             var fullpath = mountpoint + filepath;
             this.addFile(fullpath, layer);
         }
@@ -287,12 +287,12 @@ var Volume = (function () {
                 catch (e) {
                     throw e;
                 }
-                var relative_1 = nodepath.substr(len + 1);
-                var sep_pos = relative_1.indexOf(path_1.sep);
+                var relativePath = nodepath.substr(len + 1);
+                var sep_pos = relativePath.indexOf(path_1.sep);
                 if (sep_pos > -1)
-                    relative_1 = relative_1.substr(0, sep_pos);
-                if (relative_1)
-                    index[relative_1] = 1;
+                    relativePath = relativePath.substr(0, sep_pos);
+                if (relativePath)
+                    index[relativePath] = 1;
             }
         }
         var files = [];

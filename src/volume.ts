@@ -65,10 +65,10 @@ export class Volume {
         fullpath = this.normalize(fullpath);
         if(this.flattened[fullpath]) throw Error('Node already exists: ' + fullpath);
 
-        var relative = relative(layer.mountpoint, fullpath);
-        relative = relative.replace(/\\/g, '/'); // Always use forward slashed in our virtual relative paths.
+        let relativePath = relative(layer.mountpoint, fullpath);
+        relativePath = relativePath.replace(/\\/g, '/'); // Always use forward slashed in our virtual relative paths.
 
-        var directory = new Directory(relative, layer);
+        const directory = new Directory(relativePath, layer);
         this.flattened[fullpath] = directory;
         this.fds[directory.fd] = directory;
         return directory;
@@ -78,14 +78,14 @@ export class Volume {
         fullpath = this.normalize(fullpath);
         if(this.flattened[fullpath]) throw Error('Node already exists: ' + fullpath);
 
-        var relative = relative(layer.mountpoint, fullpath);
-        relative = relative.replace(/\\/g, '/'); // Always use forward slashed in our virtual relative paths.
-        var node = new File(relative, layer);
+        let relativePath = relative(layer.mountpoint, fullpath);
+        relativePath = relativePath.replace(/\\/g, '/'); // Always use forward slashed in our virtual relative paths.
+        var node = new File(relativePath, layer);
 
         this.flattened[fullpath] = node;
         this.fds[node.fd] = node;
 
-        var steps = relative.split('/');
+        var steps = relativePath.split('/');
         var dirfullpath = layer.mountpoint;
         for(var i = 0; i < steps.length - 1; i++) {
             dirfullpath += sep + steps[i];
@@ -98,13 +98,13 @@ export class Volume {
 
     addLayer(layer: Layer) {
         this.layers.push(layer);
-        var mountpoint = resolve(layer.mountpoint) + sep;
+        const mountpoint = resolve(layer.mountpoint) + sep;
 
         // Add the root dir at the mount point.
         this.addDir(mountpoint, layer);
 
-        for(var relative in layer.files) {
-            var filepath = relative.replace(/\//g, sep);
+        for(let relativePath in layer.files) {
+            var filepath = relativePath.replace(/\//g, sep);
             var fullpath = mountpoint + filepath;
             this.addFile(fullpath, layer);
         }
@@ -367,10 +367,10 @@ export class Volume {
                     throw e;
                 }
 
-                let relative = nodepath.substr(len + 1);
-                const sep_pos = relative.indexOf(sep);
-                if(sep_pos > -1) relative = relative.substr(0, sep_pos);
-                if(relative) index[relative] = 1;
+                let relativePath = nodepath.substr(len + 1);
+                const sep_pos = relativePath.indexOf(sep);
+                if(sep_pos > -1) relativePath = relativePath.substr(0, sep_pos);
+                if(relativePath) index[relativePath] = 1;
             }
         }
 

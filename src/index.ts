@@ -8,4 +8,4 @@ fs.mountSync(); // Create a default layer.
 
 export const mountSync = fs.mountSync.bind(fs);
 export const readFileSync = fs.readFileSync.bind(fs);
-
+export const writeFileSync = fs.writeFileSync.bind(fs);

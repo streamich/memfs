@@ -1,6 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var volume_1 = require("./volume");
+var constants_1 = require("./constants");
+exports.constants = constants_1.constants;
+exports.F_OK = constants_1.constants.F_OK;
+exports.R_OK = constants_1.constants.R_OK;
+exports.W_OK = constants_1.constants.W_OK;
+exports.X_OK = constants_1.constants.X_OK;
 exports.fs = new volume_1.Volume;
 exports.fs.mountSync();
 exports.mountSync = exports.fs.mountSync.bind(exports.fs);

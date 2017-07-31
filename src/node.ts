@@ -1,37 +1,19 @@
-import {resolve} from 'path';
 import process from './process';
-import {Layer} from "./volume";
+
+
+const SEP = '/';
 
 
 /**
- * Node in file system (like i-node, file, directory).
+ * Node in a file system (like i-node, v-node).
  */
 export class Node {
 
-    /**
-     * Global file descriptor counter.
-     * @type {number}
-     */
-    static fd = -128;
+    parent: Node = null;
 
-    // Layer where file is to be found.
-    layer: Layer;
+    children: {[child: string]: Node} = {};
 
-    // Relative path inside a layer.
-    relative: string;
-
-    // Absolute path.
-    path: string;
-
-    /**
-     * File descriptor, negative, because a real file descriptors cannot be negative.
-     * This makes sure we don't ever conflict with real file descriptors, but there is
-     * a good chance that it is a bad idea, because we conflict (kinda) with error messages,
-     * which are negative. UNIX error codes normally are in range [-127...-1], we make sure
-     * our file descriptors are less than -128 here.
-     * @type {number}
-     */
-    fd: number = Node.fd--;
+    steps: string[] = [];
 
     // User ID and group ID.
     uid: number = process.getuid();
@@ -41,64 +23,128 @@ export class Node {
     mtime = new Date;
     ctime = new Date;
 
+    data: string = '';
 
-    constructor(relative: string, layer: Layer) {
-        this.relative = relative;
-        this.path = resolve(layer.mountpoint, relative);
-        this.layer = layer;
+    private _isDirectory = false;
+    private _isSymlink = false;
+
+    constructor(parent: Node, name: string, isDirectory = false) {
+        this.parent = parent;
+        this.steps = parent ? parent.steps.concat([name]) : [name];
+        this._isDirectory = isDirectory;
     }
 
-    getData(): string {
-        return '';
+    getChild(name: string) {
+        return this.children[name];
     }
 
-    setData(data: string|Buffer) {
-
+    createChild(name: string) {
+        const node = new Node(this, name);
+        this.children[name] = node;
+        return node;
     }
 
     getPath() {
-        return this.path;
+        return SEP + this.steps.join(SEP);
     }
 
+    getData(): string {
+        return this.data;
+    }
 
-    stats(): Stats {
-        return Stats.build(this);
+    setData(data: string|Buffer) {
+        this.data = String(data);
+    }
+
+    isDirectory() {
+        return this._isDirectory;
+    }
+
+    isSymlink() {
+        return this._isSymlink;
     }
 
     chown(uid: number, gid: number) {
         this.uid = uid;
         this.gid = gid;
     }
+
+    /**
+     * Walk the tree path and return the `Node` at that leaf.
+     * @param steps
+     * @param stop
+     * @param i
+     * @returns {any}
+     */
+    walk(steps: string[], stop: number = steps.length, i: number = 0) {
+        if(i >= steps.length) return this;
+        if(i >= stop) return this;
+
+        const step = steps[i];
+        const node = this.getChild(step);
+        if(!node) return null;
+        return node.walk(steps, stop, i + 1);
+    }
 }
 
 
 /**
- * Represents a file.
+ * Represents an open file (file descriptor) that points to a `Node` (inode).
  */
-export class File extends Node {
+export class File {
 
-    // A "cursor" position in a file, where data will be written.
-    position: number = 0;
+    /**
+     * Global file descriptor counter.
+     * @type {number}
+     */
+    static fd = -128;
+
+    /**
+     * File descriptor, negative, because a real file descriptors cannot be negative.
+     * This makes sure we don't ever conflict with real file descriptors, but there is
+     * a good chance that it is a bad idea, because we conflict (kinda) with error messages,
+     * which are negative. UNIX error codes normally are in range [-127...-1], we make sure
+     * our file descriptors are less than -128 here.
+     * @type {number}
+     */
+    fd: number = File.fd--;
+
+    /**
+     * Reference to an i-node.
+     * @type {Node}
+     */
+    node: Node = null;
+
+    /**
+     * A cursor/offset position in a file, where data will be written on write.
+     * User can "seek" this position.
+     */
+    offset: number = 0;
+
+
+    constructor(node: Node) {
+        this.node = node;
+    }
 
     getData(): string {
-        return this.layer.files[this.relative];
+        return this.node.getData();
     }
 
     setData(data: string|Buffer) {
-        this.layer.files[this.relative] = data.toString();
+        this.node.setData(data);
     }
 
     truncate(len = 0) {
         this.setData(this.getData().substr(0, len));
     }
-}
 
+    seek(offset: number) {
+        this.offset = offset;
+    }
 
-/**
- * Represents a directory.
- */
-export class Directory extends Node {
-
+    stats(): Stats {
+        return Stats.build(this);
+    }
 }
 
 
@@ -107,8 +153,9 @@ export class Directory extends Node {
  */
 export class Stats {
 
-    static build(node: Node|File|Directory) {
-        var stats = new Stats;
+    static build(fd: File) {
+        const stats = new Stats;
+        const {node} = fd;
 
         stats.uid = node.uid;
         stats.gid = node.gid;
@@ -117,40 +164,40 @@ export class Stats {
         stats.mtime = node.mtime;
         stats.ctime = node.ctime;
 
-        if(node instanceof Directory) {
-            stats._isDirectory = true;
-        } else if(node instanceof File) {
-            var data = node.getData();
-            stats.size = data.length;
-            stats._isFile = true;
-        }
+        stats.size = node.getData().length;
+
+        if(node.isDirectory())      stats._isDirectory = true;
+        else if(node.isSymlink())   stats._isSymbolicLink = true;
+        else                        stats._isFile = true;
+
         return stats;
     }
 
 
     // User ID and group ID.
-    uid = process.getuid();
-    gid = process.getgid();
+    uid: number = 0;
+    gid: number = 0;
 
 
-    rdev = 0;
-    blksize = 4096;
-    ino = 0;
-    size = 0;
-    blocks = 1;
+    rdev: number = 0;
+    blksize: number = 4096;
+    ino: number = 0;
+    size: number = 0;
+    blocks: number = 1;
 
-    atime = new Date;
-    mtime = new Date;
-    ctime = new Date;
-    birthtime = new Date;
+    atime: Date = null;
+    mtime: Date = null;
+    ctime: Date = null;
+    birthtime: Date = null;
 
-    dev = 0;
-    mode = 0;
-    nlink = 0;
+    dev: number = 0;
+    mode: number = 0;
+    nlink: number = 0;
 
     // For internal usage.
     _isFile = false;
     _isDirectory = false;
+    _isSymbolicLink = false;
 
     isFile() {
         return this._isFile;
@@ -161,6 +208,6 @@ export class Stats {
     }
 
     isSymbolicLink() {
-        return false;
+        return this._isSymbolicLink;
     }
 }

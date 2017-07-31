@@ -49,6 +49,12 @@ This package assumes you are running on Node or have a
 It also uses `process` and `setImmediate` globals, but mocks them, if not
 available.
 
+## API Status
+
+ - [x] Constants
+ - [x] `fs.readFileSync`
+ - [x] `fs.writeFileSync`
+ 
 ## Contributing
 
 TODOs:

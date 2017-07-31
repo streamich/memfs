@@ -1,8 +1,8 @@
 import {resolve, normalize, sep, relative, dirname} from 'path';
-import {Node, File, Directory, Stats} from "./node";
+import {Node, File, Stats} from "./node";
 import setImmediate from './setImmediate';
 import {Buffer} from 'buffer';
-
+const extend = require('fast-extend');
 
 
 export type TLayerFiles = {[relativePath: string]: string};
@@ -27,9 +27,12 @@ export class Layer {
      */
     files: TLayerFiles = {};
 
-    constructor(mountpoint: string, files: TLayerFiles) {
+    symlinks: TLayerFiles = {};
+
+    constructor(mountpoint: string, files: TLayerFiles, symlinks: TLayerFiles = {}) {
         this.mountpoint = resolve(mountpoint);
         this.files = files;
+        this.symlinks = symlinks;
     }
 
     toJSON() {
@@ -38,20 +41,213 @@ export class Layer {
 }
 
 
+type TFilePath = string | Buffer;
+type TFileId = TFilePath | URL | number;
+type TData = string | Buffer | Uint8Array;
+
+
+const ERRSTR = {
+    PATH_STR:       'path must be a string',
+    FD:             'file descriptor must be a unsigned 32-bit integer',
+    MODE_INT:       'mode must be an integer',
+    CB:             'callback must be a function',
+    UID:            'uid must be an unsigned int',
+    GID:            'gid must be an unsigned int',
+    LEN:            'len must be an integer',
+    ATIME:          'atime must be an integer',
+    MTIME:          'mtime must be an integer',
+    PREFIX:         'filename prefix is required',
+    BUFFER:         'buffer must be an instance of Buffer or StaticBuffer',
+    OFFSET:         'offset must be an integer',
+    LENGTH:         'length must be an integer',
+    POSITION:       'position must be an integer',
+};
+const ERRSTR_OPTS = tipeof => `Expected options to be either an object or a string, but got ${tipeof} instead`;
+
+
+function formatError(errorCode: string, func = '', path = '', path2 = '') {
+    switch(errorCode) {
+        case 'ENOENT':    return `ENOENT: no such file or directory, ${func} '${path}'`;
+        case 'EBADF':     return `EBADF: bad file descriptor, ${func}`;
+        case 'EINVAL':    return `EINVAL: invalid argument, ${func}`;
+        case 'EPERM':     return `EPERM: operation not permitted, ${func} '${path}' -> '${path2}'`;
+        case 'EPROTO':    return `EPROTO: protocol error, ${func} '${path}' -> '${path2}'`;
+        case 'EEXIST':    return `EEXIST: file already exists, ${func} '${path}' -> '${path2}'`;
+        default:          return `Error occurred in ${func}`;
+    }
+}
+
+function throwError(errorCode: string, func = '', path = '', path2 = '') {
+    throw Error(formatError(errorCode, func, path, path2));
+}
+
+function pathOrError(path: TFilePath, encoding?: string): string | TypeError {
+    if(Buffer.isBuffer(path)) path = (path as Buffer).toString(encoding);
+    if(typeof path !== 'string') return TypeError(ERRSTR.PATH_STR);
+    return path as string;
+}
+
+function validPathOrThrow(path: TFilePath, encoding?): string {
+    const p = pathOrError(path, encoding);
+    if(p instanceof TypeError) throw p;
+    else return p as string;
+}
+
+function assertEncoding(encoding: string) {
+    if(encoding && !Buffer.isEncoding(encoding))
+        throw Error('Unknown encoding: ' + encoding);
+}
+
+function assertFd(fd: number) {
+    if(typeof fd !== 'number') throw TypeError(ERRSTR.FD);
+}
+
+function getOptions <T> (defaults: T, options?: T|string): T {
+    if(!options) return defaults;
+    else {
+        var tipeof = typeof options;
+        switch(tipeof) {
+            case 'string': return extend({}, defaults, {encoding: options as string});
+            case 'object': return extend({}, defaults, options);
+            default: throw TypeError(ERRSTR_OPTS(tipeof));
+        }
+    }
+}
+
+const optsGenerator = defaults => options => getOptions(defaults, options);
+
+function validateCallback(callback) {
+    if(typeof callback !== 'function')
+        throw TypeError(ERRSTR.CB);
+    return callback;
+}
+
+const optionAndCallbackGenerator = getOpts =>
+    (options, callback?) => typeof options === 'function'
+        ? [getOpts(), options]
+        : [getOpts(options), validateCallback(callback)];
+
+
+
+// Options
+export interface IOptions {
+    encoding?: string;
+}
+
+const optsDefaults: IOptions = {
+    encoding: 'utf8',
+};
+
+export interface IReadFileOptions extends IOptions {
+    flag?: string;
+}
+
+const readFileOptsDefaults: IReadFileOptions = {
+    flag: 'r',
+};
+
+const getReadFileOptions: (options: IReadFileOptions) => IReadFileOptions = optsGenerator(readFileOptsDefaults);
+
 
 /**
  * `Volume` represents a file system. It is a collection of one or more layers.
- * We have this, so that we override functions with `.attach()` only once.
  */
 export class Volume {
 
+    root: Node = new Node(null, '', true);
+
+    private filenameToSteps(filename: string): string[] {
+        const fullPath = resolve(filename);
+        const fulPathSansSlash = fullPath.substr(1);
+        return fulPathSansSlash.split(sep);
+    }
+
+    private getNode(steps: string[]): Node {
+        return this.root.walk(steps);
+    }
+
+    private getNodeOrCreateFileNode(steps: string[]): Node {
+        const dirNode = this.root.walk(steps, steps.length - 1);
+        if(!dirNode) throw Error('Directory not found');
+
+        const filename = steps[steps.length - 1];
+        let node = dirNode.getChild(filename);
+        if(node) {
+            return node;
+        } else {
+            return dirNode.createChild(filename);
+        }
+    }
+
+    private getNodeByFileId(file: TFileId) {
+        if(typeof file === 'number') {
+
+        } else if((typeof file === 'string') || (Buffer.isBuffer(file))) {
+            const filename: string = String(file);
+            const steps = this.filenameToSteps(filename);
+            console.log('steps', steps);
+            return this.getNode(steps);
+        }
+    }
+
+    private getNodeOrCreateByFileId(file: TFileId): Node {
+        if(typeof file === 'number') {
+
+        } else {
+            const filename: string = String(file);
+            const steps = this.filenameToSteps(filename);
+            return this.getNodeOrCreateFileNode(steps);
+        }
+    }
+
+    private dataToEncoding(data: string, options: IOptions): string | Buffer {
+        if(options.encoding === 'utf8') return data;
+        if(!options.encoding) return new Buffer(data);
+
+        const buf = new Buffer(data);
+        return buf.toString(options.encoding);
+    }
+
+
+    writeFileSync(file: TFileId, data: TData, options?: any) {
+        const node = this.getNodeOrCreateByFileId(file);
+        node.setData(String(data));
+    }
+
+    readFileSync(file: TFileId, options?: any) {
+        const opts = getReadFileOptions(options);
+        const node = this.getNodeByFileId(file);
+        if(!node) throw Error('Not found');
+
+        return this.dataToEncoding(node.getData(), opts);
+    }
+
+/*
+
+    writeFileSync(filename: string, data: TData, options?: any) {
+        let file: File;
+
+        try {
+            file = this.getFile(filename);
+        } catch(e) { // Try to create a new file.
+            const fullPath = resolve(filename);
+            const layer = this.getLayerContainingPath(fullPath);
+            if(!layer) throw Error('Cannot create new file at this path: ' + fullPath);
+            file = this.addFile(fullPath, layer);
+        }
+
+        file.setData(data.toString());
+    }
+*/
+
+    /*
     // A flattened map of all nodes in this file system.
     flattened: {[absolutePath: string]: Node} = {};
 
     // Collection of file layers, where the top ones override the bottom ones.
     layers: Layer[] = [];
 
-    // A map of pseudo 'file descriptors' to LNodes.
+    // A map of pseudo 'file descriptors' to Nodes.
     fds = {};
 
     normalize(somepath) {
@@ -156,11 +352,11 @@ export class Volume {
         return Error('File not found: ' + file);
     }
 
-    /**
+    /!**
      * Mount virtual in-memory files.
      * @param mountpoint Path to the root of the mounting point.
      * @param files A dictionary of relative file paths to their contents.
-     */
+     *!/
     mountSync(mountpoint: string = '/', files: TLayerFiles = {}) {
         this.addLayer(new Layer(mountpoint, files));
     }
@@ -927,4 +1123,5 @@ export class Volume {
     //fs.watchFile(filename[, options], listener)
     //fs.unwatchFile(filename[, listener])
     //fs.watch(filename[, options][, listener])
+    */
 }

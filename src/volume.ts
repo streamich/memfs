@@ -67,13 +67,18 @@ const ERRSTR_OPTS = tipeof => `Expected options to be either an object or a stri
 
 
 function formatError(errorCode: string, func = '', path = '', path2 = '') {
+
+    let pathFormatted = '';
+    if(path) pathFormatted = ` '${path}'`;
+    if(path2) pathFormatted += ` -> '${path2}'`;
+
     switch(errorCode) {
-        case 'ENOENT':      return `ENOENT: no such file or directory, ${func} '${path}'`;
-        case 'EBADF':       return `EBADF: bad file descriptor, ${func}`;
-        case 'EINVAL':      return `EINVAL: invalid argument, ${func}`;
-        case 'EPERM':       return `EPERM: operation not permitted, ${func} '${path}' -> '${path2}'`;
-        case 'EPROTO':      return `EPROTO: protocol error, ${func} '${path}' -> '${path2}'`;
-        case 'EEXIST':      return `EEXIST: file already exists, ${func} '${path}' -> '${path2}'`;
+        case 'ENOENT':      return `ENOENT: no such file or directory, ${func}${pathFormatted}`;
+        case 'EBADF':       return `EBADF: bad file descriptor, ${func}${pathFormatted}`;
+        case 'EINVAL':      return `EINVAL: invalid argument, ${func}${pathFormatted}`;
+        case 'EPERM':       return `EPERM: operation not permitted, ${func}${pathFormatted}`;
+        case 'EPROTO':      return `EPROTO: protocol error, ${func}${pathFormatted}`;
+        case 'EEXIST':      return `EEXIST: file already exists, ${func}${pathFormatted}`;
 
         // TODO: These error messages to be implemented:
         // Too many file descriptors open.
@@ -350,6 +355,14 @@ export class Volume<TNode extends Node> {
         return this.root.walk(steps, steps.length - 1);
     }
 
+    // Resolves symlinks.
+    private getRealNode(node: Node): Node {
+        while(node && node.symlink) {
+            node = this.getNode(node.symlink);
+        }
+        return node;
+    }
+
     private getNodeOrCreateFileNode(steps: string[]): Node {
         const dirNode = this.root.walk(steps, steps.length - 1);
         if(!dirNode) throw Error('Directory not found');
@@ -436,7 +449,11 @@ export class Volume<TNode extends Node> {
         if(this.releasedFds.length)
             fd = this.releasedFds.pop();
 
-        const file = new File(node, flagsNum, fd);
+        // Resolve symlinks.
+        const realNode = this.getRealNode(node);
+        if(!realNode) throwError('ENOENT', 'open', node.getFilename());
+
+        const file = new File(realNode, flagsNum, fd);
         this.fds[file.fd] = file;
         this.openFiles++;
 
@@ -573,32 +590,29 @@ export class Volume<TNode extends Node> {
         this.wrapAsync(this.writeFileBase, [id, dataStr, flagsNum, modeNum], callback);
     }
 
-/*
+    // `type` argument works only on Windows.
+    symlinkSync(target: TFilePath, path: TFilePath, type?: 'file' | 'dir' | 'junction') {
+        const targetFilename = pathToFilename(target);
+        const targetSteps = filenameToSteps(targetFilename);
 
-    writeFileSync(filename: string, data: TData, options?: any) {
-        let file: File;
+        const pathFilename = pathToFilename(path);
+        const pathSteps = filenameToSteps(pathFilename);
 
-        try {
-            file = this.getFile(filename);
-        } catch(e) { // Try to create a new file.
-            const fullPath = resolve(filename);
-            const layer = this.getLayerContainingPath(fullPath);
-            if(!layer) throw Error('Cannot create new file at this path: ' + fullPath);
-            file = this.addFile(fullPath, layer);
-        }
+        // Check if directory exists, where we about to create a symlink.
+        const dirNode = this.getDirNode(pathSteps);
+        if(!dirNode) throwError('ENOENT', 'symlink', targetFilename, pathFilename);
 
-        file.setData(data.toString());
+        const name = pathSteps[pathSteps.length - 1];
+
+        // Check if new file already exists.
+        if(dirNode.getChild(name))
+            throwError('EEXIST', 'symlink', targetFilename, pathFilename);
+
+        const symlinkNode = this.createNode(dirNode, name, false, MODE.DEFAULT);
+        symlinkNode.symlink = targetSteps;
     }
-*/
 
-    /*
-    // A flattened map of all nodes in this file system.
-    flattened: {[absolutePath: string]: Node} = {};
-
-    // Collection of file layers, where the top ones override the bottom ones.
-    layers: Layer[] = [];
-
-
+/*
 
     normalize(somepath) {
         somepath = normalize(somepath);

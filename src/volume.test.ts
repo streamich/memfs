@@ -234,5 +234,20 @@ describe('volume', () => {
                 }
             });
         });
+        describe('.symlinkSync(target, path[, type])', () => {
+            const vol = new Volume;
+            const jquery = vol.root.createChild('jquery.js');
+            const data = '"use strict";';
+            jquery.setString(data);
+            it('Create a symlink', () => {
+                vol.symlinkSync('/jquery.js', '/test.js');
+                expect(vol.root.children['test.js']).to.be.an.instanceof(Node);
+                expect(vol.root.children['test.js'].isSymlink()).to.equal(true);
+            });
+            it('Read from symlink', () => {
+                vol.symlinkSync('/jquery.js', '/test2.js');
+                expect(vol.readFileSync('/test2.js').toString()).to.equal(data);
+            });
+        });
     });
 });

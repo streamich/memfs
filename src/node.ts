@@ -28,9 +28,11 @@ export class Node {
     buf: Buffer = null;
 
     private _isDirectory = false;
-    private _isSymlink = false;
 
     mode = 0o666;
+
+    // Steps to another node, if this node is a symlink.
+    symlink: string[] = null;
 
     constructor(parent: Node, name: string, isDirectory: boolean = false, mode: number = 0o666) {
         this.parent = parent;
@@ -71,12 +73,16 @@ export class Node {
         this.buf = Buffer.from(buf); // Creates a copy of data.
     }
 
+    getFilename(): string {
+        return this.steps.join(SEP);
+    }
+
     isDirectory() {
         return this._isDirectory;
     }
 
     isSymlink() {
-        return this._isSymlink;
+        return !!this.symlink;
     }
 
     chown(uid: number, gid: number) {
@@ -91,7 +97,7 @@ export class Node {
      * @param i {number} Current step in the `steps` array.
      * @returns {any}
      */
-    walk(steps: string[], stop: number = steps.length, i: number = 0) {
+    walk(steps: string[], stop: number = steps.length, i: number = 0): Node {
         if(i >= steps.length) return this;
         if(i >= stop) return this;
 

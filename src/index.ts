@@ -15,8 +15,9 @@ export const volume = new Volume;
 
 // List of `fs.js` methods, used to export bound (`.bind`) method list, just like `require('fs')` would do.
 const FS_METHODS = [
-    /*'readFile', */'readFileSync',
-    /*'writeFile', */'writeFileSync',
+    'open',         'openSync',
+    'readFile',     'readFileSync',
+    'writeFile',    'writeFileSync',
 ];
 
 

@@ -24,7 +24,8 @@ export class Node {
     mtime = new Date;
     ctime = new Date;
 
-    data: string = '';
+    // data: string = '';
+    buf: Buffer = null;
 
     private _isDirectory = false;
     private _isSymlink = false;
@@ -52,12 +53,22 @@ export class Node {
         return SEP + this.steps.join(SEP);
     }
 
-    getData(): string {
-        return this.data;
+    getString(encoding = 'utf8'): string {
+        return this.getBuffer().toString(encoding);
     }
 
-    setData(data: string|Buffer) {
-        this.data = String(data);
+    setString(str: string) {
+        // this.setBuffer(Buffer.from(str, 'utf8'));
+        this.buf = Buffer.from(str, 'utf8');
+    }
+
+    getBuffer(): Buffer {
+        if(!this.buf) this.setBuffer(Buffer.from([]));
+        return Buffer.from(this.buf); // Return a copy.
+    }
+
+    setBuffer(buf: Buffer) {
+        this.buf = Buffer.from(buf); // Creates a copy of data.
     }
 
     isDirectory() {
@@ -105,7 +116,7 @@ export class File {
      */
     static fd = 0xFFFFFFFF;
 
-    fd: number = File.fd--;
+    fd: number;
 
     /**
      * Reference to a `Node`.
@@ -122,21 +133,34 @@ export class File {
     // Flags used when opening the file.
     flags: number;
 
-    constructor(node: Node, flags: number) {
+    constructor(node: Node, flags: number, fd?: number) {
         this.node = node;
         this.flags = flags;
+        if(!fd) this.fd = File.fd--;
     }
 
-    getData(): string {
-        return this.node.getData();
+    getString(encoding = 'utf8'): string {
+        return this.node.getString();
     }
 
-    setData(data: string|Buffer) {
-        this.node.setData(data);
+    setString(str: string) {
+        this.node.setString(str);
+    }
+
+    getBuffer(): Buffer {
+        return this.node.getBuffer();
+    }
+
+    setBuffer(buf: Buffer) {
+        this.node.setBuffer(buf);
+    }
+
+    getSize(): number {
+        return this.node.getBuffer().length;
     }
 
     truncate(len = 0) {
-        this.setData(this.getData().substr(0, len));
+        this.setString(this.getString().substr(0, len));
     }
 
     seek(offset: number) {
@@ -154,9 +178,9 @@ export class File {
  */
 export class Stats {
 
-    static build(fd: File) {
+    static build(file: File) {
         const stats = new Stats;
-        const {node} = fd;
+        const {node} = file;
 
         stats.uid = node.uid;
         stats.gid = node.gid;
@@ -165,7 +189,7 @@ export class Stats {
         stats.mtime = node.mtime;
         stats.ctime = node.ctime;
 
-        stats.size = node.getData().length;
+        stats.size = file.getSize();
 
         if(node.isDirectory())      stats._isDirectory = true;
         else if(node.isSymlink())   stats._isSymbolicLink = true;

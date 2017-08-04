@@ -5,9 +5,11 @@
     "removeComments": true,
     "noImplicitAny": false,
     "sourceMap": false,
-    "outDir": "./build"
+    "rootDir": "src",
+    "outDir": "lib"
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "lib"
   ]
 }

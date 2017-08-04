@@ -146,7 +146,7 @@ describe('volume', () => {
             const vol = new Volume;
             const data = 'trololo';
             const fileNode = vol.root.createChild('text.txt', false);
-            fileNode.setData(data);
+            fileNode.setString(data);
             it('Read file at root (/text.txt)', () => {
                 const buf = vol.readFileSync('/text.txt');
                 const str = buf.toString();
@@ -166,7 +166,7 @@ describe('volume', () => {
                 const dir2 = dir1.createChild('dir2', true);
                 const fileNode = dir2.createChild('test-file', false);
                 const data = 'aaaaaa';
-                fileNode.setData(data);
+                fileNode.setString(data);
 
                 const str = vol.readFileSync('/dir1/dir2/test-file').toString();
                 expect(str).to.equal(data);
@@ -174,12 +174,25 @@ describe('volume', () => {
             it('Invalid options should throw', () => {
                 try {
                     // Expecting this line to throw
-                    vol.readFileSync('/text.txt', 123);
+                    vol.readFileSync('/text.txt', 123 as any);
                     throw Error('This should not throw');
                 } catch(err) {
                     expect(err).to.be.an.instanceof(TypeError);
                     // TODO: Check the right error message.
                 }
+            });
+        });
+        describe('.readFile(path[, options], callback)', () => {
+            const vol = new Volume;
+            const data = 'asdfasdf asdfasdf asdf';
+            const fileNode = vol.root.createChild('file.txt', false);
+            fileNode.setString(data);
+            it('Read file at root (/file.txt)', done => {
+                vol.readFile('/file.txt', 'utf8', (err, str) => {
+                    expect(err).to.equal(null);
+                    expect(str).to.equal(data);
+                    done();
+                });
             });
         });
         describe('.writeFileSync(path, data[, options])', () => {
@@ -190,7 +203,7 @@ describe('volume', () => {
 
                 const node = vol.root.children['writeFileSync.txt'];
                 expect(node).to.be.an.instanceof(Node);
-                expect(node.getData()).to.equal(data);
+                expect(node.getString()).to.equal(data);
             });
             it('Write to file by file descriptor', () => {
                 const fd = vol.openSync('/writeByFd.txt', 'w');
@@ -198,7 +211,27 @@ describe('volume', () => {
 
                 const node = vol.root.children['writeByFd.txt'];
                 expect(node).to.be.an.instanceof(Node);
-                expect(node.getData()).to.equal(data);
+                expect(node.getString()).to.equal(data);
+            });
+        });
+        describe('.writeFile(path, data[, options], callback)', () => {
+            const vol = new Volume;
+            const data = 'asdfasidofjasdf';
+            it('Create a file at root (/writeFile.json)', done => {
+                vol.writeFile('/writeFile.json', data, err => {
+                    expect(err).to.equal(null);
+                    const str = vol.root.getChild('writeFile.json').getString();
+                    expect(str).to.equal(data);
+                    done();
+                });
+            });
+            it('Throws error when no callback provided', () => {
+                try {
+                    vol.writeFile('/asdf.txt', 'asdf', 'utf8', undefined);
+                    throw Error('This should not throw');
+                } catch(err) {
+                    expect(err.message).to.equal('callback must be a function');
+                }
             });
         });
     });

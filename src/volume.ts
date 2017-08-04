@@ -16,7 +16,8 @@ interface IError extends Error {
 
 export type TFilePath = string | Buffer | URL;
 export type TFileId = TFilePath | number; // number is file descriptor
-export type TData = string | Buffer | Uint8Array;
+export type TDataOut = string | Buffer;
+export type TData = TDataOut | Uint8Array;
 export type TFlags = string | number;
 export type TMode = string | number;
 export type TEncoding = 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'latin1' | 'binary' | 'hex';
@@ -75,13 +76,11 @@ function formatError(errorCode: string, func = '', path = '', path2 = '') {
         case 'EEXIST':      return `EEXIST: file already exists, ${func} '${path}' -> '${path2}'`;
 
         // TODO: These error messages to be implemented:
+        // Too many file descriptors open.
+        case 'EMFILE':      return 'Too many open files';
+
         case 'EACCES':      // Access to file forbidden.
-        // case 'EADDRINUSE':
-        // case 'ECONNREFUSED':
-        // case 'ECONNRESET':
-        // case 'ETIMEDOUT':
         case 'EISDIR':      // When performing file operation on a directory.
-        case 'EMFILE':      // Too many file descriptors open.
         case 'ENOTDIR':     // When trying to do directory operation on not a directory.
         case 'ENOTEMPTY':   // Directory not empty.
         default:            return `Error occurred in ${func}`;
@@ -257,12 +256,17 @@ export function dataToStr(data: TData, encoding: string = ENCODING_UTF8) {
     else return String(data);
 }
 
-export function strToEncoding(str: string, encoding?: string): string | Buffer {
-    if(encoding === ENCODING_UTF8) return str;
-    if(!encoding) return new Buffer(str);
+// export function strToEncoding(str: string, encoding?: string): string | Buffer {
+//     if(encoding === ENCODING_UTF8) return str;
+//     if(!encoding) return new Buffer(str);
+//
+//     const buf = new Buffer(str);
+//     return buf.toString(encoding);
+// }
 
-    const buf = new Buffer(str);
-    return buf.toString(encoding);
+export function bufferToEncoding(buffer: Buffer, encoding?: string): string | Buffer {
+    if(!encoding) return buffer;
+    else return buffer.toString(encoding);
 }
 
 export function flagsToNumber(flags: TFlags): number {
@@ -318,12 +322,24 @@ function modeToNumber(mode: TMode, def?): number {
  */
 export class Volume<TNode extends Node> {
 
+    // Constructor function used to create new nodes.
     NodeClass: new (...args) => TNode = Node as new (...args) => TNode;
 
+    // Root node of this volume.
     root: Node = new (this.NodeClass)(null, '', true);
 
     // A mapping for file descriptors to `File`s.
     fds: {[fd: number]: File} = {};
+
+    // A list of reusable (opened and closed) file descriptors, that should be
+    // used first before creating a new file descriptor.
+    releasedFds = [];
+
+    // Max number of open files.
+    maxFiles = 10000;
+
+    // Current number of open files.
+    openFiles = 0;
 
     private getNode(steps: string[]): Node {
         return this.root.walk(steps);
@@ -384,13 +400,12 @@ export class Volume<TNode extends Node> {
         }
     }
 
-    private openFile(node: Node, flags: number): File {
-        const file = new File(node, flags);
-        this.fds[file.fd] = file;
+    private closeFile(file: File) {
+        if(!this.fds[file.fd]) return;
 
-        if(flags & O_TRUNC) file.truncate();
-
-        return file;
+        this.openFiles--;
+        delete this.fds[file.fd];
+        this.releasedFds.push(file.fd);
     }
 
     private createNode(parent: Node, name: string, isDirectory: boolean, mode: number): Node {
@@ -398,15 +413,10 @@ export class Volume<TNode extends Node> {
         return node;
     }
 
-    readFileSync(file: TFileId, options?: any): Buffer | string {
-        const opts = getReadFileOptions(options);
-        const node = this.getNodeById(file);
-        if(!node) throw Error('Not found');
+    private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
+        if(typeof callback !== 'function')
+            throw Error(ERRSTR.CB);
 
-        return strToEncoding(node.getData(), opts.encoding);
-    }
-
-    private wrapAsync(method, args, callback) {
         setImmediate(() => {
             try {
                 callback(null, method.apply(this, args));
@@ -416,24 +426,44 @@ export class Volume<TNode extends Node> {
         });
     }
 
-    private openBase(fileName: string, flagsNum: number, modeNum: number): number {
+    private openNode(node: Node, flagsNum: number): File {
+        if(this.openFiles >= this.maxFiles) { // Too many open files.
+            throw createError('EMFILE');
+        }
+
+        // Reuse released file descriptors.
+        let fd: number;
+        if(this.releasedFds.length)
+            fd = this.releasedFds.pop();
+
+        const file = new File(node, flagsNum, fd);
+        this.fds[file.fd] = file;
+        this.openFiles++;
+
+        if(flagsNum & O_TRUNC) file.truncate();
+
+        return file;
+    }
+
+    private openFile(fileName: string, flagsNum: number, modeNum: number): File {
         const steps = filenameToSteps(fileName);
         let node = this.getNode(steps);
 
         // Try creating a new file, if it does not exist.
         if(!node) {
             const dirNode = this.getDirNode(steps);
-            if(flagsNum & O_CREAT) {
+            if((flagsNum & O_CREAT) && (typeof modeNum === 'number')) {
                 node = this.createNode(dirNode, steps[steps.length - 1], false, modeNum);
             }
         }
 
-        if(node) {
-            const file = this.openFile(node, flagsNum);
-            return file.fd;
-        }
+        if(node) return this.openNode(node, flagsNum);
+    }
 
-        throw createError('ENOENT', 'open', fileName);
+    private openBase(fileName: string, flagsNum: number, modeNum: number): number {
+        const file = this.openFile(fileName, flagsNum, modeNum);
+        if(!file) throw createError('ENOENT', 'open', fileName);
+        return file.fd;
     }
 
     openSync(path: TFilePath, flags: TFlags, mode: TMode = MODE.DEFAULT): number {
@@ -462,9 +492,59 @@ export class Volume<TNode extends Node> {
         this.wrapAsync(this.openBase, [fileName, flagsNum, modeNum], callback);
     }
 
+    private openFileOrGetById(id: TFileId, flagsNum: number, modeNum?: number): File {
+        if(typeof id === 'number') {
+            const file = this.fds[id];
+            if(!file)
+                throw createError('ENOENT');
+            return file;
+        } else {
+            return this.openFile(pathToFilename(id), flagsNum, modeNum);
+        }
+    }
+
+    private readFileBase(id: TFileId, flagsNum: number, encoding: TEncoding): Buffer | string {
+        let result: Buffer | string;
+        if(typeof id === 'number') {
+            const file = this.getFileByFd(id);
+            if(!file) throw createError('ENOENT', 'readFile', String(id));
+            result = bufferToEncoding(file.getBuffer(), encoding);
+        } else {
+            const fileName = pathToFilename(id);
+            const file = this.openFile(fileName, flagsNum, 0);
+            if(!file) throw createError('ENOENT', 'readFile', String(id));
+            result = bufferToEncoding(file.getBuffer(), encoding);
+            this.closeFile(file);
+        }
+        return result;
+    }
+
+    readFileSync(file: TFileId, options?: IReadFileOptions|string): TDataOut {
+        const opts = getReadFileOptions(options);
+        const flagsNum = flagsToNumber(opts.flag);
+        return this.readFileBase(file, flagsNum, opts.encoding);
+    }
+
+    readFile(id: TFileId, callback: TCallback<TDataOut>);
+    readFile(id: TFileId, options: IReadFileOptions|string,                 callback: TCallback<TDataOut>);
+    readFile(id: TFileId, a: TCallback<TDataOut>|IReadFileOptions|string,   b?: TCallback<TDataOut>) {
+        let options: IReadFileOptions|string = a;
+        let callback: TCallback<TData> = b;
+
+        if(typeof options === 'function') {
+            callback = options;
+            options = readFileOptsDefaults;
+        }
+
+        const opts = getReadFileOptions(options);
+        const flagsNum = flagsToNumber(opts.flag);
+        this.wrapAsync(this.readFileBase, [id, flagsNum, opts.encoding], callback);
+    }
+
     private writeFileBase(id: TFileId, dataStr: string, flagsNum: number, modeNum: number) {
         const node = this.getNodeByIdOrCreate(id, flagsNum, modeNum);
-        node.setData(dataStr);
+        // if(flagsNum & O_R)
+        node.setString(dataStr);
     }
 
     writeFileSync(id: TFileId, data: TData, options?: IWriteFileOptions) {
@@ -476,9 +556,9 @@ export class Volume<TNode extends Node> {
     }
 
     writeFile(id: TFileId, data: TData, callback: TCallback<void>);
-    writeFile(id: TFileId, data: TData, options: IWriteFileOptions,             callback: TCallback<void>);
-    writeFile(id: TFileId, data: TData, a: TCallback<void>|IWriteFileOptions,   b?: TCallback<void>) {
-        let options: IWriteFileOptions = a as IWriteFileOptions;
+    writeFile(id: TFileId, data: TData, options: IWriteFileOptions|string,              callback: TCallback<void>);
+    writeFile(id: TFileId, data: TData, a: TCallback<void>|IWriteFileOptions|string,    b?: TCallback<void>) {
+        let options: IWriteFileOptions|string = a as IWriteFileOptions;
         let callback: TCallback<void> = b;
 
         if(typeof a === 'function') {

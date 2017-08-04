@@ -1,55 +1,54 @@
 import {resolve, normalize, sep, relative, dirname} from 'path';
 import {Node, File, Stats} from "./node";
-import setImmediate from './setImmediate';
 import {Buffer} from 'buffer';
+import setImmediate from './setImmediate';
+import process from './process';
 const extend = require('fast-extend');
+const errors = require('./internal/errors');
 
 
-export type TLayerFiles = {[relativePath: string]: string};
+
+// ---------------------------------------- Types
+
+interface IError extends Error {
+    code?: string,
+}
+
+export type TFilePath = string | Buffer | URL;
+export type TFileId = TFilePath | number; // number is file descriptor
+export type TData = string | Buffer | Uint8Array;
+export type TFlags = string | number;
+export type TMode = string | number;
+export type TEncoding = 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'latin1' | 'binary' | 'hex';
+export type TCallback<TData> = (error?: IError, data?: TData) => void;
 
 
-/**
- * A single `JSON` file of data mounted to a single mount point.
- * We have it so that we can store file contents in a single JS string dictionary.
- */
-export class Layer {
 
-    // The root directory at which this layer was mounted.
-    mountpoint: string;
+// ---------------------------------------- Constants
 
-    /**
-     * A map of relative file names to file contents `string`s.
-     *
-     *     {
-     *         "test.txt": "...."
-     *         "some/path/hello.txt": "world ..."
-     *     }
-     */
-    files: TLayerFiles = {};
+import {constants} from "./constants";
+const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
+    O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK} = constants;
 
-    symlinks: TLayerFiles = {};
+const ENCODING_UTF8: TEncoding = 'utf8';
 
-    constructor(mountpoint: string, files: TLayerFiles, symlinks: TLayerFiles = {}) {
-        this.mountpoint = resolve(mountpoint);
-        this.files = files;
-        this.symlinks = symlinks;
-    }
-
-    toJSON() {
-        return this.files;
-    }
+// Default modes for opening files.
+const enum MODE {
+    FILE = 0o666,
+    DIR  = 0o777,
+    DEFAULT = MODE.FILE,
 }
 
 
-type TFilePath = string | Buffer;
-type TFileId = TFilePath | URL | number;
-type TData = string | Buffer | Uint8Array;
 
+// ---------------------------------------- Error messages
+
+// TODO: Use `internal/errors.js` in the future.
 
 const ERRSTR = {
-    PATH_STR:       'path must be a string',
+    PATH_STR:       'path must be a string or Buffer',
     FD:             'file descriptor must be a unsigned 32-bit integer',
-    MODE_INT:       'mode must be an integer',
+    MODE_INT:       'mode must be an int',
     CB:             'callback must be a function',
     UID:            'uid must be an unsigned int',
     GID:            'gid must be an unsigned int',
@@ -63,25 +62,46 @@ const ERRSTR = {
     POSITION:       'position must be an integer',
 };
 const ERRSTR_OPTS = tipeof => `Expected options to be either an object or a string, but got ${tipeof} instead`;
+// const ERRSTR_FLAG = flag => `Unknown file open flag: ${flag}`;
 
 
 function formatError(errorCode: string, func = '', path = '', path2 = '') {
     switch(errorCode) {
-        case 'ENOENT':    return `ENOENT: no such file or directory, ${func} '${path}'`;
-        case 'EBADF':     return `EBADF: bad file descriptor, ${func}`;
-        case 'EINVAL':    return `EINVAL: invalid argument, ${func}`;
-        case 'EPERM':     return `EPERM: operation not permitted, ${func} '${path}' -> '${path2}'`;
-        case 'EPROTO':    return `EPROTO: protocol error, ${func} '${path}' -> '${path2}'`;
-        case 'EEXIST':    return `EEXIST: file already exists, ${func} '${path}' -> '${path2}'`;
-        default:          return `Error occurred in ${func}`;
+        case 'ENOENT':      return `ENOENT: no such file or directory, ${func} '${path}'`;
+        case 'EBADF':       return `EBADF: bad file descriptor, ${func}`;
+        case 'EINVAL':      return `EINVAL: invalid argument, ${func}`;
+        case 'EPERM':       return `EPERM: operation not permitted, ${func} '${path}' -> '${path2}'`;
+        case 'EPROTO':      return `EPROTO: protocol error, ${func} '${path}' -> '${path2}'`;
+        case 'EEXIST':      return `EEXIST: file already exists, ${func} '${path}' -> '${path2}'`;
+
+        // TODO: These error messages to be implemented:
+        case 'EACCES':      // Access to file forbidden.
+        // case 'EADDRINUSE':
+        // case 'ECONNREFUSED':
+        // case 'ECONNRESET':
+        // case 'ETIMEDOUT':
+        case 'EISDIR':      // When performing file operation on a directory.
+        case 'EMFILE':      // Too many file descriptors open.
+        case 'ENOTDIR':     // When trying to do directory operation on not a directory.
+        case 'ENOTEMPTY':   // Directory not empty.
+        default:            return `Error occurred in ${func}`;
     }
 }
 
-function throwError(errorCode: string, func = '', path = '', path2 = '') {
-    throw Error(formatError(errorCode, func, path, path2));
+function createError(errorCode: string, func = '', path = '', path2 = '', Constructor = Error) {
+    const error = new Constructor(formatError(errorCode, func, path, path2));
+    (error as any).code = errorCode;
+    return error;
 }
 
-function pathOrError(path: TFilePath, encoding?: string): string | TypeError {
+function throwError(errorCode: string, func = '', path = '', path2 = '', Constructor = Error) {
+    throw createError(errorCode, func, path, path2, Constructor);
+}
+
+
+// ---------------------------------------- File identifier checking
+
+function pathOrError(path: TFilePath, encoding?: TEncoding): string | TypeError {
     if(Buffer.isBuffer(path)) path = (path as Buffer).toString(encoding);
     if(typeof path !== 'string') return TypeError(ERRSTR.PATH_STR);
     return path as string;
@@ -93,13 +113,56 @@ function validPathOrThrow(path: TFilePath, encoding?): string {
     else return p as string;
 }
 
+function assertFd(fd: number) {
+    if(typeof fd !== 'number') throw TypeError(ERRSTR.FD);
+}
+
+
+
+// ---------------------------------------- Flags
+
+// List of file `flags` as defined by Node.
+export enum FLAGS {
+    // Open file for reading. An exception occurs if the file does not exist.
+    r       = O_RDONLY,
+    // Open file for reading and writing. An exception occurs if the file does not exist.
+    'r+'    = O_RDWR,
+    // Open file for reading in synchronous mode. Instructs the operating system to bypass the local file system cache.
+    rs      = O_RDONLY | O_SYNC,
+    sr      = FLAGS.rs,
+    // Open file for reading and writing, telling the OS to open it synchronously. See notes for 'rs' about using this with caution.
+    'rs+'   = O_RDWR | O_SYNC,
+    'sr+'   = FLAGS['rs+'],
+    // Open file for writing. The file is created (if it does not exist) or truncated (if it exists).
+    w       = O_WRONLY | O_CREAT | O_TRUNC,
+    // Like 'w' but fails if path exists.
+    wx      = O_WRONLY | O_CREAT | O_TRUNC | O_EXCL,
+    xw      = FLAGS.wx,
+    // Open file for reading and writing. The file is created (if it does not exist) or truncated (if it exists).
+    'w+'    = O_RDWR | O_CREAT | O_TRUNC,
+    // Like 'w+' but fails if path exists.
+    'wx+'   = O_RDWR | O_CREAT | O_TRUNC | O_EXCL,
+    'xw+'   = FLAGS['wx+'],
+    // Open file for appending. The file is created if it does not exist.
+    a       = O_WRONLY | O_APPEND | O_CREAT,
+    // Like 'a' but fails if path exists.
+    ax      = O_WRONLY | O_APPEND | O_CREAT | O_EXCL,
+    xa      = FLAGS.ax,
+    // Open file for reading and appending. The file is created if it does not exist.
+    'a+'    = O_RDWR | O_APPEND | O_CREAT,
+    // Like 'a+' but fails if path exists.
+    'ax+'   = O_RDWR | O_APPEND | O_CREAT | O_EXCL,
+    'xa+'   = FLAGS['ax+'],
+}
+
+
+
+
+// ---------------------------------------- Options
+
 function assertEncoding(encoding: string) {
     if(encoding && !Buffer.isEncoding(encoding))
         throw Error('Unknown encoding: ' + encoding);
-}
-
-function assertFd(fd: number) {
-    if(typeof fd !== 'number') throw TypeError(ERRSTR.FD);
 }
 
 function getOptions <T> (defaults: T, options?: T|string): T {
@@ -114,7 +177,9 @@ function getOptions <T> (defaults: T, options?: T|string): T {
     }
 }
 
-const optsGenerator = defaults => options => getOptions(defaults, options);
+function optsGenerator<TOpts>(defaults: TOpts): (opts) => TOpts {
+    return options => getOptions(defaults, options);
+}
 
 function validateCallback(callback) {
     if(typeof callback !== 'function')
@@ -127,43 +192,146 @@ const optionAndCallbackGenerator = getOpts =>
         ? [getOpts(), options]
         : [getOpts(options), validateCallback(callback)];
 
-
-
-// Options
+// General options with optional `encoding` property that most commands accept.
 export interface IOptions {
-    encoding?: string;
+    encoding?: TEncoding;
+}
+
+export interface IFileOptions extends IOptions {
+    mode?: TMode;
+    flag?: TFlags;
 }
 
 const optsDefaults: IOptions = {
     encoding: 'utf8',
 };
 
+
+// Options for `fs.readFile` and `fs.readFileSync`.
 export interface IReadFileOptions extends IOptions {
     flag?: string;
 }
-
 const readFileOptsDefaults: IReadFileOptions = {
     flag: 'r',
 };
+const getReadFileOptions = optsGenerator<IReadFileOptions>(readFileOptsDefaults);
 
-const getReadFileOptions: (options: IReadFileOptions) => IReadFileOptions = optsGenerator(readFileOptsDefaults);
 
+// Options for `fs.writeFile` and `fs.writeFileSync`
+export interface IWriteFileOptions extends IFileOptions {}
+const writeFileDefaults: IWriteFileOptions = {
+    encoding: 'utf8',
+    mode: MODE.DEFAULT,
+    flag: FLAGS[FLAGS.w],
+};
+const getWriteFileOptions = optsGenerator<IWriteFileOptions>(writeFileDefaults);
+
+
+
+
+// ---------------------------------------- Utility functions
+
+export function pathToFilename(path: TFilePath): string {
+
+    if((typeof path !== 'string') && !Buffer.isBuffer(path))
+        throw new TypeError(ERRSTR.PATH_STR);
+
+    const pathString = String(path);
+    nullCheck(pathString);
+    return pathString;
+}
+
+export function filenameToSteps(filename: string): string[] {
+    const fullPath = resolve(filename);
+    const fulPathSansSlash = fullPath.substr(1);
+    return fulPathSansSlash.split(sep);
+}
+
+export function pathToSteps(path: TFilePath): string[] {
+    return filenameToSteps(pathToFilename(path));
+}
+
+export function dataToStr(data: TData, encoding: string = ENCODING_UTF8) {
+    if(Buffer.isBuffer(data)) return data.toString(encoding);
+    else if(data instanceof Uint8Array) (new Buffer(data)).toString(encoding);
+    else return String(data);
+}
+
+export function strToEncoding(str: string, encoding?: string): string | Buffer {
+    if(encoding === ENCODING_UTF8) return str;
+    if(!encoding) return new Buffer(str);
+
+    const buf = new Buffer(str);
+    return buf.toString(encoding);
+}
+
+export function flagsToNumber(flags: TFlags): number {
+    if(typeof flags === 'number') return flags;
+
+    if(typeof flags === 'string') {
+        const flagsNum = FLAGS[flags];
+        if(typeof flagsNum !== 'undefined') return flagsNum;
+    }
+
+    // throw new TypeError(formatError(ERRSTR_FLAG(flags)));
+    throw new errors.TypeError('ERR_INVALID_OPT_VALUE', 'flags', flags);
+}
+
+// function flagsToFlagsValue(f: string|number): number {
+//     if(typeof f === 'number') return f;
+//     if(typeof f !== 'string') throw TypeError(`flags must be string or number`);
+//     var flagsval = flags[f] as any as number;
+//     if(typeof flagsval !== 'number') throw TypeError(`Invalid flags string value '${f}'`);
+//     return flagsval;
+// }
+
+function nullCheck(path, callback?) {
+    if(('' + path).indexOf('\u0000') !== -1) {
+        const er = new Error('Path must be a string without null bytes');
+        (er as any).code = 'ENOENT';
+        if(typeof callback !== 'function')
+            throw er;
+        process.nextTick(callback, er);
+        return false;
+    }
+    return true;
+}
+
+function _modeToNumber(mode: TMode, def?): number {
+    if(typeof mode === 'number') return mode;
+    if(typeof mode === 'string') return parseInt(mode, 8);
+    if(def) return modeToNumber(def);
+    return undefined;
+}
+
+function modeToNumber(mode: TMode, def?): number {
+    const result = _modeToNumber(mode, def);
+    if((typeof result !== 'number') || isNaN(result))
+        throw new TypeError(ERRSTR.MODE_INT);
+    return result;
+}
+
+// ---------------------------------------- Volume
 
 /**
- * `Volume` represents a file system. It is a collection of one or more layers.
+ * `Volume` represents a file system.
  */
-export class Volume {
+export class Volume<TNode extends Node> {
 
-    root: Node = new Node(null, '', true);
+    NodeClass: new (...args) => TNode = Node as new (...args) => TNode;
 
-    private filenameToSteps(filename: string): string[] {
-        const fullPath = resolve(filename);
-        const fulPathSansSlash = fullPath.substr(1);
-        return fulPathSansSlash.split(sep);
-    }
+    root: Node = new (this.NodeClass)(null, '', true);
+
+    // A mapping for file descriptors to `File`s.
+    fds: {[fd: number]: File} = {};
 
     private getNode(steps: string[]): Node {
         return this.root.walk(steps);
+    }
+
+    // Get the immediate parent directory of the node.
+    private getDirNode(steps: string[]): Node {
+        return this.root.walk(steps, steps.length - 1);
     }
 
     private getNodeOrCreateFileNode(steps: string[]): Node {
@@ -179,47 +347,150 @@ export class Volume {
         }
     }
 
-    private getNodeByFileId(file: TFileId) {
-        if(typeof file === 'number') {
-
-        } else if((typeof file === 'string') || (Buffer.isBuffer(file))) {
-            const filename: string = String(file);
-            const steps = this.filenameToSteps(filename);
-            console.log('steps', steps);
-            return this.getNode(steps);
+    private getNodeById(id: TFileId) {
+        if(typeof id === 'number') {
+            const file = this.getFileByFd(id);
+            if(!file) throw Error('File nto found');
+            return file.node;
+        } else if((typeof id === 'string') || (Buffer.isBuffer(id))) {
+            return this.getNode(pathToSteps(id));
         }
     }
 
-    private getNodeOrCreateByFileId(file: TFileId): Node {
-        if(typeof file === 'number') {
+    private getFileByFd(fd: number): File {
+        return this.fds[fd];
+    }
 
+    private getNodeByIdOrCreate(id: TFileId, flags: number, mode: number): Node {
+        if(typeof id === 'number') {
+            const file = this.getFileByFd(id);
+            if(!file) throw Error('File nto found');
+            return file.node;
         } else {
-            const filename: string = String(file);
-            const steps = this.filenameToSteps(filename);
-            return this.getNodeOrCreateFileNode(steps);
+            const steps = pathToSteps(id as TFilePath);
+            let node = this.getNode(steps);
+            if(node) return node;
+
+            // Try creating a node if not found.
+            if(flags & O_CREAT) {
+                const dirNode = this.getDirNode(steps);
+                if(dirNode) {
+                    node = this.createNode(dirNode, steps[steps.length - 1], false, mode);
+                    if(node) return node;
+                }
+            }
+
+            throw Error('Not found');
         }
     }
 
-    private dataToEncoding(data: string, options: IOptions): string | Buffer {
-        if(options.encoding === 'utf8') return data;
-        if(!options.encoding) return new Buffer(data);
+    private openFile(node: Node, flags: number): File {
+        const file = new File(node, flags);
+        this.fds[file.fd] = file;
 
-        const buf = new Buffer(data);
-        return buf.toString(options.encoding);
+        if(flags & O_TRUNC) file.truncate();
+
+        return file;
     }
 
-
-    writeFileSync(file: TFileId, data: TData, options?: any) {
-        const node = this.getNodeOrCreateByFileId(file);
-        node.setData(String(data));
+    private createNode(parent: Node, name: string, isDirectory: boolean, mode: number): Node {
+        const node = parent.createChild(name, isDirectory, mode);
+        return node;
     }
 
-    readFileSync(file: TFileId, options?: any) {
+    readFileSync(file: TFileId, options?: any): Buffer | string {
         const opts = getReadFileOptions(options);
-        const node = this.getNodeByFileId(file);
+        const node = this.getNodeById(file);
         if(!node) throw Error('Not found');
 
-        return this.dataToEncoding(node.getData(), opts);
+        return strToEncoding(node.getData(), opts.encoding);
+    }
+
+    private wrapAsync(method, args, callback) {
+        setImmediate(() => {
+            try {
+                callback(null, method.apply(this, args));
+            } catch(err) {
+                callback(err);
+            }
+        });
+    }
+
+    private openBase(fileName: string, flagsNum: number, modeNum: number): number {
+        const steps = filenameToSteps(fileName);
+        let node = this.getNode(steps);
+
+        // Try creating a new file, if it does not exist.
+        if(!node) {
+            const dirNode = this.getDirNode(steps);
+            if(flagsNum & O_CREAT) {
+                node = this.createNode(dirNode, steps[steps.length - 1], false, modeNum);
+            }
+        }
+
+        if(node) {
+            const file = this.openFile(node, flagsNum);
+            return file.fd;
+        }
+
+        throw createError('ENOENT', 'open', fileName);
+    }
+
+    openSync(path: TFilePath, flags: TFlags, mode: TMode = MODE.DEFAULT): number {
+        // Validate (1) mode; (2) path; (3) flags - in that order.
+        const modeNum = modeToNumber(mode);
+        const fileName = pathToFilename(path);
+        const flagsNum = flagsToNumber(flags);
+        return this.openBase(fileName, flagsNum, modeNum);
+    }
+
+    open(path: TFilePath, flags: TFlags, /* ... */                      callback: TCallback<number>);
+    open(path: TFilePath, flags: TFlags, mode: TMode,                   callback: TCallback<number>);
+    open(path: TFilePath, flags: TFlags, a: TMode|TCallback<number>,    b?: TCallback<number>) {
+        let mode: TMode = a as TMode;
+        let callback: TCallback<number> = b as TCallback<number>;
+
+        if(typeof a === 'function') {
+            mode = MODE.DEFAULT;
+            callback = a;
+        }
+
+        const modeNum = modeToNumber(mode);
+        const fileName = pathToFilename(path);
+        const flagsNum = flagsToNumber(flags);
+
+        this.wrapAsync(this.openBase, [fileName, flagsNum, modeNum], callback);
+    }
+
+    private writeFileBase(id: TFileId, dataStr: string, flagsNum: number, modeNum: number) {
+        const node = this.getNodeByIdOrCreate(id, flagsNum, modeNum);
+        node.setData(dataStr);
+    }
+
+    writeFileSync(id: TFileId, data: TData, options?: IWriteFileOptions) {
+        const opts = getWriteFileOptions(options);
+        const flagsNum = flagsToNumber(opts.flag);
+        const modeNum = modeToNumber(opts.mode);
+        const dataStr = dataToStr(data, opts.encoding);
+        this.writeFileBase(id, dataStr, flagsNum, modeNum);
+    }
+
+    writeFile(id: TFileId, data: TData, callback: TCallback<void>);
+    writeFile(id: TFileId, data: TData, options: IWriteFileOptions,             callback: TCallback<void>);
+    writeFile(id: TFileId, data: TData, a: TCallback<void>|IWriteFileOptions,   b?: TCallback<void>) {
+        let options: IWriteFileOptions = a as IWriteFileOptions;
+        let callback: TCallback<void> = b;
+
+        if(typeof a === 'function') {
+            options = writeFileDefaults;
+            callback = a;
+        }
+
+        const opts = getWriteFileOptions(options);
+        const flagsNum = flagsToNumber(opts.flag);
+        const modeNum = modeToNumber(opts.mode);
+        const dataStr = dataToStr(data, opts.encoding);
+        this.wrapAsync(this.writeFileBase, [id, dataStr, flagsNum, modeNum], callback);
     }
 
 /*
@@ -247,8 +518,7 @@ export class Volume {
     // Collection of file layers, where the top ones override the bottom ones.
     layers: Layer[] = [];
 
-    // A map of pseudo 'file descriptors' to Nodes.
-    fds = {};
+
 
     normalize(somepath) {
         somepath = normalize(somepath);
@@ -783,26 +1053,7 @@ export class Volume {
         });
     }
 
-    // fs.openSync(path, flags[, mode])
-    openSync(p: string, flags, mode?) {
-        var file = this.getFile(p);
-        return file.fd;
-    }
 
-    // fs.open(path, flags[, mode], callback)
-    open(p: string, flags, mode, callback?) {
-        if(typeof mode == 'function') {
-            callback = mode;
-            mode = 438; // 0666
-        }
-        setImmediate(() => {
-            try {
-                callback(null, this.openSync(p, flags, mode));
-            } catch(e) {
-                callback(e);
-            }
-        });
-    }
 
     // fs.utimesSync(path, atime, mtime)
     utimesSync(filename: string, atime, mtime) {

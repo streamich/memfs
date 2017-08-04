@@ -1,110 +1,134 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
-var path_1 = require("path");
 var process_1 = require("./process");
+exports.SEP = '/';
 var Node = (function () {
-    function Node(relative, layer) {
-        this.fd = Node.fd--;
+    function Node(parent, name, isDirectory, mode) {
+        if (isDirectory === void 0) { isDirectory = false; }
+        if (mode === void 0) { mode = 438; }
+        this.parent = null;
+        this.children = {};
+        this.steps = [];
         this.uid = process_1.default.getuid();
         this.gid = process_1.default.getgid();
         this.atime = new Date;
         this.mtime = new Date;
         this.ctime = new Date;
-        this.relative = relative;
-        this.path = path_1.resolve(layer.mountpoint, relative);
-        this.layer = layer;
+        this.data = '';
+        this._isDirectory = false;
+        this._isSymlink = false;
+        this.mode = 438;
+        this.parent = parent;
+        this.steps = parent ? parent.steps.concat([name]) : [name];
+        this._isDirectory = isDirectory;
+        this.mode = mode;
     }
-    Node.prototype.getData = function () {
-        return '';
+    Node.prototype.getChild = function (name) {
+        return this.children[name];
     };
-    Node.prototype.setData = function (data) {
+    Node.prototype.createChild = function (name, isDirectory, mode) {
+        var node = new Node(this, name, isDirectory, mode);
+        this.children[name] = node;
+        return node;
     };
     Node.prototype.getPath = function () {
-        return this.path;
+        return exports.SEP + this.steps.join(exports.SEP);
     };
-    Node.prototype.stats = function () {
-        return Stats.build(this);
+    Node.prototype.getData = function () {
+        return this.data;
+    };
+    Node.prototype.setData = function (data) {
+        this.data = String(data);
+    };
+    Node.prototype.isDirectory = function () {
+        return this._isDirectory;
+    };
+    Node.prototype.isSymlink = function () {
+        return this._isSymlink;
     };
     Node.prototype.chown = function (uid, gid) {
         this.uid = uid;
         this.gid = gid;
     };
-    Node.fd = -128;
+    Node.prototype.walk = function (steps, stop, i) {
+        if (stop === void 0) { stop = steps.length; }
+        if (i === void 0) { i = 0; }
+        if (i >= steps.length)
+            return this;
+        if (i >= stop)
+            return this;
+        var step = steps[i];
+        var node = this.getChild(step);
+        if (!node)
+            return null;
+        return node.walk(steps, stop, i + 1);
+    };
     return Node;
 }());
 exports.Node = Node;
-var File = (function (_super) {
-    __extends(File, _super);
-    function File() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.position = 0;
-        return _this;
+var File = (function () {
+    function File(node, flags) {
+        this.fd = File.fd--;
+        this.node = null;
+        this.offset = 0;
+        this.node = node;
+        this.flags = flags;
     }
     File.prototype.getData = function () {
-        return this.layer.files[this.relative];
+        return this.node.getData();
     };
     File.prototype.setData = function (data) {
-        this.layer.files[this.relative] = data.toString();
+        this.node.setData(data);
     };
     File.prototype.truncate = function (len) {
         if (len === void 0) { len = 0; }
         this.setData(this.getData().substr(0, len));
     };
+    File.prototype.seek = function (offset) {
+        this.offset = offset;
+    };
+    File.prototype.stats = function () {
+        return Stats.build(this);
+    };
+    File.fd = 0xFFFFFFFF;
     return File;
-}(Node));
+}());
 exports.File = File;
-var Directory = (function (_super) {
-    __extends(Directory, _super);
-    function Directory() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return Directory;
-}(Node));
-exports.Directory = Directory;
 var Stats = (function () {
     function Stats() {
-        this.uid = process_1.default.getuid();
-        this.gid = process_1.default.getgid();
+        this.uid = 0;
+        this.gid = 0;
         this.rdev = 0;
         this.blksize = 4096;
         this.ino = 0;
         this.size = 0;
         this.blocks = 1;
-        this.atime = new Date;
-        this.mtime = new Date;
-        this.ctime = new Date;
-        this.birthtime = new Date;
+        this.atime = null;
+        this.mtime = null;
+        this.ctime = null;
+        this.birthtime = null;
         this.dev = 0;
         this.mode = 0;
         this.nlink = 0;
         this._isFile = false;
         this._isDirectory = false;
+        this._isSymbolicLink = false;
     }
-    Stats.build = function (node) {
+    Stats.build = function (fd) {
         var stats = new Stats;
+        var node = fd.node;
         stats.uid = node.uid;
         stats.gid = node.gid;
         stats.atime = node.atime;
         stats.mtime = node.mtime;
         stats.ctime = node.ctime;
-        if (node instanceof Directory) {
+        stats.size = node.getData().length;
+        if (node.isDirectory())
             stats._isDirectory = true;
-        }
-        else if (node instanceof File) {
-            var data = node.getData();
-            stats.size = data.length;
+        else if (node.isSymlink())
+            stats._isSymbolicLink = true;
+        else
             stats._isFile = true;
-        }
         return stats;
     };
     Stats.prototype.isFile = function () {
@@ -114,7 +138,7 @@ var Stats = (function () {
         return this._isDirectory;
     };
     Stats.prototype.isSymbolicLink = function () {
-        return false;
+        return this._isSymbolicLink;
     };
     return Stats;
 }());

@@ -1,7 +1,8 @@
 import process from './process';
+import {TMode} from "./volume";
 
 
-const SEP = '/';
+export const SEP = '/';
 
 
 /**
@@ -28,18 +29,21 @@ export class Node {
     private _isDirectory = false;
     private _isSymlink = false;
 
-    constructor(parent: Node, name: string, isDirectory = false) {
+    mode = 0o666;
+
+    constructor(parent: Node, name: string, isDirectory: boolean = false, mode: number = 0o666) {
         this.parent = parent;
         this.steps = parent ? parent.steps.concat([name]) : [name];
         this._isDirectory = isDirectory;
+        this.mode = mode;
     }
 
     getChild(name: string) {
         return this.children[name];
     }
 
-    createChild(name: string) {
-        const node = new Node(this, name);
+    createChild(name: string, isDirectory?: boolean, mode?: number) {
+        const node = new Node(this, name, isDirectory, mode);
         this.children[name] = node;
         return node;
     }
@@ -70,10 +74,10 @@ export class Node {
     }
 
     /**
-     * Walk the tree path and return the `Node` at that leaf.
-     * @param steps
-     * @param stop
-     * @param i
+     * Walk the tree path and return the `Node` at that location, if any.
+     * @param steps {string[]} Desired location.
+     * @param stop {number} Max steps to go into.
+     * @param i {number} Current step in the `steps` array.
      * @returns {any}
      */
     walk(steps: string[], stop: number = steps.length, i: number = 0) {
@@ -89,28 +93,22 @@ export class Node {
 
 
 /**
- * Represents an open file (file descriptor) that points to a `Node` (inode).
+ * Represents an open file (file descriptor) that points to a `Node` (i-node/v-node).
  */
 export class File {
 
     /**
-     * Global file descriptor counter.
+     * Global file descriptor counter. UNIX file descriptors start from 0 and go sequentially
+     * up, so here, in order not to conflict with them, we choose some big number and descrease
+     * the file descriptor of every new opened file.
      * @type {number}
      */
-    static fd = -128;
+    static fd = 0xFFFFFFFF;
 
-    /**
-     * File descriptor, negative, because a real file descriptors cannot be negative.
-     * This makes sure we don't ever conflict with real file descriptors, but there is
-     * a good chance that it is a bad idea, because we conflict (kinda) with error messages,
-     * which are negative. UNIX error codes normally are in range [-127...-1], we make sure
-     * our file descriptors are less than -128 here.
-     * @type {number}
-     */
     fd: number = File.fd--;
 
     /**
-     * Reference to an i-node.
+     * Reference to a `Node`.
      * @type {Node}
      */
     node: Node = null;
@@ -121,9 +119,12 @@ export class File {
      */
     offset: number = 0;
 
+    // Flags used when opening the file.
+    flags: number;
 
-    constructor(node: Node) {
+    constructor(node: Node, flags: number) {
         this.node = node;
+        this.flags = flags;
     }
 
     getData(): string {

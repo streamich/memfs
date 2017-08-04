@@ -5,6 +5,7 @@ if (typeof process === 'undefined') {
     _process = {
         getuid: function () { return 0; },
         getgid: function () { return 0; },
+        nextTick: require('./setImmediate'),
     };
 }
 else

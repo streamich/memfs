@@ -1,11 +1,9 @@
 import {Node} from "./node";
-import {expect} from 'chai';
-import {Layer} from "./volume";
 
 
 describe('node.ts', () => {
     describe('Node', () => {
-
+/*
         const layer = new Layer('/layer', {});
         const node = new Node('sub/test.txt', layer);
 
@@ -19,7 +17,7 @@ describe('node.ts', () => {
 
         it('Absolute path is computed correctly', () => {
             expect(node.path).to.equal('/layer/sub/test.txt');
-        });
+        });*/
 
     });
 });

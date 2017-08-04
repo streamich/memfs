@@ -10,10 +10,21 @@ export const X_OK = consts.X_OK;
 
 
 // Default volume.
-export const fs = new Volume;
-fs.mountSync(); // Create a default layer.
+export const volume = new Volume;
 
 
-export const mountSync = fs.mountSync.bind(fs);
-export const readFileSync = fs.readFileSync.bind(fs);
-export const writeFileSync = fs.writeFileSync.bind(fs);
+// List of `fs.js` methods, used to export bound (`.bind`) method list, just like `require('fs')` would do.
+const FS_METHODS = [
+    /*'readFile', */'readFileSync',
+    /*'writeFile', */'writeFileSync',
+];
+
+
+// Export bound fs methods.
+export const fs: Volume<any> = {} as any as Volume<any>;
+for(const method of FS_METHODS) {
+    fs[method] = volume[method].bind(volume);
+}
+
+
+module.exports = {...module.exports, ...fs};

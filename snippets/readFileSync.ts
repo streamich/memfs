@@ -1,5 +1,5 @@
-import {fs, readFileSync, writeFileSync} from '../src/index';
+import {fs} from '../src/index';
 
 
-fs.writeFileSync('test.txt', 'Hello there...');
-console.log(fs.readFileSync('test.txt').toString());
+fs.writeFileSync('/test.txt', 'hello...');
+console.log(fs.readFileSync('/test.txt', 'utf8'));

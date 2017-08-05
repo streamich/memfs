@@ -1,5 +1,7 @@
 import process from './process';
-import {TMode} from "./volume";
+import {constants} from "./constants";
+import {Volume} from "./volume";
+const {S_IFMT, S_IFDIR, S_IFREG, S_IFBLK, S_IFCHR, S_IFLNK, S_IFIFO, S_IFSOCK} = constants;
 
 
 export const SEP = '/';
@@ -9,12 +11,14 @@ export const SEP = '/';
  * Node in a file system (like i-node, v-node).
  */
 export class Node {
+    // i-node number.
+    ino: number;
 
-    parent: Node = null;
-
-    children: {[child: string]: Node} = {};
-
-    steps: string[] = [];
+    // parent: Node = null;
+    //
+    // children: {[child: string]: Node} = {};
+    //
+    // steps: string[] = [];
 
     // User ID and group ID.
     uid: number = process.getuid();
@@ -27,33 +31,32 @@ export class Node {
     // data: string = '';
     buf: Buffer = null;
 
-    private _isDirectory = false;
+    perm = 0o666;
 
-    mode = 0o666;
+    mode = S_IFREG; // S_IFDIR, S_IFREG, etc.. (file by default?)
+
+    // Number of hard links pointing at this Node.
+    nlink = 0;
 
     // Steps to another node, if this node is a symlink.
     symlink: string[] = null;
 
-    constructor(parent: Node, name: string, isDirectory: boolean = false, mode: number = 0o666) {
-        this.parent = parent;
-        this.steps = parent ? parent.steps.concat([name]) : [name];
-        this._isDirectory = isDirectory;
-        this.mode = mode;
+    constructor(ino: number, perm: number = 0o666) {
+        this.perm = perm;
+        this.ino = ino;
     }
+/*
 
     getChild(name: string) {
         return this.children[name];
     }
+*/
 
-    createChild(name: string, isDirectory?: boolean, mode?: number) {
-        const node = new Node(this, name, isDirectory, mode);
+/*    createChild(name: string, isDirectory?: boolean, perm?: number) {
+        const node = new Node(this, name, isDirectory, perm);
         this.children[name] = node;
         return node;
-    }
-
-    getPath() {
-        return SEP + this.steps.join(SEP);
-    }
+    }*/
 
     getString(encoding = 'utf8'): string {
         return this.getBuffer().toString(encoding);
@@ -71,32 +74,66 @@ export class Node {
 
     setBuffer(buf: Buffer) {
         this.buf = Buffer.from(buf); // Creates a copy of data.
+    }/*
+
+    getPath() {
+        return SEP + this.steps.join(SEP);
+    }
+
+    getName(): string {
+        return this.steps[this.steps.length - 1];
     }
 
     getFilename(): string {
         return this.steps.join(SEP);
+    }*/
+
+    getSize(): number {
+        return this.buf ? this.buf.length : 0;
+    }
+
+    setModeProperty(property: number) {
+        this.mode = (this.mode & ~S_IFMT) | property;
+    }
+
+    setIsFile() {
+        this.setModeProperty(S_IFREG);
+    }
+
+    setIsDirectory() {
+        this.setModeProperty(S_IFDIR);
+    }
+
+    setIsSymlink() {
+        this.setModeProperty(S_IFLNK);
     }
 
     isDirectory() {
-        return this._isDirectory;
+        return (this.mode & S_IFMT) === S_IFDIR;
     }
 
     isSymlink() {
-        return !!this.symlink;
+        // return !!this.symlink;
+        return (this.mode & S_IFMT) === S_IFLNK;
+    }
+
+    makeSymlink(steps: string[]) {
+        this.symlink = steps;
+        this.setIsSymlink();
     }
 
     chown(uid: number, gid: number) {
         this.uid = uid;
         this.gid = gid;
     }
-
-    /**
+/*
+    /!**
      * Walk the tree path and return the `Node` at that location, if any.
      * @param steps {string[]} Desired location.
      * @param stop {number} Max steps to go into.
      * @param i {number} Current step in the `steps` array.
      * @returns {any}
-     */
+     *!/
     walk(steps: string[], stop: number = steps.length, i: number = 0): Node {
         if(i >= steps.length) return this;
         if(i >= stop) return this;
@@ -105,6 +142,99 @@ export class Node {
         const node = this.getChild(step);
         if(!node) return null;
         return node.walk(steps, stop, i + 1);
+    }*/
+}
+
+
+/**
+ * Represents a hard link that points to an i-node `node`.
+ */
+export class Link {
+
+    vol: Volume;
+
+    parent: Link = null;
+
+    children: {[child: string]: Link} = {};
+
+    // Path to this node as Array: ['usr', 'bin', 'node'].
+    steps: string[] = [];
+
+    // "i-node" of this hard link.
+    node: Node = null;
+
+    // "i-node" number of the node.
+    ino: Number = 0;
+
+    constructor(vol: Volume, parent: Link, name: string) {
+        this.vol = vol;
+        this.parent = parent;
+        this.steps = parent ? parent.steps.concat([name]) : [name];
+    }
+
+    setNode(node: Node) {
+        this.node = node;
+        this.ino = node.ino;
+    }
+
+    getNode(): Node {
+        return this.node;
+    }
+
+    createChild(name: string, node: Node = this.vol.createNode()): Link {
+        const link = new Link(this.vol, this, name);
+        link.setNode(node);
+
+        if(node.isDirectory()) {
+            link.setChild('.', link);
+            link.getNode().nlink++;
+
+            link.setChild('..', this);
+            this.getNode().nlink++;
+        }
+
+        this.setChild(name, link);
+
+        return link;
+    }
+
+    setChild(name: string, link: Link = new Link(this.vol, this, name)): Link {
+        this.children[name] = link;
+        link.parent = this;
+        return link;
+    }
+
+    deleteChild(link: Link) {
+        delete this.children[link.getName()];
+    }
+
+    getChild(name: string): Link {
+        return this.children[name];
+    }
+
+    getPath(): string {
+        return this.steps.join(SEP);
+    }
+
+    getName(): string {
+        return this.steps[this.steps.length - 1];
+    }
+
+    /**
+     * Walk the tree path and return the `Link` at that location, if any.
+     * @param steps {string[]} Desired location.
+     * @param stop {number} Max steps to go into.
+     * @param i {number} Current step in the `steps` array.
+     * @returns {any}
+     */
+    walk(steps: string[], stop: number = steps.length, i: number = 0): Link {
+        if(i >= steps.length) return this;
+        if(i >= stop) return this;
+
+        const step = steps[i];
+        const link = this.getChild(step);
+        if(!link) return null;
+        return link.walk(steps, stop, i + 1);
     }
 }
 
@@ -125,6 +255,12 @@ export class File {
     fd: number;
 
     /**
+     * Hard link that this file opened.
+     * @type {any}
+     */
+    link: Link = null;
+
+    /**
      * Reference to a `Node`.
      * @type {Node}
      */
@@ -139,7 +275,16 @@ export class File {
     // Flags used when opening the file.
     flags: number;
 
-    constructor(node: Node, flags: number, fd?: number) {
+    /**
+     * Open a Link-Node pair. `node` is provided separately as that might be a different node
+     * rather the one `link` points to, because it might be a symlink.
+     * @param link
+     * @param node
+     * @param flags
+     * @param fd
+     */
+    constructor(link: Link, node: Node, flags: number, fd?: number) {
+        this.link = link;
         this.node = node;
         this.flags = flags;
         if(!fd) this.fd = File.fd--;
@@ -162,7 +307,7 @@ export class File {
     }
 
     getSize(): number {
-        return this.node.getBuffer().length;
+        return this.node.getSize();
     }
 
     truncate(len = 0) {
@@ -174,7 +319,7 @@ export class File {
     }
 
     stats(): Stats {
-        return Stats.build(this);
+        return Stats.build(this.node);
     }
 }
 
@@ -184,31 +329,34 @@ export class File {
  */
 export class Stats {
 
-    static build(file: File) {
+    static build(node: Node) {
         const stats = new Stats;
-        const {node} = file;
+        const {uid, gid, atime, mtime, ctime, mode, ino} = node;
 
-        stats.uid = node.uid;
-        stats.gid = node.gid;
+        stats.uid = uid;
+        stats.gid = gid;
 
-        stats.atime = node.atime;
-        stats.mtime = node.mtime;
-        stats.ctime = node.ctime;
+        stats.atime = atime;
+        stats.mtime = mtime;
+        stats.ctime = ctime;
+        stats.birthtime = ctime;
 
-        stats.size = file.getSize();
+        stats.atimeMs = atime.getTime();
+        stats.mtimeMs = mtime.getTime();
+        const ctimeMs = ctime.getTime();
+        stats.ctimeMs = ctimeMs;
+        stats.birthtimeMs = ctimeMs;
 
-        if(node.isDirectory())      stats._isDirectory = true;
-        else if(node.isSymlink())   stats._isSymbolicLink = true;
-        else                        stats._isFile = true;
+        stats.size = node.getSize();
+        stats.mode = node.mode;
+        stats.ino = node.ino;
 
         return stats;
     }
 
-
     // User ID and group ID.
     uid: number = 0;
     gid: number = 0;
-
 
     rdev: number = 0;
     blksize: number = 4096;
@@ -221,24 +369,44 @@ export class Stats {
     ctime: Date = null;
     birthtime: Date = null;
 
+    atimeMs: number = 0.0;
+    mtimeMs: number = 0.0;
+    ctimeMs: number = 0.0;
+    birthtimeMs: number = 0.0;
+
     dev: number = 0;
     mode: number = 0;
-    nlink: number = 0;
+    nlink: number = 1;
 
-    // For internal usage.
-    _isFile = false;
-    _isDirectory = false;
-    _isSymbolicLink = false;
-
-    isFile() {
-        return this._isFile;
+    private _checkModeProperty(property: number): boolean {
+        return (this.mode & S_IFMT) === property;
     }
 
-    isDirectory() {
-        return this._isDirectory;
+    isDirectory(): boolean {
+        return this._checkModeProperty(S_IFDIR);
     }
 
-    isSymbolicLink() {
-        return this._isSymbolicLink;
+    isFile(): boolean {
+        return this._checkModeProperty(S_IFREG);
+    }
+
+    isBlockDevice(): boolean {
+        return this._checkModeProperty(S_IFBLK);
+    }
+
+    isCharacterDevice(): boolean {
+        return this._checkModeProperty(S_IFCHR);
+    }
+
+    isSymbolicLink(): boolean {
+        return this._checkModeProperty(S_IFLNK);
+    }
+
+    isFIFO(): boolean {
+        return this._checkModeProperty(S_IFIFO);
+    }
+
+    isSocket(): boolean {
+        return this._checkModeProperty(S_IFSOCK);
     }
 }

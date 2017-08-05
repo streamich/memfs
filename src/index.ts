@@ -1,5 +1,7 @@
-import {Volume} from './volume';
 import {constants as consts} from './constants';
+import {Stats} from './node';
+import {Volume} from './volume';
+
 
 
 export const constants = consts;
@@ -18,14 +20,25 @@ const FS_METHODS = [
     'open',         'openSync',
     'readFile',     'readFileSync',
     'writeFile',    'writeFileSync',
+    'symlink',      'symlinkSync',
+    'realpath',     'realpathSync',
+    'stat',         'statSync',
+    'lstat',        'lstatSync',
+    'fstat',        'fstatSync',
+    'rename',       'renameSync',
+    'exists',       'existsSync',
 ];
 
+export interface IFs extends Volume<any> {
+    Stats: new (...args) => Stats,
+}
 
 // Export bound fs methods.
-export const fs: Volume<any> = {} as any as Volume<any>;
+export const fs: IFs = {} as any as IFs;
 for(const method of FS_METHODS) {
     fs[method] = volume[method].bind(volume);
 }
 
+fs.Stats = Stats;
 
 module.exports = {...module.exports, ...fs};

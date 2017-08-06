@@ -10,6 +10,9 @@ const MOCK_DIR = join(__dirname, '../test/mock');
 
 describe('volume', () => {
     describe('filenameToSteps(filename): string[]', () => {
+        it('/ -> []', () => {
+            expect(filenameToSteps('/')).to.eql([]);
+        });
         it('/test -> ["test"]', () => {
             expect(filenameToSteps('/test')).to.eql(['test']);
         });
@@ -27,6 +30,14 @@ describe('volume', () => {
         });
     });
     describe('Volume', () => {
+        it('.genRndStr()', () => {
+            const vol = new Volume;
+            for(let i = 0; i < 100; i++) {
+                const str = vol.genRndStr();
+                expect(typeof str === 'string').to.be.true;
+                expect(str.length).to.equal(6);
+            }
+        });
         describe('.getLink(steps)', () => {
             const vol = new Volume;
             it('[] - Get the root link', () => {
@@ -44,6 +55,105 @@ describe('volume', () => {
                 const link1 = dir.createChild('child.sh');
                 const node2 = vol.getLink(['dir', 'child.sh']);
                 expect(link1).to.equal(node2);
+            });
+        });
+        describe('.toJSON()', () => {
+            it('Single file', () => {
+                const vol = new Volume;
+                vol.writeFileSync('/test', 'Hello');
+                expect(vol.toJSON()).to.eql({'/test': 'Hello'})
+            });
+            it('Multiple files', () => {
+                const vol = new Volume;
+                vol.writeFileSync('/test', 'Hello');
+                vol.writeFileSync('/test2', 'Hello2');
+                vol.writeFileSync('/test.txt', 'Hello3');
+                expect(vol.toJSON()).to.eql({
+                    '/test': 'Hello',
+                    '/test2': 'Hello2',
+                    '/test.txt': 'Hello3',
+                })
+            });
+            it('With folders, skips empty folders', () => {
+                const vol = new Volume;
+                vol.writeFileSync('/test', 'Hello');
+                vol.mkdirSync('/dir');
+                vol.mkdirSync('/dir/dir2');
+
+                // Folder `/dir3` will be empty, and should not be in the JSON aoutput.
+                vol.mkdirSync('/dir3');
+
+                vol.writeFileSync('/dir/abc', 'abc');
+                vol.writeFileSync('/dir/abc2', 'abc2');
+                vol.writeFileSync('/dir/dir2/hello.txt', 'world');
+                expect(vol.toJSON()).to.eql({
+                    '/test': 'Hello',
+                    '/dir/abc': 'abc',
+                    '/dir/abc2': 'abc2',
+                    '/dir/dir2/hello.txt': 'world',
+                })
+            });
+        });
+        describe('.fromJSON(json[, cwd])', () => {
+            it('Files at root', () => {
+                const vol = new Volume;
+                const json = {
+                    '/hello': 'world',
+                    '/app.js': 'console.log(123)',
+                };
+                vol.fromJSON(json);
+                expect(vol.toJSON()).to.eql(json);
+            });
+            it('Files at root with relative paths', () => {
+                const vol = new Volume;
+                const json = {
+                    'hello': 'world',
+                    'app.js': 'console.log(123)',
+                };
+                vol.fromJSON(json);
+                expect(vol.toJSON()).to.eql({
+                    '/hello': 'world',
+                    '/app.js': 'console.log(123)',
+                });
+            });
+            it('Deeply nested tree', () => {
+                const vol = new Volume;
+                const json = {
+                    '/dir/file': '...',
+                    '/dir/dir/dir2/hello.sh': 'world',
+                    '/hello.js': 'console.log(123)',
+                    '/dir/dir/test.txt': 'Windows',
+                };
+                vol.fromJSON(json);
+                expect(vol.toJSON()).to.eql(json);
+            });
+            it('Invalid JSON throws error', () => {
+                try {
+                    const vol = new Volume;
+                    const json = {
+                        '/dir/file': '...',
+                        '/dir': 'world',
+                    };
+                    vol.fromJSON(json);
+                    throw Error('This should not throw');
+                } catch(error) {
+                    // Check for both errors, because in JavaScript we the `json` map's key order is not guaranteed.
+                    expect((error.code === 'EISDIR') || (error.code === 'ENOTDIR')).to.be.true;
+                }
+            });
+            it('Invalid JSON throws error 2', () => {
+                try {
+                    const vol = new Volume;
+                    const json = {
+                        '/dir': 'world',
+                        '/dir/file': '...',
+                    };
+                    vol.fromJSON(json);
+                    throw Error('This should not throw');
+                } catch(error) {
+                    // Check for both errors, because in JavaScript we the `json` map's key order is not guaranteed.
+                    expect((error.code === 'EISDIR') || (error.code === 'ENOTDIR')).to.be.true;
+                }
             });
         });
         describe('.openSync(path, flags[, mode])', () => {
@@ -87,6 +197,16 @@ describe('volume', () => {
                     expect(err).to.be.an.instanceof(TypeError);
                     expect(err.message).to.equal('mode must be an int');
                 }
+            });
+            it('Open multiple files', () => {
+                const fd1 = vol.openSync('/1.json', 'w');
+                const fd2 = vol.openSync('/2.json', 'w');
+                const fd3 = vol.openSync('/3.json', 'w');
+                const fd4 = vol.openSync('/4.json', 'w');
+                expect(typeof fd1).to.equal('number');
+                expect(fd1 !== fd2).to.be.true;
+                expect(fd2 !== fd3).to.be.true;
+                expect(fd3 !== fd4).to.be.true;
             });
         });
         describe('.open(path, flags[, mode], callback)', () => {
@@ -236,10 +356,52 @@ describe('volume', () => {
                 });
             });
         });
-        describe('.writeFileSync(path, data[, options])', () => {
+        describe('.writeSync(fd, str, position, encoding)', () => {
             const vol = new Volume;
+            it('Simple write to a file descriptor', () => {
+                const fd = vol.openSync('/test.txt', 'w+');
+                const data = 'hello';
+                const bytes = vol.writeSync(fd, data);
+                vol.closeSync(fd);
+                expect(bytes).to.equal(data.length);
+                expect(vol.readFileSync('/test.txt', 'utf8')).to.equal(data);
+            });
+            it('Multiple writes to a file', () => {
+                const fd = vol.openSync('/multi.txt', 'w+');
+                const datas = ['hello', ' ', 'world', '!'];
+                let bytes = 0;
+                for(let data of datas) {
+                    let b = vol.writeSync(fd, data);
+                    expect(b).to.equal(data.length);
+                    bytes += b;
+                }
+                vol.closeSync(fd);
+                const result = datas.join('');
+                expect(bytes).to.equal(result.length);
+                expect(vol.readFileSync('/multi.txt', 'utf8')).to.equal(result);
+            });
+            it('Overwrite part of file', () => {
+                const fd = vol.openSync('/overwrite.txt', 'w+');
+                vol.writeSync(fd, 'martini');
+                vol.writeSync(fd, 'Armagedon', 1, 'utf8');
+                vol.closeSync(fd);
+                expect(vol.readFileSync('/overwrite.txt', 'utf8')).to.equal('mArmagedon');
+            });
+        });
+        describe('.writeSync(fd, buffer, offset, length, position)', () => {
+            const vol = new Volume;
+            it('Write binary data to file', () => {
+                const fd = vol.openSync('/data.bin', 'w+');
+                const bytes = vol.writeSync(fd, Buffer.from([1,2,3]));
+                vol.closeSync(fd);
+                expect(bytes).to.equal(3);
+                expect(Buffer.from([1,2,3]).equals(vol.readFileSync('/data.bin') as Buffer)).to.be.true;
+            });
+        });
+        describe('.writeFileSync(path, data[, options])', () => {
             const data = 'asdfasidofjasdf';
             it('Create a file at root (/writeFileSync.txt)', () => {
+                const vol = new Volume;
                 vol.writeFileSync('/writeFileSync.txt', data);
 
                 const node = vol.root.getChild('writeFileSync.txt').getNode();
@@ -247,12 +409,28 @@ describe('volume', () => {
                 expect(node.getString()).to.equal(data);
             });
             it('Write to file by file descriptor', () => {
+                const vol = new Volume;
                 const fd = vol.openSync('/writeByFd.txt', 'w');
                 vol.writeFileSync(fd, data);
-
                 const node = vol.root.getChild('writeByFd.txt').getNode();
                 expect(node).to.be.an.instanceof(Node);
                 expect(node.getString()).to.equal(data);
+            });
+            it('Write to two files (second by fd)', () => {
+                const vol = new Volume;
+
+                // 1
+                vol.writeFileSync('/1.txt', '123');
+
+                // 2, 3, 4
+                const fd2 = vol.openSync('/2.txt', 'w');
+                const fd3 = vol.openSync('/3.txt', 'w');
+                const fd4 = vol.openSync('/4.txt', 'w');
+
+                vol.writeFileSync(fd2, '456');
+
+                expect(vol.root.getChild('1.txt').getNode().getString()).to.equal('123');
+                expect(vol.root.getChild('2.txt').getNode().getString()).to.equal('456');
             });
         });
         describe('.writeFile(path, data[, options], callback)', () => {
@@ -388,6 +566,158 @@ describe('volume', () => {
                 expect(stats.size).to.equal(data.length);
                 expect(stats.isFile()).to.be.true;
                 expect(stats.isDirectory()).to.be.false;
+            });
+        });
+        describe('.linkSync(existingPath, newPath)', () => {
+            const vol = new Volume;
+            it('Create a new link', () => {
+                const data = '123';
+                vol.writeFileSync('/1.txt', data);
+                vol.linkSync('/1.txt', '/2.txt');
+                expect(vol.readFileSync('/1.txt', 'utf8')).to.equal(data);
+                expect(vol.readFileSync('/2.txt', 'utf8')).to.equal(data);
+            });
+            it('nlink property of i-node increases when new link is created', () => {
+                vol.writeFileSync('/a.txt', '123');
+                vol.linkSync('/a.txt', '/b.txt');
+                vol.linkSync('/a.txt', '/c.txt');
+                const stats = vol.statSync('/b.txt');
+                expect(stats.nlink).to.equal(3);
+            });
+        });
+        describe('.readdirSync(path)', () => {
+            const vol = new Volume;
+            it('Returns simple list', () => {
+                vol.writeFileSync('/1.js', '123');
+                vol.writeFileSync('/2.js', '123');
+                const list = vol.readdirSync('/');
+                expect(list.length).to.equal(2);
+                expect(list).to.eql(['1.js', '2.js']);
+            });
+        });
+        describe('.readlinkSync(path[, options])', () => {
+            it('Simple symbolic link to one file', () => {
+                const vol = new Volume;
+                vol.writeFileSync('/1', '123');
+                vol.symlinkSync('/1', '/2');
+                const res = vol.readlinkSync('/2');
+                expect(res).to.equal('/1');
+            });
+        });
+        describe('.readlink(path[, options], callback)', () => {
+            it('Simple symbolic link to one file', done => {
+                const vol = new Volume;
+                vol.writeFileSync('/1', '123');
+                vol.symlink('/1', '/2', err => {
+                    vol.readlink('/2', (err, res) => {
+                        expect(res).to.equal('/1');
+                        done();
+                    });
+                });
+            });
+        });
+        describe('.fsyncSync(fd)', () => {
+            const vol = new Volume;
+            const fd = vol.openSync('/lol', 'w');
+            it('Executes without crashing', () => {
+                vol.fsyncSync(fd);
+            });
+        });
+        describe('.fsync(fd, callback)', () => {
+            const vol = new Volume;
+            const fd = vol.openSync('/lol', 'w');
+            it('Executes without crashing', done => {
+                vol.fsync(fd, done);
+            });
+        });
+        describe('.ftruncateSync(fd[, len])', () => {
+            const vol = new Volume;
+            it('Truncates to 0 single file', () => {
+                const fd = vol.openSync('/trunky', 'w');
+                vol.writeFileSync(fd, '12345');
+                expect(vol.readFileSync('/trunky', 'utf8')).to.equal('12345');
+                vol.ftruncateSync(fd);
+                expect(vol.readFileSync('/trunky', 'utf8')).to.equal('');
+            });
+        });
+        describe('.truncateSync(path[, len])', () => {
+            const vol = new Volume;
+            it('Truncates to 0 single file', () => {
+                const fd = vol.openSync('/trunky', 'w');
+                vol.writeFileSync(fd, '12345');
+                expect(vol.readFileSync('/trunky', 'utf8')).to.equal('12345');
+                vol.truncateSync('/trunky');
+                expect(vol.readFileSync('/trunky', 'utf8')).to.equal('');
+            });
+            it('Partial truncate', () => {
+                const fd = vol.openSync('/1', 'w');
+                vol.writeFileSync(fd, '12345');
+                expect(vol.readFileSync('/1', 'utf8')).to.equal('12345');
+                vol.truncateSync('/1', 2);
+                expect(vol.readFileSync('/1', 'utf8')).to.equal('12');
+            });
+        });
+        describe('.utimesSync(path, atime, mtime)', () => {
+            const vol = new Volume;
+            it('Set times on file', () => {
+                vol.writeFileSync('/lol', '12345');
+                vol.utimesSync('/lol', 1234, 12345);
+                const stats = vol.statSync('/lol');
+                expect(Math.round(stats.atime.getTime() / 1000)).to.equal(1234);
+                expect(Math.round(stats.mtime.getTime() / 1000)).to.equal(12345);
+            });
+        });
+        describe('.mkdirSync(path[, mode])', () => {
+            it('Create dir at root', () => {
+                const vol = new Volume;
+                vol.mkdirSync('/test');
+                const child = vol.root.getChild('test');
+                expect(child).to.be.an.instanceof(Link);
+                expect(child.getNode().isDirectory()).to.be.true;
+            });
+            it('Create 2 levels deep folders', () => {
+                const vol = new Volume;
+                vol.mkdirSync('/dir1');
+                vol.mkdirSync('/dir1/dir2');
+                const dir1 = vol.root.getChild('dir1');
+                expect(dir1).to.be.an.instanceof(Link);
+                expect(dir1.getNode().isDirectory()).to.be.true;
+                const dir2 = dir1.getChild('dir2');
+                expect(dir2).to.be.an.instanceof(Link);
+                expect(dir2.getNode().isDirectory()).to.be.true;
+                expect(dir2.getPath()).to.equal('/dir1/dir2');
+            });
+        });
+        describe('.mkdtempSync(prefix[, options])', () => {
+            it('Create temp dir at root', () => {
+                const vol = new Volume;
+                const name = vol.mkdtempSync('/tmp-');
+                vol.writeFileSync(name + '/file.txt', 'lol');
+                expect(vol.toJSON()).to.eql({[name + '/file.txt']: 'lol'});
+            });
+        });
+        describe('.mkdirpSync(path[, mode])', () => {
+            it('Create /dir1/dir2/dir3', () => {
+                const vol = new Volume;
+                vol.mkdirpSync('/dir1/dir2/dir3');
+                const dir1 = vol.root.getChild('dir1');
+                const dir2 = dir1.getChild('dir2');
+                const dir3 = dir2.getChild('dir3');
+                expect(dir1).to.be.an.instanceof(Link);
+                expect(dir2).to.be.an.instanceof(Link);
+                expect(dir3).to.be.an.instanceof(Link);
+                expect(dir1.getNode().isDirectory()).to.be.true;
+                expect(dir2.getNode().isDirectory()).to.be.true;
+                expect(dir3.getNode().isDirectory()).to.be.true;
+            });
+        });
+        describe('.rmdir(path)', () => {
+            it('Remove single dir', () => {
+                const vol = new Volume;
+                vol.mkdirSync('/dir');
+                expect(vol.root.getChild('dir').getNode().isDirectory()).to.be.true;
+                vol.rmdirSync('/dir');
+                expect(!!vol.root.getChild('dir')).to.be.false;
             });
         });
     });

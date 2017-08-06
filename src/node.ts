@@ -11,14 +11,9 @@ export const SEP = '/';
  * Node in a file system (like i-node, v-node).
  */
 export class Node {
+
     // i-node number.
     ino: number;
-
-    // parent: Node = null;
-    //
-    // children: {[child: string]: Node} = {};
-    //
-    // steps: string[] = [];
 
     // User ID and group ID.
     uid: number = process.getuid();
@@ -31,12 +26,12 @@ export class Node {
     // data: string = '';
     buf: Buffer = null;
 
-    perm = 0o666;
+    perm = 0o666; // Permissions `chmod`, `fchmod`
 
     mode = S_IFREG; // S_IFDIR, S_IFREG, etc.. (file by default?)
 
     // Number of hard links pointing at this Node.
-    nlink = 0;
+    nlink = 1;
 
     // Steps to another node, if this node is a symlink.
     symlink: string[] = null;
@@ -45,18 +40,6 @@ export class Node {
         this.perm = perm;
         this.ino = ino;
     }
-/*
-
-    getChild(name: string) {
-        return this.children[name];
-    }
-*/
-
-/*    createChild(name: string, isDirectory?: boolean, perm?: number) {
-        const node = new Node(this, name, isDirectory, perm);
-        this.children[name] = node;
-        return node;
-    }*/
 
     getString(encoding = 'utf8'): string {
         return this.getBuffer().toString(encoding);
@@ -68,25 +51,13 @@ export class Node {
     }
 
     getBuffer(): Buffer {
-        if(!this.buf) this.setBuffer(Buffer.from([]));
+        if(!this.buf) this.setBuffer(Buffer.allocUnsafe(0));
         return Buffer.from(this.buf); // Return a copy.
     }
 
     setBuffer(buf: Buffer) {
         this.buf = Buffer.from(buf); // Creates a copy of data.
-    }/*
-
-    getPath() {
-        return SEP + this.steps.join(SEP);
     }
-
-    getName(): string {
-        return this.steps[this.steps.length - 1];
-    }
-
-    getFilename(): string {
-        return this.steps.join(SEP);
-    }*/
 
     getSize(): number {
         return this.buf ? this.buf.length : 0;
@@ -108,6 +79,10 @@ export class Node {
         this.setModeProperty(S_IFLNK);
     }
 
+    isFile() {
+        return (this.mode & S_IFMT) === S_IFREG;
+    }
+
     isDirectory() {
         return (this.mode & S_IFMT) === S_IFDIR;
     }
@@ -122,27 +97,41 @@ export class Node {
         this.setIsSymlink();
     }
 
+    write(buf: Buffer, off: number = 0, len: number = buf.length, pos: number = 0): number {
+        if(!this.buf) this.buf = Buffer.allocUnsafe(0);
+
+        if(pos + len > this.buf.length) {
+            const newBuf = Buffer.allocUnsafe(pos + len);
+            this.buf.copy(newBuf, 0, 0, this.buf.length);
+            this.buf = newBuf;
+        }
+
+        buf.copy(this.buf, pos, off, off + len);
+        return len;
+    }
+
+    truncate(len: number = 0) {
+        if(!len) this.buf = Buffer.allocUnsafe(0);
+        else {
+            if(!this.buf) this.buf = Buffer.allocUnsafe(0);
+            if(len <= this.buf.length) {
+                this.buf = this.buf.slice(0, len);
+            } else {
+                const buf = Buffer.allocUnsafe(0);
+                this.buf.copy(buf);
+                buf.fill(0, len);
+            }
+        }
+    }
+
+    chmod(perm: number) {
+        this.perm = perm;
+    }
+
     chown(uid: number, gid: number) {
         this.uid = uid;
         this.gid = gid;
     }
-/*
-    /!**
-     * Walk the tree path and return the `Node` at that location, if any.
-     * @param steps {string[]} Desired location.
-     * @param stop {number} Max steps to go into.
-     * @param i {number} Current step in the `steps` array.
-     * @returns {any}
-     *!/
-    walk(steps: string[], stop: number = steps.length, i: number = 0): Node {
-        if(i >= steps.length) return this;
-        if(i >= stop) return this;
-
-        const step = steps[i];
-        const node = this.getChild(step);
-        if(!node) return null;
-        return node.walk(steps, stop, i + 1);
-    }*/
 }
 
 
@@ -166,6 +155,9 @@ export class Link {
     // "i-node" number of the node.
     ino: Number = 0;
 
+    // Number of children.
+    length: number = 0;
+
     constructor(vol: Volume, parent: Link, name: string) {
         this.vol = vol;
         this.parent = parent;
@@ -186,11 +178,11 @@ export class Link {
         link.setNode(node);
 
         if(node.isDirectory()) {
-            link.setChild('.', link);
-            link.getNode().nlink++;
+            // link.setChild('.', link);
+            // link.getNode().nlink++;
 
-            link.setChild('..', this);
-            this.getNode().nlink++;
+            // link.setChild('..', this);
+            // this.getNode().nlink++;
         }
 
         this.setChild(name, link);
@@ -201,11 +193,13 @@ export class Link {
     setChild(name: string, link: Link = new Link(this.vol, this, name)): Link {
         this.children[name] = link;
         link.parent = this;
+        this.length++;
         return link;
     }
 
     deleteChild(link: Link) {
         delete this.children[link.getName()];
+        this.length--;
     }
 
     getChild(name: string): Link {
@@ -219,6 +213,15 @@ export class Link {
     getName(): string {
         return this.steps[this.steps.length - 1];
     }
+
+    // del() {
+    //     const parent = this.parent;
+    //     if(parent) {
+    //         parent.deleteChild(link);
+    //     }
+    //     this.parent = null;
+    //     this.vol = null;
+    // }
 
     /**
      * Walk the tree path and return the `Link` at that location, if any.
@@ -270,7 +273,7 @@ export class File {
      * A cursor/offset position in a file, where data will be written on write.
      * User can "seek" this position.
      */
-    offset: number = 0;
+    position: number = 0;
 
     // Flags used when opening the file.
     flags: number;
@@ -283,11 +286,11 @@ export class File {
      * @param flags
      * @param fd
      */
-    constructor(link: Link, node: Node, flags: number, fd?: number) {
+    constructor(link: Link, node: Node, flags: number, fd: number) {
         this.link = link;
         this.node = node;
         this.flags = flags;
-        if(!fd) this.fd = File.fd--;
+        this.fd = fd;
     }
 
     getString(encoding = 'utf8'): string {
@@ -310,16 +313,31 @@ export class File {
         return this.node.getSize();
     }
 
-    truncate(len = 0) {
-        this.setString(this.getString().substr(0, len));
+    truncate(len?: number) {
+        this.node.truncate(len);
     }
 
-    seek(offset: number) {
-        this.offset = offset;
+    seekTo(position: number) {
+        this.position = position;
     }
 
     stats(): Stats {
         return Stats.build(this.node);
+    }
+
+    write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number): number {
+        if(typeof position !== 'number') position = this.position;
+        const bytes = this.node.write(buf, offset, length, position);
+        this.position = position + length;
+        return bytes;
+    }
+
+    chmod(perm: number) {
+        this.node.chmod(perm);
+    }
+
+    chown(uid: number, gid: number) {
+        this.node.chown(uid, gid);
     }
 }
 
@@ -350,6 +368,7 @@ export class Stats {
         stats.size = node.getSize();
         stats.mode = node.mode;
         stats.ino = node.ino;
+        stats.nlink = node.nlink;
 
         return stats;
     }
@@ -376,7 +395,7 @@ export class Stats {
 
     dev: number = 0;
     mode: number = 0;
-    nlink: number = 1;
+    nlink: number = 0;
 
     private _checkModeProperty(property: number): boolean {
         return (this.mode & S_IFMT) === property;

@@ -20,6 +20,8 @@ const FS_METHODS = [
     'open',         'openSync',
     'readFile',     'readFileSync',
     'writeFile',    'writeFileSync',
+    'link',         'linkSync',
+    'unlink',       'unlinkSync',
     'symlink',      'symlinkSync',
     'realpath',     'realpathSync',
     'stat',         'statSync',
@@ -27,9 +29,11 @@ const FS_METHODS = [
     'fstat',        'fstatSync',
     'rename',       'renameSync',
     'exists',       'existsSync',
+    'access',       'accessSync',
+    'readdir',      'readdirSync',
 ];
 
-export interface IFs extends Volume<any> {
+export interface IFs extends Volume {
     Stats: new (...args) => Stats,
 }
 

@@ -7,7 +7,7 @@ gulp.task('build-ts', function () {
         .pipe(ts({
             "target": "es5",
             "module": "commonjs",
-            "removeComments": true,
+            "removeComments": false,
             "noImplicitAny": false,
             "sourceMap": false,
         }))

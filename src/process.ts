@@ -3,17 +3,24 @@
 interface IProcess {
     getuid(): number,
     getgid(): number,
+    cwd(): string,
     nextTick: (callback: (...args) => void, ...args) => void,
 }
 
-
-let _process: IProcess;
-if(typeof process === 'undefined') {
-    _process = {
+export function createProcess(): IProcess {
+    return {
         getuid: () => 0,
         getgid: () => 0,
-        nextTick: require('./setImmediate'),
+        cwd: () => '/',
+        nextTick: require('./setImmediate').default,
     };
+}
+
+let _process: IProcess;
+/* istanbul ignore next */
+if(typeof process !== 'object') {
+    /* istanbul ignore next */
+    _process = createProcess();
 } else
     _process = process;
 

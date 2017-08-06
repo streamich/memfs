@@ -26,7 +26,8 @@ export type TEncoding = 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'lati
 export type TEncodingExtended = TEncoding | 'buffer';
 export type TTime = number | string | Date;
 export type TCallback<TData> = (error?: IError, data?: TData) => void;
-
+type TCallbackWrite = (err: IError, bytesWritten: number, source: Buffer) => void;
+type TCallbackWriteStr = (err: IError, written: number, str: string) => void;
 
 
 // ---------------------------------------- Constants
@@ -824,7 +825,16 @@ export class Volume {
         return file.write(buf, offset, length, position);
     }
 
-    // write(fd: number, buffer: Buffer | Uint8Array, offset?: number, length?: number, position?: number, callback?: (err: IError, bytesWritten: number, buffer: Buffer) => void);
+    write(fd: number, buffer: Buffer | Uint8Array, callback: TCallbackWrite);
+    write(fd: number, buffer: Buffer | Uint8Array, offset: number, callback: TCallbackWrite);
+    write(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, callback: TCallbackWrite);
+    write(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number, callback: TCallbackWrite);
+    write(fd: number, str: string, callback: TCallbackWriteStr);
+    write(fd: number, str: string, position: number, callback: TCallbackWriteStr);
+    write(fd: number, str: string, position: number, encoding: TEncoding, callback: TCallbackWriteStr);
+    write(fd: number, a?, b?, c?, d?, e?) {
+
+    }
 
     private writeFileBase(id: TFileId, buf: Buffer, flagsNum: number, modeNum: number) {
         // console.log('writeFileBase', id, buf, flagsNum, modeNum);

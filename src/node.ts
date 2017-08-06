@@ -48,6 +48,7 @@ export class Node {
     setString(str: string) {
         // this.setBuffer(Buffer.from(str, 'utf8'));
         this.buf = Buffer.from(str, 'utf8');
+        this.touch();
     }
 
     getBuffer(): Buffer {
@@ -57,6 +58,7 @@ export class Node {
 
     setBuffer(buf: Buffer) {
         this.buf = Buffer.from(buf); // Creates a copy of data.
+        this.touch();
     }
 
     getSize(): number {
@@ -107,6 +109,9 @@ export class Node {
         }
 
         buf.copy(this.buf, pos, off, off + len);
+
+        this.touch();
+
         return len;
     }
 
@@ -122,15 +127,23 @@ export class Node {
                 buf.fill(0, len);
             }
         }
+
+        this.touch();
     }
 
     chmod(perm: number) {
         this.perm = perm;
+        this.touch();
     }
 
     chown(uid: number, gid: number) {
         this.uid = uid;
         this.gid = gid;
+        this.touch();
+    }
+
+    touch() {
+        this.mtime = new Date;
     }
 }
 

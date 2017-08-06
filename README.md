@@ -125,8 +125,8 @@ available.
  - [x] `utimes(path, atime, mtime, callback)`
  - [x] `utimesSync(path, atime, mtime)`
  - [ ] `watch(filename[, options][, listener])`
- - [ ] `watchFile(filename[, options], listener)`
- - [ ] `unwatchFile(filename[, listener])`
+ - [x] `watchFile(filename[, options], listener)`
+ - [x] `unwatchFile(filename[, listener])`
  - [ ] `write(fd, buffer[, offset[, length[, position]]], callback)`
  - [ ] `write(fd, string[, position[, encoding]], callback)`
  - [x] `writeFile(file, data[, options], callback)`

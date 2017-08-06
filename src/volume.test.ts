@@ -1,5 +1,5 @@
 import {Link, Node, Stats} from "./node";
-import {Volume, filenameToSteps} from "./volume";
+import {Volume, filenameToSteps, StatWatcher} from "./volume";
 import {expect} from 'chai';
 import {resolve, join} from 'path';
 import * as fs from 'fs';
@@ -268,6 +268,8 @@ describe('volume', () => {
                 const fd = vol.openSync('/test.txt', 'w');
                 vol.closeSync(fd);
             });
+            xit('Correct error when file descriptor is not a number', () => {});
+            xit('Closing file descriptor that does not exist', () => {});
             it('Closing same file descriptor twice throws EBADF', () => {
                 const fd = vol.openSync('/test.txt', 'w');
                 vol.closeSync(fd);
@@ -537,7 +539,6 @@ describe('volume', () => {
             const dojo = vol.root.createChild('dojo.js');
             const data = '(funciton(){})();';
             dojo.getNode().setString(data);
-
             it('Returns basic file stats', () => {
                 const stats = vol.statSync('/dojo.js');
                 expect(stats).to.be.an.instanceof(Stats);
@@ -551,6 +552,16 @@ describe('volume', () => {
                 expect(stats.isSymbolicLink()).to.be.false;
                 expect(stats.isFile()).to.be.true;
                 expect(stats.size).to.equal(data.length);
+            });
+            it('Modification new write', done => {
+                vol.writeFileSync('/mtime.txt', '1');
+                const stats1 = vol.statSync('/mtime.txt');
+                setTimeout(() => {
+                    vol.writeFileSync('/mtime.txt', '2');
+                    const stats2 = vol.statSync('/mtime.txt');
+                    expect(stats2.mtimeMs).to.be.greaterThan(stats1.mtimeMs);
+                    done();
+                }, 1);
             });
         });
         describe('.fstatSync(fd)', () => {
@@ -719,6 +730,44 @@ describe('volume', () => {
                 vol.rmdirSync('/dir');
                 expect(!!vol.root.getChild('dir')).to.be.false;
             });
+        });
+        describe('.watchFile(path[, options], listener)', () => {
+            it('Calls listener on .writeFile', done => {
+                const vol = new Volume;
+                vol.writeFileSync('/lol.txt', '1');
+                setTimeout(() => {
+                    vol.watchFile('/lol.txt', {interval: 1}, (curr, prev) => {
+                        vol.unwatchFile('/lol.txt');
+                        done();
+                    });
+                    vol.writeFileSync('/lol.txt', '2');
+                }, 1);
+            });
+            xit('Multiple listeners for one file', () => {});
+        });
+        describe('.unwatchFile(path[, listener])', () => {
+            it('Stops watching before .writeFile', done => {
+                const vol = new Volume;
+                vol.writeFileSync('/lol.txt', '1');
+                setTimeout(() => {
+                    let listenerCalled = false;
+                    vol.watchFile('/lol.txt', {interval: 1}, (curr, prev) => {
+                        listenerCalled = true;
+                    });
+                    vol.unwatchFile('/lol.txt');
+                    vol.writeFileSync('/lol.txt', '2');
+                    setTimeout(() => {
+                        expect(listenerCalled).to.be.false;
+                        done();
+                    }, 10);
+                }, 1);
+            });
+        });
+    });
+    describe('StatWatcher', () => {
+        it('.vol points to current volume', () => {
+            const vol = new Volume;
+            expect((new StatWatcher(vol)).vol).to.equal(vol);
         });
     });
 });

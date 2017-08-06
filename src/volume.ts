@@ -5,6 +5,7 @@ import setImmediate from './setImmediate';
 import process from './process';
 const extend = require('fast-extend');
 const errors = require('./internal/errors');
+import setTimeoutUnref, {TSetTimeout} from "./setTimeoutUnref";
 
 
 
@@ -31,6 +32,7 @@ export type TCallback<TData> = (error?: IError, data?: TData) => void;
 // ---------------------------------------- Constants
 
 import {constants} from "./constants";
+import {EventEmitter} from "events";
 const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
     O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
     F_OK, R_OK, W_OK, X_OK} = constants;
@@ -275,6 +277,12 @@ const realpathDefaults: IReadFileOptions = optsDefaults;
 const getRealpathOptions = optsGenerator<IRealpathOptions>(realpathDefaults);
 const getRealpathOptsAndCb = optsAndCbGenerator<IRealpathOptions, TDataOut>(getRealpathOptions);
 
+
+// Options for `fs.watchFile`
+export interface IWatchFileOptions {
+    persistent?: boolean,
+    interval?: number,
+}
 
 
 
@@ -1547,656 +1555,118 @@ export class Volume {
         this.wrapAsync(this.lchownBase, [pathToFilename(path), uid, gid], callback);
     }
 
+    private statWatchers = {};
 
+    watchFile(path: TFilePath, listener: (curr: Stats, prev: Stats) => void): StatWatcher;
+    watchFile(path: TFilePath, options: IWatchFileOptions, listener: (curr: Stats, prev: Stats) => void): StatWatcher;
+    watchFile(path: TFilePath, a, b?): StatWatcher {
+        const filename = pathToFilename(path);
 
-/*
+        let options: IWatchFileOptions = a;
+        let listener: (curr: Stats, prev: Stats) => void = b;
 
-    addLayer(layer: Layer) {
-        this.layers.push(layer);
-        const mountpoint = resolve(layer.mountpoint) + sep;
-
-        // Add the root dir at the mount point.
-        this.addDir(mountpoint, layer);
-
-        for(let relativePath in layer.files) {
-            var filepath = relativePath.replace(/\//g, sep);
-            var fullpath = mountpoint + filepath;
-            this.addFile(fullpath, layer);
-        }
-    }
-
-    getFilePath(p: string) {
-        var filepath = resolve(p);
-        var node = this.getNode(filepath);
-        return node ? node : null;
-    }
-
-    getNode(p: string): Node {
-        var filepath = resolve(p);
-        var node = this.flattened[filepath];
-        if(!node) throw this.err404(filepath);
-        return node;
-    }
-
-    getFile(p: string): File {
-        var node = this.getNode(p);
-        if(node instanceof File) return node;
-
-        throw this.err404(node.path);
-    }
-
-    getDirectory(p: string): Directory {
-        var node = this.getNode(p);
-        if(node instanceof Directory) return node;
-
-        throw Error('Directory not found: ' + node.path);
-    }
-
-    getByFd(fd: number): Node {
-        var node = this.fds[fd];
-        if(node) return node;
-
-        throw Error('Node file descriptor not found: ' + fd);
-    }
-
-    getLayerContainingPath(fullpath: string) {
-        for(var i = 0; i < this.layers.length; i++) {
-            var layer = this.layers[i];
-            if(fullpath.indexOf(layer.mountpoint) === 0) return layer;
-        }
-        return null;
-    }
-
-    private err404(file) {
-        return Error('File not found: ' + file);
-    }
-
-    /!**
-     * Mount virtual in-memory files.
-     * @param mountpoint Path to the root of the mounting point.
-     * @param files A dictionary of relative file paths to their contents.
-     *!/
-    mountSync(mountpoint: string = '/', files: TLayerFiles = {}) {
-        this.addLayer(new Layer(mountpoint, files));
-    }
-
-    // TODO: Mount from URL?
-    // TODO: `mount('/usr/lib', 'http://example.com/volumes/usr/lib.json', callback)`
-    // TODO: ...also cache that it has been loaded...
-    mount(mountpoint: string, files: {[s: string] : string}|string, callback) {
-
-    }
-
-
-
-    // fs.readdirSync(path)
-    readdirSync(p: string) {
-        var fullpath = resolve(p);
-
-        // Check the path points into at least one of the directories our layers are mounted to.
-        var layer = this.getLayerContainingPath(fullpath);
-        if(!layer) {
-            throw Error('Directory not found: ' + fullpath);
-        }
-
-        // Check directory exists.
-        try {
-            var dir = this.getDirectory(fullpath);
-        } catch(e) {
-            throw Error(`ENOENT: no such file or directory, scandir '${fullpath}'`);
-        }
-
-        var len = fullpath.length;
-        var index = {};
-        for(var nodepath in this.flattened) {
-            if(nodepath.indexOf(fullpath) === 0) { // Matches at the very beginning.
-                try {
-                    var node = this.getNode(nodepath);
-                } catch(e) {
-                    // This should never happen.
-                    throw e;
-                }
-
-                let relativePath = nodepath.substr(len + 1);
-                const sep_pos = relativePath.indexOf(sep);
-                if(sep_pos > -1) relativePath = relativePath.substr(0, sep_pos);
-                if(relativePath) index[relativePath] = 1;
-            }
-        }
-
-        var files = [];
-        for(var file in index) files.push(file);
-        return files;
-    }
-
-    // fs.readdir(path, callback)
-    readdir(p: string, callback) {
-        setImmediate(() => {
-            try {
-                callback(null, this.readdirSync(p));
-            } catch(e) {
-                callback(e);
-            }
-        });
-    }
-
-    // fs.appendFileSync(filename, data[, options])
-    appendFileSync(filename, data, options?) {
-        try {
-            var file = this.getFile(filename);
-            file.setData(file.getData() + data.toString());
-        } catch(e) { // Try to create a new file.
-            var fullpath = resolve(filename);
-            var layer = this.getLayerContainingPath(fullpath);
-            if(!layer) throw Error('Cannot create new file at this path: ' + fullpath);
-            var file = this.addFile(fullpath, layer);
-            file.setData(data.toString());
-        }
-    }
-
-    // fs.appendFile(filename, data[, options], callback)
-    appendFile(filename, data, options, callback?) {
-        if(typeof options == 'function') {
-            callback = options;
+        if(typeof options === 'function') {
+            listener = a;
             options = null;
         }
 
-        setImmediate(() => {
-            try {
-                this.appendFileSync(filename, data, options);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.unlinkSync(path)
-    unlinkSync(filename) {
-        var node = this.getNode(filename);
-        delete node.layer.files[node.relative];
-        delete this.flattened[node.path];
-        delete this.fds[node.fd];
-    }
-
-    // fs.unlink(path, callback)
-    unlink(filename, callback) {
-        setImmediate(() => {
-            try {
-                this.unlinkSync(filename);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.truncateSync(path, len)
-    truncateSync(filename, len) {
-        var file = this.getFile(filename);
-        file.truncate(len);
-    }
-
-    // fs.truncate(path, len, callback)
-    truncate(filename, len, callback) {
-        setImmediate(() => {
-            try {
-                this.truncateSync(filename, len);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.ftruncateSync(fd, len)
-    ftruncateSync(fd, len) {
-        const node = this.getByFd(fd) as File;
-        if(!(node instanceof File)) this.err404((node as Node).path);
-        node.truncate(len);
-    }
-
-    // fs.ftruncate(fd, len, callback)
-    ftruncate(fd, len, callback) {
-        setImmediate(() => {
-            try {
-                this.ftruncateSync(fd, len);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.chownSync(path, uid, gid)
-    chownSync(filename, uid, gid) {
-        var node = this.getNode(filename);
-        node.chown(uid, gid);
-    }
-
-    // fs.chown(path, uid, gid, callback)
-    chown(filename, uid, gid, callback) {
-        setImmediate(() => {
-            try {
-                this.chownSync(filename, uid, gid);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.fchownSync(fd, uid, gid)
-    fchownSync(fd: number, uid: number, gid: number) {
-        var node = this.getByFd(fd);
-        node.chown(uid, gid);
-    }
-
-    // fs.fchown(fd, uid, gid, callback)
-    fchown(fd: number, uid: number, gid: number, callback?) {
-        setImmediate(() => {
-            try {
-                this.fchownSync(fd, uid, gid);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.lchownSync(path, uid, gid)
-    lchownSync(filename, uid, gid) {
-        this.chownSync(filename, uid, gid);
-    }
-
-    // fs.lchown(path, uid, gid, callback)
-    lchown(filename, uid, gid, callback) {
-        this.chown(filename, uid, gid, callback);
-    }
-
-    // fs.chmodSync(path, mode)
-    chmodSync(filename: string, mode) {
-        this.getNode(filename); // Does nothing, but throws if `filename` does not resolve to a node.
-    }
-
-    // fs.chmod(filename, mode, callback)
-    chmod(filename: string, mode, callback?) {
-        setImmediate(() => {
-            try {
-                this.chmodSync(filename, mode);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.fchmodSync(fd, mode)
-    fchmodSync(fd: number, mode) {
-        this.getByFd(fd);
-    }
-
-    // fs.fchmod(fd, mode, callback)
-    fchmod(fd: number, mode, callback) {
-        setImmediate(() => {
-            try {
-                this.fchmodSync(fd, mode);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.lchmodSync(path, mode)
-    lchmodSync(filename, mode) {
-        this.chmodSync(filename, mode);
-    }
-
-    // fs.lchmod(path, mode, callback)
-    lchmod(filename, mode, callback) {
-        this.chmod(filename, mode, callback);
-    }
-
-    // fs.rmdirSync(path)
-    rmdirSync(p: string) {
-        var dir = this.getDirectory(p);
-        delete this.flattened[dir.path];
-        delete this.fds[dir.fd];
-    }
-
-    // fs.rmdir(path, callback)
-    rmdir(p: string, callback) {
-        setImmediate(() => {
-            try {
-                this.rmdirSync(p);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-
-
-    // fs.utimesSync(path, atime, mtime)
-    utimesSync(filename: string, atime, mtime) {
-        var node = this.getNode(filename);
-        node.atime = atime;
-        node.mtime = mtime;
-    }
-
-    // fs.utimes(path, atime, mtime, callback)
-    utimes(filename: string, atime, mtime, callback?) {
-        setImmediate(() => {
-            try {
-                callback(null, this.utimesSync(filename, atime, mtime));
-            } catch(e) {
-                callback(e);
-            }
-        });
-    }
-
-    // fs.futimesSync(fd, atime, mtime)
-    futimesSync(fd: number, atime, mtime) {
-        var node = this.getByFd(fd);
-        node.atime = atime;
-        node.mtime = mtime;
-    }
-
-    // fs.futimes(fd, atime, mtime, callback)
-    futimes(fd, atime, mtime, callback) {
-        setImmediate(() => {
-            try {
-                callback(null, this.futimesSync(fd, atime, mtime));
-            } catch(e) {
-                callback(e);
-            }
-        });
-    }
-
-    // fs.accessSync(path[, mode])
-    accessSync(filename: string, mode?) {
-        // fs.F_OK | fs.R_OK | fs.W_OK | fs.X_OK
-        // Everything passes, as long as a node exists.
-        this.getNode(filename);
-    }
-
-    // fs.access(path[, mode], callback)
-    access(filename: string, mode, callback?) {
-        if(typeof mode == 'function') {
-            callback = mode;
-            mode = 7; // fs.F_OK | fs.R_OK | fs.W_OK | fs.X_OK
-        }
-        setImmediate(() => {
-            try {
-                this.accessSync(filename, mode);
-                callback();
-            } catch(e) {
-                callback(e);
-            }
-        });
-    }
-
-    // fs.closeSync(fd)
-    closeSync(fd) {
-        this.getNode(fd);
-    }
-
-    // fs.close(fd, callback)
-    close(fd, callback) {
-        setImmediate(() => {
-            try {
-                this.closeSync(fd);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.mkdirSync(path[, mode])
-    mkdirSync(p: string, mode?) {
-        var fullpath = resolve(p);
-        var layer = this.getLayerContainingPath(fullpath);
-        if(!layer) throw Error('Cannot create directory at this path: ' + fullpath);
-
-        // Check if parent directory exists.
-        try {
-            var parent = dirname(fullpath);
-            var dir = this.getDirectory(parent);
-        } catch(e) {
-            throw Error(`ENOENT: no such file or directory, mkdir '${fullpath}'`);
+        if(typeof listener !== 'function') {
+            throw Error('"watchFile()" requires a listener function');
         }
 
-        this.addDir(fullpath, layer);
-    }
+        let interval = 5007;
+        let persistent = true;
 
-    // fs.mkdir(path[, mode], callback)
-    mkdir(p: string, mode, callback?) {
-        if(typeof mode == 'function') {
-            callback = mode;
-            mode = 511; // 0777
+        if(options && (typeof options === 'object')) {
+            if(typeof options.interval === 'number') interval = options.interval;
+            if(typeof options.persistent === 'boolean') persistent = options.persistent;
         }
 
-        setImmediate(() => {
-            try {
-                this.mkdirSync(p, mode);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
+        let watcher: StatWatcher = this.statWatchers[filename];
 
-    // fs.writeSync(fd, data[, position[, encoding]])
-    // fs.writeSync(fd, buffer, offset, length[, position])
-    writeSync(fd: number, buffer, offset, length, position?);
-    writeSync(fd: number, data, position?, encoding?) {
-        var file: File = this.getByFd(fd) as File;
-        if(!(file instanceof File)) throw Error('Is not a file: ' + (file as Node).path);
-
-        if(!(data instanceof Buffer)) {
-            // Docs: "If data is not a Buffer instance then the value will be coerced to a string."
-            data = data.toString();
-        } else { // typeof data is Buffer
-            var buffer = data;
-            var offset = position;
-            var length = encoding;
-            position = arguments[4];
-            data = buffer.slice(offset, length);
-            data = data.toString();
+        if(!watcher) {
+            watcher = new StatWatcher(this);
+            watcher.start(filename, persistent, interval);
+            this.statWatchers[filename] = watcher;
         }
 
-        if(typeof position == 'undefined') position = file.position;
-
-        var cont = file.getData();
-        cont = cont.substr(0, position) + data + cont.substr(position + data.length);
-        file.setData(cont);
-        file.position = position + data.length;
-
-        //return data.length;
-        return Buffer.byteLength(data, encoding);
+        watcher.addListener('change', listener);
+        return watcher;
     }
 
-    //fs.write(fd, data[, position[, encoding]], callback)
-    //fs.write(fd, buffer, offset, length[, position], callback)
-    write(fd: number, buffer, offset, length, position, callback?) {
-        if(typeof position == 'function') {
-            callback = position;
-            position = void 0;
-        }
-        if(typeof length == 'function') {
-            callback = length;
-            length = position = void 0;
-        }
-        if(typeof offset == 'function') {
-            callback = offset;
-            offset = length = position = void 0;
+    unwatchFile(path: TFilePath, listener?: (curr: Stats, prev: Stats) => void) {
+        const filename = pathToFilename(path);
+        const watcher = this.statWatchers[filename];
+        if(!watcher) return;
+
+        if(typeof listener === 'function') {
+            watcher.removeListener('change', listener);
+        } else {
+            watcher.removeAllListeners('change');
         }
 
-        setImmediate(() => {
-            try {
-                const bytes = this.writeSync(fd, buffer, offset, length, position);
-                if(callback) callback(null, bytes);
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.readSync(fd, buffer, offset, length, position)
-    readSync(fd: number, buffer: Buffer, offset: number, length: number, position: number) {
-        // TODO: Node.js will read the file forever in `.creatReadStream` mode.
-        // TODO: We need to generate new file descriptor `fd` for every new `openSync`
-        // TODO: and track position in file for every `readSync` and then when we are at the EOF
-        // TODO: we should return 0 (zero bytes read) so the stream closes.
-        const file = this.getByFd(fd) as File;
-        if(!(file instanceof File)) throw Error('Not a file: ' + (file as Node).path);
-        var data = file.getData();
-        if(position === null) position = file.position;
-        var chunk = data.substr(position, length);
-        buffer.write(chunk, offset, length);
-        return chunk.length;
-    }
-
-    // fs.read(fd, buffer, offset, length, position, callback)
-    read(fd: number, buffer: Buffer, offset: number, length: number, position: number, callback) {
-        setImmediate(() => {
-            try {
-                var bytes = this.readSync(fd, buffer, offset, length, position);
-                callback(null, bytes, buffer);
-            } catch(e) {
-                callback(e);
-            }
-        });
-    }
-
-    // fs.linkSync(srcpath, dstpath)
-    linkSync(srcpath, dstpath) {
-        var node = this.getNode(srcpath);
-        dstpath = resolve(dstpath);
-        if(this.flattened[dstpath]) throw Error('Destination path already in use: ' + dstpath);
-        this.flattened[dstpath] = node;
-    }
-
-    // fs.link(srcpath, dstpath, callback)
-    link(srcpath, dstpath, callback) {
-        setImmediate(() => {
-            try {
-                this.linkSync(srcpath, dstpath);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.symlinkSync(srcpath, dstpath[, type])
-    symlinkSync(srcpath, dstpath, t?) {
-        this.linkSync(srcpath, dstpath);
-    }
-
-    // fs.symlink(srcpath, dstpath[, type], callback)
-    symlink(srcpath, dstpath, t, callback?) {
-        if(typeof t == 'function') {
-            callback = t;
-            t = void 0;
+        if(watcher.listenerCount('change') === 0) {
+            watcher.stop();
+            delete this.statWatchers[filename];
         }
-        this.link(srcpath, dstpath, callback);
     }
 
-    // fs.readlinkSync(path)
-    readlinkSync(p: string) {
-        var node = this.getNode(p);
-        return node.path;
-    }
-
-    // fs.readlink(path, callback)
-    readlink(p: string, callback) {
-        setImmediate(() => {
-            try {
-                callback(null, this.readlinkSync(p));
-            } catch(e) {
-                callback(e);
-            }
-        });
-    }
-
-    // fs.fsyncSync(fd)
-    fsyncSync(fd: number) {
-        this.getByFd(fd);
-    }
-
-    // fs.fsync(fd, callback)
-    fsync(fd, callback) {
-        setImmediate(() => {
-            try {
-                this.fsyncSync(fd);
-                if(callback) callback();
-            } catch(e) {
-                if(callback) callback(e);
-            }
-        });
-    }
-
-    // fs.createReadStream(path[, options])
-    createReadStream(p: string, options?) {
-        options = options || {};
-        var file = options.fd ? this.getByFd(options.fd) : this.getFile(p);
-        if(!(file instanceof File)) throw Error('Not a file: ' + file.path);
-
-        var util = require('util');
-        var Readable = require('stream').Readable;
-        var Buffer = require('buffer').Buffer;
-
-        function MemFileReadStream(opt?) {
-            Readable.call(this, opt);
-            this.done = false;
-        }
-        util.inherits(MemFileReadStream, Readable);
-        MemFileReadStream.prototype._read = function() {
-            if(!this.done) {
-                this.push(new Buffer(file.getData()));
-                // this.push(null);
-                this.done = true;
-            } else {
-                this.push(null);
-            }
-        };
-
-        return new MemFileReadStream();
-    }
-
-    // fs.createWriteStream(path[, options])
-    createWriteStream(p: string, options?) {
-        options = options || {};
-        const file = <File> (options.fd ? this.getByFd(options.fd) : this.getFile(p));
-        if(!(file instanceof File)) throw Error('Not a file: ' + (file as Node).path);
-
-        if(options.start) file.position = options.start;
-
-        var util = require('util');
-        var Writable = require('stream').Writable;
-        var Buffer = require('buffer').Buffer;
-
-        function MemFileWriteStream(opt?) {
-            Writable.call(this, opt);
-        }
-        util.inherits(MemFileWriteStream, Writable);
-        MemFileWriteStream.prototype._write = function(chunk) {
-            chunk = chunk.toString();
-            var cont = file.getData();
-            cont = cont.substr(0, file.position) + chunk + cont.substr(file.position + chunk.length);
-            file.setData(cont);
-            file.position += chunk.length;
-        };
-
-        return new MemFileWriteStream();
-    }
-
-    //fs.watchFile(filename[, options], listener)
-    //fs.unwatchFile(filename[, listener])
-    //fs.watch(filename[, options][, listener])
-    */
 }
+
+
+function emitStop(self) {
+    self.emit('stop');
+}
+
+
+export class StatWatcher extends EventEmitter {
+
+    vol: Volume = null;
+    filename: string;
+    interval: number;
+    timeoutRef = null;
+    setTimeout: TSetTimeout;
+    prev: Stats = null;
+
+    constructor(vol: Volume) {
+        super();
+        this.vol = vol;
+    }
+
+    private loop() {
+        this.timeoutRef = this.setTimeout(this.onInterval, this.interval);
+    }
+
+    private hasChanged(stats: Stats): boolean {
+        // if(!this.prev) return false;
+        if(stats.mtimeMs > this.prev.mtimeMs) return true;
+        if(stats.nlink !== this.prev.nlink) return true;
+        return false;
+    }
+
+    private onInterval = () => {
+        try {
+            const stats = this.vol.statSync(this.filename);
+            if(this.hasChanged(stats)) {
+                this.emit('change', stats, this.prev);
+                this.prev = stats;
+            }
+        } finally {
+            this.loop();
+        }
+    };
+
+    start(path: string, persistent: boolean = true, interval: number = 5007) {
+        this.filename = pathToFilename(path);
+        this.setTimeout = persistent ? setTimeout : setTimeoutUnref;
+        this.interval = interval;
+        this.prev = this.vol.statSync(this.filename);
+        this.loop();
+    }
+
+    stop() {
+        clearTimeout(this.timeoutRef);
+        process.nextTick(emitStop, this);
+    }
+}
+

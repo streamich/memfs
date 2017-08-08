@@ -390,6 +390,21 @@ describe('volume', () => {
                 expect(vol.readFileSync('/overwrite.txt', 'utf8')).to.equal('mArmagedon');
             });
         });
+        describe('.write(fd, buffer, offset, length, position, callback)', () => {
+            it('Simple write to a file descriptor', done => {
+                const vol = new Volume;
+                const fd = vol.openSync('/test.txt', 'w+');
+                const data = 'hello';
+                vol.write(fd, Buffer.from(data), (err, bytes, buf) => {
+                    console.log('fd', fd);
+                    console.log(vol.fds);
+                    vol.closeSync(fd);
+                    expect(err).to.equal(null);
+                    expect(vol.readFileSync('/test.txt', 'utf8')).to.equal(data);
+                    done();
+                });
+            });
+        });
         describe('.writeSync(fd, buffer, offset, length, position)', () => {
             const vol = new Volume;
             it('Write binary data to file', () => {

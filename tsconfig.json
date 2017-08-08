@@ -4,9 +4,7 @@
     "module": "commonjs",
     "removeComments": false,
     "noImplicitAny": false,
-    "sourceMap": false,
-    "rootDir": "src",
-    "outDir": "lib"
+    "sourceMap": false
   },
   "exclude": [
     "node_modules",

@@ -26,8 +26,8 @@ export type TEncoding = 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'lati
 export type TEncodingExtended = TEncoding | 'buffer';
 export type TTime = number | string | Date;
 export type TCallback<TData> = (error?: IError, data?: TData) => void;
-type TCallbackWrite = (err: IError, bytesWritten: number, source: Buffer) => void;
-type TCallbackWriteStr = (err: IError, written: number, str: string) => void;
+// type TCallbackWrite = (err?: IError, bytesWritten?: number, source?: Buffer) => void;
+// type TCallbackWriteStr = (err?: IError, written?: number, str?: string) => void;
 
 
 // ---------------------------------------- Constants
@@ -403,6 +403,10 @@ function getArgAndCb<TArg, TRes>(arg: TArg | TCallback<TRes>, callback?: TCallba
         : [arg, callback];
 }
 
+function validateFd(fd) {
+    if(!isFd(fd)) throw TypeError(ERRSTR.FD);
+}
+
 function validateUid(uid: number) {
     if(typeof uid !== 'number') throw TypeError(ERRSTR.UID);
 }
@@ -569,7 +573,7 @@ export class Volume {
     }
 
     private getFileByFd(fd: number): File {
-        return this.fds[fd];
+        return this.fds[String(fd)];
     }
 
     private getFileByFdOrThrow(fd: number, funcName?: string): File {
@@ -604,9 +608,7 @@ export class Volume {
     }
 
     private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
-        if(typeof callback !== 'function')
-            throw Error(ERRSTR.CB);
-
+        validateCallback(callback);
         setImmediate(() => {
             try {
                 callback(null, method.apply(this, args));
@@ -730,12 +732,14 @@ export class Volume {
     }
 
     closeSync(fd: number) {
+        validateFd(fd);
         const file = this.getFileByFd(fd);
         if(!file) throwError('EBADF', 'close');
         this.closeFile(file);
     }
 
     close(fd: number, callback: TCallback<void>) {
+        validateFd(fd);
         this.wrapAsync(this.closeSync, [fd], callback);
     }
 
@@ -788,12 +792,17 @@ export class Volume {
         this.wrapAsync(this.readFileBase, [id, flagsNum, opts.encoding], callback);
     }
 
+    private writeBase(fd: number, buf: Buffer, offset?: number, length?: number, position?: number): number {
+        const file = this.getFileByFdOrThrow(fd, 'write');
+        return file.write(buf, offset, length, position);
+    }
+
     writeSync(fd: number, buffer: Buffer | Uint8Array,      offset?: number,    length?: number,        position?: number): number;
     writeSync(fd: number, str: string,                      position?: number,  encoding?: TEncoding): number;
     writeSync(fd: number, a: string | Buffer | Uint8Array,  b?: number,         c?: number | TEncoding, d?: number): number {
-        if(!isFd(fd)) throw TypeError(ERRSTR.FD);
-        let encoding: TEncoding;
+        validateFd(fd);
 
+        let encoding: TEncoding;
         let offset: number;
         let length: number;
         let position: number;
@@ -818,22 +827,82 @@ export class Volume {
             length = buf.length;
         }
 
-        const file = this.getFileByFd(fd);
-        // if(!file) throw Error(ERRSTR.FD);
-        if(!file) throwError('ENOENT', 'write');
-
-        return file.write(buf, offset, length, position);
+        return this.writeBase(fd, buf, offset, length, position);
     }
 
-    write(fd: number, buffer: Buffer | Uint8Array, callback: TCallbackWrite);
-    write(fd: number, buffer: Buffer | Uint8Array, offset: number, callback: TCallbackWrite);
-    write(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, callback: TCallbackWrite);
-    write(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number, callback: TCallbackWrite);
-    write(fd: number, str: string, callback: TCallbackWriteStr);
-    write(fd: number, str: string, position: number, callback: TCallbackWriteStr);
-    write(fd: number, str: string, position: number, encoding: TEncoding, callback: TCallbackWriteStr);
+    write(fd: number, buffer: Buffer | Uint8Array, callback: (...args) => void);
+    write(fd: number, buffer: Buffer | Uint8Array, offset: number, callback: (...args) => void);
+    write(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, callback: (...args) => void);
+    write(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number, callback: (...args) => void);
+    write(fd: number, str: string, callback: (...args) => void);
+    write(fd: number, str: string, position: number, callback: (...args) => void);
+    write(fd: number, str: string, position: number, encoding: TEncoding, callback: (...args) => void);
     write(fd: number, a?, b?, c?, d?, e?) {
+        validateFd(fd);
 
+        let offset: number;
+        let length: number;
+        let position: number;
+        let encoding: TEncoding;
+        let callback: (...args) => void;
+
+        const tipa = typeof a;
+        const tipb = typeof b;
+        const tipc = typeof c;
+        const tipd = typeof d;
+
+        if(tipa !== 'string') {
+            if(tipb === 'function') {
+                callback = b;
+            } else if(tipc === 'function') {
+                offset = b | 0;
+                callback = c;
+            } else if(tipd === 'function') {
+                offset = b | 0;
+                length = c;
+                callback = d;
+            } else {
+                offset = b | 0;
+                length = c;
+                position = d;
+                callback = e;
+            }
+        } else {
+            if(tipb === 'function') {
+                callback = b;
+            } else if(tipc === 'function') {
+                position = b;
+                callback = c;
+            } else if(tipd === 'function') {
+                position = b;
+                encoding = c;
+                callback = d;
+            }
+        }
+
+        const buf: Buffer = dataToBuffer(a, encoding);
+
+        if(tipa !== 'string') {
+            if(typeof length === 'undefined') length = buf.length;
+        } else {
+            offset = 0;
+            length = buf.length;
+        }
+
+        validateCallback(callback);
+
+        setImmediate(() => {
+            try {
+                const bytes = this.writeBase(fd, buf, offset, length, position);
+                if(tipa !== 'string') {
+                    callback(null, bytes, buf);
+                } else {
+                    callback(null, bytes, a);
+                }
+            } catch(err) {
+                callback(err);
+            }
+        });
     }
 
     private writeFileBase(id: TFileId, buf: Buffer, flagsNum: number, modeNum: number) {

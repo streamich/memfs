@@ -117,23 +117,6 @@ function throwError(errorCode: string, func = '', path = '', path2 = '', Constru
 }
 
 
-// ---------------------------------------- File identifier checking
-
-function pathOrError(path: TFilePath, encoding?: TEncoding): string | TypeError {
-    if(Buffer.isBuffer(path)) path = (path as Buffer).toString(encoding);
-    if(typeof path !== 'string') return TypeError(ERRSTR.PATH_STR);
-    return path as string;
-}
-
-function validPathOrThrow(path: TFilePath, encoding?): string {
-    const p = pathOrError(path, encoding);
-    if(p instanceof TypeError) throw p;
-    else return p as string;
-}
-
-function assertFd(fd: number) {
-    if(typeof fd !== 'number') throw TypeError(ERRSTR.FD);
-}
 
 
 
@@ -447,7 +430,7 @@ export class Volume {
     // A mapping for i-node numbers to i-nodes (`Node`);
     inodes: {[ino: number]: Node} = {};
 
-    // List of released i-node number, for reuse.
+    // List of released i-node numbers, for reuse.
     releasedInos: number[] = [];
 
     // A mapping for file descriptors to `File`s.
@@ -851,7 +834,8 @@ export class Volume {
         let length: number;
         let position: number;
 
-        if(typeof a !== 'string') {
+        const isBuffer = typeof a !== 'string';
+        if(isBuffer) {
             offset = b | 0;
             length = (c as number);
             position = d;
@@ -862,7 +846,7 @@ export class Volume {
 
         const buf: Buffer = dataToBuffer(a, encoding);
 
-        if(typeof a !== 'string') {
+        if(isBuffer) {
             if(typeof length === 'undefined') {
                 length = buf.length;
             }
@@ -1007,19 +991,19 @@ export class Volume {
     private linkBase(filename1: string, filename2: string) {
         const steps1 = filenameToSteps(filename1);
         const link1 = this.getLink(steps1);
-        if(!link1) throwError('ENOENT', 'link', filename1, filename2);
+        if(!link1) throwError(ENOENT, 'link', filename1, filename2);
 
         const steps2 = filenameToSteps(filename2);
 
         // Check new link directory exists.
         const dir2 = this.getLinkParent(steps2);
-        if(!dir2) throwError('ENOENT', 'link', filename1, filename2);
+        if(!dir2) throwError(ENOENT, 'link', filename1, filename2);
 
         const name = steps2[steps2.length - 1];
 
         // Check if new file already exists.
         if(dir2.getChild(name))
-            throwError('EEXIST', 'link', filename1, filename2);
+            throwError(EEXIST, 'link', filename1, filename2);
 
         const node =link1.getNode();
         node.nlink++;
@@ -1041,7 +1025,7 @@ export class Volume {
     private unlinkBase(filename: string) {
         const steps = filenameToSteps(filename);
         const link = this.getLink(steps);
-        if(!link) throwError('ENOENT', 'unlink', filename);
+        if(!link) throwError(ENOENT, 'unlink', filename);
 
         // TODO: Check if it is file, dir, other...
 
@@ -1074,13 +1058,13 @@ export class Volume {
 
         // Check if directory exists, where we about to create a symlink.
         const dirLink = this.getLinkParent(pathSteps);
-        if(!dirLink) throwError('ENOENT', 'symlink', targetFilename, pathFilename);
+        if(!dirLink) throwError(ENOENT, 'symlink', targetFilename, pathFilename);
 
         const name = pathSteps[pathSteps.length - 1];
 
         // Check if new file already exists.
         if(dirLink.getChild(name))
-            throwError('EEXIST', 'symlink', targetFilename, pathFilename);
+            throwError(EEXIST, 'symlink', targetFilename, pathFilename);
 
         // Create symlink.
         const symlink: Link = dirLink.createChild(name);
@@ -1115,11 +1099,11 @@ export class Volume {
         const steps = filenameToSteps(filename);
         const link: Link = this.getLink(steps);
         // TODO: this check has to be perfomed by `lstat`.
-        if(!link) throwError('ENOENT', 'realpath', filename);
+        if(!link) throwError(ENOENT, 'realpath', filename);
 
         // Resolve symlinks.
         const realLink = this.resolveSymlinks(link);
-        if(!realLink) throwError('ENOENT', 'realpath', filename);
+        if(!realLink) throwError(ENOENT, 'realpath', filename);
 
         return strToEncoding(realLink.getPath(), encoding);
     }
@@ -1138,7 +1122,7 @@ export class Volume {
 
     private lstatBase(filename: string): Stats {
         const link: Link = this.getLink(filenameToSteps(filename));
-        if(!link) throwError('ENOENT', 'lstat', filename);
+        if(!link) throwError(ENOENT, 'lstat', filename);
         return Stats.build(link.getNode());
     }
 
@@ -1152,11 +1136,11 @@ export class Volume {
 
     private statBase(filename: string): Stats {
         let link: Link = this.getLink(filenameToSteps(filename));
-        if(!link) throwError('ENOENT', 'stat', filename);
+        if(!link) throwError(ENOENT, 'stat', filename);
 
         // Resolve symlinks.
         link = this.resolveSymlinks(link);
-        if(!link) throwError('ENOENT', 'stat', filename);
+        if(!link) throwError(ENOENT, 'stat', filename);
 
         return Stats.build(link.getNode());
     }
@@ -1185,7 +1169,7 @@ export class Volume {
 
     private renameBase(oldPathFilename: string, newPathFilename: string) {
         const link: Link = this.getLink(filenameToSteps(oldPathFilename));
-        if(!link) throwError('ENOENT', 'rename', oldPathFilename, newPathFilename);
+        if(!link) throwError(ENOENT, 'rename', oldPathFilename, newPathFilename);
 
         // TODO: Check if it is directory, if non-empty, we cannot move it, right?
 
@@ -1193,7 +1177,7 @@ export class Volume {
 
         // Check directory exists for the new location.
         const newPathDirLink: Link = this.getLinkParent(newPathSteps);
-        if(!newPathDirLink) throwError('ENOENT', 'rename', oldPathFilename, newPathFilename);
+        if(!newPathDirLink) throwError(ENOENT, 'rename', oldPathFilename, newPathFilename);
 
         // TODO: Also treat cases with directories and symbolic links.
         // TODO: See: http://man7.org/linux/man-pages/man2/rename.2.html
@@ -1245,9 +1229,7 @@ export class Volume {
     }
 
     private accessBase(filename: string, mode: number) {
-        const steps = filenameToSteps(filename);
-        const link = this.getLink(steps);
-        if(!link) throwError('ENOENT', 'access', filename);
+        const link = this.getLinkOrThrow(filename, 'access');
 
         // TODO: Verify permissions
     }
@@ -1287,11 +1269,11 @@ export class Volume {
     private readdirBase(filename: string, encoding: TEncodingExtended): TDataOut[] {
         const steps = filenameToSteps(filename);
         const link: Link = this.getLink(steps);
-        if(!link) throwError('ENOENT', 'readdir', filename);
+        if(!link) throwError(ENOENT, 'readdir', filename);
 
         const node = link.getNode();
         if(!node.isDirectory())
-            throwError('ENOTDIR', 'scandir', filename);
+            throwError(ENOTDIR, 'scandir', filename);
 
         const list: TDataOut[] = [];
         for(let name in link.children)
@@ -1328,7 +1310,7 @@ export class Volume {
         const link = this.getLinkOrThrow(filename, 'readlink');
         const node = link.getNode();
 
-        if(!node.isSymlink()) throwError('EINVAL', 'readlink', filename);
+        if(!node.isSymlink()) throwError(EINVAL, 'readlink', filename);
 
         const str = sep + node.symlink.join(sep);
         return strToEncoding(str, encoding);

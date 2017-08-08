@@ -127,8 +127,8 @@ available.
  - [ ] `watch(filename[, options][, listener])`
  - [x] `watchFile(filename[, options], listener)`
  - [x] `unwatchFile(filename[, listener])`
- - [ ] `write(fd, buffer[, offset[, length[, position]]], callback)`
- - [ ] `write(fd, string[, position[, encoding]], callback)`
+ - [x] `write(fd, buffer[, offset[, length[, position]]], callback)`
+ - [x] `write(fd, string[, position[, encoding]], callback)`
  - [x] `writeFile(file, data[, options], callback)`
  - [x] `writeFileSync(file, data[, options])`
  - [x] `writeSync(fd, buffer[, offset[, length[, position]]])`

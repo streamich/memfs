@@ -396,8 +396,6 @@ describe('volume', () => {
                 const fd = vol.openSync('/test.txt', 'w+');
                 const data = 'hello';
                 vol.write(fd, Buffer.from(data), (err, bytes, buf) => {
-                    console.log('fd', fd);
-                    console.log(vol.fds);
                     vol.closeSync(fd);
                     expect(err).to.equal(null);
                     expect(vol.readFileSync('/test.txt', 'utf8')).to.equal(data);

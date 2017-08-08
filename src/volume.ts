@@ -425,6 +425,12 @@ function validateGid(gid: number) {
  */
 export class Volume {
 
+    static fromJSON(json: {[filename: string]: string}): Volume {
+        const vol = new Volume;
+        vol.fromJSON(json);
+        return vol;
+    }
+
     // I-node number counter.
     static ino: number = 0;
 
@@ -754,19 +760,57 @@ export class Volume {
         }
     }
 
+    private readBase(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number): number {
+        const file = this.getFileByFdOrThrow(fd);
+        return file.read(buffer, Number(offset), Number(length), position);
+    }
+
+    readSync(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number): number {
+        validateFd(fd);
+        return this.readBase(fd, buffer, offset, length, position);
+    }
+
+    read(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number,
+            callback: (err?: Error, bytesRead?: number, buffer?: Buffer | Uint8Array) => void) {
+        validateCallback(callback);
+
+        // This `if` branch is from Node.js
+        if(length === 0) {
+            return process.nextTick(() => {
+                callback && callback(null, 0, buffer);
+            });
+        }
+
+        setImmediate(() => {
+            try {
+                const bytes = this.readBase(fd, buffer, offset, length, position);
+                callback(null, bytes, buffer);
+            } catch(err) {
+                callback(err);
+            }
+        });
+    }
+
     private readFileBase(id: TFileId, flagsNum: number, encoding: TEncoding): Buffer | string {
         let result: Buffer | string;
-        if(typeof id === 'number') {
-            const file = this.getFileByFd(id);
-            if(!file) throw createError('ENOENT', 'readFile', String(id));
-            result = bufferToEncoding(file.getBuffer(), encoding);
+
+        const userOwnsFd = isFd(id);
+        let fd: number;
+
+        if(userOwnsFd) {
+            fd = id as number;
         } else {
-            const fileName = pathToFilename(id);
-            const file = this.openFile(fileName, flagsNum, 0);
-            if(!file) throw createError('ENOENT', 'readFile', String(id));
-            result = bufferToEncoding(file.getBuffer(), encoding);
-            this.closeFile(file);
+            fd = this.openSync(id as TFilePath, flagsNum);
         }
+
+        try {
+            result = bufferToEncoding(this.getFileByFdOrThrow(fd).getBuffer(), encoding);
+        } finally {
+            if(!userOwnsFd) {
+                this.closeSync(fd);
+            }
+        }
+
         return result;
     }
 

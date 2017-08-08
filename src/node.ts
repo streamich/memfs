@@ -115,6 +115,22 @@ export class Node {
         return len;
     }
 
+    // Returns the number of bytes read.
+    read(buf: Buffer | Uint8Array, off: number = 0, len: number = buf.byteLength, pos: number = 0): number {
+        if(!this.buf) this.buf = Buffer.allocUnsafe(0);
+
+        let actualLen = len;
+        if(actualLen > buf.byteLength) {
+            actualLen = buf.byteLength;
+        }
+        if(actualLen + pos > this.buf.length) {
+            actualLen = this.buf.length - pos;
+        }
+
+        this.buf.copy(buf as Buffer, off, pos, pos + actualLen);
+        return actualLen;
+    }
+
     truncate(len: number = 0) {
         if(!len) this.buf = Buffer.allocUnsafe(0);
         else {
@@ -256,7 +272,7 @@ export class Link {
 
 
 /**
- * Represents an open file (file descriptor) that points to a `Node` (i-node/v-node).
+ * Represents an open file (file descriptor) that points to a `Link` (Hard-link) and a `Node`.
  */
 export class File {
 
@@ -341,7 +357,14 @@ export class File {
     write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number): number {
         if(typeof position !== 'number') position = this.position;
         const bytes = this.node.write(buf, offset, length, position);
-        this.position = position + length;
+        this.position = position + bytes;
+        return bytes;
+    }
+
+    read(buf: Buffer | Uint8Array, offset: number = 0, length: number = buf.byteLength, position?: number): number {
+        if(typeof position !== 'number') position = this.position;
+        const bytes = this.node.read(buf, offset, length, position);
+        this.position = position + bytes;
         return bytes;
     }
 

@@ -305,6 +305,20 @@ describe('volume', () => {
                 });
             });
         });
+        describe('.readSync(fd, buffer, offset, length, position)', () => {
+            it('Basic read file', () => {
+                const vol = Volume.fromJSON({'/test.txt': '01234567'});
+                const buf = Buffer.alloc(3, 0);
+                const bytes = vol.readSync(vol.openSync('/test.txt', 'r'), buf, 0, 3, 3);
+                expect(bytes).to.equal(3);
+                expect(buf.equals(Buffer.from('345'))).to.be.true;
+
+            });
+            xit('Read more than buffer space');
+            xit('Read over file boundary');
+            xit('Read multiple times, caret position should adjust');
+            xit('Negative tests');
+        });
         describe('.readFileSync(path[, options])', () => {
             const vol = new Volume;
             const data = 'trololo';

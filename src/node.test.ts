@@ -47,5 +47,14 @@ describe('node.ts', () => {
                 expect(node.getBuffer().equals(result)).to.be.true;
             });
         });
+        describe('.read(buf, off, len, pos)', () => {
+            it('Simple one byte read', () => {
+                const node = new Node(1);
+                node.write(Buffer.from([1,2,3]));
+                const buf = Buffer.allocUnsafe(1);
+                node.read(buf, 0, 1, 1);
+                expect(buf.equals(Buffer.from([2]))).to.be.true;
+            });
+        });
     });
 });

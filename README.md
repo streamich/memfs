@@ -100,8 +100,8 @@ available.
  - [x] `mkdtempSync(prefix[, options])`
  - [x] `open(path, flags[, mode], callback)`
  - [x] `openSync(path, flags[, mode])`
- - [ ] `read(fd, buffer, offset, length, position, callback)`
- - [ ] `readSync(fd, buffer, offset, length, position)`
+ - [x] `read(fd, buffer, offset, length, position, callback)`
+ - [x] `readSync(fd, buffer, offset, length, position)`
  - [x] `readdir(path[, options], callback)`
  - [x] `readdirSync(path[, options])`
  - [x] `readFile(path[, options], callback)`

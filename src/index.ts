@@ -33,6 +33,8 @@ const FS_METHODS = [
     'exists',       'existsSync',
     'access',       'accessSync',
     'readdir',      'readdirSync',
+    'watchFile',    'unwatchFile',
+    'createReadStream',
 ];
 
 export interface IFs extends Volume {

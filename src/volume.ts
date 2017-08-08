@@ -6,6 +6,8 @@ import process from './process';
 const extend = require('fast-extend');
 const errors = require('./internal/errors');
 import setTimeoutUnref, {TSetTimeout} from "./setTimeoutUnref";
+import {Readable, Writable} from 'stream';
+const util = require('util');
 
 
 
@@ -34,6 +36,7 @@ export type TCallback<TData> = (error?: IError, data?: TData) => void;
 
 import {constants} from "./constants";
 import {EventEmitter} from "events";
+import {ReadStream, WriteStream} from "fs";
 const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
     O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
     F_OK, R_OK, W_OK, X_OK} = constants;
@@ -46,6 +49,9 @@ const enum MODE {
     DIR  = 0o777,
     DEFAULT = MODE.FILE,
 }
+
+const kMinPoolSpace = 128;
+const kMaxLength = require('buffer').kMaxLength;
 
 
 
@@ -175,19 +181,29 @@ export function flagsToNumber(flags: TFlags): number {
 
 function assertEncoding(encoding: string) {
     if(encoding && !Buffer.isEncoding(encoding))
-        throw Error('Unknown encoding: ' + encoding);
+        throw new errors.TypeError('ERR_INVALID_OPT_VALUE_ENCODING', encoding);
 }
 
-function getOptions <T> (defaults: T, options?: T|string): T {
+function getOptions <T extends IOptions> (defaults: T, options?: T|string): T {
+    let opts: T;
     if(!options) return defaults;
     else {
         var tipeof = typeof options;
         switch(tipeof) {
-            case 'string': return extend({}, defaults, {encoding: options as string});
-            case 'object': return extend({}, defaults, options);
+            case 'string':
+                opts = extend({}, defaults, {encoding: options as string});
+                break;
+            case 'object':
+                opts = extend({}, defaults, options);
+                break;
             default: throw TypeError(ERRSTR_OPTS(tipeof));
         }
     }
+
+    if(opts.encoding !== 'buffer')
+        assertEncoding(opts.encoding);
+
+    return opts;
 }
 
 function optsGenerator<TOpts>(defaults: TOpts): (opts) => TOpts {
@@ -208,7 +224,7 @@ function optsAndCbGenerator<TOpts, TResult>(getOpts): (options, callback?) => [T
 
 // General options with optional `encoding` property that most commands accept.
 export interface IOptions {
-    encoding?: TEncoding;
+    encoding?: TEncoding | TEncodingExtended;
 }
 
 export interface IFileOptions extends IOptions {
@@ -269,6 +285,27 @@ export interface IWatchFileOptions {
 }
 
 
+// Options for `fs.createReadStream`
+export interface IReadStreamOptions {
+    flags?: TFlags,
+    encoding?: TEncoding,
+    fd?: number,
+    mode?: TMode,
+    autoClose?: boolean,
+    start?: number,
+    end?: number,
+}
+
+
+// Options for `fs.createWriteStream`
+export interface IWriteStreamOptions {
+    flags?: TFlags,
+    defaultEncoding?: TEncoding,
+    fd?: number,
+    mode?: TMode,
+    autoClose?: boolean,
+    start?: number,
+}
 
 
 // ---------------------------------------- Utility functions
@@ -568,7 +605,7 @@ export class Volume {
     private getFileByFdOrThrow(fd: number, funcName?: string): File {
         if(!isFd(fd)) throw TypeError(ERRSTR.FD);
         const file = this.getFileByFd(fd);
-        if(!file) throwError('EBADF', funcName);
+        if(!file) throwError(EBADF, funcName);
         return file;
     }
 
@@ -592,7 +629,7 @@ export class Volume {
                 }
             }
 
-            throwError('ENOENT', 'getNodeByIdOrCreate', pathToFilename(id))
+            throwError(ENOENT, 'getNodeByIdOrCreate', pathToFilename(id))
         }
     }
 
@@ -682,7 +719,7 @@ export class Volume {
 
     private openBase(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): number {
         const file = this.openFile(filename, flagsNum, modeNum, resolveSymlinks);
-        if(!file) throw createError('ENOENT', 'open', filename);
+        if(!file) throw createError(ENOENT, 'open', filename);
         return file.fd;
     }
 
@@ -723,7 +760,7 @@ export class Volume {
     closeSync(fd: number) {
         validateFd(fd);
         const file = this.getFileByFd(fd);
-        if(!file) throwError('EBADF', 'close');
+        if(!file) throwError(EBADF, 'close');
         this.closeFile(file);
     }
 
@@ -736,7 +773,7 @@ export class Volume {
         if(typeof id === 'number') {
             const file = this.fds[id];
             if(!file)
-                throw createError('ENOENT');
+                throw createError(ENOENT);
             return file;
         } else {
             return this.openFile(pathToFilename(id), flagsNum, modeNum);
@@ -800,7 +837,7 @@ export class Volume {
     readFileSync(file: TFileId, options?: IReadFileOptions|string): TDataOut {
         const opts = getReadFileOptions(options);
         const flagsNum = flagsToNumber(opts.flag);
-        return this.readFileBase(file, flagsNum, opts.encoding);
+        return this.readFileBase(file, flagsNum, opts.encoding as TEncoding);
     }
 
     readFile(id: TFileId, callback: TCallback<TDataOut>);
@@ -1080,16 +1117,9 @@ export class Volume {
     }
 
     symlink(target: TFilePath, path: TFilePath, callback: TCallback<void>);
-    symlink(target: TFilePath, path: TFilePath, type: 'file' | 'dir' | 'junction',                  callback: TCallback<void>);
-    symlink(target: TFilePath, path: TFilePath, a: TCallback<void> | 'file' | 'dir' | 'junction',   b?: TCallback<void>) {
-        let type: 'file' | 'dir' | 'junction' = a as 'file' | 'dir' | 'junction';
-        let callback: TCallback<void> = b;
-
-        if(typeof type === 'function') {
-            type = 'file';
-            callback = a as TCallback<void>;
-        }
-
+    symlink(target: TFilePath, path: TFilePath, type: 'file' | 'dir' | 'junction',      callback: TCallback<void>);
+    symlink(target: TFilePath, path: TFilePath, a,                                      b?) {
+        const [type, callback] = getArgAndCb<'file' | 'dir' | 'junction', TCallback<void>>(a, b);
         const targetFilename = pathToFilename(target);
         const pathFilename = pathToFilename(path);
         this.wrapAsync(this.symlinkBase, [targetFilename, pathFilename], callback);
@@ -1155,7 +1185,7 @@ export class Volume {
 
     private fstatBase(fd: number): Stats {
         const file = this.getFileByFd(fd);
-        if(!file) throwError('EBADF', 'fstat');
+        if(!file) throwError(EBADF, 'fstat');
         return Stats.build(file.node);
     }
 
@@ -1716,6 +1746,14 @@ export class Volume {
         }
     }
 
+    createReadStream(path: TFilePath, options?: IReadStreamOptions | string): ReadStream {
+        console.log(path, options);
+        return new (ReadStream as any)(this, path, options);
+    }
+
+    createWriteStream(path: TFilePath, options?: IWriteStreamOptions | string): WriteStream {
+        return new (WriteStream as any)(this, path, options);
+    }
 }
 
 
@@ -1774,4 +1812,320 @@ export class StatWatcher extends EventEmitter {
         process.nextTick(emitStop, this);
     }
 }
+
+
+
+
+
+// ---------------------------------------- ReadStream
+
+var pool;
+
+function allocNewPool(poolSize) {
+    pool = Buffer.allocUnsafe(poolSize);
+    pool.used = 0;
+}
+
+util.inherits(ReadStream, Readable);
+exports.ReadStream = ReadStream;
+function ReadStream(vol, path, options) {
+    if (!(this instanceof ReadStream))
+        return new (ReadStream as any)(vol, path, options);
+
+    this.vol = vol;
+
+    // a little bit bigger buffer and water marks by default
+    options = extend({}, getOptions(options, {}));
+    if (options.highWaterMark === undefined)
+        options.highWaterMark = 64 * 1024;
+
+    Readable.call(this, options);
+
+    this.path = pathToFilename(path);
+    this.fd = options.fd === undefined ? null : options.fd;
+    this.flags = options.flags === undefined ? 'r' : options.flags;
+    this.mode = options.mode === undefined ? 0o666 : options.mode;
+
+    this.start = options.start;
+    this.end = options.end;
+    this.autoClose = options.autoClose === undefined ? true : options.autoClose;
+    this.pos = undefined;
+    this.bytesRead = 0;
+
+    if (this.start !== undefined) {
+        if (typeof this.start !== 'number') {
+            throw new TypeError('"start" option must be a Number');
+        }
+        if (this.end === undefined) {
+            this.end = Infinity;
+        } else if (typeof this.end !== 'number') {
+            throw new TypeError('"end" option must be a Number');
+        }
+
+        if (this.start > this.end) {
+            throw new Error('"start" option must be <= "end" option');
+        }
+
+        this.pos = this.start;
+    }
+
+    if (typeof this.fd !== 'number')
+        this.open();
+
+    this.on('end', function() {
+        if (this.autoClose) {
+            this.destroy();
+        }
+    });
+}
+
+ReadStream.prototype.open = function() {
+    var self = this;
+    this.vol.open(this.path, this.flags, this.mode, function(er, fd) {
+        if (er) {
+            if (self.autoClose) {
+                self.destroy();
+            }
+            self.emit('error', er);
+            return;
+        }
+
+        self.fd = fd;
+        self.emit('open', fd);
+        // start the flow of data.
+        self.read();
+    });
+};
+
+ReadStream.prototype._read = function(n) {
+    if (typeof this.fd !== 'number') {
+        return this.once('open', function() {
+            this._read(n);
+        });
+    }
+
+    if (this.destroyed)
+        return;
+
+    if (!pool || pool.length - pool.used < kMinPoolSpace) {
+        // discard the old pool.
+        allocNewPool(this._readableState.highWaterMark);
+    }
+
+    // Grab another reference to the pool in the case that while we're
+    // in the thread pool another read() finishes up the pool, and
+    // allocates a new one.
+    var thisPool = pool;
+    var toRead = Math.min(pool.length - pool.used, n);
+    var start = pool.used;
+
+    if (this.pos !== undefined)
+        toRead = Math.min(this.end - this.pos + 1, toRead);
+
+    // already read everything we were supposed to read!
+    // treat as EOF.
+    if (toRead <= 0)
+        return this.push(null);
+
+    // the actual read.
+    var self = this;
+    this.vol.read(this.fd, pool, pool.used, toRead, this.pos, onread);
+
+    // move the pool positions, and internal position for reading.
+    if (this.pos !== undefined)
+        this.pos += toRead;
+    pool.used += toRead;
+
+    function onread(er, bytesRead) {
+        if (er) {
+            if (self.autoClose) {
+                self.destroy();
+            }
+            self.emit('error', er);
+        } else {
+            var b = null;
+            if (bytesRead > 0) {
+                self.bytesRead += bytesRead;
+                b = thisPool.slice(start, start + bytesRead);
+            }
+
+            self.push(b);
+        }
+    }
+};
+
+
+ReadStream.prototype._destroy = function(err, cb) {
+    this.close(function(err2) {
+        cb(err || err2);
+    });
+};
+
+
+ReadStream.prototype.close = function(cb) {
+    if (cb)
+        this.once('close', cb);
+
+    if (this.closed || typeof this.fd !== 'number') {
+        if (typeof this.fd !== 'number') {
+            this.once('open', closeOnOpen);
+            return;
+        }
+        return process.nextTick(() => this.emit('close'));
+    }
+
+    this.closed = true;
+
+    this.vol.close(this.fd, (er) => {
+        if (er)
+            this.emit('error', er);
+        else
+            this.emit('close');
+    });
+
+    this.fd = null;
+};
+
+// needed because as it will be called with arguments
+// that does not match this.close() signature
+function closeOnOpen(fd) {
+    this.close();
+}
+
+
+
+
+
+
+// ---------------------------------------- WriteStream
+
+util.inherits(WriteStream, Writable);
+exports.WriteStream = WriteStream;
+function WriteStream(vol, path, options) {
+    if (!(this instanceof WriteStream))
+        return new (WriteStream as any)(vol, path, options);
+
+    this.vol = vol;
+    options = extend({}, getOptions(options, {}));
+
+    Writable.call(this, options);
+
+    this.path = pathToFilename(path);
+    this.fd = options.fd === undefined ? null : options.fd;
+    this.flags = options.flags === undefined ? 'w' : options.flags;
+    this.mode = options.mode === undefined ? 0o666 : options.mode;
+
+    this.start = options.start;
+    this.autoClose = options.autoClose === undefined ? true : !!options.autoClose;
+    this.pos = undefined;
+    this.bytesWritten = 0;
+
+    if (this.start !== undefined) {
+        if (typeof this.start !== 'number') {
+            throw new TypeError('"start" option must be a Number');
+        }
+        if (this.start < 0) {
+            throw new Error('"start" must be >= zero');
+        }
+
+        this.pos = this.start;
+    }
+
+    if (options.encoding)
+        this.setDefaultEncoding(options.encoding);
+
+    if (typeof this.fd !== 'number')
+        this.open();
+
+    // dispose on finish.
+    this.once('finish', function() {
+        if (this.autoClose) {
+            this.close();
+        }
+    });
+}
+
+
+WriteStream.prototype.open = function() {
+    this.vol.open(this.path, this.flags, this.mode, function(er, fd) {
+        if (er) {
+            if (this.autoClose) {
+                this.destroy();
+            }
+            this.emit('error', er);
+            return;
+        }
+
+        this.fd = fd;
+        this.emit('open', fd);
+    }.bind(this));
+};
+
+
+WriteStream.prototype._write = function(data, encoding, cb) {
+    if (!(data instanceof Buffer))
+        return this.emit('error', new Error('Invalid data'));
+
+    if (typeof this.fd !== 'number') {
+        return this.once('open', function() {
+            this._write(data, encoding, cb);
+        });
+    }
+
+    var self = this;
+    this.vol.write(this.fd, data, 0, data.length, this.pos, function(er, bytes) {
+        if (er) {
+            if (self.autoClose) {
+                self.destroy();
+            }
+            return cb(er);
+        }
+        self.bytesWritten += bytes;
+        cb();
+    });
+
+    if (this.pos !== undefined)
+        this.pos += data.length;
+};
+
+WriteStream.prototype._writev = function(data, cb) {
+    if (typeof this.fd !== 'number') {
+        return this.once('open', function() {
+            this._writev(data, cb);
+        });
+    }
+
+    const self = this;
+    const len = data.length;
+    const chunks = new Array(len);
+    var size = 0;
+
+    for (var i = 0; i < len; i++) {
+        var chunk = data[i].chunk;
+
+        chunks[i] = chunk;
+        size += chunk.length;
+    }
+
+    const buf = Buffer.concat(chunks);
+    this.vol.write(this.fd, buf, 0, buf.length, this.pos, (er, bytes) => {
+        if (er) {
+            self.destroy();
+            return cb(er);
+        }
+        self.bytesWritten += bytes;
+        cb();
+    });
+
+    if (this.pos !== undefined)
+        this.pos += size;
+};
+
+
+WriteStream.prototype._destroy = ReadStream.prototype._destroy;
+WriteStream.prototype.close = ReadStream.prototype.close;
+
+// There is no shutdown() for files.
+WriteStream.prototype.destroySoon = WriteStream.prototype.end;
+
 

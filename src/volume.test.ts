@@ -319,6 +319,9 @@ describe('volume', () => {
             xit('Read multiple times, caret position should adjust');
             xit('Negative tests');
         });
+        describe('.read(fd, buffer, offset, length, position, callback)', () => {
+            xit('...');
+        });
         describe('.readFileSync(path[, options])', () => {
             const vol = new Volume;
             const data = 'trololo';
@@ -404,6 +407,19 @@ describe('volume', () => {
                 expect(vol.readFileSync('/overwrite.txt', 'utf8')).to.equal('mArmagedon');
             });
         });
+        describe('.writeSync(fd, buffer, offset, length, position)', () => {
+            const vol = new Volume;
+            it('Write binary data to file', () => {
+                const fd = vol.openSync('/data.bin', 'w+');
+                const bytes = vol.writeSync(fd, Buffer.from([1,2,3]));
+                vol.closeSync(fd);
+                expect(bytes).to.equal(3);
+                expect(Buffer.from([1,2,3]).equals(vol.readFileSync('/data.bin') as Buffer)).to.be.true;
+            });
+        });
+        describe('.write(fd, str, position, encoding, callback)', () => {
+            xit('...');
+        });
         describe('.write(fd, buffer, offset, length, position, callback)', () => {
             it('Simple write to a file descriptor', done => {
                 const vol = new Volume;
@@ -415,16 +431,6 @@ describe('volume', () => {
                     expect(vol.readFileSync('/test.txt', 'utf8')).to.equal(data);
                     done();
                 });
-            });
-        });
-        describe('.writeSync(fd, buffer, offset, length, position)', () => {
-            const vol = new Volume;
-            it('Write binary data to file', () => {
-                const fd = vol.openSync('/data.bin', 'w+');
-                const bytes = vol.writeSync(fd, Buffer.from([1,2,3]));
-                vol.closeSync(fd);
-                expect(bytes).to.equal(3);
-                expect(Buffer.from([1,2,3]).equals(vol.readFileSync('/data.bin') as Buffer)).to.be.true;
             });
         });
         describe('.writeFileSync(path, data[, options])', () => {
@@ -497,6 +503,9 @@ describe('volume', () => {
                 expect(vol.readFileSync('/test2.js').toString()).to.equal(data);
             });
         });
+        describe('.symlink(target, path[, type], callback)', () => {
+            xit('...');
+        });
         describe('.realpathSync(path[, options])', () => {
             const vol = new Volume;
             const mootools = vol.root.createChild('mootools.js');
@@ -561,6 +570,9 @@ describe('volume', () => {
                 expect(stats.size).to.equal(0);
             });
         });
+        describe('.lstat(path, callback)', () => {
+            xit('...');
+        });
         describe('.statSync(path)', () => {
             const vol = new Volume;
             const dojo = vol.root.createChild('dojo.js');
@@ -591,6 +603,9 @@ describe('volume', () => {
                 }, 1);
             });
         });
+        describe('.stat(path, callback)', () => {
+            xit('...');
+        });
         describe('.fstatSync(fd)', () => {
             const vol = new Volume;
             const dojo = vol.root.createChild('dojo.js');
@@ -605,6 +620,9 @@ describe('volume', () => {
                 expect(stats.isFile()).to.be.true;
                 expect(stats.isDirectory()).to.be.false;
             });
+        });
+        describe('.fstat(fd, callback)', () => {
+            xit('...');
         });
         describe('.linkSync(existingPath, newPath)', () => {
             const vol = new Volume;
@@ -623,6 +641,9 @@ describe('volume', () => {
                 expect(stats.nlink).to.equal(3);
             });
         });
+        describe('.link(existingPath, newPath, callback)', () => {
+            xit('...');
+        });
         describe('.readdirSync(path)', () => {
             const vol = new Volume;
             it('Returns simple list', () => {
@@ -632,6 +653,9 @@ describe('volume', () => {
                 expect(list.length).to.equal(2);
                 expect(list).to.eql(['1.js', '2.js']);
             });
+        });
+        describe('.readdir(path, callback)', () => {
+            xit('...');
         });
         describe('.readlinkSync(path[, options])', () => {
             it('Simple symbolic link to one file', () => {
@@ -678,6 +702,9 @@ describe('volume', () => {
                 expect(vol.readFileSync('/trunky', 'utf8')).to.equal('');
             });
         });
+        describe('.ftruncate(fd[, len], callback)', () => {
+            xit('...');
+        });
         describe('.truncateSync(path[, len])', () => {
             const vol = new Volume;
             it('Truncates to 0 single file', () => {
@@ -695,6 +722,9 @@ describe('volume', () => {
                 expect(vol.readFileSync('/1', 'utf8')).to.equal('12');
             });
         });
+        describe('.truncate(path[, len], callback)', () => {
+            xit('...');
+        });
         describe('.utimesSync(path, atime, mtime)', () => {
             const vol = new Volume;
             it('Set times on file', () => {
@@ -704,6 +734,9 @@ describe('volume', () => {
                 expect(Math.round(stats.atime.getTime() / 1000)).to.equal(1234);
                 expect(Math.round(stats.mtime.getTime() / 1000)).to.equal(12345);
             });
+        });
+        describe('.utimes(path, atime, mtime, callback)', () => {
+            xit('...', () => {});
         });
         describe('.mkdirSync(path[, mode])', () => {
             it('Create dir at root', () => {
@@ -726,6 +759,9 @@ describe('volume', () => {
                 expect(dir2.getPath()).to.equal('/dir1/dir2');
             });
         });
+        describe('.mkdir(path[, mode], callback)', () => {
+            xit('...');
+        });
         describe('.mkdtempSync(prefix[, options])', () => {
             it('Create temp dir at root', () => {
                 const vol = new Volume;
@@ -733,6 +769,9 @@ describe('volume', () => {
                 vol.writeFileSync(name + '/file.txt', 'lol');
                 expect(vol.toJSON()).to.eql({[name + '/file.txt']: 'lol'});
             });
+        });
+        describe('.mkdtemp(prefix[, options], callback)', () => {
+            xit('Create temp dir at root', () => {});
         });
         describe('.mkdirpSync(path[, mode])', () => {
             it('Create /dir1/dir2/dir3', () => {
@@ -749,7 +788,10 @@ describe('volume', () => {
                 expect(dir3.getNode().isDirectory()).to.be.true;
             });
         });
-        describe('.rmdir(path)', () => {
+        describe('.mkdirp(path[, mode], callback)', () => {
+            xit('Create /dir1/dir2/dir3', () => {});
+        });
+        describe('.rmdirSync(path)', () => {
             it('Remove single dir', () => {
                 const vol = new Volume;
                 vol.mkdirSync('/dir');
@@ -757,6 +799,9 @@ describe('volume', () => {
                 vol.rmdirSync('/dir');
                 expect(!!vol.root.getChild('dir')).to.be.false;
             });
+        });
+        describe('.rmdir(path, callback)', () => {
+            xit('Remove single dir', () => {});
         });
         describe('.watchFile(path[, options], listener)', () => {
             it('Calls listener on .writeFile', done => {

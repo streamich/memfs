@@ -2,27 +2,28 @@
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
- - Stores files in-memory, in `Buffer`s
- - 100% of Node's `fs` API, see *API Status*
- - Throws same errors as Node.js
- - Has concept of i-nodes
- - Implements hard links
- - Implements soft links (aka symlinks, symbolic links)
- - More testing coming soon
+ - 100% of Node's `fs` API implemented, see *API Status*
+ - Stores files in memory, in `Buffer`s
+ - Throws same* errors as Node.js
+ - Has concept of *i-nodes*
+ - Implements *hard links*
+ - Implements *soft links* (aka symlinks, symbolic links)
+ - More testing coming soon*
+ - Permissions may* be implemented in the future
 
 Usage:
 
 ```js
-const {fs} from 'memfs';
+import {fs} from 'memfs';
 
 fs.writeFileSync('/hello.txt', 'World!');
 fs.readFileSync('/hello.txt', 'utf8'); // World!
 ```
 
-Create file system from a plain JSON:
+Create a file system from a plain JSON:
 
 ```js
-const {fs, vol} from 'memfs';
+import {fs, vol} from 'memfs';
 
 vol.importJSON({
     './README.md': '1',
@@ -47,6 +48,10 @@ Use it for testing:
 vol.writeFileSync('/foo', 'bar');
 expect(vol.toJSON()).to.eql({"/foo": "bar"});
 ```
+
+ - difference between `fs` and `vol`
+ - create custom Volumes
+ - listen for events
 
 [See example in browser.](https://jsfiddle.net/6a96vLoj/2/)
 

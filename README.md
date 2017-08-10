@@ -1,6 +1,52 @@
 # memfs
 
-In-memory file-system with Node's `fs` API.
+In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
+
+ - Stores files in-memory, in `Buffer`s
+ - 100% of Node's `fs` API, see *API Status*
+ - Throws same errors as Node.js
+ - Has concept of i-nodes
+ - Implements hard links
+ - Implements soft links (aka symlinks, symbolic links)
+ - More testing coming soon
+
+Usage:
+
+```js
+const {fs} from 'memfs';
+
+fs.writeFileSync('/hello.txt', 'World!');
+fs.readFileSync('/hello.txt', 'utf8'); // World!
+```
+
+Create file system from a plain JSON:
+
+```js
+const {fs, vol} from 'memfs';
+
+vol.importJSON({
+    './README.md': '1',
+    './src/index.js': '2',
+    './node_modules/debug/index.js': '3',
+}, '/app');
+
+fs.readFileSync('/app/README.md', 'utf8'); // 1
+vol.readFileSync('/app/src/index.js', 'utf8'): //2
+```
+
+Export to JSON:
+
+```js
+vol.writeFileSync('/script.sh', '# /bin/bash');
+vol.toJSON(); // {"/script.sh": "# /bin/bash"}
+```
+
+Use it for testing:
+
+```js
+vol.writeFileSync('/foo', 'bar');
+expect(vol.toJSON()).to.eql({"/foo": "bar"});
+```
 
 [See example in browser.](https://jsfiddle.net/6a96vLoj/2/)
 
@@ -52,7 +98,7 @@ available.
 ## API Status
 
  - [x] Constants
- - [ ] `FSWatcher`
+ - [x] `FSWatcher`
  - [x] `ReadStream`
  - [x] `WriteStream`
  - [x] `Stats`
@@ -124,7 +170,7 @@ available.
  - [x] `unlinkSync(path)`
  - [x] `utimes(path, atime, mtime, callback)`
  - [x] `utimesSync(path, atime, mtime)`
- - [ ] `watch(filename[, options][, listener])`
+ - [x] `watch(filename[, options][, listener])`
  - [x] `watchFile(filename[, options], listener)`
  - [x] `unwatchFile(filename[, listener])`
  - [x] `write(fd, buffer[, offset[, length[, position]]], callback)`

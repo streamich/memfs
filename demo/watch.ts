@@ -9,7 +9,7 @@ import {Volume} from '../src/volume';
 // });
 
 const vol = Volume.fromJSON({'/hello.txt': 'World'});
-vol.watch('/hello.txt', (event, filename) => {
+vol.watch('/hello.txt', {}, (event, filename) => {
     console.log(event, filename);
     console.log(vol.readFileSync('/hello.txt', 'utf8'));
 });

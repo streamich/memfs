@@ -452,9 +452,9 @@ function validateGid(gid: number) {
  */
 export class Volume {
 
-    static fromJSON(json: {[filename: string]: string}): Volume {
+    static fromJSON(json: {[filename: string]: string}, cwd?: string): Volume {
         const vol = new Volume;
-        vol.fromJSON(json);
+        vol.fromJSON(json, cwd);
         return vol;
     }
 
@@ -668,7 +668,8 @@ export class Volume {
         return this._toJSON();
     }
 
-    fromJSON(json: {[filename: string]: string}, cwd: string = '/') {
+    // fromJSON(json: {[filename: string]: string}, cwd: string = '/') {
+    fromJSON(json: {[filename: string]: string}, cwd: string = process.cwd()) {
         for(let filename in json) {
             const data = json[filename];
             filename = resolve(cwd, filename);
@@ -1762,8 +1763,8 @@ export class Volume {
         return new (WriteStream as any)(this, path, options);
     }
 
-    watch(path: TFilePath): FSWatcher;
-    watch(path: TFilePath, options: IWatchOptions | string): FSWatcher;
+    // watch(path: TFilePath): FSWatcher;
+    // watch(path: TFilePath, options?: IWatchOptions | string): FSWatcher;
     watch(path: TFilePath, options?: IWatchOptions | string, listener?: (eventType: string, filename: string) => void): FSWatcher {
         const filename = pathToFilename(path);
 
@@ -1863,7 +1864,7 @@ function ReadStream(vol, path, options) {
     if (!(this instanceof ReadStream))
         return new (ReadStream as any)(vol, path, options);
 
-    this.vol = vol;
+    this._vol = vol;
 
     // a little bit bigger buffer and water marks by default
     options = extend({}, getOptions(options, {}));
@@ -1912,7 +1913,7 @@ function ReadStream(vol, path, options) {
 
 ReadStream.prototype.open = function() {
     var self = this;
-    this.vol.open(this.path, this.flags, this.mode, function(er, fd) {
+    this._vol.open(this.path, this.flags, this.mode, function(er, fd) {
         if (er) {
             if (self.autoClose) {
                 self.destroy();
@@ -1960,7 +1961,7 @@ ReadStream.prototype._read = function(n) {
 
     // the actual read.
     var self = this;
-    this.vol.read(this.fd, pool, pool.used, toRead, this.pos, onread);
+    this._vol.read(this.fd, pool, pool.used, toRead, this.pos, onread);
 
     // move the pool positions, and internal position for reading.
     if (this.pos !== undefined)
@@ -2007,7 +2008,7 @@ ReadStream.prototype.close = function(cb) {
 
     this.closed = true;
 
-    this.vol.close(this.fd, (er) => {
+    this._vol.close(this.fd, (er) => {
         if (er)
             this.emit('error', er);
         else
@@ -2036,7 +2037,7 @@ function WriteStream(vol, path, options) {
     if (!(this instanceof WriteStream))
         return new (WriteStream as any)(vol, path, options);
 
-    this.vol = vol;
+    this._vol = vol;
     options = extend({}, getOptions(options, {}));
 
     Writable.call(this, options);
@@ -2078,7 +2079,7 @@ function WriteStream(vol, path, options) {
 
 
 WriteStream.prototype.open = function() {
-    this.vol.open(this.path, this.flags, this.mode, function(er, fd) {
+    this._vol.open(this.path, this.flags, this.mode, function(er, fd) {
         if (er) {
             if (this.autoClose) {
                 this.destroy();
@@ -2104,7 +2105,7 @@ WriteStream.prototype._write = function(data, encoding, cb) {
     }
 
     var self = this;
-    this.vol.write(this.fd, data, 0, data.length, this.pos, function(er, bytes) {
+    this._vol.write(this.fd, data, 0, data.length, this.pos, function(er, bytes) {
         if (er) {
             if (self.autoClose) {
                 self.destroy();
@@ -2139,7 +2140,7 @@ WriteStream.prototype._writev = function(data, cb) {
     }
 
     const buf = Buffer.concat(chunks);
-    this.vol.write(this.fd, buf, 0, buf.length, this.pos, (er, bytes) => {
+    this._vol.write(this.fd, buf, 0, buf.length, this.pos, (er, bytes) => {
         if (er) {
             self.destroy();
             return cb(er);
@@ -2168,21 +2169,23 @@ WriteStream.prototype.destroySoon = WriteStream.prototype.end;
 // ---------------------------------------- FSWatcher
 
 export class FSWatcher extends EventEmitter {
-    vol: Volume;
-    filename: string = '';
-    steps: string[] = null;
-    filenameEncoded: TDataOut = '';
-    persistent: boolean = true;
-    recursive: boolean = false;
-    encoding: TEncoding = ENCODING_UTF8;
-    link: Link = null;
+    _vol: Volume;
+    _filename: string = '';
+    _steps: string[] = null;
+    _filenameEncoded: TDataOut = '';
+    // _persistent: boolean = true;
+    _recursive: boolean = false;
+    _encoding: TEncoding = ENCODING_UTF8;
+    _link: Link = null;
+
+    _timer; // Timer that keeps this task persistent.
 
     constructor(vol: Volume) {
         super();
-        this.vol = vol;
+        this._vol = vol;
 
 
-
+        // TODO: Emit "error" messages when watching.
         // this._handle.onchange = function(status, eventType, filename) {
         //     if (status < 0) {
         //         self._handle.close();
@@ -2198,7 +2201,7 @@ export class FSWatcher extends EventEmitter {
     }
 
     private _getName(): string {
-        return this.steps[this.steps.length - 1];
+        return this._steps[this._steps.length - 1];
     }
 
     private _onNodeChange = () => {
@@ -2212,39 +2215,48 @@ export class FSWatcher extends EventEmitter {
     };
 
     private _emit = (type: 'change' | 'rename') => {
-        this.emit('change', type, this.filenameEncoded);
+        this.emit('change', type, this._filenameEncoded);
+    };
+
+    private _persist = () => {
+        this._timer = setTimeout(this._persist, 1e6);
     };
 
     start(path: TFilePath, persistent: boolean = true, recursive: boolean = false, encoding: TEncoding = ENCODING_UTF8) {
-        this.filename = pathToFilename(path);
-        this.steps = filenameToSteps(this.filename);
-        this.filenameEncoded = strToEncoding(this.filename);
-        this.persistent = persistent;
-        this.recursive = recursive;
-        this.encoding = encoding;
+        this._filename = pathToFilename(path);
+        this._steps = filenameToSteps(this._filename);
+        this._filenameEncoded = strToEncoding(this._filename);
+        // this._persistent = persistent;
+        this._recursive = recursive;
+        this._encoding = encoding;
 
         try {
-            this.link = this.vol.getLinkOrThrow(this.filename, 'FSWatcher');
+            this._link = this._vol.getLinkOrThrow(this._filename, 'FSWatcher');
         } catch(err) {
-            const error = new Error(`watch ${this.filename} ${err.code}`);
+            const error = new Error(`watch ${this._filename} ${err.code}`);
             (error as any).code = err.code;
             (error as any).errno = err.code;
             throw error;
         }
 
-        this.link.getNode().on('change', this._onNodeChange);
+        this._link.getNode().on('change', this._onNodeChange);
 
-        const parent = this.link.parent;
+        const parent = this._link.parent;
         if(parent) {
             // parent.on('child:add', this._onParentChild);
             parent.on('child:delete', this._onParentChild);
         }
+
+        if(persistent)
+            this._persist();
     }
 
     close() {
-        this.link.getNode().removeListener('change', this._onNodeChange);
+        clearTimeout(this._timer);
 
-        const parent = this.link.parent;
+        this._link.getNode().removeListener('change', this._onNodeChange);
+
+        const parent = this._link.parent;
         if(parent) {
             // parent.removeListener('child:add', this._onParentChild);
             parent.removeListener('child:delete', this._onParentChild);

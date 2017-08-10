@@ -1,7 +1,8 @@
 import process from './process';
 import {constants} from "./constants";
 import {Volume} from "./volume";
-const {S_IFMT, S_IFDIR, S_IFREG, S_IFBLK, S_IFCHR, S_IFLNK, S_IFIFO, S_IFSOCK} = constants;
+import {EventEmitter} from "events";
+const {S_IFMT, S_IFDIR, S_IFREG, S_IFBLK, S_IFCHR, S_IFLNK, S_IFIFO, S_IFSOCK, O_APPEND} = constants;
 
 
 export const SEP = '/';
@@ -10,7 +11,7 @@ export const SEP = '/';
 /**
  * Node in a file system (like i-node, v-node).
  */
-export class Node {
+export class Node extends EventEmitter {
 
     // i-node number.
     ino: number;
@@ -37,6 +38,7 @@ export class Node {
     symlink: string[] = null;
 
     constructor(ino: number, perm: number = 0o666) {
+        super();
         this.perm = perm;
         this.ino = ino;
     }
@@ -160,6 +162,7 @@ export class Node {
 
     touch() {
         this.mtime = new Date;
+        this.emit('change', this);
     }
 }
 
@@ -167,7 +170,7 @@ export class Node {
 /**
  * Represents a hard link that points to an i-node `node`.
  */
-export class Link {
+export class Link extends EventEmitter {
 
     vol: Volume;
 
@@ -188,6 +191,7 @@ export class Link {
     length: number = 0;
 
     constructor(vol: Volume, parent: Link, name: string) {
+        super();
         this.vol = vol;
         this.parent = parent;
         this.steps = parent ? parent.steps.concat([name]) : [name];
@@ -223,12 +227,17 @@ export class Link {
         this.children[name] = link;
         link.parent = this;
         this.length++;
+
+        this.emit('child:add', link, this);
+
         return link;
     }
 
     deleteChild(link: Link) {
         delete this.children[link.getName()];
         this.length--;
+
+        this.emit('child:delete', link, this);
     }
 
     getChild(name: string): Link {
@@ -356,6 +365,7 @@ export class File {
 
     write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number): number {
         if(typeof position !== 'number') position = this.position;
+        if(this.flags & O_APPEND) position = this.getSize();
         const bytes = this.node.write(buf, offset, length, position);
         this.position = position + bytes;
         return bytes;

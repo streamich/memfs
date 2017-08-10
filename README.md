@@ -53,8 +53,8 @@ available.
 
  - [x] Constants
  - [ ] `FSWatcher`
- - [ ] `ReadStream`
- - [ ] `WriteStream`
+ - [x] `ReadStream`
+ - [x] `WriteStream`
  - [x] `Stats`
  - [x] `access(path[, mode], callback)`
    - Does not check permissions
@@ -68,8 +68,8 @@ available.
  - [x] `chownSync(path, uid, gid)`
  - [x] `close(fd, callback)`
  - [x] `closeSync(fd)`
- - [ ] `createReadStream(path[, options])`
- - [ ] `createWriteStream(path[, options])`
+ - [x] `createReadStream(path[, options])`
+ - [x] `createWriteStream(path[, options])`
  - [x] `exists(path, callback)`
  - [x] `existsSync(path)`
  - [x] `fchmod(fd, mode, callback)`

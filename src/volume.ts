@@ -308,6 +308,13 @@ export interface IWriteStreamOptions {
 }
 
 
+// Options for `fs.watch`
+export interface IWatchOptions extends IOptions {
+    persistent?: boolean,
+    recursive?: boolean,
+}
+
+
 // ---------------------------------------- Utility functions
 
 export function pathToFilename(path: TFilePath): string {
@@ -552,7 +559,7 @@ export class Volume {
     }
 
     // Just link `getLink`, but throws a correct user error, if link to found.
-    private getLinkOrThrow(filename: string, funcName?: string): Link {
+    getLinkOrThrow(filename: string, funcName?: string): Link {
         const steps = filenameToSteps(filename);
         const link = this.getLink(steps);
         if(!link) throwError(ENOENT, funcName, filename);
@@ -1754,6 +1761,30 @@ export class Volume {
     createWriteStream(path: TFilePath, options?: IWriteStreamOptions | string): WriteStream {
         return new (WriteStream as any)(this, path, options);
     }
+
+    watch(path: TFilePath): FSWatcher;
+    watch(path: TFilePath, options: IWatchOptions | string): FSWatcher;
+    watch(path: TFilePath, options?: IWatchOptions | string, listener?: (eventType: string, filename: string) => void): FSWatcher {
+        const filename = pathToFilename(path);
+
+        if(typeof options === 'function') {
+            listener = options;
+            options = null;
+        }
+
+        let {persistent, recursive, encoding}: IWatchOptions = getDefaultOpts(options);
+        if(persistent === undefined) persistent = true;
+        if(recursive === undefined) recursive = false;
+
+        const watcher = new FSWatcher(this);
+        watcher.start(filename, persistent, recursive, encoding as TEncoding);
+
+        if(listener) {
+            watcher.addListener('change', listener);
+        }
+
+        return watcher;
+    }
 }
 
 
@@ -2129,3 +2160,94 @@ WriteStream.prototype.close = ReadStream.prototype.close;
 WriteStream.prototype.destroySoon = WriteStream.prototype.end;
 
 
+
+
+
+
+
+// ---------------------------------------- FSWatcher
+
+export class FSWatcher extends EventEmitter {
+    vol: Volume;
+    filename: string = '';
+    steps: string[] = null;
+    filenameEncoded: TDataOut = '';
+    persistent: boolean = true;
+    recursive: boolean = false;
+    encoding: TEncoding = ENCODING_UTF8;
+    link: Link = null;
+
+    constructor(vol: Volume) {
+        super();
+        this.vol = vol;
+
+
+
+        // this._handle.onchange = function(status, eventType, filename) {
+        //     if (status < 0) {
+        //         self._handle.close();
+        //         const error = !filename ?
+        //             errnoException(status, 'Error watching file for changes:') :
+        //             errnoException(status, `Error watching file ${filename} for changes:`);
+        //         error.filename = filename;
+        //         self.emit('error', error);
+        //     } else {
+        //         self.emit('change', eventType, filename);
+        //     }
+        // };
+    }
+
+    private _getName(): string {
+        return this.steps[this.steps.length - 1];
+    }
+
+    private _onNodeChange = () => {
+        this._emit('change');
+    };
+
+    private _onParentChild = (link: Link) => {
+        if(link.getName() === this._getName()) {
+            this._emit('rename');
+        }
+    };
+
+    private _emit = (type: 'change' | 'rename') => {
+        this.emit('change', type, this.filenameEncoded);
+    };
+
+    start(path: TFilePath, persistent: boolean = true, recursive: boolean = false, encoding: TEncoding = ENCODING_UTF8) {
+        this.filename = pathToFilename(path);
+        this.steps = filenameToSteps(this.filename);
+        this.filenameEncoded = strToEncoding(this.filename);
+        this.persistent = persistent;
+        this.recursive = recursive;
+        this.encoding = encoding;
+
+        try {
+            this.link = this.vol.getLinkOrThrow(this.filename, 'FSWatcher');
+        } catch(err) {
+            const error = new Error(`watch ${this.filename} ${err.code}`);
+            (error as any).code = err.code;
+            (error as any).errno = err.code;
+            throw error;
+        }
+
+        this.link.getNode().on('change', this._onNodeChange);
+
+        const parent = this.link.parent;
+        if(parent) {
+            // parent.on('child:add', this._onParentChild);
+            parent.on('child:delete', this._onParentChild);
+        }
+    }
+
+    close() {
+        this.link.getNode().removeListener('change', this._onNodeChange);
+
+        const parent = this.link.parent;
+        if(parent) {
+            // parent.removeListener('child:add', this._onParentChild);
+            parent.removeListener('child:delete', this._onParentChild);
+        }
+    }
+}

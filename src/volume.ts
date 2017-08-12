@@ -402,7 +402,7 @@ function isFd(path): boolean {
 }
 
 // converts Date or number to a fractional UNIX timestamp
-function toUnixTimestamp(time) {
+export function toUnixTimestamp(time) {
     if(typeof time === 'string' && (+time == (time as any))) {
         return +time;
     }

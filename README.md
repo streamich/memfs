@@ -1,4 +1,4 @@
-# memfs
+# memfs 2.0
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
@@ -113,10 +113,17 @@ import {vol, fs} from 'memfs';
 ```
 
 `vol` is an instance of `Volume` constructor, it is a default volume created
-for your convenience. `fs` in and *fs-like* object created from `vol` using
+for your convenience. `fs` in an *fs-like* object created from `vol` using
 `createFsFromVolume(vol)`, see reference below.
 
-#### `Volume`
+All contents of the `fs` object are also exported individually, so you can use
+`memfs` just like you would `fs` module:
+
+```js
+import {readFileSync, F_OK, ReadStream} from 'memfs';
+```
+
+#### `Volume` Constructor
 
 `Volume` is a constructor function for creating new volumes:
 
@@ -190,7 +197,30 @@ called on completion and may receive only one argument - an `Error` object.
 
 A synchronous version of `vol.mkdirp`. This method throws.
 
-#### FS API Status
+#### `createFsFromVolume(vol)`
+
+Returns an *fs-like* object created from a `Volume` instance `vol.
+
+```js
+import {createFsFromVolume, Volume} from 'memfs';
+
+const vol = new Volume;
+const fs = createFsFromVolume(vol);
+```
+
+The idea behind the *fs-like* object is to make it identical to the one
+you get from `require('fs')`. Here are some things this function does:
+
+  - Binds all methods, so you can do:
+
+  ```js
+  const {createFileSync, readFileSync} = fs;
+  ```
+
+  - Adds constructor functions `fs.Stats`, `fs.ReadStream`, `fs.WriteStream`, `fs.FileWatcher`, `fs.FSWatcher`.
+  - Adds constants `fs.constants`, `fs.F_OK`, etc.
+
+# API Status
 
  - [x] Constants
  - [x] `FSWatcher`
@@ -283,3 +313,34 @@ A synchronous version of `vol.mkdirp`. This method throws.
 [unionfs]: https://github.com/streamich/unionfs
 [linkfs]: https://github.com/streamich/linkfs
 [fs-monkey]: https://github.com/streamich/fs-monkey
+
+
+
+
+
+# License
+
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <http://unlicense.org/>

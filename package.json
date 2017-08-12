@@ -1,27 +1,39 @@
 {
   "name": "memfs",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
   "keywords": [
-    "fs", "fs.js", "memory-fs", "memfs",
-    "file", "file system", "mount", "memory",
-    "in-memory", "virtual", "test", "testing", "mock"],
+    "fs",
+    "fs.js",
+    "memory-fs",
+    "memfs",
+    "file",
+    "file system",
+    "mount",
+    "memory",
+    "in-memory",
+    "virtual",
+    "test",
+    "testing",
+    "mock"
+  ],
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/streamich/memfs.git"
+    "type": "git",
+    "url": "https://github.com/streamich/memfs.git"
   },
   "scripts": {
-    "build":          "npm run build-ts && npm run build-js",
-    "build-ts":       "./node_modules/.bin/gulp build-ts",
-    "build-js":       "./node_modules/.bin/babel src --out-dir lib",
-    "test":           "npm run test-coverage",
-    "test-basic":     "./node_modules/.bin/mocha --require ts-node/register src/**/*.test.ts src/**/*.test.tsx",
-    "test-watch":     "./node_modules/.bin/mocha --require ts-node/register src/**/*.test.ts src/**/*.test.tsx --watch",
-    "test-coverage":  "nyc --per-file mocha --require ts-node/register --require source-map-support/register --full-trace --bail src/**/*.test.ts"
+    "build": "npm run build-ts && npm run build-js",
+    "build-ts": "./node_modules/.bin/gulp build-ts",
+    "build-js": "./node_modules/.bin/babel src --out-dir lib",
+    "test": "npm run test-coverage",
+    "test-basic": "./node_modules/.bin/mocha --require ts-node/register src/**/*.test.ts src/**/*.test.tsx",
+    "test-watch": "./node_modules/.bin/mocha --require ts-node/register src/**/*.test.ts src/**/*.test.tsx --watch",
+    "test-coverage": "nyc --per-file mocha --require ts-node/register --require source-map-support/register --full-trace --bail src/**/*.test.ts"
   },
   "dependencies": {
-    "fast-extend": "0.0.2"
+    "fast-extend": "0.0.2",
+    "fs-monkey": "0.1.1"
   },
   "devDependencies": {
     "mocha": "3.4.2",
@@ -34,7 +46,6 @@
     "gulp-typescript": "3.2.1",
     "source-map-support": "0.4.15",
     "nyc": "11.1.0",
-
     "@types/mocha": "2.2.41",
     "@types/chai": "4.0.1",
     "@types/node": "8.0.17"

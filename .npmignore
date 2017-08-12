@@ -8,4 +8,5 @@ node_modules
 .idea
 .idea/
 .nyc_output
-
+coverage
+package-lock.json

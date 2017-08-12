@@ -1,60 +1,201 @@
 # memfs
 
-In-memory file-system with Node's `fs` API.
+In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
-[See example in browser.](https://jsfiddle.net/6a96vLoj/2/)
+[![][npm-img]][npm-url]
 
-A [`fs`](https://nodejs.org/api/fs.html) API to work with *virtual in-memory* files.
+ - 100% of Node's `fs` API implemented, see *API Status*
+ - Stores files in memory, in `Buffer`s
+ - Throws same* errors as Node.js
+ - Has concept of *i-nodes*
+ - Implements *hard links*
+ - Implements *soft links* (aka symlinks, symbolic links)
+ - More testing coming soon*
+ - Permissions may* be implemented in the future
 
-```javascript
-var memfs = require('memfs');
+Usage:
 
-var mem = new memfs.Volume;
-mem.mountSync('./', {
-    "test.js": "console.log(123);",
-    "dir/hello.js": "console.log('hello world');"
-});
+```js
+import {fs} from 'memfs';
 
-console.log(mem.readFileSync('./dir/hello.js').toString());
+fs.writeFileSync('/hello.txt', 'World!');
+fs.readFileSync('/hello.txt', 'utf8'); // World!
 ```
 
-Use it together with [`unionfs`](http://www.npmjs.com/package/unionfs):
+Create a file system from a plain JSON:
 
-```javascript
-var unionfs = require('unionfs');
-var fs = require('fs');
+```js
+import {fs, vol} from 'memfs';
 
-// Create a union of two file systems:
-unionfs
+vol.importJSON({
+    './README.md': '1',
+    './src/index.js': '2',
+    './node_modules/debug/index.js': '3',
+}, '/app');
+
+fs.readFileSync('/app/README.md', 'utf8'); // 1
+vol.readFileSync('/app/src/index.js', 'utf8'): // 2
+```
+
+Export to JSON:
+
+```js
+vol.writeFileSync('/script.sh', '#! /bin/bash');
+vol.toJSON(); // {"/script.sh": "#! /bin/bash"}
+```
+
+Use it for testing:
+
+```js
+vol.writeFileSync('/foo', 'bar');
+expect(vol.toJSON()).to.eql({"/foo": "bar"});
+```
+
+#### See also
+
+Other filesystem goodies:
+
+ - [`unionfs`][unionfs] - creates a union of multiple filesystem volumes
+ - [`linkfs`][linkfs] - redirects filesystem paths
+ - [`fs-monkey`][fs-monkey] - monkey-patches Node's `fs` module and `require` function
+ - [`libfs`](https://github.com/streamich/full-js/blob/master/src/lib/fs.ts) - real filesystem (that executes UNIX system calls) implemented in JavaScript
+
+Create as many filesystem volumes as you need:
+
+```js
+import {Volume} from 'memfs';
+
+const vol = Volume.fromJSON({'/foo': 'bar'});
+vol.readFileSync('/foo'); // bar
+```
+
+Use `memfs` together with [`unionfs`][unionfs] to create one filesystem
+from your in-memory volumes and the real disk filesystem:
+
+```js
+import * as fs from 'fs';
+import {ufs} from 'unionfs';
+
+ufs
     .use(fs)
-    .use(mem);
-    
-// Now `unionfs` has the `fs` API but on both file systems.
-console.log(unionfs.readFileSync('./test.js').toString()); // console.log(123);
-    
-// Replace `fs` with the union of those file systems.
-unionfs.replace(fs);
+    .use(vol);
 
-// Now you can do this.
-console.log(fs.readFileSync('./test.js').toString()); // console.log(123);
-
-// ... and this:
-require('./test.js'); // 123
-
+ufs.readFileSync('/foo'); // bar
 ```
 
-This package assumes you are running on Node or have a
-[`path`](https://www.npmjs.com/package/path) and `buffer` modules available.
+Use [`fs-monkey`][fs-monkey] to monkey-patch Node's `require` function:
+
+```js
+import {patchRequire} from 'fs-monkey';
+
+vol.writeFileSync('/index.js', 'console.log("hi world")');
+patchRequire(vol);
+require('/index'); // hi world
+```
+
+## Dependencies
+
+This package depends on the following Node modules: `buffer`, `events`,
+`streams`, `path`.
 
 It also uses `process` and `setImmediate` globals, but mocks them, if not
 available.
 
-## API Status
+## Reference
+
+#### `vol` vs `fs`
+
+This package exports `vol` and `fs` objects which both can be used for
+filesystem operations but are slightly different.
+
+```js
+import {vol, fs} from 'memfs';
+```
+
+`vol` is an instance of `Volume` constructor, it is a default volume created
+for your convenience. `fs` in and *fs-like* object created from `vol` using
+`createFsFromVolume(vol)`, see reference below.
+
+#### `Volume`
+
+`Volume` is a constructor function for creating new volumes:
+
+```js
+import {Volume} from 'memfs';
+const vol = new Volume;
+```
+
+`Volume` implements all [Node's filesystem methods](https://nodejs.org/api/fs.html):
+
+```js
+vol.writeFileSync('/foo', 'bar');
+```
+
+But it does not hold constants or constructor functions:
+
+```js
+vol.F_OK; // undefined
+vol.ReadStream; // undefined
+```
+
+A new volume can be create using the `Volume.fromJSON` convenience method:
+
+```js
+const vol = Volume.fromJSON({
+    '/app/index.js': '...',
+    '/app/package.json': '...',
+});
+```
+
+It is just a shorthand for `vol.fromJSON`, see below.
+
+#### `Volume` instance `vol`
+
+###### `vol.fromJSON(json[, cwd])`
+
+Adds files from a flat `json` object to the volume `vol`. The `cwd` argument
+is optional and is used to compute absolute file paths, if a file path is
+given in a relative form.
+
+```js
+vol.fromJSON({
+    './index.js': '...',
+    './package.json': '...',
+}, '/app');
+```
+
+###### `vol.mountSync(cwd, json)`
+
+Legacy method, which is just an alias for `vol.fromJSON`.
+
+###### `vol.toJSON([paths[, json[, isRelative]]])`
+
+Exports the whole contents of the volume recursively to a flat JSON object.
+
+`paths` is an optional argument that specifies one or more paths to be exported.
+If this argument is omitted, the whole volume is exported. `paths` can be
+an array of paths. A path can be a string, `Buffer` or an `URL` object.
+
+`json` is an optional object parameter where the list of files will be added.
+
+`isRelative` is boolean that specifies if returned paths should be relative.
+
+###### `vol.mkdirp(path, callback)`
+
+Creates a directory tree recursively. `path` is specifies a directory to
+create and can be a string, `Buffer`, or an `URL` object. `callback` is
+called on completion and may receive only one argument - an `Error` object.
+
+###### `vol.mkdirpSync(path)`
+
+A synchronous version of `vol.mkdirp`. This method throws.
+
+#### FS API Status
 
  - [x] Constants
- - [ ] `FSWatcher`
- - [ ] `ReadStream`
- - [ ] `WriteStream`
+ - [x] `FSWatcher`
+ - [x] `ReadStream`
+ - [x] `WriteStream`
  - [x] `Stats`
  - [x] `access(path[, mode], callback)`
    - Does not check permissions
@@ -68,8 +209,8 @@ available.
  - [x] `chownSync(path, uid, gid)`
  - [x] `close(fd, callback)`
  - [x] `closeSync(fd)`
- - [ ] `createReadStream(path[, options])`
- - [ ] `createWriteStream(path[, options])`
+ - [x] `createReadStream(path[, options])`
+ - [x] `createWriteStream(path[, options])`
  - [x] `exists(path, callback)`
  - [x] `existsSync(path)`
  - [x] `fchmod(fd, mode, callback)`
@@ -100,8 +241,8 @@ available.
  - [x] `mkdtempSync(prefix[, options])`
  - [x] `open(path, flags[, mode], callback)`
  - [x] `openSync(path, flags[, mode])`
- - [ ] `read(fd, buffer, offset, length, position, callback)`
- - [ ] `readSync(fd, buffer, offset, length, position)`
+ - [x] `read(fd, buffer, offset, length, position, callback)`
+ - [x] `readSync(fd, buffer, offset, length, position)`
  - [x] `readdir(path[, options], callback)`
  - [x] `readdirSync(path[, options])`
  - [x] `readFile(path[, options], callback)`
@@ -110,6 +251,7 @@ available.
  - [x] `readlinkSync(path[, options])`
  - [x] `realpath(path[, options], callback)`
  - [x] `realpathSync(path[, options])`
+   - Caching not implemented
  - [x] `rename(oldPath, newPath, callback)`
  - [x] `renameSync(oldPath, newPath)`
  - [x] `rmdir(path, callback)`
@@ -124,26 +266,20 @@ available.
  - [x] `unlinkSync(path)`
  - [x] `utimes(path, atime, mtime, callback)`
  - [x] `utimesSync(path, atime, mtime)`
- - [ ] `watch(filename[, options][, listener])`
- - [ ] `watchFile(filename[, options], listener)`
- - [ ] `unwatchFile(filename[, listener])`
- - [ ] `write(fd, buffer[, offset[, length[, position]]], callback)`
- - [ ] `write(fd, string[, position[, encoding]], callback)`
+ - [x] `watch(filename[, options][, listener])`
+ - [x] `watchFile(filename[, options], listener)`
+ - [x] `unwatchFile(filename[, listener])`
+ - [x] `write(fd, buffer[, offset[, length[, position]]], callback)`
+ - [x] `write(fd, string[, position[, encoding]], callback)`
  - [x] `writeFile(file, data[, options], callback)`
  - [x] `writeFileSync(file, data[, options])`
  - [x] `writeSync(fd, buffer[, offset[, length[, position]]])`
  - [x] `writeSync(fd, string[, position[, encoding]])`
 
-## Contributing
 
-TODOs:
-
-
-Testing:
-
-    npm test
-    npm run test-watch
-
-Building:
-
-    npm run build
+[npm-url]: https://www.npmjs.com/package/memfs
+[npm-img]: https://img.shields.io/npm/v/memfs.svg
+[memfs]: https://github.com/streamich/memfs
+[unionfs]: https://github.com/streamich/unionfs
+[linkfs]: https://github.com/streamich/linkfs
+[fs-monkey]: https://github.com/streamich/fs-monkey

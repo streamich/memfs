@@ -7,21 +7,19 @@ interface IProcess {
     nextTick: (callback: (...args) => void, ...args) => void,
 }
 
-export function createProcess(): IProcess {
-    return {
-        getuid: () => 0,
-        getgid: () => 0,
-        cwd: () => '/',
-        nextTick: require('./setImmediate').default,
-    };
+export function createProcess(p: IProcess = process): IProcess {
+    if(!p) {
+        try {
+            p = require('process');
+        } catch(e) {}
+    }
+    if(!p) p = {} as IProcess;
+
+    if(!p.getuid) p.getuid = () => 0;
+    if(!p.getgid) p.getgid = () => 0;
+    if(!p.cwd) p.cwd = () => '/';
+    if(!p.nextTick) p.nextTick = require('./setImmediate').default;
+    return p;
 }
 
-let _process: IProcess;
-/* istanbul ignore next */
-if(typeof process !== 'object') {
-    /* istanbul ignore next */
-    _process = createProcess();
-} else
-    _process = process;
-
-export default _process as IProcess;
+export default createProcess();

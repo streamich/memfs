@@ -37,6 +37,7 @@ export type TCallback<TData> = (error?: IError, data?: TData) => void;
 import {constants} from "./constants";
 import {EventEmitter} from "events";
 import {ReadStream, WriteStream} from "fs";
+import * as path from "path";
 const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
     O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
     F_OK, R_OK, W_OK, X_OK} = constants;
@@ -677,20 +678,22 @@ export class Volume {
         });
     }
 
-    private _toJSON(link = this.root, json = {}) {
+    private _toJSON(link = this.root, json = {}, path?: string) {
         for(let name in link.children) {
             let child = link.getChild(name);
             let node = child.getNode();
             if(node.isFile()) {
-                json[child.getPath()] = node.getString();
+                let filename = child.getPath();
+                if(path) filename = relative(path, filename);
+                json[filename] = node.getString();
             } else if(node.isDirectory()) {
-                this._toJSON(child, json);
+                this._toJSON(child, json, path);
             }
         }
         return json;
     }
 
-    toJSON(paths?: TFilePath | TFilePath[], json = {}) {
+    toJSON(paths?: TFilePath | TFilePath[], json = {}, isRelative = false) {
         let links: Link[] = [];
 
         if(paths) {
@@ -706,7 +709,7 @@ export class Volume {
         }
 
         if(!links.length) return json;
-        for(let link of links) this._toJSON(link, json);
+        for(let link of links) this._toJSON(link, json, isRelative ? link.getPath() : '');
         return json;
     }
 

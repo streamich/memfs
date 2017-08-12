@@ -93,6 +93,43 @@ describe('volume', () => {
                     '/dir/dir2/hello.txt': 'world',
                 })
             });
+            it('Specify export path', () => {
+                const vol = Volume.fromJSON({
+                    '/foo': 'bar',
+                    '/dir/a': 'b',
+                });
+                expect(vol.toJSON('/dir')).to.eql({
+                    '/dir/a': 'b',
+                })
+            });
+            it('Specify multiple export paths', () => {
+                const vol = Volume.fromJSON({
+                    '/foo': 'bar',
+                    '/dir/a': 'b',
+                    '/dir2/a': 'b',
+                    '/dir2/c': 'd',
+                });
+                expect(vol.toJSON(['/dir2', '/dir'])).to.eql({
+                    '/dir/a': 'b',
+                    '/dir2/a': 'b',
+                    '/dir2/c': 'd',
+                })
+            });
+            it('Accumulate exports on supplied object', () => {
+                const vol = Volume.fromJSON({
+                    '/foo': 'bar',
+                });
+                const obj = {};
+                expect(vol.toJSON('/', obj)).to.equal(obj);
+            });
+            it('Export empty volume', () => {
+                const vol = Volume.fromJSON({});
+                expect(vol.toJSON()).to.eql({});
+            });
+            it('Exporting non-existing path', () => {
+                const vol = Volume.fromJSON({});
+                expect(vol.toJSON('/lol')).to.eql({});
+            });
         });
         describe('.fromJSON(json[, cwd])', () => {
             it('Files at root', () => {
@@ -507,6 +544,25 @@ describe('volume', () => {
                     const vol = Volume.fromJSON({'/a1/a2/a3/a4/a5/hello.txt': 'world!'});
                     vol.symlinkSync('/a1', '/b1');
                     expect(vol.readFileSync('/b1/a2/a3/a4/a5/hello.txt', 'utf8')).to.equal('world!');
+                });
+                it('Symlink to a folder to a folder', () => {
+                    const vol = Volume.fromJSON({'/a1/a2/a3/a4/a5/hello.txt': 'world!'});
+                    vol.symlinkSync('/a1', '/b1');
+                    vol.symlinkSync('/b1', '/c1');
+                    vol.openSync('/c1/a2/a3/a4/a5/hello.txt', 'r');
+                });
+                it('Multiple hops to folders', () => {
+                    const vol = Volume.fromJSON({
+                        '/a1/a2/a3/a4/a5/hello.txt': 'world a',
+                        '/b1/b2/b3/b4/b5/hello.txt': 'world b',
+                        '/c1/c2/c3/c4/c5/hello.txt': 'world c',
+                    });
+                    vol.symlinkSync('/a1/a2', '/b1/l');
+                    vol.symlinkSync('/b1/l', '/b1/b2/b3/ok');
+                    vol.symlinkSync('/b1/b2/b3/ok', '/c1/a');
+                    vol.symlinkSync('/c1/a', '/c1/c2/c3/c4/c5/final');
+                    vol.openSync('/c1/c2/c3/c4/c5/final/a3/a4/a5/hello.txt', 'r');
+                    expect(vol.readFileSync('/c1/c2/c3/c4/c5/final/a3/a4/a5/hello.txt', 'utf8')).to.equal('world a');
                 });
             });
         });

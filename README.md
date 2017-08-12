@@ -58,7 +58,7 @@ Other filesystem goodies:
  - [`unionfs`][unionfs] - creates a union of multiple filesystem volumes
  - [`linkfs`][linkfs] - redirects filesystem paths
  - [`fs-monkey`][fs-monkey] - monkey-patches Node's `fs` module and `require` function
- - [`libfs`][] - real filesystem (that executes UNIX system calls) implemented in JavaScript
+ - [`libfs`](https://github.com/streamich/full-js/blob/master/src/lib/fs.ts) - real filesystem (that executes UNIX system calls) implemented in JavaScript
 
 Create as many filesystem volumes as you need:
 
@@ -168,7 +168,7 @@ vol.fromJSON({
 
 Legacy method, which is just an alias for `vol.fromJSON`.
 
-###### `vol.toJSON([paths[, json]])`
+###### `vol.toJSON([paths[, json[, isRelative]]])`
 
 Exports the whole contents of the volume recursively to a flat JSON object.
 
@@ -177,6 +177,8 @@ If this argument is omitted, the whole volume is exported. `paths` can be
 an array of paths. A path can be a string, `Buffer` or an `URL` object.
 
 `json` is an optional object parameter where the list of files will be added.
+
+`isRelative` is boolean that specifies if returned paths should be relative.
 
 ###### `vol.mkdirp(path, callback)`
 

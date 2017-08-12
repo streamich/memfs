@@ -318,11 +318,10 @@ export interface IWatchOptions extends IOptions {
 // ---------------------------------------- Utility functions
 
 export function pathToFilename(path: TFilePath): string {
-
-    // TODO: Add support for the new URL object.
-
-    if((typeof path !== 'string') && !Buffer.isBuffer(path))
-        throw new TypeError(ERRSTR.PATH_STR);
+    if((typeof path !== 'string') && !Buffer.isBuffer(path)) {
+        if(!require('url') || !(path instanceof require('url').URL))
+            throw new TypeError(ERRSTR.PATH_STR);
+    }
 
     const pathString = String(path);
     nullCheck(pathString);
@@ -566,12 +565,49 @@ export class Volume {
         return link;
     }
 
+    // Just like `getLink`, but also dereference/resolves symbolic links.
+    getResolvedLink(filenameOrSteps: string | string[]): Link {
+        let steps: string[] = typeof filenameOrSteps === 'string'
+            ? filenameToSteps(filenameOrSteps)
+            : filenameOrSteps;
+
+        let link = this.root;
+        let i = 0;
+        while(i < steps.length) {
+            let step = steps[i];
+            link = link.getChild(step);
+            if(!link) return null;
+
+            const node = link.getNode();
+            if(node.isSymlink()) {
+                steps = node.symlink.concat(steps.slice(i + 1));
+                link = this.root;
+                i = 0;
+                continue;
+            }
+
+            i++;
+        }
+
+        return link;
+    }
+
     // Just like `getLinkOrThrow`, but also dereference/resolves symbolic links.
-    private getResolvedLinkOrThrow(filename: string, funcName?: string): Link {
-        let link = this.getLinkOrThrow(filename, funcName);
-        link = this.resolveSymlinks(link);
+    getResolvedLinkOrThrow(filename: string, funcName?: string): Link {
+        let link = this.getResolvedLink(filename);
         if(!link) throwError(ENOENT, funcName, filename);
         return link;
+    }
+
+    resolveSymlinks(link: Link): Link {
+        // let node: Node = link.getNode();
+        // while(link && node.isSymlink()) {
+        //     link = this.getLink(node.symlink);
+        //     if(!link) return null;
+        //     node = link.getNode();
+        // }
+        // return link;
+        return this.getResolvedLink(link.steps.slice(1));
     }
 
     // Just like `getLinkOrThrow`, but also verifies that the link is a directory.
@@ -592,16 +628,6 @@ export class Volume {
         const link = this.getLinkParent(steps);
         if(!link) throwError(ENOENT, funcName, sep + steps.join(sep));
         if(!link.getNode().isDirectory()) throwError(ENOTDIR, funcName, sep + steps.join(sep));
-        return link;
-    }
-
-    resolveSymlinks(link: Link): Link {
-        let node: Node = link.getNode();
-        while(link && node.isSymlink()) {
-            link = this.getLink(node.symlink);
-            if(!link) return null;
-            node = link.getNode();
-        }
         return link;
     }
 
@@ -664,8 +690,24 @@ export class Volume {
         return json;
     }
 
-    toJSON() {
-        return this._toJSON();
+    toJSON(paths?: TFilePath | TFilePath[], json = {}) {
+        let links: Link[] = [];
+
+        if(paths) {
+            if(!(paths instanceof Array)) paths = [paths];
+            for(let path of paths) {
+                const filename = pathToFilename(path);
+                const link = this.getResolvedLink(filename);
+                if(!link) continue;
+                links.push(link);
+            }
+        } else {
+            links.push(this.root);
+        }
+
+        if(!links.length) return json;
+        for(let link of links) this._toJSON(link, json);
+        return json;
     }
 
     // fromJSON(json: {[filename: string]: string}, cwd: string = '/') {
@@ -682,9 +724,9 @@ export class Volume {
         }
     }
 
+    // Legacy interface
     mountSync(mountpoint: string, json: {[filename: string]: string}) {
-        const json2: {[filename: string]: string} = {};
-        // this.importJSON(json);
+        this.fromJSON(json, mountpoint);
     }
 
     private openLink(link: Link, flagsNum: number, resolveSymlinks: boolean = true): File {
@@ -710,13 +752,15 @@ export class Volume {
         return file;
     }
 
-    private openFile(fileName: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): File {
-        const steps = filenameToSteps(fileName);
-        let link: Link = this.getLink(steps);
+    private openFile(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): File {
+        const steps = filenameToSteps(filename);
+        // let link: Link = this.getLink(steps);
+        let link: Link = this.getResolvedLink(steps);
 
         // Try creating a new file, if it does not exist.
         if(!link) {
-            const dirLink: Link = this.getLinkParent(steps);
+            // const dirLink: Link = this.getLinkParent(steps);
+            const dirLink: Link = this.getResolvedLink(steps.slice(0, steps.length - 1));
             if((flagsNum & O_CREAT) && (typeof modeNum === 'number')) {
                 link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
             }
@@ -727,7 +771,7 @@ export class Volume {
 
     private openBase(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): number {
         const file = this.openFile(filename, flagsNum, modeNum, resolveSymlinks);
-        if(!file) throw createError(ENOENT, 'open', filename);
+        if(!file) throwError(ENOENT, 'open', filename);
         return file.fd;
     }
 

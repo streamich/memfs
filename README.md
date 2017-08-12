@@ -2,6 +2,8 @@
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
+[![][npm-img]][npm-url]
+
  - 100% of Node's `fs` API implemented, see *API Status*
  - Stores files in memory, in `Buffer`s
  - Throws same* errors as Node.js
@@ -32,14 +34,14 @@ vol.importJSON({
 }, '/app');
 
 fs.readFileSync('/app/README.md', 'utf8'); // 1
-vol.readFileSync('/app/src/index.js', 'utf8'): //2
+vol.readFileSync('/app/src/index.js', 'utf8'): // 2
 ```
 
 Export to JSON:
 
 ```js
-vol.writeFileSync('/script.sh', '# /bin/bash');
-vol.toJSON(); // {"/script.sh": "# /bin/bash"}
+vol.writeFileSync('/script.sh', '#! /bin/bash');
+vol.toJSON(); // {"/script.sh": "#! /bin/bash"}
 ```
 
 Use it for testing:
@@ -49,58 +51,144 @@ vol.writeFileSync('/foo', 'bar');
 expect(vol.toJSON()).to.eql({"/foo": "bar"});
 ```
 
- - difference between `fs` and `vol`
- - create custom Volumes
- - listen for events
+#### See also
 
-[See example in browser.](https://jsfiddle.net/6a96vLoj/2/)
+Other filesystem goodies:
 
-A [`fs`](https://nodejs.org/api/fs.html) API to work with *virtual in-memory* files.
+ - [`unionfs`][unionfs] - creates a union of multiple filesystem volumes
+ - [`linkfs`][linkfs] - redirects filesystem paths
+ - [`fs-monkey`][fs-monkey] - monkey-patches Node's `fs` module and `require` function
+ - [`libfs`][] - real filesystem (that executes UNIX system calls) implemented in JavaScript
 
-```javascript
-var memfs = require('memfs');
+Create as many filesystem volumes as you need:
 
-var mem = new memfs.Volume;
-mem.mountSync('./', {
-    "test.js": "console.log(123);",
-    "dir/hello.js": "console.log('hello world');"
-});
+```js
+import {Volume} from 'memfs';
 
-console.log(mem.readFileSync('./dir/hello.js').toString());
+const vol = Volume.fromJSON({'/foo': 'bar'});
+vol.readFileSync('/foo'); // bar
 ```
 
-Use it together with [`unionfs`](http://www.npmjs.com/package/unionfs):
+Use `memfs` together with [`unionfs`][unionfs] to create one filesystem
+from your in-memory volumes and the real disk filesystem:
 
-```javascript
-var unionfs = require('unionfs');
-var fs = require('fs');
+```js
+import * as fs from 'fs';
+import {ufs} from 'unionfs';
 
-// Create a union of two file systems:
-unionfs
+ufs
     .use(fs)
-    .use(mem);
-    
-// Now `unionfs` has the `fs` API but on both file systems.
-console.log(unionfs.readFileSync('./test.js').toString()); // console.log(123);
-    
-// Replace `fs` with the union of those file systems.
-unionfs.replace(fs);
+    .use(vol);
 
-// Now you can do this.
-console.log(fs.readFileSync('./test.js').toString()); // console.log(123);
-
-// ... and this:
-require('./test.js'); // 123
-
+ufs.readFileSync('/foo'); // bar
 ```
 
-This package assumes you are running on Node or have a
-[`path`](https://www.npmjs.com/package/path) and `buffer` modules available.
+Use [`fs-monkey`][fs-monkey] to monkey-patch Node's `require` function:
+
+```js
+import {patchRequire} from 'fs-monkey';
+
+vol.writeFileSync('/index.js', 'console.log("hi world")');
+patchRequire(vol);
+require('/index'); // hi world
+```
+
+## Dependencies
+
+This package depends on the following Node modules: `buffer`, `events`,
+`streams`, `path`.
 
 It also uses `process` and `setImmediate` globals, but mocks them, if not
 available.
 
-## API Status
+## Reference
+
+#### `vol` vs `fs`
+
+This package exports `vol` and `fs` objects which both can be used for
+filesystem operations but are slightly different.
+
+```js
+import {vol, fs} from 'memfs';
+```
+
+`vol` is an instance of `Volume` constructor, it is a default volume created
+for your convenience. `fs` in and *fs-like* object created from `vol` using
+`createFsFromVolume(vol)`, see reference below.
+
+#### `Volume`
+
+`Volume` is a constructor function for creating new volumes:
+
+```js
+import {Volume} from 'memfs';
+const vol = new Volume;
+```
+
+`Volume` implements all [Node's filesystem methods](https://nodejs.org/api/fs.html):
+
+```js
+vol.writeFileSync('/foo', 'bar');
+```
+
+But it does not hold constants or constructor functions:
+
+```js
+vol.F_OK; // undefined
+vol.ReadStream; // undefined
+```
+
+A new volume can be create using the `Volume.fromJSON` convenience method:
+
+```js
+const vol = Volume.fromJSON({
+    '/app/index.js': '...',
+    '/app/package.json': '...',
+});
+```
+
+It is just a shorthand for `vol.fromJSON`, see below.
+
+#### `Volume` instance `vol`
+
+###### `vol.fromJSON(json[, cwd])`
+
+Adds files from a flat `json` object to the volume `vol`. The `cwd` argument
+is optional and is used to compute absolute file paths, if a file path is
+given in a relative form.
+
+```js
+vol.fromJSON({
+    './index.js': '...',
+    './package.json': '...',
+}, '/app');
+```
+
+###### `vol.mountSync(cwd, json)`
+
+Legacy method, which is just an alias for `vol.fromJSON`.
+
+###### `vol.toJSON([paths[, json]])`
+
+Exports the whole contents of the volume recursively to a flat JSON object.
+
+`paths` is an optional argument that specifies one or more paths to be exported.
+If this argument is omitted, the whole volume is exported. `paths` can be
+an array of paths. A path can be a string, `Buffer` or an `URL` object.
+
+`json` is an optional object parameter where the list of files will be added.
+
+###### `vol.mkdirp(path, callback)`
+
+Creates a directory tree recursively. `path` is specifies a directory to
+create and can be a string, `Buffer`, or an `URL` object. `callback` is
+called on completion and may receive only one argument - an `Error` object.
+
+###### `vol.mkdirpSync(path)`
+
+A synchronous version of `vol.mkdirp`. This method throws.
+
+#### FS API Status
 
  - [x] Constants
  - [x] `FSWatcher`
@@ -161,6 +249,7 @@ available.
  - [x] `readlinkSync(path[, options])`
  - [x] `realpath(path[, options], callback)`
  - [x] `realpathSync(path[, options])`
+   - Caching not implemented
  - [x] `rename(oldPath, newPath, callback)`
  - [x] `renameSync(oldPath, newPath)`
  - [x] `rmdir(path, callback)`
@@ -185,16 +274,10 @@ available.
  - [x] `writeSync(fd, buffer[, offset[, length[, position]]])`
  - [x] `writeSync(fd, string[, position[, encoding]])`
 
-## Contributing
 
-TODOs:
-
-
-Testing:
-
-    npm test
-    npm run test-watch
-
-Building:
-
-    npm run build
+[npm-url]: https://www.npmjs.com/package/memfs
+[npm-img]: https://img.shields.io/npm/v/memfs.svg
+[memfs]: https://github.com/streamich/memfs
+[unionfs]: https://github.com/streamich/unionfs
+[linkfs]: https://github.com/streamich/linkfs
+[fs-monkey]: https://github.com/streamich/fs-monkey

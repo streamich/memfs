@@ -110,7 +110,7 @@ describe('volume', () => {
                     'hello': 'world',
                     'app.js': 'console.log(123)',
                 };
-                vol.fromJSON(json);
+                vol.fromJSON(json, '/');
                 expect(vol.toJSON()).to.eql({
                     '/hello': 'world',
                     '/app.js': 'console.log(123)',
@@ -501,6 +501,13 @@ describe('volume', () => {
             it('Read from symlink', () => {
                 vol.symlinkSync('/jquery.js', '/test2.js');
                 expect(vol.readFileSync('/test2.js').toString()).to.equal(data);
+            });
+            describe('Complex, deep, multi-step symlinks get resolved', () => {
+                it('Symlink to a folder', () => {
+                    const vol = Volume.fromJSON({'/a1/a2/a3/a4/a5/hello.txt': 'world!'});
+                    vol.symlinkSync('/a1', '/b1');
+                    expect(vol.readFileSync('/b1/a2/a3/a4/a5/hello.txt', 'utf8')).to.equal('world!');
+                });
             });
         });
         describe('.symlink(target, path[, type], callback)', () => {

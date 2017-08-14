@@ -1,10 +1,11 @@
 {
   "name": "memfs",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
   "keywords": [
     "fs",
+    "filesystem",
     "fs.js",
     "memory-fs",
     "memfs",
@@ -38,6 +39,7 @@
     "gulp-typescript": "3.2.1",
     "source-map-support": "0.4.15",
     "nyc": "11.1.0",
+    "watch": "^1.0.0",
     "@types/mocha": "2.2.41",
     "@types/chai": "4.0.1",
     "@types/node": "8.0.17"
@@ -68,11 +70,13 @@
   },
   "scripts": {
     "build": "npm run build-ts && npm run build-js",
-    "build-ts": "./node_modules/.bin/gulp build-ts",
-    "build-js": "./node_modules/.bin/babel src --out-dir lib",
-    "test": "npm run test-coverage",
-    "test-basic": "./node_modules/.bin/mocha --require ts-node/register src/**/*.test.ts",
-    "test-watch": "./node_modules/.bin/mocha --require ts-node/register src/**/*.test.ts --watch",
-    "test-coverage": "nyc --per-file mocha --require ts-node/register --require source-map-support/register --full-trace --bail src/**/*.test.ts"
+    "build-ts": "gulp build-ts",
+    "build-js": "babel src --out-dir lib",
+    "test": "npm run test-basic-js",
+    "test-basic-js": "mocha lib/**/*.test.js",
+    "test-basic-ts": "mocha --require ts-node/register src/**/*.test.ts",
+    "test-watch-ts": "mocha --require ts-node/register src/**/*.test.ts --watch",
+    "test-coverage-ts": "nyc --per-file mocha --require ts-node/register --require source-map-support/register --full-trace --bail src/**/*.test.ts",
+    "watch": "watch 'npm run build' ./src"
   }
 }

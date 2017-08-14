@@ -1,6 +1,16 @@
+sudo: false
+os:
+  - linux
+  - osx
 language: node_js
 node_js:
-  - "8"
+  - '8'
+  - '7'
+  - '6'
+  - '5'
+matrix:
+  allow_failures: []
+  fast_finish: true
 cache:
   yarn: true
   directories:

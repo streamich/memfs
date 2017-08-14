@@ -1,10 +1,14 @@
-# memfs 2.0
+# memfs 2.0 [![][npm-img]][npm-url]
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
-[![][npm-img]][npm-url]
+Install:
 
-    npm install --save memfs
+    $ npm install --save memfs
+
+or
+
+    $ yarn add memfs
 
  - 100% of Node's `fs` API implemented, see *API Status*
  - Stores files in memory, in `Buffer`s

@@ -1,7 +1,7 @@
 import {Stats} from './node';
 import {Volume as _Volume, StatWatcher, FSWatcher, toUnixTimestamp} from './volume';
 import * as volume from './volume';
-const {fsSyncMethods, fsAsyncMethods} = require('fs-money/lib/util/lists');
+const {fsSyncMethods, fsAsyncMethods} = require('fs-monkey/lib/util/lists');
 import {constants} from './constants';
 const {F_OK, R_OK, W_OK, X_OK} = constants;
 
@@ -27,8 +27,12 @@ export function createFsFromVolume(vol: _Volume): IFs {
     const fs = {F_OK, R_OK, W_OK, X_OK, constants, Stats} as any as IFs;
 
     // Bind FS methods.
-    for(const method of fsSyncMethods) fs[method] = vol[method].bind(vol);
-    for(const method of fsAsyncMethods) fs[method] = vol[method].bind(vol);
+    for(const method of fsSyncMethods)
+        if(typeof vol[method] === 'function')
+            fs[method] = vol[method].bind(vol);
+    for(const method of fsAsyncMethods)
+        if(typeof vol[method] === 'function')
+            fs[method] = vol[method].bind(vol);
 
     fs.StatWatcher = StatWatcher.bind(null, vol);
     fs.FSWatcher = FSWatcher.bind(null, vol);

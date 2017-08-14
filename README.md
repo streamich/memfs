@@ -4,6 +4,8 @@ In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
 [![][npm-img]][npm-url]
 
+    npm install --save memfs
+
  - 100% of Node's `fs` API implemented, see *API Status*
  - Stores files in memory, in `Buffer`s
  - Throws same* errors as Node.js
@@ -12,7 +14,7 @@ In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
  - Implements *soft links* (aka symlinks, symbolic links)
  - More testing coming soon*
  - Permissions may* be implemented in the future
- - Can be used in browser, see `memfs-webpack`
+ - Can be used in browser, see [`memfs-webpack`](https://github.com/streamich/memfs-webpack)
 
 Usage:
 
@@ -203,7 +205,7 @@ A synchronous version of `vol.mkdirp()`. This method throws.
 
 #### `createFsFromVolume(vol)`
 
-Returns an *fs-like* object created from a `Volume` instance `vol.
+Returns an *fs-like* object created from a `Volume` instance `vol`.
 
 ```js
 import {createFsFromVolume, Volume} from 'memfs';
@@ -221,7 +223,7 @@ you get from `require('fs')`. Here are some things this function does:
   const {createFileSync, readFileSync} = fs;
   ```
 
-  - Adds constructor functions `fs.Stats`, `fs.ReadStream`, `fs.WriteStream`, `fs.FileWatcher`, `fs.FSWatcher`.
+  - Adds constructors `fs.Stats`, `fs.ReadStream`, `fs.WriteStream`, `fs.FileWatcher`, `fs.FSWatcher`.
   - Adds constants `fs.constants`, `fs.F_OK`, etc.
 
 # API Status

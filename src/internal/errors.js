@@ -16,15 +16,9 @@ function makeNodeError(Base) {
     return class NodeError extends Base {
         constructor(key, ...args) {
             super(message(key, args));
+            this.code = key;
             this[kCode] = key;
-        }
-
-        get name() {
-            return `${super.name} [${this[kCode]}]`;
-        }
-
-        get code() {
-            return this[kCode];
+            this.name = `${super.name} [${this[kCode]}]`;
         }
     };
 }

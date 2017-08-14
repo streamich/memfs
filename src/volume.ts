@@ -337,8 +337,12 @@ export interface IWatchOptions extends IOptions {
 
 export function pathToFilename(path: TFilePath): string {
     if((typeof path !== 'string') && !Buffer.isBuffer(path)) {
-        if(!require('url') || !(path instanceof require('url').URL))
+        try {
+            if(!(path instanceof require('url').URL))
+                throw new TypeError(ERRSTR.PATH_STR);
+        } catch (err) {
             throw new TypeError(ERRSTR.PATH_STR);
+        }
     }
 
     const pathString = String(path);
@@ -398,7 +402,7 @@ export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): 
 function nullCheck(path, callback?) {
     if(('' + path).indexOf('\u0000') !== -1) {
         const er = new Error('Path must be a string without null bytes');
-        (er as any).code = 'ENOENT';
+        (er as any).code = ENOENT;
         if(typeof callback !== 'function')
             throw er;
         process.nextTick(callback, er);
@@ -1915,6 +1919,7 @@ export class StatWatcher extends EventEmitter {
         process.nextTick(emitStop, this);
     }
 }
+
 
 
 

@@ -2,14 +2,6 @@
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
-Install:
-
-    $ npm install --save memfs
-
-or
-
-    $ yarn add memfs
-
  - 100% of Node's `fs` API implemented, see *API Status*
  - Stores files in memory, in `Buffer`s
  - Throws same* errors as Node.js
@@ -19,6 +11,14 @@ or
  - More testing coming soon*
  - Permissions may* be implemented in the future
  - Can be used in browser, see [`memfs-webpack`](https://github.com/streamich/memfs-webpack)
+
+Install:
+
+    npm install --save memfs
+
+or
+
+    yarn add memfs
 
 Usage:
 

@@ -4,6 +4,7 @@ interface IProcess {
     getuid(): number,
     getgid(): number,
     cwd(): string,
+    platform: string,
     nextTick: (callback: (...args) => void, ...args) => void,
 }
 

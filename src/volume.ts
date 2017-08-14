@@ -1,4 +1,5 @@
-import {resolve, normalize, sep, relative, dirname} from 'path';
+import {posix, resolve as resolveCrossPlatform} from 'path';
+const {sep, relative} = posix;
 import {Node, Link, File, Stats} from "./node";
 import {Buffer} from 'buffer';
 import setImmediate from './setImmediate';
@@ -9,6 +10,8 @@ import setTimeoutUnref, {TSetTimeout} from "./setTimeoutUnref";
 import {Readable, Writable} from 'stream';
 const util = require('util');
 
+
+const isWin = process.platform === 'win32';
 
 
 // ---------------------------------------- Types
@@ -316,7 +319,21 @@ export interface IWatchOptions extends IOptions {
 }
 
 
+
+
+
 // ---------------------------------------- Utility functions
+
+// function slash(input) {
+//     const isExtendedLengthPath = /^\\\\\?\\/.test(input);
+//     const hasNonAscii = /[^\u0000-\u0080]+/.test(input);
+//
+//     if (isExtendedLengthPath || hasNonAscii) {
+//         return input;
+//     }
+//
+//     return input.replace(/\\/g, '/');
+// }
 
 export function pathToFilename(path: TFilePath): string {
     if((typeof path !== 'string') && !Buffer.isBuffer(path)) {
@@ -326,11 +343,18 @@ export function pathToFilename(path: TFilePath): string {
 
     const pathString = String(path);
     nullCheck(pathString);
+    // return slash(pathString);
     return pathString;
 }
 
-export function filenameToSteps(filename: string, base: string = process.cwd()): string[] {
-    const fullPath = resolve(base, filename);
+function resolve(filename: string, base: string = process.cwd()): string {
+    filename = resolveCrossPlatform(base, filename);
+    if(isWin) filename = require('unixify')(filename);
+    return filename;
+}
+
+export function filenameToSteps(filename: string, base?: string): string[] {
+    const fullPath = resolve(filename, base);
     const fullPathSansSlash = fullPath.substr(1);
     if(!fullPathSansSlash) return [];
     return fullPathSansSlash.split(sep);
@@ -717,7 +741,7 @@ export class Volume {
     fromJSON(json: {[filename: string]: string}, cwd: string = process.cwd()) {
         for(let filename in json) {
             const data = json[filename];
-            filename = resolve(cwd, filename);
+            filename = resolve(filename, cwd);
             const steps = filenameToSteps(filename);
             if(steps.length > 1) {
                 const dirname = sep + steps.slice(0, steps.length - 1).join(sep);

@@ -63,7 +63,7 @@ expect(vol.toJSON()).to.eql({"/foo": "bar"});
 
 Other filesystem goodies:
 
- - [`spyfs`][linkfs] - spies on filesystem actions
+ - [`spyfs`][spyfs] - spies on filesystem actions
  - [`unionfs`][unionfs] - creates a union of multiple filesystem volumes
  - [`linkfs`][linkfs] - redirects filesystem paths
  - [`fs-monkey`][fs-monkey] - monkey-patches Node's `fs` module and `require` function

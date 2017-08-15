@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
   "keywords": [
@@ -73,10 +73,10 @@
     "build-ts": "gulp build-ts",
     "build-js": "babel src --out-dir lib",
     "test": "npm run test-basic-js",
-    "test-basic-js": "mocha lib/**/*.test.js",
-    "test-basic-ts": "mocha --require ts-node/register src/**/*.test.ts",
-    "test-watch-ts": "mocha --require ts-node/register src/**/*.test.ts --watch",
-    "test-coverage-ts": "nyc --per-file mocha --require ts-node/register --require source-map-support/register --full-trace --bail src/**/*.test.ts",
+    "test-basic-js": "mocha lib/**/**/**/*.test.js",
+    "test-basic-ts": "mocha --require ts-node/register src/**/**/**/*.test.ts",
+    "test-watch-ts": "mocha --require ts-node/register src/**/**/**/*.test.ts --watch",
+    "test-coverage-ts": "nyc --per-file mocha --require ts-node/register --require source-map-support/register --full-trace --bail src/**/**/**/*.test.ts",
     "watch": "watch 'npm run build' ./src"
   }
 }

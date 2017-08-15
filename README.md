@@ -1,4 +1,4 @@
-# memfs 2.0 [![][npm-img]][npm-url]
+# memfs 2.0 [![][npm-badge]][npm-url] [![][travis-badge]][travis-url]
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
@@ -34,11 +34,12 @@ Create a file system from a plain JSON:
 ```js
 import {fs, vol} from 'memfs';
 
-vol.importJSON({
+const json = {
     './README.md': '1',
     './src/index.js': '2',
     './node_modules/debug/index.js': '3',
-}, '/app');
+};
+vol.importJSON(json, '/app');
 
 fs.readFileSync('/app/README.md', 'utf8'); // 1
 vol.readFileSync('/app/src/index.js', 'utf8'): // 2
@@ -62,6 +63,7 @@ expect(vol.toJSON()).to.eql({"/foo": "bar"});
 
 Other filesystem goodies:
 
+ - [`spyfs`][linkfs] - spies on filesystem actions
  - [`unionfs`][unionfs] - creates a union of multiple filesystem volumes
  - [`linkfs`][linkfs] - redirects filesystem paths
  - [`fs-monkey`][fs-monkey] - monkey-patches Node's `fs` module and `require` function
@@ -322,10 +324,13 @@ implemented (you have access to any file), basically `fs.access()` is a no-op.
 
 
 [npm-url]: https://www.npmjs.com/package/memfs
-[npm-img]: https://img.shields.io/npm/v/memfs.svg
+[npm-badge]: https://img.shields.io/npm/v/memfs.svg
+[travis-url]: https://travis-ci.org/streamich/memfs
+[travis-badge]: https://travis-ci.org/streamich/memfs.svg?branch=master
 [memfs]: https://github.com/streamich/memfs
 [unionfs]: https://github.com/streamich/unionfs
 [linkfs]: https://github.com/streamich/linkfs
+[spyfs]: https://github.com/streamich/spyfs
 [fs-monkey]: https://github.com/streamich/fs-monkey
 
 

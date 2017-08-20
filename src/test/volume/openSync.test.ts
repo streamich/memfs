@@ -1,4 +1,4 @@
-import {fs} from '..';
+import {fs} from '../..';
 import {expect} from 'chai';
 
 

@@ -270,7 +270,8 @@ const appendFileDefaults: IAppendFileOptions = {
     mode: MODE.DEFAULT,
     flag: FLAGS[FLAGS.a],
 };
-const getAppendFileOptions = optsGenerator<IAppendFileOptions>(appendFileDefaults);
+const getAppendFileOpts = optsGenerator<IAppendFileOptions>(appendFileDefaults);
+const getAppendFileOptsAndCb = optsAndCbGenerator<IAppendFileOptions, void>(getAppendFileOpts);
 
 
 // Options for `fs.realpath` and `fs.realpathSync`
@@ -1371,12 +1372,23 @@ export class Volume {
     }
 
     appendFileSync(id: TFileId, data: TData, options: IAppendFileOptions | string = appendFileDefaults) {
-        const opts = getAppendFileOptions(options);
+        const opts = getAppendFileOpts(options);
 
         // force append behavior when using a supplied file descriptor
         if (!opts.flag || isFd(id)) opts.flag = 'a';
 
         this.writeFileSync(id, data, opts);
+    }
+
+    appendFile(id: TFileId, data: TData, callback: TCallback<void>);
+    appendFile(id: TFileId, data: TData, options: IAppendFileOptions, callback: TCallback<void>);
+    appendFile(id: TFileId, data: TData, a, b?) {
+        const [opts, callback] = getAppendFileOptsAndCb(a, b);
+
+        // force append behavior when using a supplied file descriptor
+        if (!opts.flag || isFd(id)) opts.flag = 'a';
+
+        this.writeFile(id, data, opts, callback);
     }
 
     private readdirBase(filename: string, encoding: TEncodingExtended): TDataOut[] {

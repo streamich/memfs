@@ -19,7 +19,7 @@ export const constants = {
     O_DIRECTORY: 65536,
     O_NOATIME: 262144,
     O_NOFOLLOW: 131072,
-    O_SYNC: 4096,
+    O_SYNC: 1052672,
     O_DIRECT: 16384,
     O_NONBLOCK: 2048,
     S_IRWXU: 448,

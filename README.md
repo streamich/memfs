@@ -1,4 +1,6 @@
-# memfs 2.0 [![][npm-badge]][npm-url] [![][travis-badge]][travis-url]
+# memfs 2.0
+
+[![][npm-badge]][npm-url] [![][travis-badge]][travis-url]
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
@@ -15,10 +17,6 @@ In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 Install:
 
     npm install --save memfs
-
-or
-
-    yarn add memfs
 
 Usage:
 

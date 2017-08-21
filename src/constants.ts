@@ -40,3 +40,18 @@ export const constants = {
     W_OK: 2,
     X_OK: 1,
 };
+
+export const enum S {
+    ISUID = 0b100000000000, //  (04000)  set-user-ID (set process effective user ID on execve(2))
+    ISGID = 0b10000000000, // (02000)  set-group-ID (set process effective group ID on execve(2); mandatory locking, as described in fcntl(2); take a new file's group from parent directory, as described in chown(2) and mkdir(2))
+    ISVTX = 0b1000000000, // (01000)  sticky bit (restricted deletion flag, as described in unlink(2))
+    IRUSR = 0b100000000, //  (00400)  read by owner
+    IWUSR = 0b10000000, // (00200)  write by owner
+    IXUSR = 0b1000000, // (00100)  execute/search by owner
+    IRGRP = 0b100000, // (00040)  read by group
+    IWGRP = 0b10000, // (00020)  write by group
+    IXGRP = 0b1000, // (00010)  execute/search by group
+    IROTH = 0b100, // (00004)  read by others
+    IWOTH = 0b10, //  (00002)  write by others
+    IXOTH = 0b1, //  (00001)  execute/search by others
+}

@@ -775,6 +775,16 @@ export class Volume {
         if(node.isDirectory())
             throwError(EISDIR, 'open', link.getPath());
 
+        // Check node permissions
+        if(!(flagsNum & O_WRONLY)) {
+            if(!node.canRead()) {
+                throwError(EACCES, 'open', link.getPath());
+            }
+        }
+        if(flagsNum & O_RDWR) {
+
+        }
+
         const file = new File(link, node, flagsNum, this.newFdNumber());
         this.fds[file.fd] = file;
         this.openFiles++;

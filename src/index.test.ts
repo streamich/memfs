@@ -1,6 +1,6 @@
 import {Volume} from './volume';
 import {expect} from 'chai';
-import * as fs from 'fs';
+import {constants} from './constants'
 const memfs = require('./index');
 import {fsSyncMethods, fsAsyncMethods} from 'fs-monkey/lib/util/lists';
 
@@ -11,11 +11,11 @@ describe('memfs', () => {
         expect(memfs.Volume).to.equal(Volume);
     });
     it('Exports constants', () => {
-        expect(memfs.F_OK).to.equal((fs as any).F_OK);
-        expect(memfs.R_OK).to.equal((fs as any).R_OK);
-        expect(memfs.W_OK).to.equal((fs as any).W_OK);
-        expect(memfs.X_OK).to.equal((fs as any).X_OK);
-        expect(memfs.constants).to.eql(fs.constants);
+        expect(memfs.F_OK).to.equal(constants.F_OK);
+        expect(memfs.R_OK).to.equal(constants.R_OK);
+        expect(memfs.W_OK).to.equal(constants.W_OK);
+        expect(memfs.X_OK).to.equal(constants.X_OK);
+        expect(memfs.constants).to.eql(constants);
     });
     it('Exports constructors', () => {
         expect(typeof memfs.Stats).to.equal('function');

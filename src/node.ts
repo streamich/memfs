@@ -1,5 +1,5 @@
 import process from './process';
-import {constants} from "./constants";
+import {constants, S} from "./constants";
 import {Volume} from "./volume";
 import {EventEmitter} from "events";
 const {S_IFMT, S_IFDIR, S_IFREG, S_IFBLK, S_IFCHR, S_IFLNK, S_IFIFO, S_IFSOCK, O_APPEND} = constants;
@@ -163,6 +163,46 @@ export class Node extends EventEmitter {
     touch() {
         this.mtime = new Date;
         this.emit('change', this);
+    }
+
+    canRead(uid: number = process.getuid(), gid: number = process.getgid()): boolean {
+        if(this.perm & S.IROTH) {
+            return true;
+        }
+
+        if(gid === this.gid) {
+            if(this.perm & S.IRGRP) {
+                return true;
+            }
+        }
+
+        if(uid === this.uid) {
+            if(this.perm & S.IRUSR) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    canWrite(uid: number = process.getuid(), gid: number = process.getgid()): boolean {
+        if(this.perm & S.IWOTH) {
+            return true;
+        }
+
+        if(gid === this.gid) {
+            if(this.perm & S.IWGRP) {
+                return true;
+            }
+        }
+
+        if(uid === this.uid) {
+            if(this.perm & S.IWUSR) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

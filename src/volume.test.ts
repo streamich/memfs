@@ -687,6 +687,20 @@ describe('volume', () => {
         describe('.fstat(fd, callback)', () => {
             xit('...');
         });
+        describe('.existsSync(path)', () => {
+            const vol = new Volume;
+            const dojo = vol.root.createChild('dojo.js');
+            const data = '(funciton(){})();';
+            dojo.getNode().setString(data);
+            it('Returns true if file exists', () => {
+                const result = vol.existsSync('/dojo.js');
+                expect(result).to.be.true;
+            });
+            it('Returns false if file does not exist', () => {
+                const result = vol.existsSync('/pizza.js');
+                expect(result).to.be.false;
+            });
+        });
         describe('.linkSync(existingPath, newPath)', () => {
             const vol = new Volume;
             it('Create a new link', () => {

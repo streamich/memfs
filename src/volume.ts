@@ -1334,7 +1334,11 @@ export class Volume {
     }
 
     existsSync(path: TFilePath): boolean {
-        return this.existsBase(pathToFilename(path));
+        try {
+            return this.existsBase(pathToFilename(path));
+        } catch(err) {
+            return false;
+        }
     }
 
     exists(path: TFilePath, callback: (exists: boolean) => void) {

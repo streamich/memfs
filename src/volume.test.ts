@@ -688,17 +688,38 @@ describe('volume', () => {
             xit('...');
         });
         describe('.existsSync(path)', () => {
-            const vol = new Volume;
-            const dojo = vol.root.createChild('dojo.js');
-            const data = '(funciton(){})();';
-            dojo.getNode().setString(data);
+            const vol = Volume.fromJSON({'/foo': 'bar'});
             it('Returns true if file exists', () => {
-                const result = vol.existsSync('/dojo.js');
+                const result = vol.existsSync('/foo');
                 expect(result).to.be.true;
             });
             it('Returns false if file does not exist', () => {
-                const result = vol.existsSync('/pizza.js');
+                const result = vol.existsSync('/foo2');
                 expect(result).to.be.false;
+            });
+        });
+        describe('.exists(path, callback)', () => {
+            const vol = Volume.fromJSON({'/foo': 'bar'});
+            it('Returns true if file exists', done => {
+                vol.exists('/foo', exists => {
+                    expect(exists).to.be.true;
+                    done();
+                });
+            });
+            it('Returns false if file does not exist', done => {
+                vol.exists('/foo2', exists => {
+                    expect(exists).to.be.false;
+                    done();
+                });
+            });
+            it('Throws correct error if callback not provided', done => {
+                try {
+                    vol.exists('/foo', undefined);
+                    throw new Error('not_this');
+                } catch(err) {
+                    expect(err.message).to.equal('callback must be a function');
+                    done();
+                }
             });
         });
         describe('.linkSync(existingPath, newPath)', () => {

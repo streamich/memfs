@@ -4,6 +4,11 @@ To get started, download the project to your machine:
 
     git clone https://github.com/streamich/memfs
 
+Start from the `develop` branch:
+
+    git checkout develop
+    git checkout -b your-feature
+
 Install dependencies:
 
     cd memfs
@@ -24,14 +29,15 @@ extension.
 
 Run tests using this command:
 
-    npm run test-basic-ts
+    npm test
 
 Also make sure that your test cases have your new code well, run coverage report
 using this command:
 
     npm run test-coverage-ts
 
-When done, build the project and submit a pull request:
+When done, build the project:
 
     npm run build
 
+Submit a pull request into the `develop` branch.

@@ -1,23 +1,12 @@
 {
   "name": "memfs",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
   "keywords": [
-    "fs",
-    "filesystem",
-    "fs.js",
-    "memory-fs",
-    "memfs",
-    "file",
-    "file system",
-    "mount",
-    "memory",
-    "in-memory",
-    "virtual",
-    "test",
-    "testing",
-    "mock"
+    "fs", "filesystem", "fs.js", "memory-fs", "memfs",
+    "file", "file system", "mount", "memory", "in-memory",
+    "virtual", "test", "testing", "mock"
   ],
   "repository": {
     "type": "git",

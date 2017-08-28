@@ -65,7 +65,8 @@ const kMaxLength = require('buffer').kMaxLength;
 
 const ERRSTR = {
     PATH_STR:       'path must be a string or Buffer',
-    FD:             'file descriptor must be a unsigned 32-bit integer',
+    // FD:             'file descriptor must be a unsigned 32-bit integer',
+    FD:             'fd must be a file descriptor',
     MODE_INT:       'mode must be an int',
     CB:             'callback must be a function',
     UID:            'uid must be an unsigned int',

@@ -299,37 +299,6 @@ describe('volume', () => {
                 }
             });
         });
-        describe('.closeSync(fd)', () => {
-            const vol = new Volume;
-            it('Closes file without errors', () => {
-                const fd = vol.openSync('/test.txt', 'w');
-                vol.closeSync(fd);
-            });
-            xit('Correct error when file descriptor is not a number', () => {});
-            xit('Closing file descriptor that does not exist', () => {});
-            it('Closing same file descriptor twice throws EBADF', () => {
-                const fd = vol.openSync('/test.txt', 'w');
-                vol.closeSync(fd);
-                try {
-                    vol.closeSync(fd);
-                    throw Error('This should not throw');
-                } catch(err) {
-                    expect(err.code).to.equal('EBADF');
-                }
-            });
-            it('Closing a file decreases the number of open files', () => {
-                const fd = vol.openSync('/test.txt', 'w');
-                const openFiles = vol.openFiles;
-                vol.closeSync(fd);
-                expect(openFiles).to.be.greaterThan(vol.openFiles);
-            });
-            it('When closing a file, its descriptor is added to the pool of descriptors to be reused', () => {
-                const fd = vol.openSync('/test.txt', 'w');
-                const usedFdLength = vol.releasedFds.length;
-                vol.closeSync(fd);
-                expect(usedFdLength).to.be.lessThan(vol.releasedFds.length);
-            });
-        });
         describe('.close(fd, callback)', () => {
             const vol = new Volume;
             it('Closes file without errors', done => {

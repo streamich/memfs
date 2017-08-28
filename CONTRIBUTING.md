@@ -3,6 +3,7 @@
 To get started, download the project to your machine:
 
     git clone https://github.com/streamich/memfs
+    cd memfs
 
 Start from the `develop` branch:
 
@@ -11,7 +12,6 @@ Start from the `develop` branch:
 
 Install dependencies:
 
-    cd memfs
     npm install
 
 Also, you probably want to use the latest Node.js version and `ts-node`
@@ -29,12 +29,9 @@ extension.
 
 Run tests using this command:
 
-    npm test
-
-Also make sure that your test cases have your new code well, run coverage report
-using this command:
-
     npm run test-coverage-ts
+
+Also make sure that your test cases cover your new code well.
 
 When done, build the project:
 

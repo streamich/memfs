@@ -72,7 +72,7 @@
     "build": "npm run build-ts && npm run build-js",
     "build-ts": "gulp build-ts",
     "build-js": "babel src --out-dir lib",
-    "test": "npm run test-coverage-ts",
+    "test": "npm run test-basic-js",
     "test-basic-js": "mocha lib/**/**/**/*.test.js",
     "test-basic-ts": "mocha --require ts-node/register src/**/**/**/*.test.ts",
     "test-watch-ts": "mocha --require ts-node/register src/**/**/**/*.test.ts --watch",

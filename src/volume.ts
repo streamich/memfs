@@ -55,7 +55,7 @@ const enum MODE {
 }
 
 const kMinPoolSpace = 128;
-const kMaxLength = require('buffer').kMaxLength;
+// const kMaxLength = require('buffer').kMaxLength;
 
 
 
@@ -65,7 +65,8 @@ const kMaxLength = require('buffer').kMaxLength;
 
 const ERRSTR = {
     PATH_STR:       'path must be a string or Buffer',
-    FD:             'file descriptor must be a unsigned 32-bit integer',
+    // FD:             'file descriptor must be a unsigned 32-bit integer',
+    FD:             'fd must be a file descriptor',
     MODE_INT:       'mode must be an int',
     CB:             'callback must be a function',
     UID:            'uid must be an unsigned int',
@@ -336,6 +337,23 @@ export interface IWatchOptions extends IOptions {
 //     return input.replace(/\\/g, '/');
 // }
 
+function getPathFromURLPosix(url) {
+    if (url.hostname !== '') {
+        return new errors.TypeError('ERR_INVALID_FILE_URL_HOST', process.platform);
+    }
+    let pathname = url.pathname;
+    for (let n = 0; n < pathname.length; n++) {
+        if (pathname[n] === '%') {
+            let third = pathname.codePointAt(n + 2) | 0x20;
+            if (pathname[n + 1] === '2' && third === 102) {
+                return new errors.TypeError('ERR_INVALID_FILE_URL_PATH',
+                    'must not include encoded / characters');
+            }
+        }
+    }
+    return decodeURIComponent(pathname);
+}
+
 export function pathToFilename(path: TFilePath): string {
     if((typeof path !== 'string') && !Buffer.isBuffer(path)) {
         try {
@@ -344,6 +362,8 @@ export function pathToFilename(path: TFilePath): string {
         } catch (err) {
             throw new TypeError(ERRSTR.PATH_STR);
         }
+
+        path = getPathFromURLPosix(path);
     }
 
     const pathString = String(path);
@@ -473,7 +493,6 @@ function validateGid(gid: number) {
 
 
 
-
 // ---------------------------------------- Volume
 
 /**
@@ -519,9 +538,42 @@ export class Volume {
     // Current number of open files.
     openFiles = 0;
 
+    StatWatcher: new () => StatWatcher;
+    ReadStream: new (...args) => IReadStream;
+    WriteStream: new (...args) => IWriteStream;
+    FSWatcher: new () => FSWatcher;
+
     constructor() {
         const root = new Link(this, null, '');
         root.setNode(this.createNode(true));
+
+        const self = this;
+
+        this.StatWatcher = class extends StatWatcher {
+            constructor() {
+                super(self);
+            }
+        };
+
+        const _ReadStream: new (...args) => IReadStream = ReadStream as any;
+        this.ReadStream = class extends _ReadStream {
+            constructor(...args) {
+                super(self, ...args);
+            }
+        } as any as new (...args) => IReadStream;
+
+        const _WriteStream: new (...args) => IWriteStream = WriteStream as any;
+        this.WriteStream = class extends _WriteStream {
+            constructor(...args) {
+                super(self, ...args);
+            }
+        } as any as new (...args) => IWriteStream;
+
+        this.FSWatcher = class extends FSWatcher {
+            constructor() {
+                super(self);
+            }
+        };
 
         // root.setChild('.', root);
         // root.getNode().nlink++;
@@ -796,13 +848,15 @@ export class Volume {
 
     private openFile(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): File {
         const steps = filenameToSteps(filename);
-        // let link: Link = this.getLink(steps);
         let link: Link = this.getResolvedLink(steps);
 
         // Try creating a new file, if it does not exist.
         if(!link) {
             // const dirLink: Link = this.getLinkParent(steps);
             const dirLink: Link = this.getResolvedLink(steps.slice(0, steps.length - 1));
+            // if(!dirLink) throwError(ENOENT, 'open', filename);
+            if(!dirLink) throwError(ENOENT, 'open', sep + steps.join(sep));
+
             if((flagsNum & O_CREAT) && (typeof modeNum === 'number')) {
                 link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
             }
@@ -1829,7 +1883,7 @@ export class Volume {
         let watcher: StatWatcher = this.statWatchers[filename];
 
         if(!watcher) {
-            watcher = new StatWatcher(this);
+            watcher = new this.StatWatcher;
             watcher.start(filename, persistent, interval);
             this.statWatchers[filename] = watcher;
         }
@@ -1855,13 +1909,12 @@ export class Volume {
         }
     }
 
-    createReadStream(path: TFilePath, options?: IReadStreamOptions | string): ReadStream {
-        console.log(path, options);
-        return new (ReadStream as any)(this, path, options);
+    createReadStream(path: TFilePath, options?: IReadStreamOptions | string): IReadStream {
+        return new this.ReadStream(path, options);
     }
 
-    createWriteStream(path: TFilePath, options?: IWriteStreamOptions | string): WriteStream {
-        return new (WriteStream as any)(this, path, options);
+    createWriteStream(path: TFilePath, options?: IWriteStreamOptions | string): IWriteStream {
+        return new this.WriteStream(path, options);
     }
 
     // watch(path: TFilePath): FSWatcher;
@@ -1878,7 +1931,7 @@ export class Volume {
         if(persistent === undefined) persistent = true;
         if(recursive === undefined) recursive = false;
 
-        const watcher = new FSWatcher(this);
+        const watcher = new this.FSWatcher;
         watcher.start(filename, persistent, recursive, encoding as TEncoding);
 
         if(listener) {
@@ -1952,6 +2005,14 @@ export class StatWatcher extends EventEmitter {
 
 
 // ---------------------------------------- ReadStream
+
+export interface IReadStream extends Readable {
+    new (path: TFilePath, options: IReadStreamOptions),
+    open(),
+    close(callback: TCallback<void>),
+    bytesRead: number,
+    path: string,
+}
 
 var pool;
 
@@ -2088,13 +2149,11 @@ ReadStream.prototype._read = function(n) {
     }
 };
 
-
 ReadStream.prototype._destroy = function(err, cb) {
     this.close(function(err2) {
         cb(err || err2);
     });
 };
-
 
 ReadStream.prototype.close = function(cb) {
     if (cb)
@@ -2132,6 +2191,14 @@ function closeOnOpen(fd) {
 
 
 // ---------------------------------------- WriteStream
+
+export interface IWriteStream extends Writable {
+    bytesWritten: number;
+    path: string;
+    new (path: TFilePath, options: IWriteStreamOptions),
+    open(),
+    close(),
+}
 
 util.inherits(WriteStream, Writable);
 exports.WriteStream = WriteStream;
@@ -2179,7 +2246,6 @@ function WriteStream(vol, path, options) {
     });
 }
 
-
 WriteStream.prototype.open = function() {
     this._vol.open(this.path, this.flags, this.mode, function(er, fd) {
         if (er) {
@@ -2194,7 +2260,6 @@ WriteStream.prototype.open = function() {
         this.emit('open', fd);
     }.bind(this));
 };
-
 
 WriteStream.prototype._write = function(data, encoding, cb) {
     if (!(data instanceof Buffer))

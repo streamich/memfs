@@ -299,37 +299,6 @@ describe('volume', () => {
                 }
             });
         });
-        describe('.closeSync(fd)', () => {
-            const vol = new Volume;
-            it('Closes file without errors', () => {
-                const fd = vol.openSync('/test.txt', 'w');
-                vol.closeSync(fd);
-            });
-            xit('Correct error when file descriptor is not a number', () => {});
-            xit('Closing file descriptor that does not exist', () => {});
-            it('Closing same file descriptor twice throws EBADF', () => {
-                const fd = vol.openSync('/test.txt', 'w');
-                vol.closeSync(fd);
-                try {
-                    vol.closeSync(fd);
-                    throw Error('This should not throw');
-                } catch(err) {
-                    expect(err.code).to.equal('EBADF');
-                }
-            });
-            it('Closing a file decreases the number of open files', () => {
-                const fd = vol.openSync('/test.txt', 'w');
-                const openFiles = vol.openFiles;
-                vol.closeSync(fd);
-                expect(openFiles).to.be.greaterThan(vol.openFiles);
-            });
-            it('When closing a file, its descriptor is added to the pool of descriptors to be reused', () => {
-                const fd = vol.openSync('/test.txt', 'w');
-                const usedFdLength = vol.releasedFds.length;
-                vol.closeSync(fd);
-                expect(usedFdLength).to.be.lessThan(vol.releasedFds.length);
-            });
-        });
         describe('.close(fd, callback)', () => {
             const vol = new Volume;
             it('Closes file without errors', done => {
@@ -468,41 +437,6 @@ describe('volume', () => {
                     expect(vol.readFileSync('/test.txt', 'utf8')).to.equal(data);
                     done();
                 });
-            });
-        });
-        describe('.writeFileSync(path, data[, options])', () => {
-            const data = 'asdfasidofjasdf';
-            it('Create a file at root (/writeFileSync.txt)', () => {
-                const vol = new Volume;
-                vol.writeFileSync('/writeFileSync.txt', data);
-
-                const node = vol.root.getChild('writeFileSync.txt').getNode();
-                expect(node).to.be.an.instanceof(Node);
-                expect(node.getString()).to.equal(data);
-            });
-            it('Write to file by file descriptor', () => {
-                const vol = new Volume;
-                const fd = vol.openSync('/writeByFd.txt', 'w');
-                vol.writeFileSync(fd, data);
-                const node = vol.root.getChild('writeByFd.txt').getNode();
-                expect(node).to.be.an.instanceof(Node);
-                expect(node.getString()).to.equal(data);
-            });
-            it('Write to two files (second by fd)', () => {
-                const vol = new Volume;
-
-                // 1
-                vol.writeFileSync('/1.txt', '123');
-
-                // 2, 3, 4
-                const fd2 = vol.openSync('/2.txt', 'w');
-                const fd3 = vol.openSync('/3.txt', 'w');
-                const fd4 = vol.openSync('/4.txt', 'w');
-
-                vol.writeFileSync(fd2, '456');
-
-                expect(vol.root.getChild('1.txt').getNode().getString()).to.equal('123');
-                expect(vol.root.getChild('2.txt').getNode().getString()).to.equal('456');
             });
         });
         describe('.writeFile(path, data[, options], callback)', () => {
@@ -686,20 +620,6 @@ describe('volume', () => {
         });
         describe('.fstat(fd, callback)', () => {
             xit('...');
-        });
-        describe('.existsSync(path)', () => {
-            const vol = new Volume;
-            const dojo = vol.root.createChild('dojo.js');
-            const data = '(funciton(){})();';
-            dojo.getNode().setString(data);
-            it('Returns true if file exists', () => {
-                const result = vol.existsSync('/dojo.js');
-                expect(result).to.be.true;
-            });
-            it('Returns false if file does not exist', () => {
-                const result = vol.existsSync('/pizza.js');
-                expect(result).to.be.false;
-            });
         });
         describe('.linkSync(existingPath, newPath)', () => {
             const vol = new Volume;

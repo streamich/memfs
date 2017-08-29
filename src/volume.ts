@@ -822,7 +822,8 @@ export class Volume {
         if(!link) {
             // const dirLink: Link = this.getLinkParent(steps);
             const dirLink: Link = this.getResolvedLink(steps.slice(0, steps.length - 1));
-            if(!dirLink) throwError(ENOENT, 'open', filename);
+            // if(!dirLink) throwError(ENOENT, 'open', filename);
+            if(!dirLink) throwError(ENOENT, 'open', sep + steps.join(sep));
 
             if((flagsNum & O_CREAT) && (typeof modeNum === 'number')) {
                 link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);

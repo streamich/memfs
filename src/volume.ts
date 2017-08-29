@@ -816,13 +816,14 @@ export class Volume {
 
     private openFile(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): File {
         const steps = filenameToSteps(filename);
-        // let link: Link = this.getLink(steps);
         let link: Link = this.getResolvedLink(steps);
 
         // Try creating a new file, if it does not exist.
         if(!link) {
             // const dirLink: Link = this.getLinkParent(steps);
             const dirLink: Link = this.getResolvedLink(steps.slice(0, steps.length - 1));
+            if(!dirLink) throwError(ENOENT, 'open', filename);
+
             if((flagsNum & O_CREAT) && (typeof modeNum === 'number')) {
                 link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
             }

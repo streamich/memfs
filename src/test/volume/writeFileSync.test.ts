@@ -3,7 +3,7 @@ import {create} from "./util";
 import {Node} from '../../node';
 
 
-describe('.writeFileSync(path, data[, options])', () => {
+describe('writeFileSync(path, data[, options])', () => {
     const data = 'asdfasidofjasdf';
     it('Create a file at root (/writeFileSync.txt)', () => {
         const vol = create();

@@ -148,11 +148,10 @@ const vol = new Volume;
 vol.writeFileSync('/foo', 'bar');
 ```
 
-But it does not hold constants or constructor functions:
+But it does not hold constants and its methods are not bound to `vol`:
 
 ```js
 vol.F_OK; // undefined
-vol.ReadStream; // undefined
 ```
 
 A new volume can be create using the `Volume.fromJSON` convenience method:
@@ -227,7 +226,6 @@ you get from `require('fs')`. Here are some things this function does:
   const {createFileSync, readFileSync} = fs;
   ```
 
-  - Adds constructors `fs.Stats`, `fs.ReadStream`, `fs.WriteStream`, `fs.FileWatcher`, `fs.FSWatcher`.
   - Adds constants `fs.constants`, `fs.F_OK`, etc.
 
 # Relative paths

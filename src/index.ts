@@ -1,5 +1,5 @@
 import {Stats} from './node';
-import {Volume as _Volume, StatWatcher, FSWatcher, toUnixTimestamp} from './volume';
+import {Volume as _Volume, StatWatcher, FSWatcher, toUnixTimestamp, IReadStream, IWriteStream} from './volume';
 import * as volume from './volume';
 const {fsSyncMethods, fsAsyncMethods} = require('fs-monkey/lib/util/lists');
 import {constants} from './constants';
@@ -16,10 +16,10 @@ export const vol = new _Volume;
 export interface IFs extends _Volume {
     constants: typeof constants,
     Stats: new (...args) => Stats,
-    StatWatcher,
-    FSWatcher,
-    ReadStream,
-    WriteStream,
+    StatWatcher: new () => StatWatcher,
+    FSWatcher: new () => FSWatcher,
+    ReadStream: new (...args) => IReadStream,
+    WriteStream: new (...args) => IWriteStream,
     _toUnixTimestamp,
 }
 
@@ -34,10 +34,10 @@ export function createFsFromVolume(vol: _Volume): IFs {
         if(typeof vol[method] === 'function')
             fs[method] = vol[method].bind(vol);
 
-    fs.StatWatcher = StatWatcher.bind(null, vol);
-    fs.FSWatcher = FSWatcher.bind(null, vol);
-    fs.WriteStream = (volume as any).WriteStream.bind(null, vol);
-    fs.ReadStream = (volume as any).ReadStream.bind(null, vol);
+    fs.StatWatcher = vol.StatWatcher;
+    fs.FSWatcher = vol.FSWatcher;
+    fs.WriteStream = vol.WriteStream;
+    fs.ReadStream = vol.ReadStream;
 
     fs._toUnixTimestamp = toUnixTimestamp;
 

@@ -337,6 +337,23 @@ export interface IWatchOptions extends IOptions {
 //     return input.replace(/\\/g, '/');
 // }
 
+function getPathFromURLPosix(url) {
+    if (url.hostname !== '') {
+        return new errors.TypeError('ERR_INVALID_FILE_URL_HOST', process.platform);
+    }
+    let pathname = url.pathname;
+    for (let n = 0; n < pathname.length; n++) {
+        if (pathname[n] === '%') {
+            let third = pathname.codePointAt(n + 2) | 0x20;
+            if (pathname[n + 1] === '2' && third === 102) {
+                return new errors.TypeError('ERR_INVALID_FILE_URL_PATH',
+                    'must not include encoded / characters');
+            }
+        }
+    }
+    return decodeURIComponent(pathname);
+}
+
 export function pathToFilename(path: TFilePath): string {
     if((typeof path !== 'string') && !Buffer.isBuffer(path)) {
         try {
@@ -345,6 +362,8 @@ export function pathToFilename(path: TFilePath): string {
         } catch (err) {
             throw new TypeError(ERRSTR.PATH_STR);
         }
+
+        path = getPathFromURLPosix(path);
     }
 
     const pathString = String(path);
@@ -1335,7 +1354,11 @@ export class Volume {
     }
 
     existsSync(path: TFilePath): boolean {
-        return this.existsBase(pathToFilename(path));
+        try {
+            return this.existsBase(pathToFilename(path));
+        } catch(err) {
+            return false;
+        }
     }
 
     exists(path: TFilePath, callback: (exists: boolean) => void) {

@@ -7,9 +7,10 @@ describe('ReadStream', () => {
         const fs = createFs();
         expect(typeof fs.ReadStream).to.equal('function');
     });
-    it('ReadStream has constructor property', () => {
+    it('ReadStream has constructor and prototype property', () => {
         const fs = createFs();
         expect(typeof fs.ReadStream.constructor).to.equal('function');
+        expect(typeof fs.ReadStream.prototype).to.equal('object');
     });
     it('Can read basic file', done => {
         const fs = createFs({'/a': 'b'});

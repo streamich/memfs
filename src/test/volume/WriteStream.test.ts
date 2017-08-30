@@ -7,9 +7,10 @@ describe('WriteStream', () => {
         const fs = createFs();
         expect(typeof fs.WriteStream).to.equal('function');
     });
-    it('WriteStream has constructor property', () => {
+    it('WriteStream has constructor and prototype property', () => {
         const fs = createFs();
         expect(typeof fs.WriteStream.constructor).to.equal('function');
+        expect(typeof fs.WriteStream.prototype).to.equal('object');
     });
     it('Can write basic file', done => {
         const fs = createFs({'/a': 'b'});

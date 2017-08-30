@@ -775,6 +775,17 @@ export class Volume {
         }
     }
 
+    reset() {
+        this.inodes = {};
+        this.releasedInos = [];
+        this.fds = {};
+        this.releasedFds = [];
+        this.openFiles = 0;
+
+        this.root = new Link(this, null, '');
+        this.root.setNode(this.createNode(true));
+    }
+
     // Legacy interface
     mountSync(mountpoint: string, json: {[filename: string]: string}) {
         this.fromJSON(json, mountpoint);

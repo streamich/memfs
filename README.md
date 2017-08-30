@@ -174,6 +174,8 @@ Adds files from a flat `json` object to the volume `vol`. The `cwd` argument
 is optional and is used to compute absolute file paths, if a file path is
 given in a relative form.
 
+**Note:** To remove all existing files, use `vol.reset()` method.
+
 ```js
 vol.fromJSON({
     './index.js': '...',
@@ -196,6 +198,17 @@ an array of paths. A path can be a string, `Buffer` or an `URL` object.
 `json` is an optional object parameter which will be populated with the exported files.
 
 `isRelative` is boolean that specifies if returned paths should be relative.
+
+###### `vol.reset()`
+
+Removes all files from the volume.
+
+```js
+vol.fromJSON({ '/index.js': '...'});
+vol.toJSON(); // -> { '/index.js': '...' }
+vol.reset();
+vol.toJSON(); // -> {}
+```
 
 ###### `vol.mkdirp(path, callback)`
 

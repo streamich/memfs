@@ -193,6 +193,30 @@ describe('volume', () => {
                 }
             });
         });
+        describe('.reset()', () => {
+            it('Remove all files', () => {
+                const vol = new Volume;
+                const json = {
+                    '/hello': 'world',
+                    '/app.js': 'console.log(123)',
+                };
+                vol.fromJSON(json);
+                vol.reset();
+                expect(vol.toJSON()).to.eql({});
+            });
+            it('File operations should work after reset', () => {
+                const vol = new Volume;
+                const json = {
+                    '/hello': 'world',
+                };
+                vol.fromJSON(json);
+                vol.reset();
+                vol.writeFileSync('/good', 'bye');
+                expect(vol.toJSON()).to.eql({
+                    '/good': 'bye',
+                });
+            });
+        });
         describe('.openSync(path, flags[, mode])', () => {
             const vol = new Volume;
             it('Create new file at root (/test.txt)', () => {

@@ -40,7 +40,7 @@ const json = {
 vol.fromJSON(json, '/app');
 
 fs.readFileSync('/app/README.md', 'utf8'); // 1
-vol.readFileSync('/app/src/index.js', 'utf8'): // 2
+vol.readFileSync('/app/src/index.js', 'utf8'); // 2
 ```
 
 Export to JSON:

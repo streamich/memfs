@@ -203,10 +203,10 @@ an array of paths. A path can be a string, `Buffer` or an `URL` object.
 Removes all files from the volume.
 
 ```js
-vol.fromJSON({ '/index.js': '...'});
-vol.toJSON(); // -> { '/index.js': '...' }
+vol.fromJSON({'/index.js': '...'});
+vol.toJSON(); // {'/index.js': '...' }
 vol.reset();
-vol.toJSON(); // -> {}
+vol.toJSON(); // {}
 ```
 
 ###### `vol.mkdirp(path, callback)`

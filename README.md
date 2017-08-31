@@ -198,6 +198,8 @@ an array of paths. A path can be a string, `Buffer` or an `URL` object.
 
 `isRelative` is boolean that specifies if returned paths should be relative.
 
+**Note:** JSON contains only files, empty folders will be absent.
+
 ###### `vol.reset()`
 
 Removes all files from the volume.

@@ -204,6 +204,26 @@ export class Node extends EventEmitter {
 
         return false;
     }
+
+    del() {
+        this.emit('delete', this);
+    }
+
+    toJSON() {
+        return {
+            ino: this.ino,
+            uid: this.uid,
+            gid: this.gid,
+            atime: this.atime.getTime(),
+            mtime: this.mtime.getTime(),
+            ctime: this.ctime.getTime(),
+            perm: this.perm,
+            mode: this.mode,
+            nlink: this.nlink,
+            symlink: this.symlink,
+            data: this.getString(),
+        };
+    }
 }
 
 

@@ -543,8 +543,16 @@ export class Volume {
     WriteStream: new (...args) => IWriteStream;
     FSWatcher: new () => FSWatcher;
 
-    constructor() {
-        const root = new Link(this, null, '');
+    props: {
+        Node: new (...args) => Node,
+        Link: new (...args) => Link,
+        File: new (...File) => File,
+    };
+
+    constructor(props = {}) {
+        this.props = extend(props, {Node, Link, File});
+
+        const root = new this.props.Link(this, null, '');
         root.setNode(this.createNode(true));
 
         const self = this;
@@ -612,7 +620,7 @@ export class Volume {
     }
 
     createNode(isDirectory: boolean = false, perm?: number): Node {
-        const node = new Node(this.newInoNumber(), perm);
+        const node = new this.props.Node(this.newInoNumber(), perm);
         if(isDirectory) node.setIsDirectory();
         this.inodes[node.ino] = node;
         return node;
@@ -623,6 +631,7 @@ export class Volume {
     }
 
     private deleteNode(node: Node) {
+        node.del();
         delete this.inodes[node.ino];
         this.releasedInos.push(node.ino);
     }
@@ -815,7 +824,7 @@ export class Volume {
         this.releasedFds = [];
         this.openFiles = 0;
 
-        this.root = new Link(this, null, '');
+        this.root = new this.props.Link(this, null, '');
         this.root.setNode(this.createNode(true));
     }
 
@@ -848,7 +857,7 @@ export class Volume {
 
         }
 
-        const file = new File(link, node, flagsNum, this.newFdNumber());
+        const file = new this.props.File(link, node, flagsNum, this.newFdNumber());
         this.fds[file.fd] = file;
         this.openFiles++;
 

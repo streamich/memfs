@@ -12,7 +12,6 @@ const util = require('util');
 
 
 const isWin = process.platform === 'win32';
-const unixify = isWin ? require("fs-monkey/lib/correctPath").unixify : p=>p;
 
 // ---------------------------------------- Types
 
@@ -372,8 +371,11 @@ export function pathToFilename(path: TFilePath): string {
     return pathString;
 }
 
-function resolve(filename: string, base: string = process.cwd()): string {
-    return unixify(resolveCrossPlatform(base, filename));
+type TResolve = (filename: string, base?: string) => string;
+let resolve: TResolve = (filename, base = process.cwd()) => resolveCrossPlatform(base, filename);
+if(isWin) {
+    const {unixify} = require("fs-monkey/lib/correctPath");
+    resolve = (filename, base) => unixify(resolve(filename, base));
 }
 
 export function filenameToSteps(filename: string, base?: string): string[] {

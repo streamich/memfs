@@ -1490,7 +1490,7 @@ export class Volume {
         for(let name in link.children)
             list.push(strToEncoding(name, encoding));
 
-        if(encoding !== 'buffer') list.sort();
+        if(!isWin && encoding !== 'buffer') list.sort();
 
         return list;
     }

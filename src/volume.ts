@@ -374,8 +374,9 @@ export function pathToFilename(path: TFilePath): string {
 type TResolve = (filename: string, base?: string) => string;
 let resolve: TResolve = (filename, base = process.cwd()) => resolveCrossPlatform(base, filename);
 if(isWin) {
+    const _resolve = resolve;
     const {unixify} = require("fs-monkey/lib/correctPath");
-    resolve = (filename, base) => unixify(resolve(filename, base));
+    resolve = (filename, base) => unixify(_resolve(filename, base));
 }
 
 export function filenameToSteps(filename: string, base?: string): string[] {

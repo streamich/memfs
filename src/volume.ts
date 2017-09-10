@@ -510,7 +510,13 @@ export class Volume {
     // I-node number counter.
     static ino: number = 0;
 
-    // File descriptor counter.
+    /**
+     * Global file descriptor counter. UNIX file descriptors start from 0 and go sequentially
+     * up, so here, in order not to conflict with them, we choose some big number and descrease
+     * the file descriptor of every new opened file.
+     * @type {number}
+     * @todo This should not be static, right?
+     */
     static fd: number = 0xFFFFFFFF;
 
     // Constructor function used to create new nodes.
@@ -1493,7 +1499,7 @@ export class Volume {
         for(let name in link.children)
             list.push(strToEncoding(name, encoding));
 
-        if(encoding !== 'buffer') list.sort();
+        if(!isWin && encoding !== 'buffer') list.sort();
 
         return list;
     }

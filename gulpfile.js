@@ -1,8 +1,8 @@
-var gulp = require('gulp');
-var ts = require('gulp-typescript');
+const gulp = require('gulp');
+const ts = require('gulp-typescript');
 
 
-gulp.task('build-ts', function () {
+gulp.task('build-ts', () => {
     return gulp.src('src/**/*.ts')
         .pipe(ts({
             "target": "es5",

@@ -1,4 +1,6 @@
 *.ts
+!*.d.ts
+*.test.d.ts
 /typings
 example.js
 tsd.json

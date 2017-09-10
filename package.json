@@ -3,6 +3,7 @@
   "version": "2.5.4",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "keywords": [
     "fs",
     "filesystem",

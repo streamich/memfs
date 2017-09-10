@@ -325,14 +325,6 @@ export class Link extends EventEmitter {
  */
 export class File {
 
-    /**
-     * Global file descriptor counter. UNIX file descriptors start from 0 and go sequentially
-     * up, so here, in order not to conflict with them, we choose some big number and descrease
-     * the file descriptor of every new opened file.
-     * @type {number}
-     */
-    static fd = 0xFFFFFFFF;
-
     fd: number;
 
     /**

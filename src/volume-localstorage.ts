@@ -1,53 +1,52 @@
 import {Volume} from "./volume";
 import {Link, Node} from "./node";
 
-const LS = {};
 
-export class NodeLocalstorage extends Node {
-    key() {
-        return `memfs.ino.${this.ino}`;
+export interface IStore {
+    setItem(key: string, json);
+    getItem(key: string);
+    removeItem(key: string);
+}
+
+
+export class ObjectStore {
+
+    obj: object;
+
+    constructor(obj) {
+        this.obj = obj;
     }
 
-    sync() {
-        LS[this.key()] = this.toJSON();
+    setItem(key: string, json) {
+        this.obj[key] = JSON.stringify(json);
     }
 
-    touch() {
-        super.touch();
-        this.sync();
+    getItem(key: string) {
+        const data = this.obj[key];
+        if(typeof data === void 0) return void 0;
+        return JSON.parse(data);
     }
 
-    del() {
-        delete LS[this.key()];
+    removeItem(key: string) {
+        delete this.obj[key];
     }
 }
 
-export class LinkLocalstorage extends Link {
 
-}
-
-export class VolumeLocalstorage extends Volume {
-    constructor() {
-        super({
-            Node: NodeLocalstorage,
-            Link: LinkLocalstorage,
-        });
-
-
-    }
-}
-
-export function createVolume(namespace: string, LS = localStorage) {
-
+export function createVolume(namespace: string, LS: Storage | object = localStorage): new (...args) => Volume {
+    const store = new ObjectStore(LS);
     const key = (type, id) => `memfs.${namespace}.${type}.${id}`;
 
-    export class NodeLocalstorage extends Node {
-        key() {
-            return key('ino', this.ino);
+    class NodeLocalStorage extends Node {
+        private _key: string;
+
+        get Key(): string {
+            if(!this._key) this._key = key('ino', this.ino);
+            return this._key;
         }
 
         sync() {
-            LS[this.key()] = this.toJSON();
+            store.setItem(this.Key, this.toJSON());
         }
 
         touch() {
@@ -57,22 +56,40 @@ export function createVolume(namespace: string, LS = localStorage) {
 
         del() {
             super.del();
-            delete LS[this.key()];
+            store.removeItem(this.Key);
         }
     }
 
-    export class LinkLocalstorage extends Link {
+    class LinkLocalStorage extends Link {
+        private _key: string;
 
+        get Key(): string {
+            if(!this._key) this._key = key('link', this.getPath());
+            return this._key;
+        }
+
+        sync() {
+            store.setItem(this,Key, this.toJSON()):
+        }
     }
 
-    export class VolumeLocalstorage extends Volume {
+    return class VolumeLocalStorage extends Volume {
         constructor() {
             super({
-                Node: NodeLocalstorage,
-                Link: LinkLocalstorage,
+                Node: NodeLocalStorage,
+                Link: LinkLocalStorage,
             });
+        }
 
+        createLink(parent?, name?, isDirectory?, perm?) {
+            const link = super.createLink(parent, name, isDirectory, perm);
+            store.setItem(key('link', link.getPath()), link.toJSON());
+            return link;
+        }
 
+        deleteLink(link) {
+            store.removeItem(key('link', link.getPath()));
+            return super.deleteLink(link);
         }
     }
 }

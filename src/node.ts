@@ -337,6 +337,17 @@ export class Link extends EventEmitter {
         if(!link) return null;
         return link.walk(steps, stop, i + 1);
     }
+
+    toJSON() {
+        for(let ch in this.children) {
+            console.log('ch', ch);
+        }
+        return {
+            steps: this.steps,
+            ino: this.ino,
+            children: Object.keys(this.children),
+        };
+    }
 }
 
 

@@ -57,6 +57,17 @@ describe('volume', () => {
                 expect(link1).to.equal(node2);
             });
         });
+        describe('i-nodes', () => {
+            it('i-node numbers are unique', () => {
+                const vol = Volume.fromJSON({
+                    '/1': 'foo',
+                    '/2': 'bar',
+                });
+                const stat1 = vol.statSync('/1');
+                const stat2 = vol.statSync('/2');
+                expect(stat1.ino === stat2.ino).to.be.false;
+            });
+        });
         describe('.toJSON()', () => {
             it('Single file', () => {
                 const vol = new Volume;

@@ -507,9 +507,6 @@ export class Volume {
         return vol;
     }
 
-    // I-node number counter.
-    static ino: number = 0;
-
     /**
      * Global file descriptor counter. UNIX file descriptors start from 0 and go sequentially
      * up, so here, in order not to conflict with them, we choose some big number and descrease
@@ -525,6 +522,10 @@ export class Volume {
     // Hard link to the root of this volume.
     // root: Node = new (this.NodeClass)(null, '', true);
     root: Link;
+
+
+    // I-node number counter.
+    ino: number = 0;
 
     // A mapping for i-node numbers to i-nodes (`Node`);
     inodes: {[ino: number]: Node} = {};
@@ -557,9 +558,9 @@ export class Volume {
     };
 
     constructor(props = {}) {
-        this.props = extend(props, {Node, Link, File});
+        this.props = extend({Node, Link, File}, props);
 
-        const root = new this.props.Link(this, null, '');
+        const root = this.createLink();
         root.setNode(this.createNode(true));
 
         const self = this;
@@ -599,8 +600,12 @@ export class Volume {
         this.root = root;
     }
 
-    createLink(parent: Link, name: string, isDirectory: boolean = false, perm?: number): Link {
-        return parent.createChild(name, this.createNode(isDirectory, perm));
+    createLink(): Link;
+    createLink(parent: Link, name: string, isDirectory?: boolean, perm?: number): Link;
+    createLink(parent?: Link, name?: string, isDirectory: boolean = false, perm?: number): Link {
+        return parent
+            ? parent.createChild(name, this.createNode(isDirectory, perm))
+            : new this.props.Link(this, null, '');
     }
 
     deleteLink(link: Link): boolean {
@@ -617,8 +622,8 @@ export class Volume {
     private newInoNumber(): number {
         if(this.releasedInos.length) return this.releasedInos.pop();
         else {
-            Volume.ino = (Volume.ino++) % 0xFFFFFFFF;
-            return Volume.ino;
+            this.ino = (this.ino + 1) % 0xFFFFFFFF;
+            return this.ino;
         }
     }
 
@@ -825,13 +830,14 @@ export class Volume {
     }
 
     reset() {
+        this.ino = 0;
         this.inodes = {};
         this.releasedInos = [];
         this.fds = {};
         this.releasedFds = [];
         this.openFiles = 0;
 
-        this.root = new this.props.Link(this, null, '');
+        this.root = this.createLink();
         this.root.setNode(this.createNode(true));
     }
 

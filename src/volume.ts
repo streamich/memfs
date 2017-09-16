@@ -2102,7 +2102,7 @@ function ReadStream(vol, path, options) {
 
     this.on('end', function() {
         if (this.autoClose) {
-            this.destroy();
+            if(this.destroy) this.destroy();
         }
     });
 }

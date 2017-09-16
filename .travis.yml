@@ -6,7 +6,6 @@ node_js:
   - '8'
   - '7'
   - '6'
-  - '5'
 matrix:
   allow_failures: []
   fast_finish: true

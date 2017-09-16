@@ -69,7 +69,7 @@ export function createVolume(namespace: string, LS: Storage | object = localStor
         }
 
         sync() {
-            store.setItem(this,Key, this.toJSON()):
+            store.setItem(this.Key, this.toJSON());
         }
     }
 

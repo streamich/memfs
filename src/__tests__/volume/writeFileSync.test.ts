@@ -1,5 +1,4 @@
-import {expect} from 'chai';
-import {create} from "./util";
+import {create} from "../util";
 import {Node} from '../../node';
 
 
@@ -10,16 +9,16 @@ describe('writeFileSync(path, data[, options])', () => {
         vol.writeFileSync('/writeFileSync.txt', data);
 
         const node = vol.root.getChild('writeFileSync.txt').getNode();
-        expect(node).to.be.an.instanceof(Node);
-        expect(node.getString()).to.equal(data);
+        expect(node).toBeInstanceOf(Node);
+        expect(node.getString()).toBe(data);
     });
     it('Write to file by file descriptor', () => {
         const vol = create();
         const fd = vol.openSync('/writeByFd.txt', 'w');
         vol.writeFileSync(fd, data);
         const node = vol.root.getChild('writeByFd.txt').getNode();
-        expect(node).to.be.an.instanceof(Node);
-        expect(node.getString()).to.equal(data);
+        expect(node).toBeInstanceOf(Node);
+        expect(node.getString()).toBe(data);
     });
     it('Write to two files (second by fd)', () => {
         const vol = create();
@@ -34,8 +33,8 @@ describe('writeFileSync(path, data[, options])', () => {
 
         vol.writeFileSync(fd2, '456');
 
-        expect(vol.root.getChild('1.txt').getNode().getString()).to.equal('123');
-        expect(vol.root.getChild('2.txt').getNode().getString()).to.equal('456');
+        expect(vol.root.getChild('1.txt').getNode().getString()).toBe('123');
+        expect(vol.root.getChild('2.txt').getNode().getString()).toBe('456');
     });
     it('Write at relative path that does not exist throws correct error', () => {
         const vol = create();
@@ -43,7 +42,7 @@ describe('writeFileSync(path, data[, options])', () => {
             vol.writeFileSync('a/b', 'c');
             throw new Error('not_this');
         } catch(err) {
-            expect(err.code).to.equal('ENOENT');
+            expect(err.code).toBe('ENOENT');
         }
     });
 });

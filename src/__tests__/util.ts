@@ -1,4 +1,4 @@
-import {createFsFromVolume, Volume} from '../..';
+import {createFsFromVolume, Volume} from '..';
 
 
 export const create = (json: {[s: string]: string} = {'/foo': 'bar'}) => {

@@ -1,5 +1,4 @@
-import {expect} from 'chai';
-import setTimeoutUnref from "./setTimeoutUnref";
+import setTimeoutUnref from "../setTimeoutUnref";
 
 
 describe('setTimeoutUnref', () => {

@@ -1,5 +1,4 @@
 import {Volume} from '../..';
-import {expect} from 'chai';
 
 describe('.closeSync(fd)', () => {
     const vol = new Volume;
@@ -14,7 +13,7 @@ describe('.closeSync(fd)', () => {
             vol.closeSync(String(fd) as any);
             throw Error('This should not throw');
         } catch(err) {
-            expect(err.message).to.equal('fd must be a file descriptor');
+            expect(err.message).toEqual('fd must be a file descriptor');
         }
     });
     it('Closing file descriptor that does not exist', () => {
@@ -23,7 +22,7 @@ describe('.closeSync(fd)', () => {
             vol.closeSync(1234);
             throw Error('This should not throw');
         } catch(err) {
-            expect(err.code).to.equal('EBADF');
+            expect(err.code).toEqual('EBADF');
         }
     });
     it('Closing same file descriptor twice throws EBADF', () => {
@@ -33,19 +32,19 @@ describe('.closeSync(fd)', () => {
             vol.closeSync(fd);
             throw Error('This should not throw');
         } catch(err) {
-            expect(err.code).to.equal('EBADF');
+            expect(err.code).toEqual('EBADF');
         }
     });
     it('Closing a file decreases the number of open files', () => {
         const fd = vol.openSync('/test.txt', 'w');
         const openFiles = vol.openFiles;
         vol.closeSync(fd);
-        expect(openFiles).to.be.greaterThan(vol.openFiles);
+        expect(openFiles).toBeGreaterThan(vol.openFiles);
     });
     it('When closing a file, its descriptor is added to the pool of descriptors to be reused', () => {
         const fd = vol.openSync('/test.txt', 'w');
         const usedFdLength = vol.releasedFds.length;
         vol.closeSync(fd);
-        expect(usedFdLength).to.be.lessThan(vol.releasedFds.length);
+        expect(usedFdLength).toBeLessThan(vol.releasedFds.length);
     });
 });

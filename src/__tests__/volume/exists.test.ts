@@ -1,18 +1,17 @@
-import {expect} from 'chai';
-import {create} from "./util";
+import {create} from "../util";
 
 
 describe('exists(path, callback)', () => {
     const vol = create();
     it('Returns true if file exists', done => {
         vol.exists('/foo', exists => {
-            expect(exists).to.be.true;
+            expect(exists).toEqual(true);
             done();
         });
     });
     it('Returns false if file does not exist', done => {
         vol.exists('/foo2', exists => {
-            expect(exists).to.be.false;
+            expect(exists).toEqual(false);
             done();
         });
     });
@@ -21,7 +20,7 @@ describe('exists(path, callback)', () => {
             vol.exists('/foo', undefined);
             throw new Error('not_this');
         } catch(err) {
-            expect(err.message).to.equal('callback must be a function');
+            expect(err.message).toEqual('callback must be a function');
             done();
         }
     });
@@ -30,7 +29,7 @@ describe('exists(path, callback)', () => {
             vol.exists(123 as any, () => {});
             throw new Error('not_this');
         } catch(err) {
-            expect(err.message !== 'not_this').to.be.true;
+            expect(err.message !== 'not_this').toEqual(true);
         }
     });
 });

@@ -41,8 +41,6 @@
     "source-map-support": "0.4.15",
     "nyc": "11.1.0",
     "watch": "^1.0.0",
-    "@types/mocha": "2.2.41",
-    "@types/chai": "4.0.1",
     "@types/node": "8.0.17",
     "@types/jest": "^20.0.8"
   },

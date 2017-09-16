@@ -204,6 +204,26 @@ export class Node extends EventEmitter {
 
         return false;
     }
+
+    del() {
+        this.emit('delete', this);
+    }
+
+    toJSON() {
+        return {
+            ino: this.ino,
+            uid: this.uid,
+            gid: this.gid,
+            atime: this.atime.getTime(),
+            mtime: this.mtime.getTime(),
+            ctime: this.ctime.getTime(),
+            perm: this.perm,
+            mode: this.mode,
+            nlink: this.nlink,
+            symlink: this.symlink,
+            data: this.getString(),
+        };
+    }
 }
 
 
@@ -316,6 +336,17 @@ export class Link extends EventEmitter {
         const link = this.getChild(step);
         if(!link) return null;
         return link.walk(steps, stop, i + 1);
+    }
+
+    toJSON() {
+        for(let ch in this.children) {
+            console.log('ch', ch);
+        }
+        return {
+            steps: this.steps,
+            ino: this.ino,
+            children: Object.keys(this.children),
+        };
     }
 }
 

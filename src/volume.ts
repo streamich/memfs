@@ -922,6 +922,7 @@ export class Volume {
             mode = MODE.DEFAULT;
             callback = a;
         }
+        mode = mode || MODE.DEFAULT;
 
         const modeNum = modeToNumber(mode);
         const fileName = pathToFilename(path);

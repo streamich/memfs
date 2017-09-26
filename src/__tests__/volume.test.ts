@@ -327,6 +327,18 @@ describe('volume', () => {
                     done();
                 }
             });
+            it('Properly sets permissions from mode when creating a new file', done => {
+              vol.writeFileSync('/a.txt', 'foo');
+              const stats = vol.statSync('/a.txt');
+              // Write a new file, copying the mode from the old file
+              vol.open('/b.txt', 'w', stats.mode, (err, fd) => {
+                  expect(err).toBe(null);
+                  expect(vol.root.getChild('b.txt')).toBeInstanceOf(Link);
+                  expect(typeof fd).toBe('number');
+                  expect(vol.root.getChild('b.txt').getNode().canWrite()).toBe(true);
+                  done();
+              });
+            })
         });
         describe('.close(fd, callback)', () => {
             const vol = new Volume;

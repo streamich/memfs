@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renameSync(fromPath, toPath) Throws if path is of wrong type 1`] = `"path must be a string or Buffer"`;
+
+exports[`renameSync(fromPath, toPath) Throws on no params 1`] = `"path must be a string or Buffer"`;
+
+exports[`renameSync(fromPath, toPath) Throws on only one param 1`] = `"path must be a string or Buffer"`;

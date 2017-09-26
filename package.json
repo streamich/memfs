@@ -42,7 +42,7 @@
     "nyc": "11.1.0",
     "watch": "^1.0.0",
     "@types/node": "8.0.17",
-    "@types/jest": "^20.0.8"
+    "@types/jest": "^21.1.1"
   },
   "scripts": {
     "build": "npm run build-ts && npm run build-js",

@@ -9,6 +9,12 @@ const errors = require('./internal/errors');
 import setTimeoutUnref, {TSetTimeout} from "./setTimeoutUnref";
 import {Readable, Writable} from 'stream';
 const util = require('util');
+import {constants} from "./constants";
+import {EventEmitter} from "events";
+import {ReadStream, WriteStream} from "fs";
+const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
+    O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
+    F_OK, R_OK, W_OK, X_OK} = constants;
 
 
 const isWin = process.platform === 'win32';
@@ -36,14 +42,6 @@ export type TCallback<TData> = (error?: IError, data?: TData) => void;
 
 // ---------------------------------------- Constants
 
-import {constants} from "./constants";
-import {EventEmitter} from "events";
-import {ReadStream, WriteStream} from "fs";
-import * as path from "path";
-const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
-    O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
-    F_OK, R_OK, W_OK, X_OK} = constants;
-
 const ENCODING_UTF8: TEncoding = 'utf8';
 
 // Default modes for opening files.
@@ -55,7 +53,6 @@ const enum MODE {
 
 const kMinPoolSpace = 128;
 // const kMaxLength = require('buffer').kMaxLength;
-
 
 
 // ---------------------------------------- Error messages
@@ -95,7 +92,6 @@ const EISDIR = 'EISDIR';
 const ENOTEMPTY = 'ENOTEMPTY';
 
 function formatError(errorCode: string, func = '', path = '', path2 = '') {
-
     let pathFormatted = '';
     if(path) pathFormatted = ` '${path}'`;
     if(path2) pathFormatted += ` -> '${path2}'`;
@@ -125,7 +121,6 @@ function createError(errorCode: string, func = '', path = '', path2 = '', Constr
 function throwError(errorCode: string, func = '', path = '', path2 = '', Constructor = Error) {
     throw createError(errorCode, func, path, path2, Constructor);
 }
-
 
 
 
@@ -321,20 +316,8 @@ export interface IWatchOptions extends IOptions {
 
 
 
-
-
 // ---------------------------------------- Utility functions
 
-// function slash(input) {
-//     const isExtendedLengthPath = /^\\\\\?\\/.test(input);
-//     const hasNonAscii = /[^\u0000-\u0080]+/.test(input);
-//
-//     if (isExtendedLengthPath || hasNonAscii) {
-//         return input;
-//     }
-//
-//     return input.replace(/\\/g, '/');
-// }
 
 function getPathFromURLPosix(url) {
     if (url.hostname !== '') {
@@ -413,14 +396,6 @@ export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): 
     else return buffer.toString(encoding);
 }
 
-// function flagsToFlagsValue(f: string|number): number {
-//     if(typeof f === 'number') return f;
-//     if(typeof f !== 'string') throw TypeError(`flags must be string or number`);
-//     var flagsval = flags[f] as any as number;
-//     if(typeof flagsval !== 'number') throw TypeError(`Invalid flags string value '${f}'`);
-//     return flagsval;
-// }
-
 function nullCheck(path, callback?) {
     if(('' + path).indexOf('\u0000') !== -1) {
         const er = new Error('Path must be a string without null bytes');
@@ -451,6 +426,10 @@ function isFd(path): boolean {
     return (path >>> 0) === path;
 }
 
+function validateFd(fd) {
+    if(!isFd(fd)) throw TypeError(ERRSTR.FD);
+}
+
 // converts Date or number to a fractional UNIX timestamp
 export function toUnixTimestamp(time) {
     if(typeof time === 'string' && (+time == (time as any))) {
@@ -478,10 +457,6 @@ function getArgAndCb<TArg, TRes>(arg: TArg | TCallback<TRes>, callback?: TCallba
     return typeof arg === 'function'
         ? [def, arg]
         : [arg, callback];
-}
-
-function validateFd(fd) {
-    if(!isFd(fd)) throw TypeError(ERRSTR.FD);
 }
 
 function validateUid(uid: number) {
@@ -941,8 +916,7 @@ export class Volume {
 
     closeSync(fd: number) {
         validateFd(fd);
-        const file = this.getFileByFd(fd);
-        if(!file) throwError(EBADF, 'close');
+        const file = this.getFileByFdOrThrow(fd, 'close');
         this.closeFile(file);
     }
 
@@ -1025,15 +999,7 @@ export class Volume {
     readFile(id: TFileId, callback: TCallback<TDataOut>);
     readFile(id: TFileId, options: IReadFileOptions|string,                 callback: TCallback<TDataOut>);
     readFile(id: TFileId, a: TCallback<TDataOut>|IReadFileOptions|string,   b?: TCallback<TDataOut>) {
-        let options: IReadFileOptions|string = a as IReadFileOptions|string;
-        let callback: TCallback<TData> = b;
-
-        if(typeof options === 'function') {
-            callback = options;
-            options = readFileOptsDefaults;
-        }
-
-        const opts = getReadFileOptions(options);
+        const [opts, callback] = optsAndCbGenerator<IReadFileOptions, TCallback<TDataOut>>(getReadFileOptions)(a, b);
         const flagsNum = flagsToNumber(opts.flag);
         this.wrapAsync(this.readFileBase, [id, flagsNum, opts.encoding], callback);
     }

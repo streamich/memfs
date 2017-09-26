@@ -28,6 +28,8 @@
     "fs-monkey": "^0.2.1"
   },
   "devDependencies": {
+    "jest": "^21.1.0",
+    "ts-jest": "^21.0.1",
     "mocha": "3.4.2",
     "chai": "4.1.0",
     "typescript": "2.4.2",
@@ -39,43 +41,28 @@
     "source-map-support": "0.4.15",
     "nyc": "11.1.0",
     "watch": "^1.0.0",
-    "@types/mocha": "2.2.41",
-    "@types/chai": "4.0.1",
-    "@types/node": "8.0.17"
-  },
-  "nyc": {
-    "per-file": true,
-    "include": [
-      "src/**/*.ts"
-    ],
-    "exclude": [
-      "src/**/*.test.ts"
-    ],
-    "extension": [
-      ".ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ],
-    "reporter": [
-      "text",
-      "json",
-      "lcov",
-      "text-summary"
-    ],
-    "sourceMap": true,
-    "instrument": true,
-    "cache": true
+    "@types/node": "8.0.17",
+    "@types/jest": "^21.1.1"
   },
   "scripts": {
     "build": "npm run build-ts && npm run build-js",
     "build-ts": "gulp build-ts",
     "build-js": "babel src --out-dir lib",
-    "test": "npm run test-basic-js",
-    "test-basic-js": "mocha lib/**/**/**/*.test.js",
-    "test-basic-ts": "mocha --require ts-node/register src/**/**/**/*.test.ts",
-    "test-watch-ts": "mocha --require ts-node/register src/**/**/**/*.test.ts --watch",
-    "test-coverage-ts": "nyc --per-file mocha --require ts-node/register --require source-map-support/register --full-trace --bail src/**/**/**/*.test.ts",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
     "watch": "watch 'npm run build' ./src"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$"
   }
 }

@@ -507,9 +507,6 @@ export class Volume {
         return vol;
     }
 
-    // I-node number counter.
-    static ino: number = 0;
-
     /**
      * Global file descriptor counter. UNIX file descriptors start from 0 and go sequentially
      * up, so here, in order not to conflict with them, we choose some big number and descrease
@@ -525,6 +522,10 @@ export class Volume {
     // Hard link to the root of this volume.
     // root: Node = new (this.NodeClass)(null, '', true);
     root: Link;
+
+
+    // I-node number counter.
+    ino: number = 0;
 
     // A mapping for i-node numbers to i-nodes (`Node`);
     inodes: {[ino: number]: Node} = {};
@@ -550,8 +551,16 @@ export class Volume {
     WriteStream: new (...args) => IWriteStream;
     FSWatcher: new () => FSWatcher;
 
-    constructor() {
-        const root = new Link(this, null, '');
+    props: {
+        Node: new (...args) => Node,
+        Link: new (...args) => Link,
+        File: new (...File) => File,
+    };
+
+    constructor(props = {}) {
+        this.props = extend({Node, Link, File}, props);
+
+        const root = this.createLink();
         root.setNode(this.createNode(true));
 
         const self = this;
@@ -591,8 +600,12 @@ export class Volume {
         this.root = root;
     }
 
-    createLink(parent: Link, name: string, isDirectory: boolean = false, perm?: number): Link {
-        return parent.createChild(name, this.createNode(isDirectory, perm));
+    createLink(): Link;
+    createLink(parent: Link, name: string, isDirectory?: boolean, perm?: number): Link;
+    createLink(parent?: Link, name?: string, isDirectory: boolean = false, perm?: number): Link {
+        return parent
+            ? parent.createChild(name, this.createNode(isDirectory, perm))
+            : new this.props.Link(this, null, '');
     }
 
     deleteLink(link: Link): boolean {
@@ -609,8 +622,8 @@ export class Volume {
     private newInoNumber(): number {
         if(this.releasedInos.length) return this.releasedInos.pop();
         else {
-            Volume.ino = (Volume.ino++) % 0xFFFFFFFF;
-            return Volume.ino;
+            this.ino = (this.ino + 1) % 0xFFFFFFFF;
+            return this.ino;
         }
     }
 
@@ -619,7 +632,7 @@ export class Volume {
     }
 
     createNode(isDirectory: boolean = false, perm?: number): Node {
-        const node = new Node(this.newInoNumber(), perm);
+        const node = new this.props.Node(this.newInoNumber(), perm);
         if(isDirectory) node.setIsDirectory();
         this.inodes[node.ino] = node;
         return node;
@@ -630,6 +643,7 @@ export class Volume {
     }
 
     private deleteNode(node: Node) {
+        node.del();
         delete this.inodes[node.ino];
         this.releasedInos.push(node.ino);
     }
@@ -816,13 +830,14 @@ export class Volume {
     }
 
     reset() {
+        this.ino = 0;
         this.inodes = {};
         this.releasedInos = [];
         this.fds = {};
         this.releasedFds = [];
         this.openFiles = 0;
 
-        this.root = new Link(this, null, '');
+        this.root = this.createLink();
         this.root.setNode(this.createNode(true));
     }
 
@@ -855,7 +870,7 @@ export class Volume {
 
         }
 
-        const file = new File(link, node, flagsNum, this.newFdNumber());
+        const file = new this.props.File(link, node, flagsNum, this.newFdNumber());
         this.fds[file.fd] = file;
         this.openFiles++;
 
@@ -1009,7 +1024,7 @@ export class Volume {
     readFile(id: TFileId, callback: TCallback<TDataOut>);
     readFile(id: TFileId, options: IReadFileOptions|string,                 callback: TCallback<TDataOut>);
     readFile(id: TFileId, a: TCallback<TDataOut>|IReadFileOptions|string,   b?: TCallback<TDataOut>) {
-        let options: IReadFileOptions|string = a;
+        let options: IReadFileOptions|string = a as IReadFileOptions|string;
         let callback: TCallback<TData> = b;
 
         if(typeof options === 'function') {
@@ -1385,7 +1400,8 @@ export class Volume {
         }
 
         // Rename should overwrite the new path, if that exists.
-        link.steps = newPathSteps;
+        const name = newPathSteps[newPathSteps.length - 1];
+        link.steps = [...newPathDirLink.steps, name];
         newPathDirLink.setChild(link.getName(), link);
     }
 
@@ -1503,7 +1519,7 @@ export class Volume {
 
     readdir(path: TFilePath, callback: TCallback<TDataOut[]>);
     readdir(path: TFilePath, options: IOptions | string,                        callback: TCallback<TDataOut[]>);
-    readdir(path: TFilePath, a: TCallback<TDataOut[]> | IOptions | string,      b?: TCallback<TDataOut[]>) {
+    readdir(path: TFilePath, a?, b?) {
         let options: IOptions | string = a;
         let callback: TCallback<TDataOut[]> = b;
 
@@ -2087,7 +2103,7 @@ function ReadStream(vol, path, options) {
 
     this.on('end', function() {
         if (this.autoClose) {
-            this.destroy();
+            if(this.destroy) this.destroy();
         }
     });
 }

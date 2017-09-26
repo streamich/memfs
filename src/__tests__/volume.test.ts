@@ -790,6 +790,21 @@ describe('volume', () => {
         describe('.mkdirp(path[, mode], callback)', () => {
             xit('Create /dir1/dir2/dir3', () => {});
         });
+        describe('.renameSync(fromPath, toPath)', () => {
+          it ('Renames a file', () => {
+            const vol = Volume.fromJSON({
+              '/foo': 'bar'
+            });
+            expect(vol.root.getChild('foo').getNode().isFile()).toBe(true);
+            vol.renameSync('/foo', '/baz');
+            expect(vol.root.getChild('foo')).toBeUndefined();
+            expect(vol.root.getChild('baz').getNode().isFile()).toBe(true);
+            expect(vol.readFileSync('/baz', 'utf8')).toBe('bar');
+          })
+        });
+        describe('.rename(path, callback)', () => {
+          xit('...');
+        });
         describe('.rmdirSync(path)', () => {
             it('Remove single dir', () => {
                 const vol = new Volume;

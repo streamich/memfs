@@ -1400,7 +1400,7 @@ export class Volume {
         }
 
         // Rename should overwrite the new path, if that exists.
-        link.steps = newPathSteps;
+        link.steps = newPathDirLink.steps.concat(newPathSteps);
         newPathDirLink.setChild(link.getName(), link);
     }
 

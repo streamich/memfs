@@ -599,7 +599,7 @@ describe('volume', () => {
                     const stats2 = vol.statSync('/mtime.txt');
                     expect(stats2.mtimeMs).toBeGreaterThan(stats1.mtimeMs);
                     done();
-                }, 1);
+                }, 2);
             });
         });
         describe('.stat(path, callback)', () => {

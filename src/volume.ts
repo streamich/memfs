@@ -1024,7 +1024,7 @@ export class Volume {
     readFile(id: TFileId, callback: TCallback<TDataOut>);
     readFile(id: TFileId, options: IReadFileOptions|string,                 callback: TCallback<TDataOut>);
     readFile(id: TFileId, a: TCallback<TDataOut>|IReadFileOptions|string,   b?: TCallback<TDataOut>) {
-        let options: IReadFileOptions|string = a;
+        let options: IReadFileOptions|string = a as IReadFileOptions|string;
         let callback: TCallback<TData> = b;
 
         if(typeof options === 'function') {
@@ -1400,7 +1400,7 @@ export class Volume {
         }
 
         // Rename should overwrite the new path, if that exists.
-        link.steps = newPathSteps;
+        link.steps = [...newPathDirLink.steps, newPathSteps[newPathSteps.length - 1]];
         newPathDirLink.setChild(link.getName(), link);
     }
 
@@ -1518,7 +1518,7 @@ export class Volume {
 
     readdir(path: TFilePath, callback: TCallback<TDataOut[]>);
     readdir(path: TFilePath, options: IOptions | string,                        callback: TCallback<TDataOut[]>);
-    readdir(path: TFilePath, a: TCallback<TDataOut[]> | IOptions | string,      b?: TCallback<TDataOut[]>) {
+    readdir(path: TFilePath, a?, b?) {
         let options: IOptions | string = a;
         let callback: TCallback<TDataOut[]> = b;
 

@@ -40,6 +40,7 @@ export class Node extends EventEmitter {
     constructor(ino: number, perm: number = 0o666) {
         super();
         this.perm = perm;
+        this.mode |= perm;
         this.ino = ino;
     }
 
@@ -151,6 +152,7 @@ export class Node extends EventEmitter {
 
     chmod(perm: number) {
         this.perm = perm;
+        this.mode |= perm;
         this.touch();
     }
 

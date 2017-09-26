@@ -1,9 +1,16 @@
-import {Node} from "../node";
+import {Node, Stats} from "../node";
+import {constants, S} from '../constants';
 
 
 describe('node.ts', () => {
     describe('Node', () => {
         const node = new Node(1);
+        it('properly sets mode with permission respected', () => {
+          const node = new Node(1, 0o755);
+          expect(node.perm).toBe(0o755);
+          expect(node.mode).toBe(constants.S_IFREG | 0o755);
+          expect(node.isFile()).toBe(true); // Make sure we still know it's a file
+        });
         it('Setting/getting buffer creates a copy', () => {
             const buf = Buffer.from([1,2,3]);
             node.setBuffer(buf);
@@ -54,6 +61,14 @@ describe('node.ts', () => {
                 node.read(buf, 0, 1, 1);
                 expect(buf.equals(Buffer.from([2]))).toBe(true);
             });
+        });
+        describe('.chmod(perm)', () => {
+          const node = new Node(1);
+          expect(node.perm).toBe(0o666);
+          expect(node.isFile()).toBe(true);
+          node.chmod(0o600);
+          expect(node.perm).toBe(0o600);
+          expect(node.isFile()).toBe(true);
         });
     });
 });

@@ -1,5 +1,5 @@
-import {posix, resolve as resolveCrossPlatform} from 'path';
-const {sep, relative} = posix;
+import {resolve as resolveCrossPlatform} from 'path';
+import * as pathModule from 'path';
 import {Node, Link, File, Stats} from "./node";
 import {Buffer} from 'buffer';
 import setImmediate from './setImmediate';
@@ -15,6 +15,18 @@ import {ReadStream, WriteStream} from "fs";
 const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
     O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
     F_OK, R_OK, W_OK, X_OK} = constants;
+
+
+let sep, relative;
+if (pathModule.posix) {
+    const posix = pathModule;
+
+    sep = posix.sep;
+    relative = posix.relative;
+} else {
+    sep = pathModule.sep;
+    relative = pathModule.relative;
+}
 
 
 const isWin = process.platform === 'win32';

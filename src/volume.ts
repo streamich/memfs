@@ -19,7 +19,7 @@ const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
 
 let sep, relative;
 if (pathModule.posix) {
-    const posix = pathModule;
+    const {posix} = pathModule;
 
     sep = posix.sep;
     relative = posix.relative;

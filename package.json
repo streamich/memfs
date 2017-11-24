@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "2.5.9",
+  "version": "2.5.10",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
   "keywords": [
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "jest": "^21.1.0",
+    "jest-tap-reporter": "1.7.0",
     "ts-jest": "^21.0.1",
     "mocha": "3.4.2",
     "chai": "4.1.0",

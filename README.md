@@ -20,7 +20,7 @@ In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 npm install --save memfs
 ```
 
-### Usage
+## Usage
 
 ```js
 import {fs} from 'memfs';
@@ -48,8 +48,8 @@ vol.readFileSync('/app/src/index.js', 'utf8'); // 2
 Export to JSON:
 
 ```js
-vol.writeFileSync('/script.sh', '#! /bin/bash');
-vol.toJSON(); // {"/script.sh": "#! /bin/bash"}
+vol.writeFileSync('/script.sh', 'sudo rm -rf *');
+vol.toJSON(); // {"/script.sh": "sudo rm -rf *"}
 ```
 
 Use it for testing:
@@ -131,6 +131,6 @@ available.
 
 
 
-# License
+## License
 
 [Unlicense](./LICENSE) - public domain.

@@ -4,7 +4,7 @@
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
- - 100% of Node's `fs` API implemented, see *API Status*
+ - 100% of Node's `fs` API implemented, see [*API Status*](./docs/api-status.md)
  - Stores files in memory, in `Buffer`s
  - Throws same* errors as Node.js
  - Has concept of *i-nodes*

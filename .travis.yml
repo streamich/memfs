@@ -1,15 +1,25 @@
-sudo: false
+language: node_js
 os:
   - linux
-language: node_js
-node_js:
-  - '8'
-  - '7'
-  - '6'
-matrix:
-  allow_failures: []
-  fast_finish: true
 cache:
   yarn: true
   directories:
-    - "node_modules"
+    - ~/.npm
+notifications:
+  email: false
+node_js:
+  - '9'
+  - '8'
+  - '7'
+  - '6'
+script:
+  - npm run test
+  - npm run build
+matrix:
+  allow_failures: []
+  fast_finish: true
+after_success:
+  - npm run semantic-release
+branches:
+  except:
+    - /^v\d+\.\d+\.\d+$/

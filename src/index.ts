@@ -47,3 +47,5 @@ export function createFsFromVolume(vol: _Volume): IFs {
 export const fs: IFs = createFsFromVolume(vol);
 declare let module;
 module.exports = {...module.exports, ...fs};
+
+module.exports.semantic = true;

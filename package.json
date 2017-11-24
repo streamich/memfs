@@ -43,7 +43,8 @@
     "nyc": "11.1.0",
     "watch": "^1.0.0",
     "@types/node": "8.0.17",
-    "@types/jest": "^21.1.1"
+    "@types/jest": "^21.1.1",
+    "semantic-release": "^8.2.0"
   },
   "scripts": {
     "build": "npm run build-ts && npm run build-js",
@@ -52,7 +53,8 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "watch": "watch 'npm run build' ./src"
+    "watch": "watch 'npm run build' ./src",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "jest": {
     "moduleFileExtensions": [

@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "jest": "^21.1.0",
+    "jest-tap-reporter": "1.7.0",
     "ts-jest": "^21.0.1",
     "mocha": "3.4.2",
     "chai": "4.1.0",
@@ -63,6 +64,7 @@
     "transform": {
       "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
-    "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$"
+    "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$",
+    "reporters": ["jest-tap-reporter"]
   }
 }

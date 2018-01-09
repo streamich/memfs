@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "fast-extend": "0.0.2",
-    "fs-monkey": "^0.2.1"
+    "fs-monkey": "^0.3.0"
   },
   "devDependencies": {
     "jest": "21.2.1",

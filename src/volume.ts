@@ -844,7 +844,7 @@ export class Volume {
         if(!realLink) throwError(ENOENT, 'open', link.getPath());
 
         const node = realLink.getNode();
-        if(node.isDirectory())
+        if(node.isDirectory() && (flagsNum !== FLAGS.r))
             throwError(EISDIR, 'open', link.getPath());
 
         // Check node permissions

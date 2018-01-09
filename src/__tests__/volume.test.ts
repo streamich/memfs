@@ -277,6 +277,7 @@ describe('volume', () => {
         });
         describe('.open(path, flags[, mode], callback)', () => {
             const vol = new Volume;
+            vol.mkdirSync('/test-dir');
             it('Create new file at root (/test.txt)', done => {
                 vol.open('/test.txt', 'w', (err, fd) => {
                     expect(err).toBe(null);
@@ -338,7 +339,20 @@ describe('volume', () => {
                   expect(vol.root.getChild('b.txt').getNode().canWrite()).toBe(true);
                   done();
               });
-            })
+            });
+            it('Error on incorrect flags for directory', done => {
+                vol.open('/test-dir', 'r+', (err, fd) => {
+                    expect(err.code).toBe('EISDIR');
+                    done();
+                });
+            });
+            it('Properly opens directory as read-only', done => {
+                vol.open('/test-dir', 'r', (err, fd) => {
+                    expect(err).toBe(null);
+                    expect(typeof fd).toBe('number');
+                    done();
+                });
+            });
         });
         describe('.close(fd, callback)', () => {
             const vol = new Volume;

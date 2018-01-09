@@ -42,7 +42,7 @@
     "source-map-support": "0.4.15",
     "nyc": "11.1.0",
     "watch": "1.0.2",
-    "@types/node": "8.0.17",
+    "@types/node": "8.5.8",
     "@types/jest": "21.1.10",
     "semantic-release": "8.2.3"
   },

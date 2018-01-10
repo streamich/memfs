@@ -39,7 +39,7 @@
     "gulp-typescript": "3.2.3",
     "semantic-release": "8.2.3",
     "@types/node": "8.5.8",
-    "@types/jest": "21.1.10"
+    "@types/jest": "22.0.1"
   },
   "scripts": {
     "build": "npm run build-ts && npm run build-js",

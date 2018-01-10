@@ -32,7 +32,7 @@
     "jest-tap-reporter": "1.7.0",
     "ts-jest": "21.2.4",
     "mocha": "3.5.3",
-    "chai": "4.1.0",
+    "chai": "4.1.2",
     "typescript": "2.6.2",
     "ts-node": "3.3.0",
     "babel-cli": "6.26.0",

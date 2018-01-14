@@ -3,10 +3,12 @@
     "config:base"
   ],
   "automerge": true,
+  "pinVersions": false,
   "major": {
     "automerge": false
   },
   "devDependencies": {
-    "automerge": true
+    "automerge": true,
+    "pinVersions": true
   }
 }

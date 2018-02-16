@@ -1474,7 +1474,7 @@ export class Volume {
 
     private readdirBase(filename: string, encoding: TEncodingExtended): TDataOut[] {
         const steps = filenameToSteps(filename);
-        const link: Link = this.getLink(steps);
+        const link: Link = this.getResolvedLink(steps);
         if(!link) throwError(ENOENT, 'readdir', filename);
 
         const node = link.getNode();

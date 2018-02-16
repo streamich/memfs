@@ -31,12 +31,28 @@ describe('readdirSync()', () => {
   });
 
   it('respects symlinks', () => {
+    const vol = create({
+      '/a/a': 'a',
+      '/a/aa': 'aa',
+      '/b/b': 'b'
+    });
+
+    vol.symlinkSync('/a', '/b/b/b');
+
+    const dirs = vol.readdirSync('/b/b/b');
+
+    dirs.sort();
+
+    expect(dirs).toEqual(['a', 'aa']);
+  });
+
+  it('respects recursive symlinks', () => {
     const vol = create({});
 
     vol.symlinkSync('/', '/foo');
 
     const dirs = vol.readdirSync('/foo');
 
-    expect(dirs).toEqual([]);
+    expect(dirs).toEqual(['foo']);
   });
 });

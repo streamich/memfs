@@ -39,9 +39,13 @@
     "gulp-typescript": "3.2.4",
     "semantic-release": "12.4.1",
     "@types/node": "9.4.6",
-    "@types/jest": "22.1.2"
+    "@types/jest": "22.1.2",
+    "rimraf": "2.6.2",
+    "mol-conventional-changelog": "1.2.0",
+    "jest-tap-reporter": "1.9.0"
   },
   "scripts": {
+    "clean": "rimraf lib types",
     "build": "npm run build-ts && npm run build-js",
     "build-ts": "gulp build-ts",
     "build-js": "babel src --out-dir lib",
@@ -50,6 +54,11 @@
     "test:watch": "jest --watch",
     "watch": "watch 'npm run build' ./src",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/mol-conventional-changelog"
+    }
   },
   "jest": {
     "moduleFileExtensions": [
@@ -61,6 +70,7 @@
     "transform": {
       "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
-    "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$"
+    "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$",
+    "reporters": ["jest-tap-reporter"]
   }
 }

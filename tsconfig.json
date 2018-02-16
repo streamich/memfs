@@ -7,6 +7,8 @@
     "sourceMap": false
   },
   "exclude": [
+    "demo",
+    "src/__tests__",
     "node_modules",
     "lib"
   ]

@@ -34,7 +34,7 @@ const isWin = process.platform === 'win32';
 // ---------------------------------------- Types
 
 // Node-style errors with a `code` property.
-interface IError extends Error {
+export interface IError extends Error {
     code?: string,
 }
 
@@ -558,14 +558,14 @@ export class Volume {
             }
         };
 
-        const _ReadStream: new (...args) => IReadStream = ReadStream as any;
+        const _ReadStream: new (...args) => IReadStream = FsReadStream as any;
         this.ReadStream = class extends _ReadStream {
             constructor(...args) {
                 super(self, ...args);
             }
         } as any as new (...args) => IReadStream;
 
-        const _WriteStream: new (...args) => IWriteStream = WriteStream as any;
+        const _WriteStream: new (...args) => IWriteStream = FsWriteStream as any;
         this.WriteStream = class extends _WriteStream {
             constructor(...args) {
                 super(self, ...args);
@@ -2034,11 +2034,11 @@ function allocNewPool(poolSize) {
     pool.used = 0;
 }
 
-util.inherits(ReadStream, Readable);
-exports.ReadStream = ReadStream;
-function ReadStream(vol, path, options) {
-    if (!(this instanceof ReadStream))
-        return new (ReadStream as any)(vol, path, options);
+util.inherits(FsReadStream, Readable);
+exports.ReadStream = FsReadStream;
+function FsReadStream(vol, path, options) {
+    if (!(this instanceof FsReadStream))
+        return new (FsReadStream as any)(vol, path, options);
 
     this._vol = vol;
 
@@ -2087,7 +2087,7 @@ function ReadStream(vol, path, options) {
     });
 }
 
-ReadStream.prototype.open = function() {
+FsReadStream.prototype.open = function() {
     var self = this;
     this._vol.open(this.path, this.flags, this.mode, function(er, fd) {
         if (er) {
@@ -2105,7 +2105,7 @@ ReadStream.prototype.open = function() {
     });
 };
 
-ReadStream.prototype._read = function(n) {
+FsReadStream.prototype._read = function(n) {
     if (typeof this.fd !== 'number') {
         return this.once('open', function() {
             this._read(n);
@@ -2162,13 +2162,13 @@ ReadStream.prototype._read = function(n) {
     }
 };
 
-ReadStream.prototype._destroy = function(err, cb) {
+FsReadStream.prototype._destroy = function(err, cb) {
     this.close(function(err2) {
         cb(err || err2);
     });
 };
 
-ReadStream.prototype.close = function(cb) {
+FsReadStream.prototype.close = function(cb) {
     if (cb)
         this.once('close', cb);
 
@@ -2213,11 +2213,11 @@ export interface IWriteStream extends Writable {
     close(),
 }
 
-util.inherits(WriteStream, Writable);
-exports.WriteStream = WriteStream;
-function WriteStream(vol, path, options) {
-    if (!(this instanceof WriteStream))
-        return new (WriteStream as any)(vol, path, options);
+util.inherits(FsWriteStream, Writable);
+exports.WriteStream = FsWriteStream;
+function FsWriteStream(vol, path, options) {
+    if (!(this instanceof FsWriteStream))
+        return new (FsWriteStream as any)(vol, path, options);
 
     this._vol = vol;
     options = extend({}, getOptions(options, {}));
@@ -2259,7 +2259,7 @@ function WriteStream(vol, path, options) {
     });
 }
 
-WriteStream.prototype.open = function() {
+FsWriteStream.prototype.open = function() {
     this._vol.open(this.path, this.flags, this.mode, function(er, fd) {
         if (er) {
             if (this.autoClose) {
@@ -2274,7 +2274,7 @@ WriteStream.prototype.open = function() {
     }.bind(this));
 };
 
-WriteStream.prototype._write = function(data, encoding, cb) {
+FsWriteStream.prototype._write = function(data, encoding, cb) {
     if (!(data instanceof Buffer))
         return this.emit('error', new Error('Invalid data'));
 
@@ -2300,7 +2300,7 @@ WriteStream.prototype._write = function(data, encoding, cb) {
         this.pos += data.length;
 };
 
-WriteStream.prototype._writev = function(data, cb) {
+FsWriteStream.prototype._writev = function(data, cb) {
     if (typeof this.fd !== 'number') {
         return this.once('open', function() {
             this._writev(data, cb);
@@ -2334,11 +2334,11 @@ WriteStream.prototype._writev = function(data, cb) {
 };
 
 
-WriteStream.prototype._destroy = ReadStream.prototype._destroy;
-WriteStream.prototype.close = ReadStream.prototype.close;
+FsWriteStream.prototype._destroy = FsReadStream.prototype._destroy;
+FsWriteStream.prototype.close = FsReadStream.prototype.close;
 
 // There is no shutdown() for files.
-WriteStream.prototype.destroySoon = WriteStream.prototype.end;
+FsWriteStream.prototype.destroySoon = FsWriteStream.prototype.end;
 
 
 

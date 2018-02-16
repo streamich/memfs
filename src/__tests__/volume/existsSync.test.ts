@@ -1,6 +1,5 @@
 import {create} from "../util";
 
-
 describe('existsSync(path)', () => {
     const vol = create();
     it('Returns true if file exists', () => {

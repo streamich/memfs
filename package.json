@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "2.5.10",
+  "version": "2.7.0",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
   "keywords": [
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "jest": "21.2.1",
+    "jest-cli": "22.1.4",
     "jest-tap-reporter": "1.7.0",
     "ts-jest": "21.2.4",
     "typescript": "2.6.2",
@@ -38,11 +39,13 @@
     "gulp": "3.9.1",
     "gulp-typescript": "3.2.3",
     "semantic-release": "12.2.2",
+    "rimraf": "2.6.2",
     "@types/node": "9.3.0",
     "@types/jest": "22.0.1"
   },
   "scripts": {
-    "build": "npm run build-ts && npm run build-js",
+    "clean": "rimraf lib types",
+    "build": "npm run clean && npm run build-ts && npm run build-js",
     "build-ts": "gulp build-ts",
     "build-js": "babel src --out-dir lib",
     "test": "jest",

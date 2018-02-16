@@ -1,6 +1,6 @@
 // Here we mock the global `process` variable in case we are not in Node's environment.
 
-interface IProcess {
+export interface IProcess {
     getuid(): number,
     getgid(): number,
     cwd(): string,

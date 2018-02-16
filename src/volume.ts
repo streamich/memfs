@@ -11,7 +11,6 @@ import {Readable, Writable} from 'stream';
 const util = require('util');
 import {constants} from "./constants";
 import {EventEmitter} from "events";
-import {ReadStream, WriteStream} from "fs";
 const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
     O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
     F_OK, R_OK, W_OK, X_OK} = constants;
@@ -34,7 +33,7 @@ const isWin = process.platform === 'win32';
 // ---------------------------------------- Types
 
 // Node-style errors with a `code` property.
-interface IError extends Error {
+export interface IError extends Error {
     code?: string,
 }
 
@@ -558,7 +557,7 @@ export class Volume {
             }
         };
 
-        const _ReadStream: new (...args) => IReadStream = ReadStream as any;
+        const _ReadStream: new (...args) => IReadStream = FsReadStream as any;
         this.ReadStream = class extends _ReadStream {
             constructor(...args) {
                 super(self, ...args);
@@ -2034,11 +2033,11 @@ function allocNewPool(poolSize) {
     pool.used = 0;
 }
 
-util.inherits(ReadStream, Readable);
-exports.ReadStream = ReadStream;
-function ReadStream(vol, path, options) {
-    if (!(this instanceof ReadStream))
-        return new (ReadStream as any)(vol, path, options);
+util.inherits(FsReadStream, Readable);
+exports.ReadStream = FsReadStream;
+function FsReadStream(vol, path, options) {
+    if (!(this instanceof FsReadStream))
+        return new (FsReadStream as any)(vol, path, options);
 
     this._vol = vol;
 
@@ -2087,7 +2086,7 @@ function ReadStream(vol, path, options) {
     });
 }
 
-ReadStream.prototype.open = function() {
+FsReadStream.prototype.open = function() {
     var self = this;
     this._vol.open(this.path, this.flags, this.mode, function(er, fd) {
         if (er) {
@@ -2105,7 +2104,7 @@ ReadStream.prototype.open = function() {
     });
 };
 
-ReadStream.prototype._read = function(n) {
+FsReadStream.prototype._read = function(n) {
     if (typeof this.fd !== 'number') {
         return this.once('open', function() {
             this._read(n);
@@ -2162,13 +2161,13 @@ ReadStream.prototype._read = function(n) {
     }
 };
 
-ReadStream.prototype._destroy = function(err, cb) {
+FsReadStream.prototype._destroy = function(err, cb) {
     this.close(function(err2) {
         cb(err || err2);
     });
 };
 
-ReadStream.prototype.close = function(cb) {
+FsReadStream.prototype.close = function(cb) {
     if (cb)
         this.once('close', cb);
 
@@ -2334,8 +2333,8 @@ WriteStream.prototype._writev = function(data, cb) {
 };
 
 
-WriteStream.prototype._destroy = ReadStream.prototype._destroy;
-WriteStream.prototype.close = ReadStream.prototype.close;
+WriteStream.prototype._destroy = FsReadStream.prototype._destroy;
+WriteStream.prototype.close = FsReadStream.prototype.close;
 
 // There is no shutdown() for files.
 WriteStream.prototype.destroySoon = WriteStream.prototype.end;

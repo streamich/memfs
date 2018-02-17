@@ -4,7 +4,7 @@ import {Node, Link, File, Stats} from "./node";
 import {Buffer} from 'buffer';
 import setImmediate from './setImmediate';
 import process from './process';
-const extend = require('fast-extend');
+const {extend} = require('fast-extend');
 const errors = require('./internal/errors');
 import setTimeoutUnref, {TSetTimeout} from "./setTimeoutUnref";
 import {Readable, Writable} from 'stream';

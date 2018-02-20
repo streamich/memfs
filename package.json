@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "2.7.0",
+  "version": "2.7.2",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
   "keywords": [
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "jest": "21.2.1",
-    "jest-tap-reporter": "1.7.0",
+    "jest-tap-reporter": "1.9.0",
     "ts-jest": "21.2.4",
     "typescript": "2.7.2",
     "ts-node": "3.3.0",
@@ -37,12 +37,11 @@
     "babel-preset-es2015": "6.24.1",
     "gulp": "3.9.1",
     "gulp-typescript": "3.2.4",
-    "semantic-release": "12.4.1",
+    "semantic-release": "^12.4.1",
     "@types/node": "9.4.6",
     "@types/jest": "22.1.3",
     "rimraf": "2.6.2",
-    "mol-conventional-changelog": "1.2.0",
-    "jest-tap-reporter": "1.9.0"
+    "mol-conventional-changelog": "1.2.0"
   },
   "scripts": {
     "clean": "rimraf lib types",
@@ -53,7 +52,7 @@
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "watch": "watch 'npm run build' ./src",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    "semantic-release": "semantic-release"
   },
   "config": {
     "commitizen": {
@@ -71,6 +70,8 @@
       "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$",
-    "reporters": ["jest-tap-reporter"]
+    "reporters": [
+      "jest-tap-reporter"
+    ]
   }
 }

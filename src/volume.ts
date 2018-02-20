@@ -806,13 +806,18 @@ export class Volume {
     fromJSON(json: {[filename: string]: string}, cwd: string = process.cwd()) {
         for(let filename in json) {
             const data = json[filename];
-            filename = resolve(filename, cwd);
-            const steps = filenameToSteps(filename);
-            if(steps.length > 1) {
-                const dirname = sep + steps.slice(0, steps.length - 1).join(sep);
-                this.mkdirpBase(dirname, MODE.DIR);
+
+            if (typeof data === 'string') {
+                filename = resolve(filename, cwd);
+                const steps = filenameToSteps(filename);
+                if(steps.length > 1) {
+                    const dirname = sep + steps.slice(0, steps.length - 1).join(sep);
+                    this.mkdirpBase(dirname, MODE.DIR);
+                }
+                this.writeFileSync(filename, data);
+            } else {
+                this.mkdirpBase(filename, MODE.DIR);
             }
-            this.writeFileSync(filename, data);
         }
     }
 

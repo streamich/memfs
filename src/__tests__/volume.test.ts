@@ -62,12 +62,15 @@ describe('volume', () => {
                 expect(stat1.ino === stat2.ino).toBe(false);
             });
         });
+
         describe('.toJSON()', () => {
+
             it('Single file', () => {
                 const vol = new Volume;
                 vol.writeFileSync('/test', 'Hello');
                 expect(vol.toJSON()).toEqual({'/test': 'Hello'})
             });
+
             it('Multiple files', () => {
                 const vol = new Volume;
                 vol.writeFileSync('/test', 'Hello');
@@ -79,6 +82,7 @@ describe('volume', () => {
                     '/test.txt': 'Hello3',
                 })
             });
+
             it('With folders, skips empty folders', () => {
                 const vol = new Volume;
                 vol.writeFileSync('/test', 'Hello');
@@ -98,6 +102,7 @@ describe('volume', () => {
                     '/dir/dir2/hello.txt': 'world',
                 })
             });
+
             it('Specify export path', () => {
                 const vol = Volume.fromJSON({
                     '/foo': 'bar',
@@ -107,6 +112,7 @@ describe('volume', () => {
                     '/dir/a': 'b',
                 })
             });
+
             it('Specify multiple export paths', () => {
                 const vol = Volume.fromJSON({
                     '/foo': 'bar',
@@ -120,6 +126,7 @@ describe('volume', () => {
                     '/dir2/c': 'd',
                 })
             });
+
             it('Accumulate exports on supplied object', () => {
                 const vol = Volume.fromJSON({
                     '/foo': 'bar',
@@ -127,15 +134,28 @@ describe('volume', () => {
                 const obj = {};
                 expect(vol.toJSON('/', obj)).toBe(obj);
             });
+
             it('Export empty volume', () => {
                 const vol = Volume.fromJSON({});
                 expect(vol.toJSON()).toEqual({});
             });
+
             it('Exporting non-existing path', () => {
                 const vol = Volume.fromJSON({});
                 expect(vol.toJSON('/lol')).toEqual({});
             });
+
+            it('creates a folder if values is not a string', () => {
+                const vol = Volume.fromJSON({
+                    '/dir': null
+                });
+                const stat = vol.statSync('/dir');
+
+                expect(stat.isDirectory()).toBe(true);
+                expect(vol.readdirSync('/dir')).toEqual([]);
+            });
         });
+
         describe('.fromJSON(json[, cwd])', () => {
             it('Files at root', () => {
                 const vol = new Volume;

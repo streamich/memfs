@@ -100,6 +100,7 @@ describe('volume', () => {
                     '/dir/abc': 'abc',
                     '/dir/abc2': 'abc2',
                     '/dir/dir2/hello.txt': 'world',
+                    '/dir3': null,
                 })
             });
 
@@ -145,18 +146,33 @@ describe('volume', () => {
                 expect(vol.toJSON('/lol')).toEqual({});
             });
 
-            it('creates a folder if values is not a string', () => {
+            it('Serializes empty dirs as null', () => {
                 const vol = Volume.fromJSON({
                     '/dir': null
                 });
-                const stat = vol.statSync('/dir');
 
-                expect(stat.isDirectory()).toBe(true);
-                expect(vol.readdirSync('/dir')).toEqual([]);
+                expect(vol.toJSON()).toEqual({
+                    '/dir': null
+                });
+            });
+
+            it('Serializes only empty dirs', () => {
+                const vol = Volume.fromJSON({
+                    '/dir': null,
+                    '/dir/dir2': null,
+                    '/dir/dir2/foo': null,
+                    '/empty': null,
+                });
+
+                expect(vol.toJSON()).toEqual({
+                    '/dir/dir2/foo': null,
+                    '/empty': null
+                });
             });
         });
 
         describe('.fromJSON(json[, cwd])', () => {
+
             it('Files at root', () => {
                 const vol = new Volume;
                 const json = {
@@ -166,6 +182,7 @@ describe('volume', () => {
                 vol.fromJSON(json);
                 expect(vol.toJSON()).toEqual(json);
             });
+
             it('Files at root with relative paths', () => {
                 const vol = new Volume;
                 const json = {
@@ -178,6 +195,7 @@ describe('volume', () => {
                     '/app.js': 'console.log(123)',
                 });
             });
+
             it('Deeply nested tree', () => {
                 const vol = new Volume;
                 const json = {
@@ -189,6 +207,7 @@ describe('volume', () => {
                 vol.fromJSON(json);
                 expect(vol.toJSON()).toEqual(json);
             });
+
             it('Invalid JSON throws error', () => {
                 try {
                     const vol = new Volume;
@@ -203,6 +222,7 @@ describe('volume', () => {
                     expect((error.code === 'EISDIR') || (error.code === 'ENOTDIR')).toBe(true);
                 }
             });
+
             it('Invalid JSON throws error 2', () => {
                 try {
                     const vol = new Volume;
@@ -217,7 +237,19 @@ describe('volume', () => {
                     expect((error.code === 'EISDIR') || (error.code === 'ENOTDIR')).toBe(true);
                 }
             });
+
+
+            it('creates a folder if values is not a string', () => {
+                const vol = Volume.fromJSON({
+                    '/dir': null
+                });
+                const stat = vol.statSync('/dir');
+
+                expect(stat.isDirectory()).toBe(true);
+                expect(vol.readdirSync('/dir')).toEqual([]);
+            });
         });
+
         describe('.reset()', () => {
             it('Remove all files', () => {
                 const vol = new Volume;

@@ -768,7 +768,11 @@ export class Volume {
     }
 
     private _toJSON(link = this.root, json = {}, path?: string) {
+        let isEmpty = true;
+
         for(let name in link.children) {
+            isEmpty = false;
+
             let child = link.getChild(name);
             let node = child.getNode();
             if(node.isFile()) {
@@ -779,6 +783,15 @@ export class Volume {
                 this._toJSON(child, json, path);
             }
         }
+
+        let dirPath = link.getPath();
+
+        if(path) dirPath = relative(path, dirPath);
+
+        if (dirPath && isEmpty) {
+            json[dirPath] = null;
+        }
+
         return json;
     }
 

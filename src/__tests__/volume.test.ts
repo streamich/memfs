@@ -62,12 +62,15 @@ describe('volume', () => {
                 expect(stat1.ino === stat2.ino).toBe(false);
             });
         });
+
         describe('.toJSON()', () => {
+
             it('Single file', () => {
                 const vol = new Volume;
                 vol.writeFileSync('/test', 'Hello');
                 expect(vol.toJSON()).toEqual({'/test': 'Hello'})
             });
+
             it('Multiple files', () => {
                 const vol = new Volume;
                 vol.writeFileSync('/test', 'Hello');
@@ -79,6 +82,7 @@ describe('volume', () => {
                     '/test.txt': 'Hello3',
                 })
             });
+
             it('With folders, skips empty folders', () => {
                 const vol = new Volume;
                 vol.writeFileSync('/test', 'Hello');
@@ -96,8 +100,10 @@ describe('volume', () => {
                     '/dir/abc': 'abc',
                     '/dir/abc2': 'abc2',
                     '/dir/dir2/hello.txt': 'world',
+                    '/dir3': null,
                 })
             });
+
             it('Specify export path', () => {
                 const vol = Volume.fromJSON({
                     '/foo': 'bar',
@@ -107,6 +113,7 @@ describe('volume', () => {
                     '/dir/a': 'b',
                 })
             });
+
             it('Specify multiple export paths', () => {
                 const vol = Volume.fromJSON({
                     '/foo': 'bar',
@@ -120,6 +127,7 @@ describe('volume', () => {
                     '/dir2/c': 'd',
                 })
             });
+
             it('Accumulate exports on supplied object', () => {
                 const vol = Volume.fromJSON({
                     '/foo': 'bar',
@@ -127,16 +135,44 @@ describe('volume', () => {
                 const obj = {};
                 expect(vol.toJSON('/', obj)).toBe(obj);
             });
+
             it('Export empty volume', () => {
                 const vol = Volume.fromJSON({});
                 expect(vol.toJSON()).toEqual({});
             });
+
             it('Exporting non-existing path', () => {
                 const vol = Volume.fromJSON({});
                 expect(vol.toJSON('/lol')).toEqual({});
             });
+
+            it('Serializes empty dirs as null', () => {
+                const vol = Volume.fromJSON({
+                    '/dir': null
+                });
+
+                expect(vol.toJSON()).toEqual({
+                    '/dir': null
+                });
+            });
+
+            it('Serializes only empty dirs', () => {
+                const vol = Volume.fromJSON({
+                    '/dir': null,
+                    '/dir/dir2': null,
+                    '/dir/dir2/foo': null,
+                    '/empty': null,
+                });
+
+                expect(vol.toJSON()).toEqual({
+                    '/dir/dir2/foo': null,
+                    '/empty': null
+                });
+            });
         });
+
         describe('.fromJSON(json[, cwd])', () => {
+
             it('Files at root', () => {
                 const vol = new Volume;
                 const json = {
@@ -146,6 +182,7 @@ describe('volume', () => {
                 vol.fromJSON(json);
                 expect(vol.toJSON()).toEqual(json);
             });
+
             it('Files at root with relative paths', () => {
                 const vol = new Volume;
                 const json = {
@@ -158,6 +195,7 @@ describe('volume', () => {
                     '/app.js': 'console.log(123)',
                 });
             });
+
             it('Deeply nested tree', () => {
                 const vol = new Volume;
                 const json = {
@@ -169,6 +207,7 @@ describe('volume', () => {
                 vol.fromJSON(json);
                 expect(vol.toJSON()).toEqual(json);
             });
+
             it('Invalid JSON throws error', () => {
                 try {
                     const vol = new Volume;
@@ -183,6 +222,7 @@ describe('volume', () => {
                     expect((error.code === 'EISDIR') || (error.code === 'ENOTDIR')).toBe(true);
                 }
             });
+
             it('Invalid JSON throws error 2', () => {
                 try {
                     const vol = new Volume;
@@ -197,7 +237,19 @@ describe('volume', () => {
                     expect((error.code === 'EISDIR') || (error.code === 'ENOTDIR')).toBe(true);
                 }
             });
+
+
+            it('creates a folder if values is not a string', () => {
+                const vol = Volume.fromJSON({
+                    '/dir': null
+                });
+                const stat = vol.statSync('/dir');
+
+                expect(stat.isDirectory()).toBe(true);
+                expect(vol.readdirSync('/dir')).toEqual([]);
+            });
         });
+
         describe('.reset()', () => {
             it('Remove all files', () => {
                 const vol = new Volume;

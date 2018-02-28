@@ -18,7 +18,7 @@ vol.mkdirpSync(process.cwd());
 ```
 
 Or, you can set the current working directory to `/`, which
-is one folder that exists in all your `memfs` volumes:
+is one folder that exists in all `memfs` volumes:
 
 ```js
 process.chdir('/');

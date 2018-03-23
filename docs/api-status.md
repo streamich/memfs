@@ -19,6 +19,8 @@ implemented (you have access to any file), basically `fs.access()` is a no-op.
   - [x] `chmodSync(path, mode)`
   - [x] `chown(path, uid, gid, callback)`
   - [x] `chownSync(path, uid, gid)`
+  - [ ] `fs.copyFile(src, dest[, flags], callback)`
+  - [ ] `fs.copyFileSync(src, dest[, flags])`
   - [x] `close(fd, callback)`
   - [x] `closeSync(fd)`
   - [x] `createReadStream(path[, options])`

@@ -12,5 +12,6 @@ gulp.task('build-ts', () => {
         "removeComments": false,
         "noImplicitAny": false,
         "sourceMap": false,
+        "declaration": true
     })).pipe(gulp.dest('lib'));
 });

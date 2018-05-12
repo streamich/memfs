@@ -1257,6 +1257,28 @@ export class Volume {
         return this.copyFileBase(srcFilename, destFilename, flags | 0);
     }
 
+    copyFile(src: TFilePath, dest: TFilePath, callback: TCallback<void>);
+    copyFile(src: TFilePath, dest: TFilePath, flags: TFlagsCopy, callback: TCallback<void>);
+    copyFile(src: TFilePath, dest: TFilePath, a, b?) {
+        const srcFilename = pathToFilename(src);
+        const destFilename = pathToFilename(dest);
+
+        let flags: TFlagsCopy;
+        let callback: TCallback<void>;
+
+        if (typeof a === 'function') {
+            flags = 0;
+            callback = a;
+        } else {
+            flags = a;
+            callback = b;
+        }
+
+        validateCallback(callback);
+
+        this.wrapAsync(this.copyFileBase, [srcFilename, destFilename, flags], callback);
+    }
+
     linkSync(existingPath: TFilePath, newPath: TFilePath) {
         const existingPathFilename = pathToFilename(existingPath);
         const newPathFilename = pathToFilename(newPath);

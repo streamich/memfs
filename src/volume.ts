@@ -12,9 +12,11 @@ const util = require('util');
 import {constants} from "./constants";
 import {EventEmitter} from "events";
 import {ReadStream, WriteStream} from "fs";
+import { ENOSYS } from 'constants';
 const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
     O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
-    F_OK, R_OK, W_OK, X_OK} = constants;
+    F_OK, R_OK, W_OK, X_OK,
+    COPYFILE_EXCL, COPYFILE_FICLONE, COPYFILE_FICLONE_FORCE} = constants;
 
 
 let sep, relative;
@@ -102,6 +104,7 @@ const EMFILE = 'EMFILE';
 const EACCES = 'EACCES';
 const EISDIR = 'EISDIR';
 const ENOTEMPTY = 'ENOTEMPTY';
+const ENOSYS = 'ENOSYS';
 
 function formatError(errorCode: string, func = '', path = '', path2 = '') {
     let pathFormatted = '';
@@ -120,6 +123,7 @@ function formatError(errorCode: string, func = '', path = '', path2 = '') {
         case EACCES:      return `EACCES: permission denied, ${func}${pathFormatted}`;
         case ENOTEMPTY:   return `ENOTEMPTY: directory not empty, ${func}${pathFormatted}`;
         case EMFILE:      return `EMFILE: too many open files, ${func}${pathFormatted}`;
+        case ENOSYS:      return `ENOSYS: function not implemented, ${func}${pathFormatted}`;
         default:          return `${errorCode}: error occurred, ${func}${pathFormatted}`;
     }
 }
@@ -172,6 +176,11 @@ export enum FLAGS {
     'ax+'   = O_RDWR | O_APPEND | O_CREAT | O_EXCL,
     'xa+'   = FLAGS['ax+'],
 }
+
+export type TFlagsCopy =
+    | typeof COPYFILE_EXCL
+    | typeof COPYFILE_FICLONE
+    | typeof COPYFILE_FICLONE_FORCE;
 
 export function flagsToNumber(flags: TFlags): number {
     if(typeof flags === 'number') return flags;
@@ -1220,9 +1229,54 @@ export class Volume {
         if(dir2.getChild(name))
             throwError(EEXIST, 'link', filename1, filename2);
 
-        const node =link1.getNode();
+        const node = link1.getNode();
         node.nlink++;
         dir2.createChild(name, node);
+    }
+
+    private copyFileBase(src: string, dest: string, flags: number) {
+        const buf = this.readFileSync(src) as Buffer;
+
+        if (flags & COPYFILE_EXCL) {
+            if (this.existsSync(dest)) {
+                throwError(EEXIST, 'copyFile', src, dest);
+            }
+        }
+
+        if (flags & COPYFILE_FICLONE_FORCE) {
+            throwError(ENOSYS, 'copyFile', src, dest);
+        }
+
+        this.writeFileBase(dest, buf, FLAGS.w, MODE.DEFAULT);
+    }
+
+    copyFileSync(src: TFilePath, dest: TFilePath, flags?: TFlagsCopy) {
+        const srcFilename = pathToFilename(src);
+        const destFilename = pathToFilename(dest);
+
+        return this.copyFileBase(srcFilename, destFilename, flags | 0);
+    }
+
+    copyFile(src: TFilePath, dest: TFilePath, callback: TCallback<void>);
+    copyFile(src: TFilePath, dest: TFilePath, flags: TFlagsCopy, callback: TCallback<void>);
+    copyFile(src: TFilePath, dest: TFilePath, a, b?) {
+        const srcFilename = pathToFilename(src);
+        const destFilename = pathToFilename(dest);
+
+        let flags: TFlagsCopy;
+        let callback: TCallback<void>;
+
+        if (typeof a === 'function') {
+            flags = 0;
+            callback = a;
+        } else {
+            flags = a;
+            callback = b;
+        }
+
+        validateCallback(callback);
+
+        this.wrapAsync(this.copyFileBase, [srcFilename, destFilename, flags], callback);
     }
 
     linkSync(existingPath: TFilePath, newPath: TFilePath) {

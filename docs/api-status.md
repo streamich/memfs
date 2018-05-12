@@ -19,8 +19,11 @@ implemented (you have access to any file), basically `fs.access()` is a no-op.
   - [x] `chmodSync(path, mode)`
   - [x] `chown(path, uid, gid, callback)`
   - [x] `chownSync(path, uid, gid)`
-  - [ ] `fs.copyFile(src, dest[, flags], callback)`
-  - [ ] `fs.copyFileSync(src, dest[, flags])`
+  - [x] `fs.copyFile(src, dest[, flags], callback)`
+  - [x] `fs.copyFileSync(src, dest[, flags])`
+     - Honors `COPYFILE_EXCL`
+     - Ignores `COPYFILE_FICLONE` *copy-on-write* &mdash; always creates a copy.
+     - If `COPYFILE_FICLONE_FORCE` flag specified, will always fail with `ENOSYS`.
   - [x] `close(fd, callback)`
   - [x] `closeSync(fd)`
   - [x] `createReadStream(path[, options])`

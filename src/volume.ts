@@ -1225,6 +1225,10 @@ export class Volume {
         dir2.createChild(name, node);
     }
 
+    copyFileSync(src: TFilePath, dest: TFilePath, flags = 0) {
+
+    }
+
     linkSync(existingPath: TFilePath, newPath: TFilePath) {
         const existingPathFilename = pathToFilename(existingPath);
         const newPathFilename = pathToFilename(newPath);

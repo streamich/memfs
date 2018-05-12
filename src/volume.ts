@@ -1220,13 +1220,22 @@ export class Volume {
         if(dir2.getChild(name))
             throwError(EEXIST, 'link', filename1, filename2);
 
-        const node =link1.getNode();
+        const node = link1.getNode();
         node.nlink++;
         dir2.createChild(name, node);
     }
 
-    copyFileSync(src: TFilePath, dest: TFilePath, flags = 0) {
+    private copyFileBase(src: string, dest: string, flags: number) {
+        const buf = this.readFileSync(src) as Buffer;
 
+        this.writeFileBase(dest, buf, FLAGS.w, MODE.DEFAULT);
+    }
+
+    copyFileSync(src: TFilePath, dest: TFilePath, flags = 0) {
+        const srcFilename = pathToFilename(src);
+        const destFilename = pathToFilename(dest);
+
+        return this.copyFileBase(srcFilename, destFilename, flags);
     }
 
     linkSync(existingPath: TFilePath, newPath: TFilePath) {

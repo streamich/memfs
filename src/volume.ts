@@ -2164,7 +2164,7 @@ FsReadStream.prototype.open = function() {
     this._vol.open(this.path, this.flags, this.mode, function(er, fd) {
         if (er) {
             if (self.autoClose) {
-                self.destroy();
+                if(self.destroy) self.destroy();
             }
             self.emit('error', er);
             return;
@@ -2218,7 +2218,7 @@ FsReadStream.prototype._read = function(n) {
 
     function onread(er, bytesRead) {
         if (er) {
-            if (self.autoClose) {
+            if (self.autoClose && self.destroy) {
                 self.destroy();
             }
             self.emit('error', er);
@@ -2334,7 +2334,7 @@ function FsWriteStream(vol, path, options) {
 FsWriteStream.prototype.open = function() {
     this._vol.open(this.path, this.flags, this.mode, function(er, fd) {
         if (er) {
-            if (this.autoClose) {
+            if (this.autoClose && this.destroy) {
                 this.destroy();
             }
             this.emit('error', er);
@@ -2359,7 +2359,7 @@ FsWriteStream.prototype._write = function(data, encoding, cb) {
     var self = this;
     this._vol.write(this.fd, data, 0, data.length, this.pos, function(er, bytes) {
         if (er) {
-            if (self.autoClose) {
+            if (self.autoClose && self.destroy) {
                 self.destroy();
             }
             return cb(er);
@@ -2394,7 +2394,7 @@ FsWriteStream.prototype._writev = function(data, cb) {
     const buf = Buffer.concat(chunks);
     this._vol.write(this.fd, buf, 0, buf.length, this.pos, (er, bytes) => {
         if (er) {
-            self.destroy();
+            if(self.destroy) self.destroy();
             return cb(er);
         }
         self.bytesWritten += bytes;

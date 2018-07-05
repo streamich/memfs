@@ -12,7 +12,7 @@ const util = require('util');
 import {constants} from "./constants";
 import {EventEmitter} from "events";
 import {ReadStream, WriteStream} from "fs";
-import { ENOSYS } from 'constants';
+
 const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
     O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
     F_OK, R_OK, W_OK, X_OK,

@@ -460,6 +460,12 @@ describe('volume', () => {
                     // TODO: Check the right error message.
                 }
             });
+            it('Attempt to read a directory should throw', () => {
+                const vol = new Volume;
+                vol.mkdirSync('/test');
+                const fn = () => vol.readFileSync('/test');
+                expect(fn).toThrowError('EISDIR');
+            });
         });
         describe('.readFile(path[, options], callback)', () => {
             const vol = new Volume;

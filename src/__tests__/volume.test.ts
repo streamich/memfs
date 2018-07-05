@@ -460,11 +460,15 @@ describe('volume', () => {
                     // TODO: Check the right error message.
                 }
             });
-            it('Attempt to read a directory should throw', () => {
+            it('Attempt to read a directory should throw EISDIR', () => {
                 const vol = new Volume;
                 vol.mkdirSync('/test');
                 const fn = () => vol.readFileSync('/test');
                 expect(fn).toThrowError('EISDIR');
+            });
+            it('Attempt to read a non-existing file should throw ENOENT', () => {
+                const fn = () => vol.readFileSync('/pizza.txt');
+                expect(fn).toThrowError('ENOENT');
             });
         });
         describe('.readFile(path[, options], callback)', () => {

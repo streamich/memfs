@@ -1017,9 +1017,12 @@ export class Volume {
         } else {
             const steps = filenameToSteps(id as string);
             const link: Link = this.getResolvedLink(steps);    
-            const node = link.getNode();
-            if(node.isDirectory())
-                throwError(EISDIR, 'open', link.getPath());
+
+            if(link) {
+                const node = link.getNode();
+                if(node.isDirectory())
+                    throwError(EISDIR, 'open', link.getPath());
+            }
 
             fd = this.openSync(id as TFilePath, flagsNum);
         }

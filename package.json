@@ -37,7 +37,7 @@
     "babel-preset-es2015": "6.24.1",
     "gulp": "3.9.1",
     "gulp-typescript": "4.0.2",
-    "semantic-release": "15.7.0",
+    "semantic-release": "15.7.1",
     "@types/node": "9.6.23",
     "@types/jest": "23.1.5",
     "rimraf": "2.6.2",

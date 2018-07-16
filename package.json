@@ -39,7 +39,7 @@
     "gulp-typescript": "4.0.2",
     "semantic-release": "15.7.2",
     "@types/node": "9.6.23",
-    "@types/jest": "23.1.5",
+    "@types/jest": "23.3.0",
     "rimraf": "2.6.2",
     "mol-conventional-changelog": "1.4.0"
   },

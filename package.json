@@ -38,7 +38,7 @@
     "gulp": "3.9.1",
     "gulp-typescript": "4.0.2",
     "semantic-release": "15.9.8",
-    "@types/node": "9.6.28",
+    "@types/node": "9.6.30",
     "@types/jest": "23.3.1",
     "rimraf": "2.6.2",
     "mol-conventional-changelog": "1.4.0"

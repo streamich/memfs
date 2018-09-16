@@ -178,9 +178,9 @@ export enum FLAGS {
 }
 
 export type TFlagsCopy =
-    | typeof COPYFILE_EXCL
-    | typeof COPYFILE_FICLONE
-    | typeof COPYFILE_FICLONE_FORCE;
+    | typeof constants.COPYFILE_EXCL
+    | typeof constants.COPYFILE_FICLONE
+    | typeof constants.COPYFILE_FICLONE_FORCE;
 
 export function flagsToNumber(flags: TFlags): number {
     if(typeof flags === 'number') return flags;

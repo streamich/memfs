@@ -3,6 +3,10 @@
   "version": "2.9.2",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
   "keywords": [
     "fs",
     "filesystem",
@@ -28,26 +32,21 @@
     "fs-monkey": "^0.3.3"
   },
   "devDependencies": {
+    "@types/jest": "23.3.1",
+    "@types/node": "9.6.31",
+    "cpy-cli": "2.0.0",
     "jest": "21.2.1",
     "jest-tap-reporter": "1.9.0",
-    "ts-jest": "23.1.4",
-    "typescript": "2.9.2",
-    "ts-node": "7.0.1",
-    "babel-cli": "6.26.0",
-    "babel-preset-es2015": "6.24.1",
-    "gulp": "3.9.1",
-    "gulp-typescript": "4.0.2",
-    "semantic-release": "15.9.14",
-    "@types/node": "9.6.31",
-    "@types/jest": "23.3.1",
+    "mol-conventional-changelog": "1.4.0",
     "rimraf": "2.6.2",
-    "mol-conventional-changelog": "1.4.0"
+    "semantic-release": "15.9.14",
+    "ts-jest": "23.1.4",
+    "ts-node": "7.0.1",
+    "typescript": "3.0.3"
   },
   "scripts": {
     "clean": "rimraf lib types",
-    "build": "npm run build-ts && npm run build-js",
-    "build-ts": "gulp build-ts",
-    "build-js": "babel src --out-dir lib",
+    "build": "tsc -p . && cpy src/internal lib/internal",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",

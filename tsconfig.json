@@ -4,12 +4,14 @@
     "module": "commonjs",
     "removeComments": false,
     "noImplicitAny": false,
-    "sourceMap": false
+    "sourceMap": false,
+    "outDir": "lib",
+    "declaration": true
   },
+  "include": [
+    "src"
+  ],
   "exclude": [
-    "demo",
-    "src/__tests__",
-    "node_modules",
-    "lib"
+    "src/__tests__"
   ]
 }

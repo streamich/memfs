@@ -4,14 +4,13 @@ import {Node, Link, File, Stats} from "./node";
 import {Buffer} from 'buffer';
 import setImmediate from './setImmediate';
 import process from './process';
-const extend = require('fast-extend');
-const errors = require('./internal/errors');
 import setTimeoutUnref, {TSetTimeout} from "./setTimeoutUnref";
 import {Readable, Writable} from 'stream';
-const util = require('util');
 import {constants} from "./constants";
 import {EventEmitter} from "events";
-import {ReadStream, WriteStream} from "fs";
+import errors = require('./internal/errors');
+import extend = require('fast-extend');
+import util = require('util');
 
 const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
     O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
@@ -1016,7 +1015,7 @@ export class Volume {
             fd = id as number;
         } else {
             const steps = filenameToSteps(id as string);
-            const link: Link = this.getResolvedLink(steps);    
+            const link: Link = this.getResolvedLink(steps);
 
             if(link) {
                 const node = link.getNode();

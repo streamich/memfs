@@ -35,7 +35,7 @@
     "@types/jest": "23.3.1",
     "@types/node": "9.6.31",
     "cpy-cli": "2.0.0",
-    "jest": "21.2.1",
+    "jest": "23.6.0",
     "jest-tap-reporter": "1.9.0",
     "mol-conventional-changelog": "1.4.0",
     "rimraf": "2.6.2",

@@ -40,7 +40,7 @@
     "mol-conventional-changelog": "1.4.0",
     "rimraf": "2.6.2",
     "semantic-release": "15.10.7",
-    "ts-jest": "23.1.4",
+    "ts-jest": "23.10.4",
     "ts-node": "7.0.1",
     "typescript": "3.0.3"
   },

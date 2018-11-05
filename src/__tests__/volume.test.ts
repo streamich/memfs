@@ -825,7 +825,7 @@ describe('volume', () => {
         describe('.utimes(path, atime, mtime, callback)', () => {
             xit('...', () => {});
         });
-        describe('.mkdirSync(path[, mode])', () => {
+        describe('.mkdirSync(path[, options])', () => {
             it('Create dir at root', () => {
                 const vol = new Volume;
                 vol.mkdirSync('/test');
@@ -845,25 +845,9 @@ describe('volume', () => {
                 expect(dir2.getNode().isDirectory()).toBe(true);
                 expect(dir2.getPath()).toBe('/dir1/dir2');
             });
-        });
-        describe('.mkdir(path[, mode], callback)', () => {
-            xit('...');
-        });
-        describe('.mkdtempSync(prefix[, options])', () => {
-            it('Create temp dir at root', () => {
+            it('Create /dir1/dir2/dir3 recursively', () => {
                 const vol = new Volume;
-                const name = vol.mkdtempSync('/tmp-');
-                vol.writeFileSync(name + '/file.txt', 'lol');
-                expect(vol.toJSON()).toEqual({[name + '/file.txt']: 'lol'});
-            });
-        });
-        describe('.mkdtemp(prefix[, options], callback)', () => {
-            xit('Create temp dir at root', () => {});
-        });
-        describe('.mkdirpSync(path[, mode])', () => {
-            it('Create /dir1/dir2/dir3', () => {
-                const vol = new Volume;
-                vol.mkdirpSync('/dir1/dir2/dir3');
+                vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
                 const dir1 = vol.root.getChild('dir1');
                 const dir2 = dir1.getChild('dir2');
                 const dir3 = dir2.getChild('dir3');
@@ -875,8 +859,20 @@ describe('volume', () => {
                 expect(dir3.getNode().isDirectory()).toBe(true);
             });
         });
-        describe('.mkdirp(path[, mode], callback)', () => {
-            xit('Create /dir1/dir2/dir3', () => {});
+        describe('.mkdir(path[, mode], callback)', () => {
+            xit('...');
+            xit('Create /dir1/dir2/dir3', () => { });
+        });
+        describe('.mkdtempSync(prefix[, options])', () => {
+            it('Create temp dir at root', () => {
+                const vol = new Volume;
+                const name = vol.mkdtempSync('/tmp-');
+                vol.writeFileSync(name + '/file.txt', 'lol');
+                expect(vol.toJSON()).toEqual({[name + '/file.txt']: 'lol'});
+            });
+        });
+        describe('.mkdtemp(prefix[, options], callback)', () => {
+            xit('Create temp dir at root', () => {});
         });
         describe('.rmdirSync(path)', () => {
             it('Remove single dir', () => {

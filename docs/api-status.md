@@ -52,8 +52,8 @@ implemented (you have access to any file), basically `fs.access()` is a no-op.
   - [x] `linkSync(existingPath, newPath)`
   - [x] `lstat(path, callback)`
   - [x] `lstatSync(path)`
-  - [x] `mkdir(path[, mode], callback)`
-  - [x] `mkdirSync(path[, mode])`
+  - [x] `mkdir(path[, options], callback)`
+  - [x] `mkdirSync(path[, options])`
   - [x] `mkdtemp(prefix[, options], callback)`
   - [x] `mkdtempSync(prefix[, options])`
   - [x] `open(path, flags[, mode], callback)`

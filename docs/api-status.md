@@ -10,7 +10,7 @@ implemented (you have access to any file), basically `fs.access()` is a no-op.
   - [x] `ReadStream`
   - [x] `WriteStream`
   - [x] `Stats`
-  - [ ] `Dirent`
+  - [x] `Dirent`
   - [x] `access(path[, mode], callback)`
     - Does not check permissions
   - [x] `accessSync(path[, mode])`

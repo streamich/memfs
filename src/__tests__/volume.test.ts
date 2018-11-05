@@ -1,4 +1,4 @@
-import {Link, Node, Stats} from "../node";
+import {Link, Node, Stats, Dirent} from "../node";
 import {Volume, filenameToSteps, StatWatcher} from "../volume";
 
 
@@ -732,13 +732,27 @@ describe('volume', () => {
             xit('...');
         });
         describe('.readdirSync(path)', () => {
-            const vol = new Volume;
             it('Returns simple list', () => {
+                const vol = new Volume;
                 vol.writeFileSync('/1.js', '123');
                 vol.writeFileSync('/2.js', '123');
                 const list = vol.readdirSync('/');
                 expect(list.length).toBe(2);
                 expect(list).toEqual(['1.js', '2.js']);
+            });
+            it('Returns a Dirent list', () => {
+                const vol = new Volume;
+                vol.writeFileSync('/1', '123');
+                vol.mkdirSync('/2');
+                const list = vol.readdirSync('/', { withFileTypes: true });
+                expect(list.length).toBe(2);
+                expect(list[0]).toBeInstanceOf(Dirent);
+                const dirent0 = list[0] as Dirent;
+                expect(dirent0.name).toBe('1');
+                expect(dirent0.isFile()).toBe(true);
+                const dirent1 = list[1] as Dirent;
+                expect(dirent1.name).toBe('2');
+                expect(dirent1.isDirectory()).toBe(true);
             });
         });
         describe('.readdir(path, callback)', () => {

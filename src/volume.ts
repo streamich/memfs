@@ -1,6 +1,6 @@
 import {resolve as resolveCrossPlatform} from 'path';
 import * as pathModule from 'path';
-import {Node, Link, File, Stats} from "./node";
+import {Node, Link, File, Stats, Dirent} from "./node";
 import {Buffer} from 'buffer';
 import setImmediate from './setImmediate';
 import process from './process';
@@ -8,6 +8,7 @@ import setTimeoutUnref, {TSetTimeout} from "./setTimeoutUnref";
 import {Readable, Writable} from 'stream';
 import {constants} from "./constants";
 import {EventEmitter} from "events";
+import {TEncoding, TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8} from './encoding';
 import errors = require('./internal/errors');
 import extend = require('fast-extend');
 import util = require('util');
@@ -41,12 +42,9 @@ export interface IError extends Error {
 
 export type TFilePath = string | Buffer | URL;
 export type TFileId = TFilePath | number;           // Number is used as a file descriptor.
-export type TDataOut = string | Buffer;             // Data formats we give back to users.
 export type TData = TDataOut | Uint8Array;          // Data formats users can give us.
 export type TFlags = string | number;
 export type TMode = string | number;                // Mode can be a String, although docs say it should be a Number.
-export type TEncoding = 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'latin1' | 'binary' | 'hex';
-export type TEncodingExtended = TEncoding | 'buffer';
 export type TTime = number | string | Date;
 export type TCallback<TData> = (error?: IError, data?: TData) => void;
 // type TCallbackWrite = (err?: IError, bytesWritten?: number, source?: Buffer) => void;
@@ -54,8 +52,6 @@ export type TCallback<TData> = (error?: IError, data?: TData) => void;
 
 
 // ---------------------------------------- Constants
-
-const ENCODING_UTF8: TEncoding = 'utf8';
 
 // Default modes for opening files.
 const enum MODE {
@@ -197,11 +193,6 @@ export function flagsToNumber(flags: TFlags): number {
 
 
 // ---------------------------------------- Options
-
-function assertEncoding(encoding: string) {
-    if(encoding && !Buffer.isEncoding(encoding))
-        throw new errors.TypeError('ERR_INVALID_OPT_VALUE_ENCODING', encoding);
-}
 
 function getOptions <T extends IOptions> (defaults: T, options?: T|string): T {
     let opts: T;
@@ -349,6 +340,16 @@ const getMkdirOptions = options => {
     return extend({}, mkdirDefaults, options);
 }
 
+// Options for `fs.readdir` and `fs.readdirSync`
+export interface IReaddirOptions extends IOptions {
+    withFileTypes?: boolean,
+};
+const readdirDefaults: IReaddirOptions = {
+    encoding: 'utf8',
+    withFileTypes: false,
+};
+const getReaddirOptions = optsGenerator<IReaddirOptions>(readdirDefaults);
+const getReaddirOptsAndCb = optsAndCbGenerator<IReaddirOptions, TDataOut[]|Dirent[]>(getReaddirOptions);
 
 
 // ---------------------------------------- Utility functions
@@ -418,12 +419,6 @@ export function dataToBuffer(data: TData, encoding: string = ENCODING_UTF8): Buf
     if(Buffer.isBuffer(data)) return data;
     else if(data instanceof Uint8Array) return Buffer.from(data);
     else return Buffer.from(String(data), encoding);
-}
-
-export function strToEncoding(str: string, encoding?: TEncodingExtended): TDataOut {
-    if(!encoding || (encoding === ENCODING_UTF8)) return str;           // UTF-8
-    if(encoding === 'buffer') return new Buffer(str);                   // `buffer` encoding
-    return (new Buffer(str)).toString(encoding);                        // Custom encoding
 }
 
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): TDataOut {
@@ -1567,7 +1562,7 @@ export class Volume {
         this.writeFile(id, data, opts, callback);
     }
 
-    private readdirBase(filename: string, encoding: TEncodingExtended): TDataOut[] {
+    private readdirBase(filename: string, options: IReaddirOptions): TDataOut[]|Dirent[] {
         const steps = filenameToSteps(filename);
         const link: Link = this.getResolvedLink(steps);
         if(!link) throwError(ENOENT, 'readdir', filename);
@@ -1576,35 +1571,41 @@ export class Volume {
         if(!node.isDirectory())
             throwError(ENOTDIR, 'scandir', filename);
 
-        const list: TDataOut[] = [];
-        for(let name in link.children)
-            list.push(strToEncoding(name, encoding));
+        if (options.withFileTypes) {
+            const list: Dirent[] = [];
+            for(let name in link.children) {
+                list.push(Dirent.build(link.children[name], options.encoding));
+            }
+            if (!isWin && options.encoding !== 'buffer') list.sort((a, b) => {
+                if (a.name < b.name) return -1;
+                if (a.name > b.name) return 1;
+                return 0;
+            });
+            return list;
+        }
 
-        if(!isWin && encoding !== 'buffer') list.sort();
+        const list: TDataOut[] = [];
+        for(let name in link.children) {
+            list.push(strToEncoding(name, options.encoding));
+        }
+
+        if(!isWin && options.encoding !== 'buffer') list.sort();
 
         return list;
     }
 
-    readdirSync(path: TFilePath, options?: IOptions | string): TDataOut[] {
-        const opts = getDefaultOpts(options);
+    readdirSync(path: TFilePath, options?: IReaddirOptions | string): TDataOut[]|Dirent[] {
+        const opts = getReaddirOptions(options);
         const filename = pathToFilename(path);
-        return this.readdirBase(filename, opts.encoding);
+        return this.readdirBase(filename, opts);
     }
 
-    readdir(path: TFilePath, callback: TCallback<TDataOut[]>);
-    readdir(path: TFilePath, options: IOptions | string,                        callback: TCallback<TDataOut[]>);
+    readdir(path: TFilePath, callback: TCallback<TDataOut[]|Dirent[]>);
+    readdir(path: TFilePath, options: IReaddirOptions | string,                        callback: TCallback<TDataOut[]|Dirent[]>);
     readdir(path: TFilePath, a?, b?) {
-        let options: IOptions | string = a;
-        let callback: TCallback<TDataOut[]> = b;
-
-        if(typeof a === 'function') {
-            callback = a;
-            options = optsDefaults;
-        }
-
-        const opts = getDefaultOpts(options);
+        const [options, callback] = getReaddirOptsAndCb(a, b);
         const filename = pathToFilename(path);
-        this.wrapAsync(this.readdirBase, [filename, opts.encoding], callback);
+        this.wrapAsync(this.readdirBase, [filename, options], callback);
     }
 
     private readlinkBase(filename: string, encoding: TEncodingExtended): TDataOut {

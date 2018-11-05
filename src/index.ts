@@ -1,4 +1,4 @@
-import {Stats} from './node';
+import {Stats, Dirent} from './node';
 import {Volume as _Volume, StatWatcher, FSWatcher, toUnixTimestamp, IReadStream, IWriteStream} from './volume';
 import * as volume from './volume';
 const {fsSyncMethods, fsAsyncMethods} = require('fs-monkey/lib/util/lists');
@@ -16,6 +16,7 @@ export const vol = new _Volume;
 export interface IFs extends _Volume {
     constants: typeof constants,
     Stats: new (...args) => Stats,
+    Dirent: new (...args) => Dirent,
     StatWatcher: new () => StatWatcher,
     FSWatcher: new () => FSWatcher,
     ReadStream: new (...args) => IReadStream,
@@ -24,7 +25,7 @@ export interface IFs extends _Volume {
 }
 
 export function createFsFromVolume(vol: _Volume): IFs {
-    const fs = {F_OK, R_OK, W_OK, X_OK, constants, Stats} as any as IFs;
+    const fs = {F_OK, R_OK, W_OK, X_OK, constants, Stats, Dirent} as any as IFs;
 
     // Bind FS methods.
     for(const method of fsSyncMethods)

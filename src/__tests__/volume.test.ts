@@ -639,7 +639,7 @@ describe('volume', () => {
         describe('.lstatSync(path)', () => {
             const vol = new Volume;
             const dojo = vol.root.createChild('dojo.js');
-            const data = '(funciton(){})();';
+            const data = '(function(){})();';
             dojo.getNode().setString(data);
 
             it('Returns basic file stats', () => {
@@ -663,7 +663,7 @@ describe('volume', () => {
         describe('.statSync(path)', () => {
             const vol = new Volume;
             const dojo = vol.root.createChild('dojo.js');
-            const data = '(funciton(){})();';
+            const data = '(function(){})();';
             dojo.getNode().setString(data);
             it('Returns basic file stats', () => {
                 const stats = vol.statSync('/dojo.js');
@@ -696,7 +696,7 @@ describe('volume', () => {
         describe('.fstatSync(fd)', () => {
             const vol = new Volume;
             const dojo = vol.root.createChild('dojo.js');
-            const data = '(funciton(){})();';
+            const data = '(function(){})();';
             dojo.getNode().setString(data);
 
             it('Returns basic file stats', () => {

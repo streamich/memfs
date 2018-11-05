@@ -98,13 +98,23 @@ vol.reset();
 vol.toJSON(); // {}
 ```
 
-#### `vol.mkdirp(path, callback)`
+#### `vol.mkdirp(path[, mode], callback)`
+
+> DEPRECATED: This method will be removed in next major release.
+> Use `vol.mkdir(..., {recursive: true}, callback)` instead.
+
+Legacy interface, which now uses the `recursive` option of `vol.mkdir`.
 
 Creates a directory tree recursively. `path` specifies a directory to
 create and can be a string, `Buffer`, or an `URL` object. `callback` is
 called on completion and may receive only one argument - an `Error` object.
 
-#### `vol.mkdirpSync(path)`
+#### `vol.mkdirpSync(path[, mode])`
+
+> DEPRECATED: This method will be removed in next major release.
+> Use `vol.mkdirSync(..., {recursive: true})` instead.
+
+Legacy interface, which now uses the `recursive` option of `vol.mkdirSync`.
 
 A synchronous version of `vol.mkdirp()`. This method throws.
 

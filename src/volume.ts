@@ -334,6 +334,21 @@ export interface IWatchOptions extends IOptions {
     recursive?: boolean,
 }
 
+// Options for `fs.mkdir` and `fs.mkdirSync`
+export interface IMkdirOptions {
+    mode?: TMode,
+    recursive?: boolean,
+};
+const mkdirDefaults: IMkdirOptions = {
+    mode: MODE.DIR,
+    recursive: false,
+};
+const getMkdirOptions = options => {
+    if (typeof options === 'number')
+        return extend({}, mkdirDefaults, { mode: options });
+    return extend({}, mkdirDefaults, options);
+}
+
 
 
 // ---------------------------------------- Utility functions
@@ -1725,19 +1740,63 @@ export class Volume {
         dir.createChild(name, this.createNode(true, modeNum));
     }
 
-    mkdirSync(path: TFilePath, mode?: TMode) {
-        const modeNum = modeToNumber(mode, 0o777);
+    /**
+     * Creates directory tree recursively.
+     * @param filename
+     * @param modeNum
+     */
+    private mkdirpBase(filename: string, modeNum: number) {
+        const steps = filenameToSteps(filename);
+        let link = this.root;
+        for (let i = 0; i < steps.length; i++) {
+            const step = steps[i];
+
+            if (!link.getNode().isDirectory())
+                throwError(ENOTDIR, 'mkdir', link.getPath());
+
+            const child = link.getChild(step);
+            if (child) {
+                if (child.getNode().isDirectory()) link = child;
+                else throwError(ENOTDIR, 'mkdir', child.getPath());
+            } else {
+                link = link.createChild(step, this.createNode(true, modeNum));
+            }
+        }
+    }
+
+    mkdirSync(path: TFilePath, options?: TMode | IMkdirOptions) {
+        const opts = getMkdirOptions(options);
+        const modeNum = modeToNumber(opts.mode, 0o777);
         const filename = pathToFilename(path);
-        this.mkdirBase(filename, modeNum);
+        if (opts.recursive)
+            this.mkdirpBase(filename, modeNum);
+        else
+            this.mkdirBase(filename, modeNum);
     }
 
     mkdir(path: TFilePath, callback: TCallback<void>);
-    mkdir(path: TFilePath, mode: TMode,                     callback: TCallback<void>);
-    mkdir(path: TFilePath, a: TCallback<void> | TMode,      b?: TCallback<void>) {
-        const [mode, callback] = getArgAndCb<TMode, void>(a, b);
-        const modeNum = modeToNumber(mode, 0o777);
+    mkdir(path: TFilePath, mode: TMode | IMkdirOptions, callback: TCallback<void>);
+    mkdir(path: TFilePath, a: TCallback<void> | TMode | IMkdirOptions, b?: TCallback<void>) {
+        const [options, callback] = getArgAndCb<TMode | IMkdirOptions, void>(a, b);
+        const opts = getMkdirOptions(options);
+        const modeNum = modeToNumber(opts.mode, 0o777);
         const filename = pathToFilename(path);
-        this.wrapAsync(this.mkdirBase, [filename, modeNum], callback);
+        if (opts.recursive)
+            this.wrapAsync(this.mkdirpBase, [filename, modeNum], callback);
+        else
+            this.wrapAsync(this.mkdirBase, [filename, modeNum], callback);
+    }
+
+    // legacy interface
+    mkdirpSync(path: TFilePath, mode?: TMode) {
+        this.mkdirSync(path, { mode, recursive: true });
+    }
+
+    mkdirp(path: TFilePath, callback: TCallback<void>);
+    mkdirp(path: TFilePath, mode: TMode, callback: TCallback<void>);
+    mkdirp(path: TFilePath, a: TCallback<void> | TMode, b?: TCallback<void>) {
+        const [mode, callback] = getArgAndCb<TMode, void>(a, b);
+        this.mkdir(path, { mode, recursive: true }, callback);
     }
 
     private mkdtempBase(prefix: string, encoding: TEncodingExtended, retry: number = 5): TDataOut {
@@ -1775,45 +1834,6 @@ export class Volume {
         if(!nullCheck(prefix)) return;
 
         this.wrapAsync(this.mkdtempBase, [prefix, encoding], callback);
-    }
-
-    /**
-     * Creates directory tree recursively.
-     * @param filename
-     * @param modeNum
-     */
-    private mkdirpBase(filename: string, modeNum: number) {
-        const steps = filenameToSteps(filename);
-        let link = this.root;
-        for(let i = 0; i < steps.length; i++) {
-            const step = steps[i];
-
-            if(!link.getNode().isDirectory())
-                throwError(ENOTDIR, 'mkdirp', link.getPath());
-
-            const child = link.getChild(step);
-            if(child) {
-                if(child.getNode().isDirectory()) link = child;
-                else throwError(ENOTDIR, 'mkdirp', child.getPath());
-            } else {
-                link = link.createChild(step, this.createNode(true, modeNum));
-            }
-        }
-    }
-
-    mkdirpSync(path: TFilePath, mode?: TMode) {
-        const modeNum = modeToNumber(mode, 0o777);
-        const filename = pathToFilename(path);
-        this.mkdirpBase(filename, modeNum);
-    }
-
-    mkdirp(path: TFilePath, callback: TCallback<void>);
-    mkdirp(path: TFilePath, mode: TMode, callback: TCallback<void>);
-    mkdirp(path: TFilePath, a: TCallback<void> | TMode, b?: TCallback<void>) {
-        const [mode, callback] = getArgAndCb<TMode, void>(a, b);
-        const modeNum = modeToNumber(mode, 0o777);
-        const filename = pathToFilename(path);
-        this.wrapAsync(this.mkdirpBase, [filename, modeNum], callback);
     }
 
     private rmdirBase(filename: string) {

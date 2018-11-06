@@ -1389,7 +1389,7 @@ export class Volume {
         return strToEncoding(realLink.getPath(), encoding);
     }
 
-    realpathSync(path: TFilePath, options?: IRealpathOptions): TDataOut {
+    realpathSync(path: TFilePath, options?: IRealpathOptions | string): TDataOut {
         return this.realpathBase(pathToFilename(path), getRealpathOptions(options).encoding);
     }
 

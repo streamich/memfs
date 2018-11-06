@@ -1552,7 +1552,7 @@ export class Volume {
     }
 
     appendFile(id: TFileId, data: TData, callback: TCallback<void>);
-    appendFile(id: TFileId, data: TData, options: IAppendFileOptions, callback: TCallback<void>);
+    appendFile(id: TFileId, data: TData, options: IAppendFileOptions | string, callback: TCallback<void>);
     appendFile(id: TFileId, data: TData, a, b?) {
         const [opts, callback] = getAppendFileOptsAndCb(a, b);
 

@@ -1018,13 +1018,14 @@ export class Volume {
     private readFileBase(id: TFileId, flagsNum: number, encoding: TEncoding): Buffer | string {
         let result: Buffer | string;
 
-        const userOwnsFd = isFd(id);
+        const isUserFd = typeof id === 'number';
+        let userOwnsFd: boolean = isUserFd && isFd(id);
         let fd: number;
 
-        if(userOwnsFd) {
-            fd = id as number;
-        } else {
-            const steps = filenameToSteps(id as string);
+        if(userOwnsFd) fd = id as number;
+        else {
+            const filename = pathToFilename(id as TFilePath);
+            const steps = filenameToSteps(filename);
             const link: Link = this.getResolvedLink(steps);
 
             if(link) {

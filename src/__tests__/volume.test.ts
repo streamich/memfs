@@ -1,6 +1,6 @@
+import {URL} from 'url';
 import {Link, Node, Stats, Dirent} from "../node";
 import {Volume, filenameToSteps, StatWatcher} from "../volume";
-
 
 describe('volume', () => {
     describe('filenameToSteps(filename): string[]', () => {
@@ -430,6 +430,10 @@ describe('volume', () => {
                 const buf = vol.readFileSync('/text.txt');
                 const str = buf.toString();
                 expect(buf).toBeInstanceOf(Buffer);
+                expect(str).toBe(data);
+            });
+            it('Read file with path passed as URL', () => {
+                const str = vol.readFileSync(new URL('file:///text.txt')).toString();
                 expect(str).toBe(data);
             });
             it('Specify encoding as string', () => {

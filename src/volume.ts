@@ -465,14 +465,14 @@ export function toUnixTimestamp(time) {
     if(typeof time === 'string' && (+time == (time as any))) {
         return +time;
     }
+    if(time instanceof Date) {
+        return time.getTime() / 1000;
+    }
     if(isFinite(time)) {
         if (time < 0) {
             return Date.now() / 1000;
         }
         return time;
-    }
-    if(time instanceof Date) {
-        return time.getTime() / 1000;
     }
     throw new Error('Cannot parse time: ' + time);
 }

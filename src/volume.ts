@@ -12,6 +12,7 @@ import {TEncoding, TEncodingExtended, TDataOut, assertEncoding, strToEncoding, E
 import errors = require('./internal/errors');
 import extend = require('fast-extend');
 import util = require('util');
+import createPromisesApi from './promises';
 
 const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
     O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
@@ -49,7 +50,7 @@ export type TTime = number | string | Date;
 export type TCallback<TData> = (error?: IError, data?: TData) => void;
 // type TCallbackWrite = (err?: IError, bytesWritten?: number, source?: Buffer) => void;
 // type TCallbackWriteStr = (err?: IError, written?: number, str?: string) => void;
-
+export type TSymlinkType = 'file' | 'dir' | 'junction';
 
 // ---------------------------------------- Constants
 
@@ -561,6 +562,12 @@ export class Volume {
         Link: new (...args) => Link,
         File: new (...File) => File,
     };
+
+    private promisesApi = createPromisesApi(this);
+
+    get promises() {
+        return this.promisesApi;
+    }
 
     constructor(props = {}) {
         this.props = extend({Node, Link, File}, props);
@@ -1362,16 +1369,16 @@ export class Volume {
     }
 
     // `type` argument works only on Windows.
-    symlinkSync(target: TFilePath, path: TFilePath, type?: 'file' | 'dir' | 'junction') {
+    symlinkSync(target: TFilePath, path: TFilePath, type?: TSymlinkType) {
         const targetFilename = pathToFilename(target);
         const pathFilename = pathToFilename(path);
         this.symlinkBase(targetFilename, pathFilename);
     }
 
     symlink(target: TFilePath, path: TFilePath, callback: TCallback<void>);
-    symlink(target: TFilePath, path: TFilePath, type: 'file' | 'dir' | 'junction',      callback: TCallback<void>);
+    symlink(target: TFilePath, path: TFilePath, type: TSymlinkType,      callback: TCallback<void>);
     symlink(target: TFilePath, path: TFilePath, a,                                      b?) {
-        const [type, callback] = getArgAndCb<'file' | 'dir' | 'junction', TCallback<void>>(a, b);
+        const [type, callback] = getArgAndCb<TSymlinkType, TCallback<void>>(a, b);
         const targetFilename = pathToFilename(target);
         const pathFilename = pathToFilename(path);
         this.wrapAsync(this.symlinkBase, [targetFilename, pathFilename], callback);

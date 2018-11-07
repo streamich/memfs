@@ -35,4 +35,7 @@ describe('memfs', () => {
             expect(typeof memfs[method]).toBe('function');
         }
     });
+    it('Exports promises API', () => {
+        expect(typeof memfs.promises).toBe('object');
+    });
 });

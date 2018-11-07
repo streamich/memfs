@@ -936,6 +936,12 @@ describe('volume', () => {
                 }, 1);
             });
         });
+        describe('.promises', () => {
+            it('Have a promises property', () => {
+                const vol = new Volume;
+                expect(typeof vol.promises).toBe('object');
+            });
+        });
     });
     describe('StatWatcher', () => {
         it('.vol points to current volume', () => {

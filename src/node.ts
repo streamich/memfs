@@ -154,7 +154,7 @@ export class Node extends EventEmitter {
 
     chmod(perm: number) {
         this.perm = perm;
-        this.mode |= perm;
+        this.mode = (this.mode & ~0o777) | perm;
         this.touch();
     }
 

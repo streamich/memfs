@@ -485,7 +485,7 @@ export function toUnixTimestamp(time) {
  */
 function getArgAndCb<TArg, TRes>(arg: TArg | TCallback<TRes>, callback?: TCallback<TRes>, def?: TArg): [TArg, TCallback<TRes>] {
     return typeof arg === 'function'
-        ? [def, arg]
+        ? [def, arg as TCallback<TRes>]
         : [arg, callback];
 }
 

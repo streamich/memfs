@@ -7,22 +7,19 @@
   "files": [
     "lib"
   ],
-  "keywords": [
-    "fs",
-    "filesystem",
-    "fs.js",
-    "memory-fs",
-    "memfs",
-    "file",
-    "file system",
-    "mount",
-    "memory",
-    "in-memory",
-    "virtual",
-    "test",
-    "testing",
-    "mock"
-  ],
+  "scripts": {
+    "clean": "rimraf lib types",
+    "build": "tsc -p . && cpy src/internal lib/internal",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "watch": "watch 'npm run build' ./src",
+    "semantic-release": "semantic-release",
+    "prettier": "prettier --ignore-path .gitignore --write 'src/**/*.{ts,js}'",
+    "prettier:diff": "prettier -l 'src/**/*.{ts,js}'",
+    "precommit": "pretty-quick --staged",
+    "prepush": "yarn prettier:diff && yarn test"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/streamich/memfs.git"
@@ -42,16 +39,9 @@
     "semantic-release": "15.10.8",
     "ts-jest": "23.1.4",
     "ts-node": "7.0.1",
-    "typescript": "3.0.3"
-  },
-  "scripts": {
-    "clean": "rimraf lib types",
-    "build": "tsc -p . && cpy src/internal lib/internal",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
-    "test:watch": "jest --watch",
-    "watch": "watch 'npm run build' ./src",
-    "semantic-release": "semantic-release"
+    "typescript": "3.0.3",
+    "prettier": "1.15.1",
+    "pretty-quick": "1.8.0"
   },
   "config": {
     "commitizen": {
@@ -72,5 +62,21 @@
     "reporters": [
       "jest-tap-reporter"
     ]
-  }
+  },
+  "keywords": [
+    "fs",
+    "filesystem",
+    "fs.js",
+    "memory-fs",
+    "memfs",
+    "file",
+    "file system",
+    "mount",
+    "memory",
+    "in-memory",
+    "virtual",
+    "test",
+    "testing",
+    "mock"
+  ]
 }

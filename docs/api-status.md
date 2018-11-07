@@ -4,7 +4,7 @@ All of the [Node's `fs` API](https://nodejs.org/api/fs.html) is implemented.
 Some error messages may be inaccurate. File permissions are currently not
 implemented (you have access to any file), basically `fs.access()` is a no-op.
 
-  - [ ] Promises
+  - [x] Promises
   - [x] Constants
   - [x] `FSWatcher`
   - [x] `ReadStream`

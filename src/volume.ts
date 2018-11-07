@@ -12,6 +12,7 @@ import {TEncoding, TEncodingExtended, TDataOut, assertEncoding, strToEncoding, E
 import errors = require('./internal/errors');
 import extend = require('fast-extend');
 import util = require('util');
+import createPromisesApi from './promises';
 
 const {O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_NOCTTY, O_TRUNC, O_APPEND,
     O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYNC, O_DIRECT, O_NONBLOCK,
@@ -49,7 +50,7 @@ export type TTime = number | string | Date;
 export type TCallback<TData> = (error?: IError, data?: TData) => void;
 // type TCallbackWrite = (err?: IError, bytesWritten?: number, source?: Buffer) => void;
 // type TCallbackWriteStr = (err?: IError, written?: number, str?: string) => void;
-
+export type TSymlinkType = 'file' | 'dir' | 'junction';
 
 // ---------------------------------------- Constants
 
@@ -465,14 +466,14 @@ export function toUnixTimestamp(time) {
     if(typeof time === 'string' && (+time == (time as any))) {
         return +time;
     }
+    if(time instanceof Date) {
+        return time.getTime() / 1000;
+    }
     if(isFinite(time)) {
         if (time < 0) {
             return Date.now() / 1000;
         }
         return time;
-    }
-    if(time instanceof Date) {
-        return time.getTime() / 1000;
     }
     throw new Error('Cannot parse time: ' + time);
 }
@@ -485,7 +486,7 @@ export function toUnixTimestamp(time) {
  */
 function getArgAndCb<TArg, TRes>(arg: TArg | TCallback<TRes>, callback?: TCallback<TRes>, def?: TArg): [TArg, TCallback<TRes>] {
     return typeof arg === 'function'
-        ? [def, arg]
+        ? [def, arg as TCallback<TRes>]
         : [arg, callback];
 }
 
@@ -500,6 +501,8 @@ function validateGid(gid: number) {
 
 
 // ---------------------------------------- Volume
+
+let promisesWarn = true;
 
 /**
  * `Volume` represents a file system.
@@ -561,6 +564,20 @@ export class Volume {
         Link: new (...args) => Link,
         File: new (...File) => File,
     };
+
+    private promisesApi = createPromisesApi(this);
+
+    get promises() {
+        if (promisesWarn) {
+            promisesWarn = false;
+            require('process').emitWarning(
+                'The fs.promises API is experimental',
+                'ExperimentalWarning',
+            );
+        }
+        if (this.promisesApi === null) throw new Error('Promise is not supported in this environment.');
+        return this.promisesApi;
+    }
 
     constructor(props = {}) {
         this.props = extend({Node, Link, File}, props);
@@ -904,10 +921,10 @@ export class Volume {
 
     private openFile(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): File {
         const steps = filenameToSteps(filename);
-        let link: Link = this.getResolvedLink(steps);
+        let link: Link = resolveSymlinks ? this.getResolvedLink(steps) : this.getLink(steps);
 
         // Try creating a new file, if it does not exist.
-        if(!link) {
+        if(!link && (flagsNum & O_CREAT)) {
             // const dirLink: Link = this.getLinkParent(steps);
             const dirLink: Link = this.getResolvedLink(steps.slice(0, steps.length - 1));
             // if(!dirLink) throwError(ENOENT, 'open', filename);
@@ -919,6 +936,7 @@ export class Volume {
         }
 
         if(link) return this.openLink(link, flagsNum, resolveSymlinks);
+        throwError(ENOENT, 'open', filename);
     }
 
     private openBase(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): number {
@@ -1361,16 +1379,16 @@ export class Volume {
     }
 
     // `type` argument works only on Windows.
-    symlinkSync(target: TFilePath, path: TFilePath, type?: 'file' | 'dir' | 'junction') {
+    symlinkSync(target: TFilePath, path: TFilePath, type?: TSymlinkType) {
         const targetFilename = pathToFilename(target);
         const pathFilename = pathToFilename(path);
         this.symlinkBase(targetFilename, pathFilename);
     }
 
     symlink(target: TFilePath, path: TFilePath, callback: TCallback<void>);
-    symlink(target: TFilePath, path: TFilePath, type: 'file' | 'dir' | 'junction',      callback: TCallback<void>);
+    symlink(target: TFilePath, path: TFilePath, type: TSymlinkType,      callback: TCallback<void>);
     symlink(target: TFilePath, path: TFilePath, a,                                      b?) {
-        const [type, callback] = getArgAndCb<'file' | 'dir' | 'junction', TCallback<void>>(a, b);
+        const [type, callback] = getArgAndCb<TSymlinkType, TCallback<void>>(a, b);
         const targetFilename = pathToFilename(target);
         const pathFilename = pathToFilename(path);
         this.wrapAsync(this.symlinkBase, [targetFilename, pathFilename], callback);
@@ -1389,7 +1407,7 @@ export class Volume {
         return strToEncoding(realLink.getPath(), encoding);
     }
 
-    realpathSync(path: TFilePath, options?: IRealpathOptions): TDataOut {
+    realpathSync(path: TFilePath, options?: IRealpathOptions | string): TDataOut {
         return this.realpathBase(pathToFilename(path), getRealpathOptions(options).encoding);
     }
 

@@ -118,6 +118,9 @@ This package depends on the following Node modules: `buffer`, `events`,
 It also uses `process` and `setImmediate` globals, but mocks them, if not
 available.
 
+It uses `Promise` when available and throws when `promises` property is
+accessed in an environment that do not support this ES2015 feature.
+
 [npm-url]: https://www.npmjs.com/package/memfs
 [npm-badge]: https://img.shields.io/npm/v/memfs.svg
 [travis-url]: https://travis-ci.org/streamich/memfs

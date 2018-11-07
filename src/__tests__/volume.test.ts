@@ -419,7 +419,7 @@ describe('volume', () => {
             });
         });
         describe('.read(fd, buffer, offset, length, position, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.readFileSync(path[, options])', () => {
             const vol = new Volume;
@@ -595,7 +595,7 @@ describe('volume', () => {
             });
         });
         describe('.symlink(target, path[, type], callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.realpathSync(path[, options])', () => {
             const vol = new Volume;
@@ -662,7 +662,7 @@ describe('volume', () => {
             });
         });
         describe('.lstat(path, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.statSync(path)', () => {
             const vol = new Volume;
@@ -695,7 +695,7 @@ describe('volume', () => {
             });
         });
         describe('.stat(path, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.fstatSync(fd)', () => {
             const vol = new Volume;
@@ -713,7 +713,7 @@ describe('volume', () => {
             });
         });
         describe('.fstat(fd, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.linkSync(existingPath, newPath)', () => {
             const vol = new Volume;
@@ -733,7 +733,7 @@ describe('volume', () => {
             });
         });
         describe('.link(existingPath, newPath, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.readdirSync(path)', () => {
             it('Returns simple list', () => {
@@ -760,7 +760,7 @@ describe('volume', () => {
             });
         });
         describe('.readdir(path, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.readlinkSync(path[, options])', () => {
             it('Simple symbolic link to one file', () => {
@@ -808,7 +808,7 @@ describe('volume', () => {
             });
         });
         describe('.ftruncate(fd[, len], callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.truncateSync(path[, len])', () => {
             const vol = new Volume;
@@ -828,7 +828,7 @@ describe('volume', () => {
             });
         });
         describe('.truncate(path[, len], callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.utimesSync(path, atime, mtime)', () => {
             const vol = new Volume;
@@ -878,7 +878,7 @@ describe('volume', () => {
             });
         });
         describe('.mkdir(path[, mode], callback)', () => {
-            xit('...');
+            xit('...', () => {});
             xit('Create /dir1/dir2/dir3', () => { });
         });
         describe('.mkdtempSync(prefix[, options])', () => {
@@ -934,6 +934,12 @@ describe('volume', () => {
                         done();
                     }, 10);
                 }, 1);
+            });
+        });
+        describe('.promises', () => {
+            it('Have a promises property', () => {
+                const vol = new Volume;
+                expect(typeof vol.promises).toBe('object');
             });
         });
     });

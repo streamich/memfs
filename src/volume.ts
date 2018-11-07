@@ -575,6 +575,7 @@ export class Volume {
                 'ExperimentalWarning',
             );
         }
+        if (this.promisesApi === null) throw new Error('Promise is not supported in this environment.');
         return this.promisesApi;
     }
 

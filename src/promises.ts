@@ -182,7 +182,8 @@ export class FileHandle implements IFileHandle {
     }
 }
 
-export default function createPromisesApi(vol: Volume): IPromisesAPI {
+export default function createPromisesApi(vol: Volume): null | IPromisesAPI {
+    if (typeof Promise === 'undefined') return null;
     return {
         FileHandle,
 

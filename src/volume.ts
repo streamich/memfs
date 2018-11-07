@@ -502,6 +502,8 @@ function validateGid(gid: number) {
 
 // ---------------------------------------- Volume
 
+let promisesWarn = true;
+
 /**
  * `Volume` represents a file system.
  */
@@ -566,6 +568,13 @@ export class Volume {
     private promisesApi = createPromisesApi(this);
 
     get promises() {
+        if (promisesWarn) {
+            promisesWarn = false;
+            require('process').emitWarning(
+                'The fs.promises API is experimental',
+                'ExperimentalWarning',
+            );
+        }
         return this.promisesApi;
     }
 

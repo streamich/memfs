@@ -34,7 +34,6 @@
     "@types/node": "10.12.3",
     "cpy-cli": "2.0.0",
     "jest": "23.6.0",
-    "mol-conventional-changelog": "1.4.0",
     "rimraf": "2.6.2",
     "semantic-release": "15.10.8",
     "@semantic-release/changelog": "3.0.1",
@@ -51,7 +50,7 @@
   },
   "config": {
     "commitizen": {
-      "path": "./node_modules/mol-conventional-changelog"
+      "path": "git-cz"
     }
   },
   "jest": {

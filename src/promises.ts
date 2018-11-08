@@ -15,7 +15,8 @@ import {
   IRealpathOptions,
   IWriteFileOptions,
 } from './volume';
-import { Stats, Dirent } from './node';
+import Stats from './Stats';
+import { Dirent } from './node';
 import { TDataOut } from './encoding';
 
 function promisify(

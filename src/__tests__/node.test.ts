@@ -1,4 +1,4 @@
-import { Node, Stats } from '../node';
+import { Node } from '../node';
 import { constants, S } from '../constants';
 
 describe('node.ts', () => {

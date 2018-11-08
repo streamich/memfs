@@ -1,5 +1,6 @@
 import { URL } from 'url';
-import { Link, Node, Stats, Dirent } from '../node';
+import { Link, Node, Dirent } from '../node';
+import Stats from '../Stats';
 import { Volume, filenameToSteps, StatWatcher } from '../volume';
 
 describe('volume', () => {

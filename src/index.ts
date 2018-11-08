@@ -1,4 +1,5 @@
-import { Stats, Dirent } from './node';
+import { Dirent } from './node';
+import Stats from './Stats';
 import { Volume as _Volume, StatWatcher, FSWatcher, toUnixTimestamp, IReadStream, IWriteStream } from './volume';
 import * as volume from './volume';
 import { IPromisesAPI } from './promises';

@@ -1,6 +1,7 @@
 import { resolve as resolveCrossPlatform } from 'path';
 import * as pathModule from 'path';
-import { Node, Link, File, Stats, Dirent } from './node';
+import { Node, Link, File, Dirent } from './node';
+import Stats from './Stats';
 import { Buffer } from 'buffer';
 import setImmediate from './setImmediate';
 import process from './process';

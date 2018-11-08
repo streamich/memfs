@@ -18,7 +18,7 @@ describe('readdirSync()', () => {
     });
     const dirs = vol.readdirSync('/');
 
-    dirs.sort();
+    (dirs as any).sort();
 
     expect(dirs).toEqual(['ab', 'foo', 'tro']);
   });
@@ -41,7 +41,7 @@ describe('readdirSync()', () => {
 
     const dirs = vol.readdirSync('/b/b/b');
 
-    dirs.sort();
+    (dirs as any).sort();
 
     expect(dirs).toEqual(['a', 'aa']);
   });

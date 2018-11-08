@@ -8,8 +8,8 @@ describe('.readSync(fd, buffer, offset, length, position)', () => {
     expect(bytes).toBe(3);
     expect(buf.equals(Buffer.from('345'))).toBe(true);
   });
-  xit('Read more than buffer space');
-  xit('Read over file boundary');
-  xit('Read multiple times, caret position should adjust');
-  xit('Negative tests');
+  xit('Read more than buffer space', () => {});
+  xit('Read over file boundary', () => {});
+  xit('Read multiple times, caret position should adjust', () => {});
+  xit('Negative tests', () => {});
 });

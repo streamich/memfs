@@ -179,8 +179,8 @@ describe('Promises API', () => {
         const fileHandle = await promises.open('/foo', 'r+');
         await fileHandle.utimes(fttArrival, fttDeparture);
         const stats = vol.statSync('/foo');
-        expect(stats.atime).toEqual(new Date(fttArrival));
-        expect(stats.mtime).toEqual(new Date(fttDeparture));
+        expect(stats.atime).toEqual(new Date(fttArrival as any));
+        expect(stats.mtime).toEqual(new Date(fttDeparture as any));
         await fileHandle.close();
       });
       it('Reject when the file handle was closed', async () => {
@@ -589,8 +589,8 @@ describe('Promises API', () => {
     it('Changes times of an existing file', async () => {
       await promises.utimes('/foo', fttArrival, fttDeparture);
       const stats = vol.statSync('/foo');
-      expect(stats.atime).toEqual(new Date(fttArrival));
-      expect(stats.mtime).toEqual(new Date(fttDeparture));
+      expect(stats.atime).toEqual(new Date(fttArrival as any));
+      expect(stats.mtime).toEqual(new Date(fttDeparture as any));
     });
     it('Reject when file does not exist', () => {
       return expect(promises.utimes('/bar', fttArrival, fttDeparture)).rejects.toBeInstanceOf(Error);

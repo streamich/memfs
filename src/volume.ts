@@ -462,8 +462,8 @@ function validateFd(fd) {
 
 // converts Date or number to a fractional UNIX timestamp
 export function toUnixTimestamp(time) {
+  // tslint:disable-next-line triple-equals
   if (typeof time === 'string' && +time == (time as any)) {
-    // tslint:disable-line triple-equals
     return +time;
   }
   if (time instanceof Date) {

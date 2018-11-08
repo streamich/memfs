@@ -16,7 +16,7 @@ import {
   IWriteFileOptions,
 } from './volume';
 import Stats from './Stats';
-import { Dirent } from './node';
+import Dirent from './Dirent';
 import { TDataOut } from './encoding';
 
 function promisify(

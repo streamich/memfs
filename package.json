@@ -36,6 +36,9 @@
     "mol-conventional-changelog": "1.4.0",
     "rimraf": "2.6.2",
     "semantic-release": "15.10.8",
+    "@semantic-release/changelog": "3.0.1",
+    "@semantic-release/npm": "5.0.6",
+    "@semantic-release/git": "7.0.5",
     "ts-jest": "23.10.4",
     "ts-node": "7.0.1",
     "typescript": "3.1.6",
@@ -59,6 +62,18 @@
       "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$"
+  },
+  "release": {
+    "verifyConditions": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/git"
+    ],
+    "prepare": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/git"
+    ]
   },
   "keywords": [
     "fs",

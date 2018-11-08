@@ -1,7 +1,6 @@
 import Stats from './Stats';
 import Dirent from './Dirent';
 import { Volume as _Volume, StatWatcher, FSWatcher, toUnixTimestamp, IReadStream, IWriteStream } from './volume';
-import * as volume from './volume';
 import { IPromisesAPI } from './promises';
 const { fsSyncMethods, fsAsyncMethods } = require('fs-monkey/lib/util/lists');
 import { constants } from './constants';

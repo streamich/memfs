@@ -506,8 +506,8 @@ describe('volume', () => {
         const fd = vol.openSync('/multi.txt', 'w+');
         const datas = ['hello', ' ', 'world', '!'];
         let bytes = 0;
-        for (let data of datas) {
-          let b = vol.writeSync(fd, data);
+        for (const data of datas) {
+          const b = vol.writeSync(fd, data);
           expect(b).toBe(data.length);
           bytes += b;
         }

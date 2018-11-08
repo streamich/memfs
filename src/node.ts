@@ -245,7 +245,7 @@ export class Link extends EventEmitter {
   node: Node = null;
 
   // "i-node" number of the node.
-  ino: Number = 0;
+  ino: number = 0;
 
   // Number of children.
   length: number = 0;
@@ -338,9 +338,6 @@ export class Link extends EventEmitter {
   }
 
   toJSON() {
-    for (let ch in this.children) {
-      console.log('ch', ch);
-    }
     return {
       steps: this.steps,
       ino: this.ino,

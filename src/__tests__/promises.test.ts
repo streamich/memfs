@@ -478,7 +478,6 @@ describe('Promises API', () => {
     });
     vol.symlinkSync('/foo/baz', '/foo/qux');
     it('Return real path of existing file', async () => {
-      console.log((await promises.realpath('/foo/bar/../qux')).toString());
       expect((await promises.realpath('/foo/bar/../qux')).toString()).toEqual('/foo/baz');
     });
     it('Reject when file does not exist', () => {

@@ -27,10 +27,10 @@ describe('memfs', () => {
     expect(typeof memfs._toUnixTimestamp).toBe('function');
   });
   it("Exports all Node's filesystem API methods", () => {
-    for (let method of fsSyncMethods) {
+    for (const method of fsSyncMethods) {
       expect(typeof memfs[method]).toBe('function');
     }
-    for (let method of fsAsyncMethods) {
+    for (const method of fsAsyncMethods) {
       expect(typeof memfs[method]).toBe('function');
     }
   });

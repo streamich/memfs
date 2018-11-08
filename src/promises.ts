@@ -33,15 +33,15 @@ function promisify(
     });
 }
 
-export type TFileHandleReadResult = {
+export interface TFileHandleReadResult {
   bytesRead: number;
   buffer: Buffer | Uint8Array;
-};
+}
 
-export type TFileHandleWriteResult = {
+export interface TFileHandleWriteResult {
   bytesWritten: number;
   buffer: Buffer | Uint8Array;
-};
+}
 
 export interface IFileHandle {
   fd: number;

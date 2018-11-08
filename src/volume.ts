@@ -1,4 +1,3 @@
-import { resolve as resolveCrossPlatform } from 'path';
 import * as pathModule from 'path';
 import { Node, Link, File } from './node';
 import Stats from './Stats';
@@ -16,6 +15,7 @@ import extend = require('fast-extend');
 import util = require('util');
 import createPromisesApi from './promises';
 
+const resolveCrossPlatform = pathModule.resolve;
 const {
   O_RDONLY,
   O_WRONLY,
@@ -30,7 +30,8 @@ const {
   COPYFILE_FICLONE_FORCE,
 } = constants;
 
-let sep, relative;
+let sep;
+let relative;
 if (pathModule.posix) {
   const { posix } = pathModule;
 
@@ -214,7 +215,7 @@ function getOptions<T extends IOptions>(defaults: T, options?: T | string): T {
   let opts: T;
   if (!options) return defaults;
   else {
-    var tipeof = typeof options;
+    const tipeof = typeof options;
     switch (tipeof) {
       case 'string':
         opts = extend({}, defaults, { encoding: options as string });
@@ -362,10 +363,10 @@ function getPathFromURLPosix(url) {
   if (url.hostname !== '') {
     return new errors.TypeError('ERR_INVALID_FILE_URL_HOST', process.platform);
   }
-  let pathname = url.pathname;
+  const pathname = url.pathname;
   for (let n = 0; n < pathname.length; n++) {
     if (pathname[n] === '%') {
-      let third = pathname.codePointAt(n + 2) | 0x20;
+      const third = pathname.codePointAt(n + 2) | 0x20;
       if (pathname[n + 1] === '2' && third === 102) {
         return new errors.TypeError('ERR_INVALID_FILE_URL_PATH', 'must not include encoded / characters');
       }
@@ -462,6 +463,7 @@ function validateFd(fd) {
 // converts Date or number to a fractional UNIX timestamp
 export function toUnixTimestamp(time) {
   if (typeof time === 'string' && +time == (time as any)) {
+    // tslint:disable-line triple-equals
     return +time;
   }
   if (time instanceof Date) {
@@ -578,7 +580,7 @@ export class Volume {
     const root = this.createLink();
     root.setNode(this.createNode(true));
 
-    const self = this;
+    const self = this; // tslint:disable-line no-this-assignment
 
     this.StatWatcher = class extends StatWatcher {
       constructor() {
@@ -688,7 +690,7 @@ export class Volume {
     let link = this.root;
     let i = 0;
     while (i < steps.length) {
-      let step = steps[i];
+      const step = steps[i];
       link = link.getChild(step);
       if (!link) return null;
 
@@ -708,7 +710,7 @@ export class Volume {
 
   // Just like `getLinkOrThrow`, but also dereference/resolves symbolic links.
   getResolvedLinkOrThrow(filename: string, funcName?: string): Link {
-    let link = this.getResolvedLink(filename);
+    const link = this.getResolvedLink(filename);
     if (!link) throwError(ENOENT, funcName, filename);
     return link;
   }
@@ -793,11 +795,11 @@ export class Volume {
   private _toJSON(link = this.root, json = {}, path?: string) {
     let isEmpty = true;
 
-    for (let name in link.children) {
+    for (const name in link.children) {
       isEmpty = false;
 
-      let child = link.getChild(name);
-      let node = child.getNode();
+      const child = link.getChild(name);
+      const node = child.getNode();
       if (node.isFile()) {
         let filename = child.getPath();
         if (path) filename = relative(path, filename);
@@ -819,11 +821,11 @@ export class Volume {
   }
 
   toJSON(paths?: TFilePath | TFilePath[], json = {}, isRelative = false) {
-    let links: Link[] = [];
+    const links: Link[] = [];
 
     if (paths) {
       if (!(paths instanceof Array)) paths = [paths];
-      for (let path of paths) {
+      for (const path of paths) {
         const filename = pathToFilename(path);
         const link = this.getResolvedLink(filename);
         if (!link) continue;
@@ -834,7 +836,7 @@ export class Volume {
     }
 
     if (!links.length) return json;
-    for (let link of links) this._toJSON(link, json, isRelative ? link.getPath() : '');
+    for (const link of links) this._toJSON(link, json, isRelative ? link.getPath() : '');
     return json;
   }
 
@@ -1011,7 +1013,7 @@ export class Volume {
     // This `if` branch is from Node.js
     if (length === 0) {
       return process.nextTick(() => {
-        callback && callback(null, 0, buffer);
+        if (callback) callback(null, 0, buffer);
       });
     }
 
@@ -1029,7 +1031,7 @@ export class Volume {
     let result: Buffer | string;
 
     const isUserFd = typeof id === 'number';
-    let userOwnsFd: boolean = isUserFd && isFd(id);
+    const userOwnsFd: boolean = isUserFd && isFd(id);
     let fd: number;
 
     if (userOwnsFd) fd = id as number;
@@ -1211,7 +1213,7 @@ export class Volume {
     let position = flagsNum & O_APPEND ? null : 0;
     try {
       while (length > 0) {
-        let written = this.writeSync(fd, buf, offset, length, position);
+        const written = this.writeSync(fd, buf, offset, length, position);
         offset += written;
         length -= written;
         if (position !== null) position += written;
@@ -1585,7 +1587,7 @@ export class Volume {
 
     if (options.withFileTypes) {
       const list: Dirent[] = [];
-      for (let name in link.children) {
+      for (const name in link.children) {
         list.push(Dirent.build(link.children[name], options.encoding));
       }
       if (!isWin && options.encoding !== 'buffer')
@@ -1598,7 +1600,7 @@ export class Volume {
     }
 
     const list: TDataOut[] = [];
-    for (let name in link.children) {
+    for (const name in link.children) {
       list.push(strToEncoding(name, options.encoding));
     }
 
@@ -1807,7 +1809,7 @@ export class Volume {
   }
 
   private mkdtempBase(prefix: string, encoding: TEncodingExtended, retry: number = 5): TDataOut {
-    let filename = prefix + this.genRndStr();
+    const filename = prefix + this.genRndStr();
     try {
       this.mkdirBase(filename, MODE.DIR);
       return strToEncoding(filename, encoding);
@@ -2051,6 +2053,7 @@ export class Volume {
       options = null;
     }
 
+    // tslint:disable-next-line prefer-const
     let { persistent, recursive, encoding }: IWatchOptions = getDefaultOpts(options);
     if (persistent === undefined) persistent = true;
     if (recursive === undefined) recursive = false;
@@ -2120,6 +2123,7 @@ export class StatWatcher extends EventEmitter {
   }
 }
 
+/* tslint:disable no-var-keyword prefer-const */
 // ---------------------------------------- ReadStream
 
 export interface IReadStream extends Readable {
@@ -2188,8 +2192,8 @@ function FsReadStream(vol, path, options) {
 }
 
 FsReadStream.prototype.open = function() {
-  var self = this;
-  this._vol.open(this.path, this.flags, this.mode, function(er, fd) {
+  var self = this; // tslint:disable-line no-this-assignment
+  this._vol.open(this.path, this.flags, this.mode, (er, fd) => {
     if (er) {
       if (self.autoClose) {
         if (self.destroy) self.destroy();
@@ -2233,7 +2237,7 @@ FsReadStream.prototype._read = function(n) {
   if (toRead <= 0) return this.push(null);
 
   // the actual read.
-  var self = this;
+  var self = this; // tslint:disable-line no-this-assignment
   this._vol.read(this.fd, pool, pool.used, toRead, this.pos, onread);
 
   // move the pool positions, and internal position for reading.
@@ -2259,7 +2263,7 @@ FsReadStream.prototype._read = function(n) {
 };
 
 FsReadStream.prototype._destroy = function(err, cb) {
-  this.close(function(err2) {
+  this.close(err2 => {
     cb(err || err2);
   });
 };
@@ -2373,8 +2377,8 @@ FsWriteStream.prototype._write = function(data, encoding, cb) {
     });
   }
 
-  var self = this;
-  this._vol.write(this.fd, data, 0, data.length, this.pos, function(er, bytes) {
+  var self = this; // tslint:disable-line no-this-assignment
+  this._vol.write(this.fd, data, 0, data.length, this.pos, (er, bytes) => {
     if (er) {
       if (self.autoClose && self.destroy) {
         self.destroy();
@@ -2395,7 +2399,7 @@ FsWriteStream.prototype._writev = function(data, cb) {
     });
   }
 
-  const self = this;
+  const self = this; // tslint:disable-line no-this-assignment
   const len = data.length;
   const chunks = new Array(len);
   var size = 0;

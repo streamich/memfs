@@ -4,13 +4,12 @@
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
- - 100% of Node's `fs` API implemented, see [*API Status*](./docs/api-status.md)
+ - Node's `fs` API implemented, see [*API Status*](./docs/api-status.md)
  - Stores files in memory, in `Buffer`s
- - Throws same* errors as Node.js
+ - Throws sameish* errors as Node.js
  - Has concept of *i-nodes*
  - Implements *hard links*
  - Implements *soft links* (aka symlinks, symbolic links)
- - More testing coming soon*
  - Permissions may* be implemented in the future
  - Can be used in browser, see [`memfs-webpack`](https://github.com/streamich/memfs-webpack)
 
@@ -118,6 +117,9 @@ This package depends on the following Node modules: `buffer`, `events`,
 
 It also uses `process` and `setImmediate` globals, but mocks them, if not
 available.
+
+It uses `Promise` when available and throws when `promises` property is
+accessed in an environment that do not support this ES2015 feature.
 
 [npm-url]: https://www.npmjs.com/package/memfs
 [npm-badge]: https://img.shields.io/npm/v/memfs.svg

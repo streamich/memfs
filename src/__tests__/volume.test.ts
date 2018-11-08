@@ -1,6 +1,6 @@
-import {Link, Node, Stats} from "../node";
+import {URL} from 'url';
+import {Link, Node, Stats, Dirent} from "../node";
 import {Volume, filenameToSteps, StatWatcher} from "../volume";
-
 
 describe('volume', () => {
     describe('filenameToSteps(filename): string[]', () => {
@@ -62,12 +62,15 @@ describe('volume', () => {
                 expect(stat1.ino === stat2.ino).toBe(false);
             });
         });
+
         describe('.toJSON()', () => {
+
             it('Single file', () => {
                 const vol = new Volume;
                 vol.writeFileSync('/test', 'Hello');
                 expect(vol.toJSON()).toEqual({'/test': 'Hello'})
             });
+
             it('Multiple files', () => {
                 const vol = new Volume;
                 vol.writeFileSync('/test', 'Hello');
@@ -79,6 +82,7 @@ describe('volume', () => {
                     '/test.txt': 'Hello3',
                 })
             });
+
             it('With folders, skips empty folders', () => {
                 const vol = new Volume;
                 vol.writeFileSync('/test', 'Hello');
@@ -96,8 +100,10 @@ describe('volume', () => {
                     '/dir/abc': 'abc',
                     '/dir/abc2': 'abc2',
                     '/dir/dir2/hello.txt': 'world',
+                    '/dir3': null,
                 })
             });
+
             it('Specify export path', () => {
                 const vol = Volume.fromJSON({
                     '/foo': 'bar',
@@ -107,6 +113,7 @@ describe('volume', () => {
                     '/dir/a': 'b',
                 })
             });
+
             it('Specify multiple export paths', () => {
                 const vol = Volume.fromJSON({
                     '/foo': 'bar',
@@ -120,6 +127,7 @@ describe('volume', () => {
                     '/dir2/c': 'd',
                 })
             });
+
             it('Accumulate exports on supplied object', () => {
                 const vol = Volume.fromJSON({
                     '/foo': 'bar',
@@ -127,16 +135,44 @@ describe('volume', () => {
                 const obj = {};
                 expect(vol.toJSON('/', obj)).toBe(obj);
             });
+
             it('Export empty volume', () => {
                 const vol = Volume.fromJSON({});
                 expect(vol.toJSON()).toEqual({});
             });
+
             it('Exporting non-existing path', () => {
                 const vol = Volume.fromJSON({});
                 expect(vol.toJSON('/lol')).toEqual({});
             });
+
+            it('Serializes empty dirs as null', () => {
+                const vol = Volume.fromJSON({
+                    '/dir': null
+                });
+
+                expect(vol.toJSON()).toEqual({
+                    '/dir': null
+                });
+            });
+
+            it('Serializes only empty dirs', () => {
+                const vol = Volume.fromJSON({
+                    '/dir': null,
+                    '/dir/dir2': null,
+                    '/dir/dir2/foo': null,
+                    '/empty': null,
+                });
+
+                expect(vol.toJSON()).toEqual({
+                    '/dir/dir2/foo': null,
+                    '/empty': null
+                });
+            });
         });
+
         describe('.fromJSON(json[, cwd])', () => {
+
             it('Files at root', () => {
                 const vol = new Volume;
                 const json = {
@@ -146,6 +182,7 @@ describe('volume', () => {
                 vol.fromJSON(json);
                 expect(vol.toJSON()).toEqual(json);
             });
+
             it('Files at root with relative paths', () => {
                 const vol = new Volume;
                 const json = {
@@ -158,6 +195,7 @@ describe('volume', () => {
                     '/app.js': 'console.log(123)',
                 });
             });
+
             it('Deeply nested tree', () => {
                 const vol = new Volume;
                 const json = {
@@ -169,6 +207,7 @@ describe('volume', () => {
                 vol.fromJSON(json);
                 expect(vol.toJSON()).toEqual(json);
             });
+
             it('Invalid JSON throws error', () => {
                 try {
                     const vol = new Volume;
@@ -183,6 +222,7 @@ describe('volume', () => {
                     expect((error.code === 'EISDIR') || (error.code === 'ENOTDIR')).toBe(true);
                 }
             });
+
             it('Invalid JSON throws error 2', () => {
                 try {
                     const vol = new Volume;
@@ -197,7 +237,19 @@ describe('volume', () => {
                     expect((error.code === 'EISDIR') || (error.code === 'ENOTDIR')).toBe(true);
                 }
             });
+
+
+            it('creates a folder if values is not a string', () => {
+                const vol = Volume.fromJSON({
+                    '/dir': null
+                });
+                const stat = vol.statSync('/dir');
+
+                expect(stat.isDirectory()).toBe(true);
+                expect(vol.readdirSync('/dir')).toEqual([]);
+            });
         });
+
         describe('.reset()', () => {
             it('Remove all files', () => {
                 const vol = new Volume;
@@ -367,7 +419,7 @@ describe('volume', () => {
             });
         });
         describe('.read(fd, buffer, offset, length, position, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.readFileSync(path[, options])', () => {
             const vol = new Volume;
@@ -378,6 +430,10 @@ describe('volume', () => {
                 const buf = vol.readFileSync('/text.txt');
                 const str = buf.toString();
                 expect(buf).toBeInstanceOf(Buffer);
+                expect(str).toBe(data);
+            });
+            it('Read file with path passed as URL', () => {
+                const str = vol.readFileSync(new URL('file:///text.txt')).toString();
                 expect(str).toBe(data);
             });
             it('Specify encoding as string', () => {
@@ -407,6 +463,16 @@ describe('volume', () => {
                     expect(err).toBeInstanceOf(TypeError);
                     // TODO: Check the right error message.
                 }
+            });
+            it('Attempt to read a directory should throw EISDIR', () => {
+                const vol = new Volume;
+                vol.mkdirSync('/test');
+                const fn = () => vol.readFileSync('/test');
+                expect(fn).toThrowError('EISDIR');
+            });
+            it('Attempt to read a non-existing file should throw ENOENT', () => {
+                const fn = () => vol.readFileSync('/pizza.txt');
+                expect(fn).toThrowError('ENOENT');
             });
         });
         describe('.readFile(path[, options], callback)', () => {
@@ -529,7 +595,7 @@ describe('volume', () => {
             });
         });
         describe('.symlink(target, path[, type], callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.realpathSync(path[, options])', () => {
             const vol = new Volume;
@@ -577,7 +643,7 @@ describe('volume', () => {
         describe('.lstatSync(path)', () => {
             const vol = new Volume;
             const dojo = vol.root.createChild('dojo.js');
-            const data = '(funciton(){})();';
+            const data = '(function(){})();';
             dojo.getNode().setString(data);
 
             it('Returns basic file stats', () => {
@@ -596,12 +662,12 @@ describe('volume', () => {
             });
         });
         describe('.lstat(path, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.statSync(path)', () => {
             const vol = new Volume;
             const dojo = vol.root.createChild('dojo.js');
-            const data = '(funciton(){})();';
+            const data = '(function(){})();';
             dojo.getNode().setString(data);
             it('Returns basic file stats', () => {
                 const stats = vol.statSync('/dojo.js');
@@ -629,12 +695,12 @@ describe('volume', () => {
             });
         });
         describe('.stat(path, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.fstatSync(fd)', () => {
             const vol = new Volume;
             const dojo = vol.root.createChild('dojo.js');
-            const data = '(funciton(){})();';
+            const data = '(function(){})();';
             dojo.getNode().setString(data);
 
             it('Returns basic file stats', () => {
@@ -647,7 +713,7 @@ describe('volume', () => {
             });
         });
         describe('.fstat(fd, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.linkSync(existingPath, newPath)', () => {
             const vol = new Volume;
@@ -667,20 +733,34 @@ describe('volume', () => {
             });
         });
         describe('.link(existingPath, newPath, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.readdirSync(path)', () => {
-            const vol = new Volume;
             it('Returns simple list', () => {
+                const vol = new Volume;
                 vol.writeFileSync('/1.js', '123');
                 vol.writeFileSync('/2.js', '123');
                 const list = vol.readdirSync('/');
                 expect(list.length).toBe(2);
                 expect(list).toEqual(['1.js', '2.js']);
             });
+            it('Returns a Dirent list', () => {
+                const vol = new Volume;
+                vol.writeFileSync('/1', '123');
+                vol.mkdirSync('/2');
+                const list = vol.readdirSync('/', { withFileTypes: true });
+                expect(list.length).toBe(2);
+                expect(list[0]).toBeInstanceOf(Dirent);
+                const dirent0 = list[0] as Dirent;
+                expect(dirent0.name).toBe('1');
+                expect(dirent0.isFile()).toBe(true);
+                const dirent1 = list[1] as Dirent;
+                expect(dirent1.name).toBe('2');
+                expect(dirent1.isDirectory()).toBe(true);
+            });
         });
         describe('.readdir(path, callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.readlinkSync(path[, options])', () => {
             it('Simple symbolic link to one file', () => {
@@ -728,7 +808,7 @@ describe('volume', () => {
             });
         });
         describe('.ftruncate(fd[, len], callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.truncateSync(path[, len])', () => {
             const vol = new Volume;
@@ -748,7 +828,7 @@ describe('volume', () => {
             });
         });
         describe('.truncate(path[, len], callback)', () => {
-            xit('...');
+            xit('...', () => {});
         });
         describe('.utimesSync(path, atime, mtime)', () => {
             const vol = new Volume;
@@ -763,7 +843,7 @@ describe('volume', () => {
         describe('.utimes(path, atime, mtime, callback)', () => {
             xit('...', () => {});
         });
-        describe('.mkdirSync(path[, mode])', () => {
+        describe('.mkdirSync(path[, options])', () => {
             it('Create dir at root', () => {
                 const vol = new Volume;
                 vol.mkdirSync('/test');
@@ -783,25 +863,9 @@ describe('volume', () => {
                 expect(dir2.getNode().isDirectory()).toBe(true);
                 expect(dir2.getPath()).toBe('/dir1/dir2');
             });
-        });
-        describe('.mkdir(path[, mode], callback)', () => {
-            xit('...');
-        });
-        describe('.mkdtempSync(prefix[, options])', () => {
-            it('Create temp dir at root', () => {
+            it('Create /dir1/dir2/dir3 recursively', () => {
                 const vol = new Volume;
-                const name = vol.mkdtempSync('/tmp-');
-                vol.writeFileSync(name + '/file.txt', 'lol');
-                expect(vol.toJSON()).toEqual({[name + '/file.txt']: 'lol'});
-            });
-        });
-        describe('.mkdtemp(prefix[, options], callback)', () => {
-            xit('Create temp dir at root', () => {});
-        });
-        describe('.mkdirpSync(path[, mode])', () => {
-            it('Create /dir1/dir2/dir3', () => {
-                const vol = new Volume;
-                vol.mkdirpSync('/dir1/dir2/dir3');
+                vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
                 const dir1 = vol.root.getChild('dir1');
                 const dir2 = dir1.getChild('dir2');
                 const dir3 = dir2.getChild('dir3');
@@ -813,8 +877,20 @@ describe('volume', () => {
                 expect(dir3.getNode().isDirectory()).toBe(true);
             });
         });
-        describe('.mkdirp(path[, mode], callback)', () => {
-            xit('Create /dir1/dir2/dir3', () => {});
+        describe('.mkdir(path[, mode], callback)', () => {
+            xit('...', () => {});
+            xit('Create /dir1/dir2/dir3', () => { });
+        });
+        describe('.mkdtempSync(prefix[, options])', () => {
+            it('Create temp dir at root', () => {
+                const vol = new Volume;
+                const name = vol.mkdtempSync('/tmp-');
+                vol.writeFileSync(name + '/file.txt', 'lol');
+                expect(vol.toJSON()).toEqual({[name + '/file.txt']: 'lol'});
+            });
+        });
+        describe('.mkdtemp(prefix[, options], callback)', () => {
+            xit('Create temp dir at root', () => {});
         });
         describe('.rmdirSync(path)', () => {
             it('Remove single dir', () => {
@@ -858,6 +934,12 @@ describe('volume', () => {
                         done();
                     }, 10);
                 }, 1);
+            });
+        });
+        describe('.promises', () => {
+            it('Have a promises property', () => {
+                const vol = new Volume;
+                expect(typeof vol.promises).toBe('object');
             });
         });
     });

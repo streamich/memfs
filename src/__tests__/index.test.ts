@@ -18,6 +18,7 @@ describe('memfs', () => {
     });
     it('Exports constructors', () => {
         expect(typeof memfs.Stats).toBe('function');
+        expect(typeof memfs.Dirent).toBe('function');
         expect(typeof memfs.ReadStream).toBe('function');
         expect(typeof memfs.WriteStream).toBe('function');
         expect(typeof memfs.FSWatcher).toBe('function');
@@ -33,5 +34,8 @@ describe('memfs', () => {
         for(let method of fsAsyncMethods) {
             expect(typeof memfs[method]).toBe('function');
         }
+    });
+    it('Exports promises API', () => {
+        expect(typeof memfs.promises).toBe('object');
     });
 });

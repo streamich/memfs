@@ -1,15 +1,18 @@
 {
   "compilerOptions": {
     "target": "es5",
+    "lib": ["es5", "dom",  "es2015.promise"],
     "module": "commonjs",
     "removeComments": false,
     "noImplicitAny": false,
-    "sourceMap": false
+    "sourceMap": false,
+    "outDir": "lib",
+    "declaration": true
   },
+  "include": [
+    "src"
+  ],
   "exclude": [
-    "demo",
-    "src/__tests__",
-    "node_modules",
-    "lib"
+    "src/__tests__"
   ]
 }

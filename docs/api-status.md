@@ -4,11 +4,13 @@ All of the [Node's `fs` API](https://nodejs.org/api/fs.html) is implemented.
 Some error messages may be inaccurate. File permissions are currently not
 implemented (you have access to any file), basically `fs.access()` is a no-op.
 
+  - [x] Promises
   - [x] Constants
   - [x] `FSWatcher`
   - [x] `ReadStream`
   - [x] `WriteStream`
   - [x] `Stats`
+  - [x] `Dirent`
   - [x] `access(path[, mode], callback)`
     - Does not check permissions
   - [x] `accessSync(path[, mode])`
@@ -19,6 +21,11 @@ implemented (you have access to any file), basically `fs.access()` is a no-op.
   - [x] `chmodSync(path, mode)`
   - [x] `chown(path, uid, gid, callback)`
   - [x] `chownSync(path, uid, gid)`
+  - [x] `fs.copyFile(src, dest[, flags], callback)`
+  - [x] `fs.copyFileSync(src, dest[, flags])`
+     - Honors `COPYFILE_EXCL`
+     - Ignores `COPYFILE_FICLONE` *copy-on-write* &mdash; always creates a copy.
+     - If `COPYFILE_FICLONE_FORCE` flag specified, will always fail with `ENOSYS`.
   - [x] `close(fd, callback)`
   - [x] `closeSync(fd)`
   - [x] `createReadStream(path[, options])`
@@ -47,8 +54,8 @@ implemented (you have access to any file), basically `fs.access()` is a no-op.
   - [x] `linkSync(existingPath, newPath)`
   - [x] `lstat(path, callback)`
   - [x] `lstatSync(path)`
-  - [x] `mkdir(path[, mode], callback)`
-  - [x] `mkdirSync(path[, mode])`
+  - [x] `mkdir(path[, options], callback)`
+  - [x] `mkdirSync(path[, options])`
   - [x] `mkdtemp(prefix[, options], callback)`
   - [x] `mkdtempSync(prefix[, options])`
   - [x] `open(path, flags[, mode], callback)`

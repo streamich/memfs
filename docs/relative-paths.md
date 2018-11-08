@@ -10,15 +10,15 @@ on-disk filesystem and you will probably not have that directory available in yo
 `memfs` volume.
 
 The best solution is to always use absolute paths. Alternatively, you can use
-`mkdirp` method to recursively create the current working directory in your
+`mkdir` method to recursively create the current working directory in your
 volume:
 
 ```js
-vol.mkdirpSync(process.cwd());
+vol.mkdirSync(process.cwd(), { recursive: true });
 ```
 
 Or, you can set the current working directory to `/`, which
-is one folder that exists in all your `memfs` volumes:
+is one folder that exists in all `memfs` volumes:
 
 ```js
 process.chdir('/');

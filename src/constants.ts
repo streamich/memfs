@@ -39,6 +39,16 @@ export const constants = {
     R_OK: 4,
     W_OK: 2,
     X_OK: 1,
+
+    UV_FS_SYMLINK_DIR: 1,
+    UV_FS_SYMLINK_JUNCTION: 2,
+
+    UV_FS_COPYFILE_EXCL: 1,
+    UV_FS_COPYFILE_FICLONE: 2,
+    UV_FS_COPYFILE_FICLONE_FORCE: 4,
+    COPYFILE_EXCL: 1,
+    COPYFILE_FICLONE: 2,
+    COPYFILE_FICLONE_FORCE: 4,
 };
 
 export const enum S {

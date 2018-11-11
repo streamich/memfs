@@ -1,4 +1,4 @@
-import errors = require('./internal/errors');
+import * as errors from './internal/errors';
 
 export type TDataOut = string | Buffer; // Data formats we give back to users.
 export type TEncoding = 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'latin1' | 'binary' | 'hex';

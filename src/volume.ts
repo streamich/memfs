@@ -10,7 +10,7 @@ import { Readable, Writable } from 'stream';
 import { constants } from './constants';
 import { EventEmitter } from 'events';
 import { TEncoding, TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
-import errors = require('./internal/errors');
+import * as errors from './internal/errors';
 import extend = require('fast-extend');
 import util = require('util');
 import createPromisesApi from './promises';
@@ -359,16 +359,16 @@ const getReaddirOptsAndCb = optsAndCbGenerator<IReaddirOptions, TDataOut[] | Dir
 
 // ---------------------------------------- Utility functions
 
-function getPathFromURLPosix(url) {
+function getPathFromURLPosix(url): string {
   if (url.hostname !== '') {
-    return new errors.TypeError('ERR_INVALID_FILE_URL_HOST', process.platform);
+    throw new errors.TypeError('ERR_INVALID_FILE_URL_HOST', process.platform);
   }
   const pathname = url.pathname;
   for (let n = 0; n < pathname.length; n++) {
     if (pathname[n] === '%') {
       const third = pathname.codePointAt(n + 2) | 0x20;
       if (pathname[n + 1] === '2' && third === 102) {
-        return new errors.TypeError('ERR_INVALID_FILE_URL_PATH', 'must not include encoded / characters');
+        throw new errors.TypeError('ERR_INVALID_FILE_URL_PATH', 'must not include encoded / characters');
       }
     }
   }

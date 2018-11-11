@@ -11,8 +11,6 @@ node_js:
   - '10'
   - '9'
   - '8'
-  - '7'
-  - '6'
 script:
   - yarn test
   - yarn build
@@ -20,7 +18,7 @@ matrix:
   allow_failures: []
   fast_finish: true
 after_success:
-  - npx semantic-release
+  - yarn semantic-release
 branches:
   except:
     - /^v\d+\.\d+\.\d+$/

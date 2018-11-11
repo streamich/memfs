@@ -1,9 +1,9 @@
-import {create} from "../util";
+import { create } from '../util';
 
 describe('readdirSync()', () => {
   it('returns a single directory', () => {
     const vol = create({
-      '/foo/bar': 'baz'
+      '/foo/bar': 'baz',
     });
     const dirs = vol.readdirSync('/');
 
@@ -18,7 +18,7 @@ describe('readdirSync()', () => {
     });
     const dirs = vol.readdirSync('/');
 
-    dirs.sort();
+    (dirs as any).sort();
 
     expect(dirs).toEqual(['ab', 'foo', 'tro']);
   });
@@ -34,14 +34,14 @@ describe('readdirSync()', () => {
     const vol = create({
       '/a/a': 'a',
       '/a/aa': 'aa',
-      '/b/b': 'b'
+      '/b/b': 'b',
     });
 
     vol.symlinkSync('/a', '/b/b/b');
 
     const dirs = vol.readdirSync('/b/b/b');
 
-    dirs.sort();
+    (dirs as any).sort();
 
     expect(dirs).toEqual(['a', 'aa']);
   });

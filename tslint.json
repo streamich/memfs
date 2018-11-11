@@ -1,0 +1,12 @@
+{
+  "extends": "tslint-config-common",
+  "rules": {
+    "no-invalid-this": false,
+    "variable-name": false,
+    "no-inferrable-types": false,
+    "curly": false,
+    "forin": false,
+    "no-dynamic-delete": false,
+    "unified-signatures": false
+  }
+}

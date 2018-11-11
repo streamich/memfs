@@ -4,12 +4,12 @@
 // value statically and permanently identifies the error. While the error
 // message may change, the code should not.
 
-const kCode = typeof Symbol === 'undefined' ? '_kCode' : Symbol('code');
+const kCode = typeof Symbol === 'undefined' ? '_kCode' : (Symbol as any)('code');
 const messages = {}; // new Map();
 
 // Lazily loaded
-var assert = null;
-var util = null;
+let assert = null;
+let util = null;
 
 function makeNodeError(Base) {
   return class NodeError extends Base {
@@ -23,6 +23,13 @@ function makeNodeError(Base) {
 }
 
 class AssertionError extends Error {
+  generatedMessage: any;
+  name: any;
+  code: any;
+  actual: any;
+  expected: any;
+  operator: any;
+
   constructor(options) {
     if (typeof options !== 'object' || options === null) {
       throw new exports.TypeError('ERR_INVALID_ARG_TYPE', 'options', 'object');
@@ -185,7 +192,7 @@ function invalidArgType(name, expected, actual) {
 
   let msg;
   if (Array.isArray(name)) {
-    var names = name.map(val => `"${val}"`).join(', ');
+    const names = name.map(val => `"${val}"`).join(', ');
     msg = `The ${names} arguments ${determiner} ${oneOf(expected, 'type')}`;
   } else if (name.includes(' argument')) {
     // for the case like 'first argument'
@@ -228,6 +235,7 @@ function oneOf(expected, thing) {
   if (Array.isArray(expected)) {
     const len = expected.length;
     assert(len > 0, 'At least one expected value needs to be specified');
+    // tslint:disable-next-line
     expected = expected.map(i => String(i));
     if (len > 2) {
       return `one of ${thing} ${expected.slice(0, len - 1).join(', ')}, or ` + expected[len - 1];

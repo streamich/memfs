@@ -4,6 +4,10 @@ import Stats from '../Stats';
 import Dirent from '../Dirent';
 import { Volume, filenameToSteps, StatWatcher } from '../volume';
 
+// I did not find how to include '../bigint.d.ts' here!
+type BigInt = number;
+declare const BigInt: typeof Number;
+
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
     it('/ -> []', () => {
@@ -665,6 +669,14 @@ describe('volume', () => {
         expect(stats.isFile()).toBe(true);
         expect(stats.isDirectory()).toBe(false);
       });
+      it('Returns file stats using BigInt', () => {
+        if (typeof BigInt === 'function') {
+          const stats = vol.lstatSync('/dojo.js', { bigint: true });
+          expect(typeof stats.ino).toBe('bigint');
+        } else {
+          expect(() => vol.lstatSync('/dojo.js', { bigint: true })).toThrowError();
+        }
+      });
       it('Stats on symlink returns results about the symlink', () => {
         vol.symlinkSync('/dojo.js', '/link.js');
         const stats = vol.lstatSync('/link.js');
@@ -687,6 +699,14 @@ describe('volume', () => {
         expect(stats.size).toBe(data.length);
         expect(stats.isFile()).toBe(true);
         expect(stats.isDirectory()).toBe(false);
+      });
+      it('Returns file stats using BigInt', () => {
+        if (typeof BigInt === 'function') {
+          const stats = vol.statSync('/dojo.js', { bigint: true });
+          expect(typeof stats.ino).toBe('bigint');
+        } else {
+          expect(() => vol.statSync('/dojo.js', { bigint: true })).toThrowError();
+        }
       });
       it('Stats on symlink returns results about the resolved file', () => {
         vol.symlinkSync('/dojo.js', '/link.js');
@@ -722,6 +742,15 @@ describe('volume', () => {
         expect(stats.size).toBe(data.length);
         expect(stats.isFile()).toBe(true);
         expect(stats.isDirectory()).toBe(false);
+      });
+      it('Returns file stats using BigInt', () => {
+        const fd = vol.openSync('/dojo.js', 'r');
+        if (typeof BigInt === 'function') {
+          const stats = vol.fstatSync(fd, { bigint: true });
+          expect(typeof stats.ino).toBe('bigint');
+        } else {
+          expect(() => vol.fstatSync(fd, { bigint: true })).toThrowError();
+        }
       });
     });
     describe('.fstat(fd, callback)', () => {

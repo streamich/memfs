@@ -14,6 +14,7 @@ import {
   IReadFileOptions,
   IRealpathOptions,
   IWriteFileOptions,
+  IStatOptions,
 } from './volume';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -52,7 +53,7 @@ export interface IFileHandle {
   datasync(): Promise<void>;
   read(buffer: Buffer | Uint8Array, offset: number, length: number, position: number): Promise<TFileHandleReadResult>;
   readFile(options?: IReadFileOptions | string): Promise<TDataOut>;
-  stat(): Promise<Stats>;
+  stat(options?: IStatOptions): Promise<Stats>;
   truncate(len?: number): Promise<void>;
   utimes(atime: TTime, mtime: TTime): Promise<void>;
   write(
@@ -76,7 +77,7 @@ export interface IPromisesAPI {
   lchmod(path: TFilePath, mode: TMode): Promise<void>;
   lchown(path: TFilePath, uid: number, gid: number): Promise<void>;
   link(existingPath: TFilePath, newPath: TFilePath): Promise<void>;
-  lstat(path: TFilePath): Promise<Stats>;
+  lstat(path: TFilePath, options?: IStatOptions): Promise<Stats>;
   mkdir(path: TFilePath, options?: TMode | IMkdirOptions): Promise<void>;
   mkdtemp(prefix: string, options?: IOptions): Promise<TDataOut>;
   open(path: TFilePath, flags: TFlags, mode?: TMode): Promise<FileHandle>;
@@ -86,7 +87,7 @@ export interface IPromisesAPI {
   realpath(path: TFilePath, options?: IRealpathOptions | string): Promise<TDataOut>;
   rename(oldPath: TFilePath, newPath: TFilePath): Promise<void>;
   rmdir(path: TFilePath): Promise<void>;
-  stat(path: TFilePath): Promise<Stats>;
+  stat(path: TFilePath, options?: IStatOptions): Promise<Stats>;
   symlink(target: TFilePath, path: TFilePath, type?: TSymlinkType): Promise<void>;
   truncate(path: TFilePath, len?: number): Promise<void>;
   unlink(path: TFilePath): Promise<void>;
@@ -132,8 +133,8 @@ export class FileHandle implements IFileHandle {
     return promisify(this.vol, 'readFile')(this.fd, options);
   }
 
-  stat(): Promise<Stats> {
-    return promisify(this.vol, 'fstat')(this.fd);
+  stat(options?: IStatOptions): Promise<Stats> {
+    return promisify(this.vol, 'fstat')(this.fd, options);
   }
 
   sync(): Promise<void> {
@@ -205,8 +206,8 @@ export default function createPromisesApi(vol: Volume): null | IPromisesAPI {
       return promisify(vol, 'link')(existingPath, newPath);
     },
 
-    lstat(path: TFilePath): Promise<Stats> {
-      return promisify(vol, 'lstat')(path);
+    lstat(path: TFilePath, options?: IStatOptions): Promise<Stats> {
+      return promisify(vol, 'lstat')(path, options);
     },
 
     mkdir(path: TFilePath, options?: TMode | IMkdirOptions): Promise<void> {
@@ -245,8 +246,8 @@ export default function createPromisesApi(vol: Volume): null | IPromisesAPI {
       return promisify(vol, 'rmdir')(path);
     },
 
-    stat(path: TFilePath): Promise<Stats> {
-      return promisify(vol, 'stat')(path);
+    stat(path: TFilePath, options?: IStatOptions): Promise<Stats> {
+      return promisify(vol, 'stat')(path, options);
     },
 
     symlink(target: TFilePath, path: TFilePath, type?: TSymlinkType): Promise<void> {

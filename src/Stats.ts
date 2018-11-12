@@ -3,62 +3,72 @@ import { constants } from './constants';
 
 const { S_IFMT, S_IFDIR, S_IFREG, S_IFBLK, S_IFCHR, S_IFLNK, S_IFIFO, S_IFSOCK } = constants;
 
+export type TStatNumber = number | BigInt;
+
 /**
  * Statistics about a file/directory, like `fs.Stats`.
  */
 export class Stats {
-  static build(node: Node) {
+  static build(node: Node, bigint: boolean = false) {
     const stats = new Stats();
     const { uid, gid, atime, mtime, ctime } = node;
+
+    const getStatNumber = !bigint
+      ? number => number
+      : typeof BigInt === 'function'
+      ? BigInt
+      : () => {
+          throw new Error('BigInt is not supported in this environment.');
+        };
 
     // Copy all values on Stats from Node, so that if Node values
     // change, values on Stats would still be the old ones,
     // just like in Node fs.
 
-    stats.uid = uid;
-    stats.gid = gid;
+    stats.uid = getStatNumber(uid);
+    stats.gid = getStatNumber(gid);
 
     stats.atime = atime;
     stats.mtime = mtime;
     stats.ctime = ctime;
     stats.birthtime = ctime;
 
-    stats.atimeMs = atime.getTime();
-    stats.mtimeMs = mtime.getTime();
-    const ctimeMs = ctime.getTime();
+    stats.atimeMs = getStatNumber(atime.getTime());
+    stats.mtimeMs = getStatNumber(mtime.getTime());
+    const ctimeMs = getStatNumber(ctime.getTime());
     stats.ctimeMs = ctimeMs;
     stats.birthtimeMs = ctimeMs;
 
-    stats.size = node.getSize();
-    stats.mode = node.mode;
-    stats.ino = node.ino;
-    stats.nlink = node.nlink;
+    stats.size = getStatNumber(node.getSize());
+    stats.mode = getStatNumber(node.mode);
+    stats.ino = getStatNumber(node.ino);
+    stats.nlink = getStatNumber(node.nlink);
 
     return stats;
   }
 
-  uid: number = 0;
-  gid: number = 0;
+  uid: TStatNumber = 0;
+  gid: TStatNumber = 0;
 
-  rdev: number = 0;
-  blksize: number = 4096;
-  ino: number = 0;
-  size: number = 0;
-  blocks: number = 1;
+  rdev: TStatNumber = 0;
+  blksize: TStatNumber = 4096;
+  ino: TStatNumber = 0;
+  size: TStatNumber = 0;
+  blocks: TStatNumber = 1;
 
   atime: Date = null;
   mtime: Date = null;
   ctime: Date = null;
   birthtime: Date = null;
 
-  atimeMs: number = 0.0;
-  mtimeMs: number = 0.0;
-  ctimeMs: number = 0.0;
-  birthtimeMs: number = 0.0;
+  atimeMs: TStatNumber = 0.0;
+  mtimeMs: TStatNumber = 0.0;
+  ctimeMs: TStatNumber = 0.0;
+  birthtimeMs: TStatNumber = 0.0;
 
-  dev: number = 0;
-  mode: number = 0;
-  nlink: number = 0;
+  dev: TStatNumber = 0;
+  mode: TStatNumber = 0;
+  nlink: TStatNumber = 0;
 
   private _checkModeProperty(property: number): boolean {
     return (this.mode & S_IFMT) === property;

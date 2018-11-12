@@ -1,6 +1,6 @@
 import * as pathModule from 'path';
 import { Node, Link, File } from './node';
-import Stats from './Stats';
+import Stats, { TStatNumber } from './Stats';
 import Dirent from './Dirent';
 import { Buffer } from 'buffer';
 import setImmediate from './setImmediate';
@@ -356,6 +356,20 @@ const readdirDefaults: IReaddirOptions = {
 };
 const getReaddirOptions = optsGenerator<IReaddirOptions>(readdirDefaults);
 const getReaddirOptsAndCb = optsAndCbGenerator<IReaddirOptions, TDataOut[] | Dirent[]>(getReaddirOptions);
+
+// Options for `fs.fstat`, `fs.fstatSync`, `fs.lstat`, `fs.lstatSync`, `fs.stat`, and `fs.statSync`
+export interface IStatOptions {
+  bigint?: boolean;
+}
+const statDefaults: IStatOptions = {
+  bigint: false,
+};
+const getStatOptions: (options?: any) => IStatOptions = (options = {}) => extend({}, statDefaults, options);
+const getStatOptsAndCb: (options: any, callback?: TCallback<Stats>) => [IStatOptions, TCallback<Stats>] = (
+  options,
+  callback?,
+) =>
+  typeof options === 'function' ? [getStatOptions(), options] : [getStatOptions(options), validateCallback(callback)];
 
 // ---------------------------------------- Utility functions
 
@@ -1416,21 +1430,24 @@ export class Volume {
     this.wrapAsync(this.realpathBase, [pathFilename, opts.encoding], callback);
   }
 
-  private lstatBase(filename: string): Stats {
+  private lstatBase(filename: string, bigint: boolean = false): Stats {
     const link: Link = this.getLink(filenameToSteps(filename));
     if (!link) throwError(ENOENT, 'lstat', filename);
-    return Stats.build(link.getNode());
+    return Stats.build(link.getNode(), bigint);
   }
 
-  lstatSync(path: TFilePath): Stats {
-    return this.lstatBase(pathToFilename(path));
+  lstatSync(path: TFilePath, options?: IStatOptions): Stats {
+    return this.lstatBase(pathToFilename(path), getStatOptions(options).bigint);
   }
 
-  lstat(path: TFilePath, callback: TCallback<Stats>) {
-    this.wrapAsync(this.lstatBase, [pathToFilename(path)], callback);
+  lstat(path: TFilePath, callback: TCallback<Stats>);
+  lstat(path: TFilePath, options: IStatOptions, callback: TCallback<Stats>);
+  lstat(path: TFilePath, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>) {
+    const [opts, callback] = getStatOptsAndCb(a, b);
+    this.wrapAsync(this.lstatBase, [pathToFilename(path), opts.bigint], callback);
   }
 
-  private statBase(filename: string): Stats {
+  private statBase(filename: string, bigint: boolean = false): Stats {
     let link: Link = this.getLink(filenameToSteps(filename));
     if (!link) throwError(ENOENT, 'stat', filename);
 
@@ -1438,29 +1455,35 @@ export class Volume {
     link = this.resolveSymlinks(link);
     if (!link) throwError(ENOENT, 'stat', filename);
 
-    return Stats.build(link.getNode());
+    return Stats.build(link.getNode(), bigint);
   }
 
-  statSync(path: TFilePath): Stats {
-    return this.statBase(pathToFilename(path));
+  statSync(path: TFilePath, options?: IStatOptions): Stats {
+    return this.statBase(pathToFilename(path), getStatOptions(options).bigint);
   }
 
-  stat(path: TFilePath, callback: TCallback<Stats>) {
-    this.wrapAsync(this.statBase, [pathToFilename(path)], callback);
+  stat(path: TFilePath, callback: TCallback<Stats>);
+  stat(path: TFilePath, options: IStatOptions, callback: TCallback<Stats>);
+  stat(path: TFilePath, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>) {
+    const [opts, callback] = getStatOptsAndCb(a, b);
+    this.wrapAsync(this.statBase, [pathToFilename(path), opts.bigint], callback);
   }
 
-  private fstatBase(fd: number): Stats {
+  private fstatBase(fd: number, bigint: boolean = false): Stats {
     const file = this.getFileByFd(fd);
     if (!file) throwError(EBADF, 'fstat');
-    return Stats.build(file.node);
+    return Stats.build(file.node, bigint);
   }
 
-  fstatSync(fd: number): Stats {
-    return this.fstatBase(fd);
+  fstatSync(fd: number, options?: IStatOptions): Stats {
+    return this.fstatBase(fd, getStatOptions(options).bigint);
   }
 
-  fstat(fd: number, callback: TCallback<Stats>) {
-    this.wrapAsync(this.fstatBase, [fd], callback);
+  fstat(fd: number, callback: TCallback<Stats>);
+  fstat(fd: number, options: IStatOptions, callback: TCallback<Stats>);
+  fstat(fd: number, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>) {
+    const [opts, callback] = getStatOptsAndCb(a, b);
+    this.wrapAsync(this.fstatBase, [fd, opts.bigint], callback);
   }
 
   private renameBase(oldPathFilename: string, newPathFilename: string) {

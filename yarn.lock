@@ -6126,10 +6126,10 @@ tslib@^1.8.0, tslib@^1.8.1:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.3.tgz#d7e4dd79245d85428c4d7e4822a79917954ca286"
   integrity sha512-4krF8scpejhaOgqzBEcGM7yDIEfi0/8+8zDRZhNZZ2kjmHJ4hv3zCbQWxoJGz1iw5U0Jl0nma13xzHXcncMavQ==
 
-tslint-config-common@1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/tslint-config-common/-/tslint-config-common-1.4.0.tgz#324a837ebda6a23de2927e47b511e8117006db62"
-  integrity sha512-4HCj2wGvfV49v/gLI6m3IKx9ZpofOQrV3O/jtFoJW/otzMtnGcLjPMxD8poRgN6b3hUCR0vJbtLBp3Ol24UIsQ==
+tslint-config-common@1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/tslint-config-common/-/tslint-config-common-1.5.0.tgz#1b6acfd7317777b1aeb32556f149660293a60b18"
+  integrity sha512-LgQ7HCCY8apz0ufsb+QpbDfoOCH8JFGX1CXQuglQ2S1zxcFVl7Clcg95NEi9XxHE3wqa3bKctoVar95ftYV0xA==
   dependencies:
     tslint-config-prettier "^1.14.0"
     tslint-react "^3.6.0"

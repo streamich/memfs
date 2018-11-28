@@ -30,7 +30,7 @@
     "fs-monkey": "^0.3.3"
   },
   "devDependencies": {
-    "@types/jest": "23.3.9",
+    "@types/jest": "23.3.10",
     "@types/node": "10.12.10",
     "cpy-cli": "2.0.0",
     "jest": "21.2.1",

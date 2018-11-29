@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@types/jest": "23.3.10",
-    "@types/node": "10.12.10",
+    "@types/node": "10.12.11",
     "jest": "21.2.1",
     "rimraf": "2.6.2",
     "semantic-release": "15.12.3",

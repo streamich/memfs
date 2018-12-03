@@ -34,7 +34,7 @@
     "@types/node": "10.12.12",
     "jest": "21.2.1",
     "rimraf": "2.6.2",
-    "semantic-release": "15.12.3",
+    "semantic-release": "15.12.4",
     "@semantic-release/changelog": "3.0.1",
     "@semantic-release/npm": "5.1.1",
     "@semantic-release/git": "7.0.5",

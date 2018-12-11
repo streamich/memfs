@@ -1,3 +1,10 @@
+## [2.14.2](https://github.com/streamich/memfs/compare/v2.14.1...v2.14.2) (2018-12-11)
+
+
+### Bug Fixes
+
+* fds to start from 0x7fffffff instead of 0xffffffff ([#277](https://github.com/streamich/memfs/issues/277)) ([31e44ba](https://github.com/streamich/memfs/commit/31e44ba))
+
 ## [2.14.1](https://github.com/streamich/memfs/compare/v2.14.0...v2.14.1) (2018-11-29)
 
 

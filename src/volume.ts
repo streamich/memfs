@@ -535,7 +535,7 @@ export class Volume {
    * @type {number}
    * @todo This should not be static, right?
    */
-  static fd: number = 0xffffffff;
+  static fd: number = 0x7fffffff;
 
   // Constructor function used to create new nodes.
   // NodeClass: new (...args) => TNode = Node as new (...args) => TNode;

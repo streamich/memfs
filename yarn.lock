@@ -57,10 +57,10 @@
   resolved "https://registry.yarnpkg.com/@semantic-release/error/-/error-2.2.0.tgz#ee9d5a09c9969eade1ec864776aeda5c5cddbbf0"
   integrity sha512-9Tj/qn+y2j+sjCI3Jd+qseGtHjOAeg7dU2/lVcqIQ9TV3QDaDXDYXcoOHU+7o2Hwh8L8ymL4gfuO7KxDs3q2zg==
 
-"@semantic-release/git@7.0.5":
-  version "7.0.5"
-  resolved "https://registry.yarnpkg.com/@semantic-release/git/-/git-7.0.5.tgz#640e66683dbbb0a0771e9968e2dc15ec5facaf38"
-  integrity sha512-90TDMAQw9S5BXjygpEb8zdwLCnUmP5G2GfKHUvmFapFNh3UsI1AJljEUe5hJh/GOuHiyBD/whnCMYExsp8a34Q==
+"@semantic-release/git@7.0.6":
+  version "7.0.6"
+  resolved "https://registry.yarnpkg.com/@semantic-release/git/-/git-7.0.6.tgz#07f8fe177bcf65109c6bc2f504f1223d8e6a3d5a"
+  integrity sha512-Uyi/RFBYv8jecMo7vJfjsr9rweJkOPuY6CJOITbOzhHmJjZssVOf7sS+zuqEQQsVzU+PPYIjx86HkIzbve/Evg==
   dependencies:
     "@semantic-release/error" "^2.1.0"
     aggregate-error "^1.0.0"
@@ -5361,10 +5361,10 @@ sax@^1.2.1, sax@^1.2.4:
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
 
-semantic-release@15.13.0:
-  version "15.13.0"
-  resolved "https://registry.yarnpkg.com/semantic-release/-/semantic-release-15.13.0.tgz#5e2cafb9c9d4114d97d639c701e13a74bc2eb214"
-  integrity sha512-ZTMaRA4v2t6XLj9uPVQx8w499EngMhE7fJtj4oX3XvH2QpCjiZQkvu+6v5gK9XYqMcimIcbY3hqcOInJMP+T1g==
+semantic-release@15.13.1:
+  version "15.13.1"
+  resolved "https://registry.yarnpkg.com/semantic-release/-/semantic-release-15.13.1.tgz#18541032504aa0b443d011083685c9b42eb38c9f"
+  integrity sha512-bkrfQ10BhbJRMeq/Ih9DZ9FO4ffDwFYsRR134JP9JvQSf8GVX4sg3SnFFd7Q10C6pKwjKqMZ4+ZNB5uQYMLPEg==
   dependencies:
     "@semantic-release/commit-analyzer" "^6.1.0"
     "@semantic-release/error" "^2.2.0"

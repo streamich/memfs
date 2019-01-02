@@ -33,7 +33,7 @@
     "@types/jest": "23.3.11",
     "@types/node": "10.12.18",
     "jest": "21.2.1",
-    "rimraf": "2.6.2",
+    "rimraf": "2.6.3",
     "semantic-release": "15.13.2",
     "@semantic-release/changelog": "3.0.2",
     "@semantic-release/npm": "5.1.3",

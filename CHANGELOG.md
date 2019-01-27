@@ -1,3 +1,10 @@
+# [2.15.0](https://github.com/streamich/memfs/compare/v2.14.2...v2.15.0) (2019-01-27)
+
+
+### Features
+
+* **volume:** add env variable to suppress fs.promise api warnings ([e6b6d0a](https://github.com/streamich/memfs/commit/e6b6d0a))
+
 ## [2.14.2](https://github.com/streamich/memfs/compare/v2.14.1...v2.14.2) (2018-12-11)
 
 

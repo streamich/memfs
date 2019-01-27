@@ -145,5 +145,5 @@ you get from `require('fs')`. Here are some things this function does:
 Supress warnings when using the promise api of fs by setting
 
 ```js
-process.env['SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS'] = true;
+process.env.MEMFS_DONT_WARN = true;
 ```

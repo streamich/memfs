@@ -1,9 +1,5 @@
 // Here we mock the global `process` variable in case we are not in Node's environment.
 
-export type SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS = 'SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS';
-export const SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS: SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS =
-  'SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS';
-
 export interface IProcess {
   getuid(): number;
   getgid(): number;
@@ -11,7 +7,7 @@ export interface IProcess {
   platform: string;
   nextTick: (callback: (...args) => void, ...args) => void;
   env: {
-    [SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS]?: boolean;
+    MEMFS_DONT_WARN?: boolean;
   };
 }
 

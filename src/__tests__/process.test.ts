@@ -1,4 +1,4 @@
-import _process, { createProcess } from '../process';
+import _process, { createProcess, SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS } from '../process';
 
 describe('process', () => {
   describe('createProcess', () => {
@@ -17,5 +17,15 @@ describe('process', () => {
       expect(typeof proc.nextTick).toBe('function');
       proc.nextTick(done);
     });
+    it('.env', () => {
+      expect(typeof proc.env).toBe('object');
+      expect(!!proc.env[SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS]).toBe(false);
+    });
+  });
+  test('createProcess with env variable', () => {
+    process.env[SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS] = 'true';
+    const proc = createProcess();
+    expect(!!proc.env[SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS]).toBe(true);
+    delete process.env[SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS];
   });
 });

@@ -139,3 +139,11 @@ you get from `require('fs')`. Here are some things this function does:
   ```
 
   - Adds constants `fs.constants`, `fs.F_OK`, etc.
+
+## Experimental fs.promise api warnings
+
+Supress warnings when using the promise api of fs by setting
+
+```js
+process.env['SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS'] = true;
+```

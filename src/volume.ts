@@ -4,7 +4,7 @@ import Stats, { TStatNumber } from './Stats';
 import Dirent from './Dirent';
 import { Buffer } from 'buffer';
 import setImmediate from './setImmediate';
-import process from './process';
+import process, { SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS } from './process';
 import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
 import { Readable, Writable } from 'stream';
 import { constants } from './constants';
@@ -516,7 +516,7 @@ function validateGid(gid: number) {
 
 // ---------------------------------------- Volume
 
-let promisesWarn = true;
+let promisesWarn = process[SUPPRESS_EXPERIMENTAL_PROMISE_WARNINGS] ? false : true;
 
 /**
  * `Volume` represents a file system.

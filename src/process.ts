@@ -6,6 +6,9 @@ export interface IProcess {
   cwd(): string;
   platform: string;
   nextTick: (callback: (...args) => void, ...args) => void;
+  env: {
+    MEMFS_DONT_WARN?: boolean;
+  };
 }
 
 export function createProcess(p: IProcess = process): IProcess {
@@ -20,6 +23,7 @@ export function createProcess(p: IProcess = process): IProcess {
   if (!p.getgid) p.getgid = () => 0;
   if (!p.cwd) p.cwd = () => '/';
   if (!p.nextTick) p.nextTick = require('./setImmediate').default;
+  if (!p.env) p.env = {};
   return p;
 }
 

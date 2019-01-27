@@ -17,5 +17,15 @@ describe('process', () => {
       expect(typeof proc.nextTick).toBe('function');
       proc.nextTick(done);
     });
+    it('.env', () => {
+      expect(typeof proc.env).toBe('object');
+      expect(!!proc.env.MEMFS_DONT_WARN).toBe(false);
+    });
+  });
+  test('createProcess with env variable', () => {
+    process.env.MEMFS_DONT_WARN = 'true';
+    const proc = createProcess();
+    expect(!!proc.env.MEMFS_DONT_WARN).toBe(true);
+    delete process.env.MEMFS_DONT_WARN;
   });
 });

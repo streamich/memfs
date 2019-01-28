@@ -516,7 +516,7 @@ function validateGid(gid: number) {
 
 // ---------------------------------------- Volume
 
-let promisesWarn = !!process.env.MEMFS_DONT_WARN;
+let promisesWarn = !process.env.MEMFS_DONT_WARN;
 
 /**
  * `Volume` represents a file system.

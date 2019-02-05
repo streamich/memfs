@@ -30,7 +30,7 @@
     "fs-monkey": "^0.3.3"
   },
   "devDependencies": {
-    "@types/jest": "23.3.13",
+    "@types/jest": "23.3.14",
     "@types/node": "10.12.21",
     "jest": "21.2.1",
     "rimraf": "2.6.3",

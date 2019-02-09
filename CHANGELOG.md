@@ -1,3 +1,11 @@
+## [2.15.1](https://github.com/streamich/memfs/compare/v2.15.0...v2.15.1) (2019-02-09)
+
+
+### Bug Fixes
+
+* 🐛 show directory path when throwing EISDIR in mkdir ([9dc7007](https://github.com/streamich/memfs/commit/9dc7007))
+* 🐛 throw when creating root directory ([f77fa8b](https://github.com/streamich/memfs/commit/f77fa8b)), closes [#325](https://github.com/streamich/memfs/issues/325)
+
 # [2.15.0](https://github.com/streamich/memfs/compare/v2.14.2...v2.15.0) (2019-01-27)
 
 

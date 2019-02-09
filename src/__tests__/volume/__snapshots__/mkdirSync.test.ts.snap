@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`mkdirSync throws when creating root directory 1`] = `"EISDIR: illegal operation on a directory, mkdir '/'"`;
+
+exports[`mkdirSync throws when re-creating existing directory 1`] = `"EEXIST: file already exists, mkdir '/new-dir'"`;

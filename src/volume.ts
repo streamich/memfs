@@ -1768,6 +1768,12 @@ export class Volume {
 
   private mkdirBase(filename: string, modeNum: number) {
     const steps = filenameToSteps(filename);
+
+    // This will throw if user tries to create root dir `fs.mkdirSync('/')`.
+    if (!steps.length) {
+      throwError(EISDIR, 'mkdir', filename);
+    }
+
     const dir = this.getLinkParentAsDirOrThrow(filename, 'mkdir');
 
     // Check path already exists.

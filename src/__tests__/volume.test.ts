@@ -3,10 +3,7 @@ import { Link, Node } from '../node';
 import Stats from '../Stats';
 import Dirent from '../Dirent';
 import { Volume, filenameToSteps, StatWatcher } from '../volume';
-
-// I did not find how to include '../bigint.d.ts' here!
-type BigInt = number;
-declare const BigInt: typeof Number;
+import hasBigInt from './hasBigInt';
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
@@ -670,7 +667,7 @@ describe('volume', () => {
         expect(stats.isDirectory()).toBe(false);
       });
       it('Returns file stats using BigInt', () => {
-        if (typeof BigInt === 'function') {
+        if (hasBigInt) {
           const stats = vol.lstatSync('/dojo.js', { bigint: true });
           expect(typeof stats.ino).toBe('bigint');
         } else {
@@ -701,7 +698,7 @@ describe('volume', () => {
         expect(stats.isDirectory()).toBe(false);
       });
       it('Returns file stats using BigInt', () => {
-        if (typeof BigInt === 'function') {
+        if (hasBigInt) {
           const stats = vol.statSync('/dojo.js', { bigint: true });
           expect(typeof stats.ino).toBe('bigint');
         } else {
@@ -745,7 +742,7 @@ describe('volume', () => {
       });
       it('Returns file stats using BigInt', () => {
         const fd = vol.openSync('/dojo.js', 'r');
-        if (typeof BigInt === 'function') {
+        if (hasBigInt) {
           const stats = vol.fstatSync(fd, { bigint: true });
           expect(typeof stats.ino).toBe('bigint');
         } else {

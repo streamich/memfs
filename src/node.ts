@@ -416,8 +416,8 @@ export class File {
     this.position = position;
   }
 
-  stats(): Stats {
-    return Stats.build(this.node);
+  stats(): Stats<number> {
+    return Stats.build(this.node) as Stats<number>;
   }
 
   write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number): number {

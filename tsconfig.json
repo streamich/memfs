@@ -9,10 +9,6 @@
     "outDir": "lib",
     "declaration": true
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "src/__tests__"
-  ]
+  "include": ["src"],
+  "exclude": ["src/__tests__"]
 }

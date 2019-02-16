@@ -1430,14 +1430,19 @@ export class Volume {
     this.wrapAsync(this.realpathBase, [pathFilename, opts.encoding], callback);
   }
 
+  private lstatBase(filename: string, bigint: false): Stats<number>;
+  private lstatBase(filename: string, bigint: true): Stats<bigint>;
   private lstatBase(filename: string, bigint: boolean = false): Stats {
     const link: Link = this.getLink(filenameToSteps(filename));
     if (!link) throwError(ENOENT, 'lstat', filename);
     return Stats.build(link.getNode(), bigint);
   }
 
+  lstatSync(path: TFilePath): Stats<number>;
+  lstatSync(path: TFilePath, options: { bigint: false }): Stats<number>;
+  lstatSync(path: TFilePath, options: { bigint: true }): Stats<bigint>;
   lstatSync(path: TFilePath, options?: IStatOptions): Stats {
-    return this.lstatBase(pathToFilename(path), getStatOptions(options).bigint);
+    return this.lstatBase(pathToFilename(path), getStatOptions(options).bigint as any);
   }
 
   lstat(path: TFilePath, callback: TCallback<Stats>);
@@ -1447,6 +1452,9 @@ export class Volume {
     this.wrapAsync(this.lstatBase, [pathToFilename(path), opts.bigint], callback);
   }
 
+  private statBase(filename: string): Stats<number>;
+  private statBase(filename: string, bigint: false): Stats<number>;
+  private statBase(filename: string, bigint: true): Stats<bigint>;
   private statBase(filename: string, bigint: boolean = false): Stats {
     let link: Link = this.getLink(filenameToSteps(filename));
     if (!link) throwError(ENOENT, 'stat', filename);
@@ -1458,8 +1466,11 @@ export class Volume {
     return Stats.build(link.getNode(), bigint);
   }
 
+  statSync(path: TFilePath): Stats<number>;
+  statSync(path: TFilePath, options: { bigint: false }): Stats<number>;
+  statSync(path: TFilePath, options: { bigint: true }): Stats<bigint>;
   statSync(path: TFilePath, options?: IStatOptions): Stats {
-    return this.statBase(pathToFilename(path), getStatOptions(options).bigint);
+    return this.statBase(pathToFilename(path), getStatOptions(options).bigint as any);
   }
 
   stat(path: TFilePath, callback: TCallback<Stats>);
@@ -1469,14 +1480,20 @@ export class Volume {
     this.wrapAsync(this.statBase, [pathToFilename(path), opts.bigint], callback);
   }
 
+  private fstatBase(fd: number): Stats<number>;
+  private fstatBase(fd: number, bigint: false): Stats<number>;
+  private fstatBase(fd: number, bigint: true): Stats<bigint>;
   private fstatBase(fd: number, bigint: boolean = false): Stats {
     const file = this.getFileByFd(fd);
     if (!file) throwError(EBADF, 'fstat');
     return Stats.build(file.node, bigint);
   }
 
+  fstatSync(fd: number): Stats<number>;
+  fstatSync(fd: number, options: { bigint: false }): Stats<number>;
+  fstatSync(fd: number, options: { bigint: true }): Stats<bigint>;
   fstatSync(fd: number, options?: IStatOptions): Stats {
-    return this.fstatBase(fd, getStatOptions(options).bigint);
+    return this.fstatBase(fd, getStatOptions(options).bigint as any);
   }
 
   fstat(fd: number, callback: TCallback<Stats>);

@@ -1,3 +1,10 @@
+## [2.15.2](https://github.com/streamich/memfs/compare/v2.15.1...v2.15.2) (2019-02-16)
+
+
+### Bug Fixes
+
+* 🐛 BigInt type handling ([c640f25](https://github.com/streamich/memfs/commit/c640f25))
+
 ## [2.15.1](https://github.com/streamich/memfs/compare/v2.15.0...v2.15.1) (2019-02-09)
 
 

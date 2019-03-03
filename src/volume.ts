@@ -2085,24 +2085,31 @@ export class Volume {
     return new this.WriteStream(path, options);
   }
 
-  // watch(path: TFilePath): FSWatcher;
-  // watch(path: TFilePath, options?: IWatchOptions | string): FSWatcher;
-  watch(
-    path: TFilePath,
-    options?: IWatchOptions | string,
-    listener?: (eventType: string, filename: string) => void,
-  ): FSWatcher {
+  watch(path: TFilePath, listener?: (eventType: string, filename: string) => void,): FSWatcher;
+  watch(path: TFilePath, options?: IWatchOptions | string, listener?: (eventType: string, filename: string) => void ): FSWatcher 
+  watch(path: TFilePath, a, b?): FSWatcher {
     const filename = pathToFilename(path);
 
+    let options: IWatchOptions = a;
+    let listener: (eventType: string, filename: string) => void = b;
+
     if (typeof options === 'function') {
-      listener = options;
+      listener = a;
       options = null;
+    }
+
+    if (typeof listener !== 'function') {
+      throw Error('"watch()" requires a listener function');
     }
 
     // tslint:disable-next-line prefer-const
     let { persistent, recursive, encoding }: IWatchOptions = getDefaultOpts(options);
-    if (persistent === undefined) persistent = true;
-    if (recursive === undefined) recursive = false;
+    if (persistent === undefined) {
+      persistent = true;
+    }
+    if (recursive === undefined) {
+      recursive = false;
+    }
 
     const watcher = new this.FSWatcher();
     watcher.start(filename, persistent, recursive, encoding as TEncoding);

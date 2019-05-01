@@ -518,7 +518,7 @@ function validateGid(gid: number) {
 
 let promisesWarn = !process.env.MEMFS_DONT_WARN;
 
-type DirectoryJSON = Record<string, string | null>;
+export type DirectoryJSON = Record<string, string | null>;
 
 /**
  * `Volume` represents a file system.

@@ -808,7 +808,7 @@ export class Volume {
     });
   }
 
-  private _toJSON(link = this.root, json = {}, path?: string) {
+  private _toJSON(link = this.root, json = {}, path?: string): DirectoryJSON {
     let isEmpty = true;
 
     for (const name in link.children) {
@@ -836,7 +836,7 @@ export class Volume {
     return json;
   }
 
-  toJSON(paths?: TFilePath | TFilePath[], json = {}, isRelative = false) {
+  toJSON(paths?: TFilePath | TFilePath[], json = {}, isRelative = false): DirectoryJSON {
     const links: Link[] = [];
 
     if (paths) {

@@ -130,6 +130,18 @@ describe('volume', () => {
         });
       });
 
+      it('Specify a file export path', () => {
+        const vol = Volume.fromJSON({
+          '/foo': 'bar',
+          '/dir/a': 'b',
+          '/dir2/a': 'b',
+          '/dir2/c': 'd',
+        });
+        expect(vol.toJSON(['/dir/a'])).toEqual({
+          '/dir/a': 'b',
+        });
+      });
+
       it('Accumulate exports on supplied object', () => {
         const vol = Volume.fromJSON({
           '/foo': 'bar',

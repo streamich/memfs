@@ -809,7 +809,14 @@ export class Volume {
   private _toJSON(link = this.root, json = {}, path?: string) {
     let isEmpty = true;
 
-    for (const name in link.children) {
+    let children = link.children;
+
+    if (link.getNode().isFile()) {
+      children = { [link.getName()]: link.parent.getChild(link.getName()) };
+      link = link.parent;
+    }
+
+    for (const name in children) {
       isEmpty = false;
 
       const child = link.getChild(name);

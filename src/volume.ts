@@ -582,7 +582,7 @@ export class Volume {
   get promises() {
     if (promisesWarn) {
       promisesWarn = false;
-      require('process').emitWarning('The fs.promises API is experimental', 'ExperimentalWarning');
+      process.emitWarning('The fs.promises API is experimental', 'ExperimentalWarning');
     }
     if (this.promisesApi === null) throw new Error('Promise is not supported in this environment.');
     return this.promisesApi;

@@ -1,3 +1,10 @@
+## [2.15.3](https://github.com/streamich/memfs/compare/v2.15.2...v2.15.3) (2019-06-01)
+
+
+### Bug Fixes
+
+* 🐛 mocks process.emitWarning for browser compatibility ([e3456b2](https://github.com/streamich/memfs/commit/e3456b2)), closes [#374](https://github.com/streamich/memfs/issues/374)
+
 ## [2.15.2](https://github.com/streamich/memfs/compare/v2.15.1...v2.15.2) (2019-02-16)
 
 

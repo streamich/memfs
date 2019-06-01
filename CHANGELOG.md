@@ -1,3 +1,11 @@
+## [2.15.4](https://github.com/streamich/memfs/compare/v2.15.3...v2.15.4) (2019-06-01)
+
+
+### Bug Fixes
+
+* 🐛 accept `null` as value in `fromJSON` functions ([9e1af7d](https://github.com/streamich/memfs/commit/9e1af7d))
+* 🐛 annotate return type of `toJSON` functions ([6609840](https://github.com/streamich/memfs/commit/6609840))
+
 ## [2.15.3](https://github.com/streamich/memfs/compare/v2.15.2...v2.15.3) (2019-06-01)
 
 

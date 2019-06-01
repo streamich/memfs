@@ -518,11 +518,13 @@ function validateGid(gid: number) {
 
 let promisesWarn = !process.env.MEMFS_DONT_WARN;
 
+export type DirectoryJSON = Record<string, string | null>;
+
 /**
  * `Volume` represents a file system.
  */
 export class Volume {
-  static fromJSON(json: { [filename: string]: string }, cwd?: string): Volume {
+  static fromJSON(json: DirectoryJSON, cwd?: string): Volume {
     const vol = new Volume();
     vol.fromJSON(json, cwd);
     return vol;
@@ -806,7 +808,7 @@ export class Volume {
     });
   }
 
-  private _toJSON(link = this.root, json = {}, path?: string) {
+  private _toJSON(link = this.root, json = {}, path?: string): DirectoryJSON {
     let isEmpty = true;
 
     for (const name in link.children) {
@@ -834,7 +836,7 @@ export class Volume {
     return json;
   }
 
-  toJSON(paths?: TFilePath | TFilePath[], json = {}, isRelative = false) {
+  toJSON(paths?: TFilePath | TFilePath[], json = {}, isRelative = false): DirectoryJSON {
     const links: Link[] = [];
 
     if (paths) {
@@ -855,7 +857,7 @@ export class Volume {
   }
 
   // fromJSON(json: {[filename: string]: string}, cwd: string = '/') {
-  fromJSON(json: { [filename: string]: string }, cwd: string = process.cwd()) {
+  fromJSON(json: DirectoryJSON, cwd: string = process.cwd()) {
     for (let filename in json) {
       const data = json[filename];
 
@@ -886,7 +888,7 @@ export class Volume {
   }
 
   // Legacy interface
-  mountSync(mountpoint: string, json: { [filename: string]: string }) {
+  mountSync(mountpoint: string, json: DirectoryJSON) {
     this.fromJSON(json, mountpoint);
   }
 

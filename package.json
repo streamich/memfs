@@ -32,7 +32,7 @@
   "devDependencies": {
     "@semantic-release/changelog": "3.0.4",
     "@semantic-release/git": "7.0.13",
-    "@semantic-release/npm": "5.1.11",
+    "@semantic-release/npm": "5.1.12",
     "@types/jest": "23.3.14",
     "@types/node": "10.14.10",
     "cpy-cli": "2.0.0",

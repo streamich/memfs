@@ -556,7 +556,7 @@ export class Volume {
 
   // A list of reusable (opened and closed) file descriptors, that should be
   // used first before creating a new file descriptor.
-  releasedFds = [];
+  releasedFds: number[] = [];
 
   // Max number of open files.
   maxFiles = 10000;

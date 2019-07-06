@@ -1255,18 +1255,20 @@ export class Volume {
   writeFile(id: TFileId, data: TData, options: IWriteFileOptions | string, callback: TCallback<void>);
   writeFile(id: TFileId, data: TData, a: TCallback<void> | IWriteFileOptions | string, b?: TCallback<void>) {
     let options: IWriteFileOptions | string = a as IWriteFileOptions;
-    let callback: TCallback<void> = b;
+    let callback: TCallback<void> | undefined = b;
 
     if (typeof a === 'function') {
       options = writeFileDefaults;
       callback = a;
     }
 
+    const cb = validateCallback(callback);
+
     const opts = getWriteFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     const modeNum = modeToNumber(opts.mode);
     const buf = dataToBuffer(data, opts.encoding);
-    this.wrapAsync(this.writeFileBase, [id, buf, flagsNum, modeNum], callback);
+    this.wrapAsync(this.writeFileBase, [id, buf, flagsNum, modeNum], cb);
   }
 
   private linkBase(filename1: string, filename2: string) {

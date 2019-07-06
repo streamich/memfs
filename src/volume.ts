@@ -453,7 +453,7 @@ function nullCheck(path, callback?) {
   return true;
 }
 
-function _modeToNumber(mode: TMode, def?): number {
+function _modeToNumber(mode: TMode, def?): number | undefined {
   if (typeof mode === 'number') return mode;
   if (typeof mode === 'string') return parseInt(mode, 8);
   if (def) return modeToNumber(def);

@@ -1058,7 +1058,7 @@ export class Volume {
     else {
       const filename = pathToFilename(id as TFilePath);
       const steps = filenameToSteps(filename);
-      const link: Link = this.getResolvedLink(steps);
+      const link: Link | null = this.getResolvedLink(steps);
 
       if (link) {
         const node = link.getNode();

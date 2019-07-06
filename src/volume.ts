@@ -730,7 +730,7 @@ export class Volume {
     return link;
   }
 
-  resolveSymlinks(link: Link): Link {
+  resolveSymlinks(link: Link): Link | null {
     // let node: Node = link.getNode();
     // while(link && node.isSymlink()) {
     //     link = this.getLink(node.symlink);

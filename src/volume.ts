@@ -898,7 +898,7 @@ export class Volume {
     }
 
     // Resolve symlinks.
-    let realLink: Link = link;
+    let realLink: Link | null = link;
     if (resolveSymlinks) realLink = this.resolveSymlinks(link);
     if (!realLink) throw createError(ENOENT, 'open', link.getPath());
 

@@ -152,10 +152,6 @@ function createError(errorCode: string, func = '', path = '', path2 = '', Constr
   return error;
 }
 
-function throwError(errorCode: string, func = '', path = '', path2 = '', Constructor = Error) {
-  throw createError(errorCode, func, path, path2, Constructor);
-}
-
 // ---------------------------------------- Flags
 
 // List of file `flags` as defined by Node.
@@ -695,12 +691,12 @@ export class Volume {
   getLinkOrThrow(filename: string, funcName?: string): Link {
     const steps = filenameToSteps(filename);
     const link = this.getLink(steps);
-    if (!link) throwError(ENOENT, funcName, filename);
+    if (!link) throw createError(ENOENT, funcName, filename);
     return link;
   }
 
   // Just like `getLink`, but also dereference/resolves symbolic links.
-  getResolvedLink(filenameOrSteps: string | string[]): Link {
+  getResolvedLink(filenameOrSteps: string | string[]): Link | null {
     let steps: string[] = typeof filenameOrSteps === 'string' ? filenameToSteps(filenameOrSteps) : filenameOrSteps;
 
     let link = this.root;
@@ -727,7 +723,7 @@ export class Volume {
   // Just like `getLinkOrThrow`, but also dereference/resolves symbolic links.
   getResolvedLinkOrThrow(filename: string, funcName?: string): Link {
     const link = this.getResolvedLink(filename);
-    if (!link) throwError(ENOENT, funcName, filename);
+    if (!link) throw createError(ENOENT, funcName, filename);
     return link;
   }
 
@@ -745,7 +741,7 @@ export class Volume {
   // Just like `getLinkOrThrow`, but also verifies that the link is a directory.
   private getLinkAsDirOrThrow(filename: string, funcName?: string): Link {
     const link = this.getLinkOrThrow(filename, funcName);
-    if (!link.getNode().isDirectory()) throwError(ENOTDIR, funcName, filename);
+    if (!link.getNode().isDirectory()) throw createError(ENOTDIR, funcName, filename);
     return link;
   }
 
@@ -757,8 +753,8 @@ export class Volume {
   private getLinkParentAsDirOrThrow(filenameOrSteps: string | string[], funcName?: string): Link {
     const steps = filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps);
     const link = this.getLinkParent(steps);
-    if (!link) throwError(ENOENT, funcName, sep + steps.join(sep));
-    if (!link.getNode().isDirectory()) throwError(ENOTDIR, funcName, sep + steps.join(sep));
+    if (!link) throw createError(ENOENT, funcName, sep + steps.join(sep));
+    if (!link.getNode().isDirectory()) throw createError(ENOTDIR, funcName, sep + steps.join(sep));
     return link;
   }
 
@@ -769,7 +765,7 @@ export class Volume {
   private getFileByFdOrThrow(fd: number, funcName?: string): File {
     if (!isFd(fd)) throw TypeError(ERRSTR.FD);
     const file = this.getFileByFd(fd);
-    if (!file) throwError(EBADF, funcName);
+    if (!file) throw createError(EBADF, funcName);
     return file;
   }
 
@@ -793,7 +789,7 @@ export class Volume {
         }
       }
 
-      throwError(ENOENT, 'getNodeByIdOrCreate', pathToFilename(id));
+      throw createError(ENOENT, 'getNodeByIdOrCreate', pathToFilename(id));
     }
   }
 
@@ -901,15 +897,15 @@ export class Volume {
     // Resolve symlinks.
     let realLink: Link = link;
     if (resolveSymlinks) realLink = this.resolveSymlinks(link);
-    if (!realLink) throwError(ENOENT, 'open', link.getPath());
+    if (!realLink) throw createError(ENOENT, 'open', link.getPath());
 
     const node = realLink.getNode();
-    if (node.isDirectory() && flagsNum !== FLAGS.r) throwError(EISDIR, 'open', link.getPath());
+    if (node.isDirectory() && flagsNum !== FLAGS.r) throw createError(EISDIR, 'open', link.getPath());
 
     // Check node permissions
     if (!(flagsNum & O_WRONLY)) {
       if (!node.canRead()) {
-        throwError(EACCES, 'open', link.getPath());
+        throw createError(EACCES, 'open', link.getPath());
       }
     }
     if (flagsNum & O_RDWR) {
@@ -932,8 +928,8 @@ export class Volume {
     if (!link && flagsNum & O_CREAT) {
       // const dirLink: Link = this.getLinkParent(steps);
       const dirLink: Link = this.getResolvedLink(steps.slice(0, steps.length - 1));
-      // if(!dirLink) throwError(ENOENT, 'open', filename);
-      if (!dirLink) throwError(ENOENT, 'open', sep + steps.join(sep));
+      // if(!dirLink) throw createError(ENOENT, 'open', filename);
+      if (!dirLink) throw createError(ENOENT, 'open', sep + steps.join(sep));
 
       if (flagsNum & O_CREAT && typeof modeNum === 'number') {
         link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
@@ -941,12 +937,12 @@ export class Volume {
     }
 
     if (link) return this.openLink(link, flagsNum, resolveSymlinks);
-    throwError(ENOENT, 'open', filename);
+    throw createError(ENOENT, 'open', filename);
   }
 
   private openBase(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): number {
     const file = this.openFile(filename, flagsNum, modeNum, resolveSymlinks);
-    if (!file) throwError(ENOENT, 'open', filename);
+    if (!file) throw createError(ENOENT, 'open', filename);
     return file.fd;
   }
 
@@ -1058,7 +1054,7 @@ export class Volume {
 
       if (link) {
         const node = link.getNode();
-        if (node.isDirectory()) throwError(EISDIR, 'open', link.getPath());
+        if (node.isDirectory()) throw createError(EISDIR, 'open', link.getPath());
       }
 
       fd = this.openSync(id as TFilePath, flagsNum);
@@ -1268,18 +1264,18 @@ export class Volume {
   private linkBase(filename1: string, filename2: string) {
     const steps1 = filenameToSteps(filename1);
     const link1 = this.getLink(steps1);
-    if (!link1) throwError(ENOENT, 'link', filename1, filename2);
+    if (!link1) throw createError(ENOENT, 'link', filename1, filename2);
 
     const steps2 = filenameToSteps(filename2);
 
     // Check new link directory exists.
     const dir2 = this.getLinkParent(steps2);
-    if (!dir2) throwError(ENOENT, 'link', filename1, filename2);
+    if (!dir2) throw createError(ENOENT, 'link', filename1, filename2);
 
     const name = steps2[steps2.length - 1];
 
     // Check if new file already exists.
-    if (dir2.getChild(name)) throwError(EEXIST, 'link', filename1, filename2);
+    if (dir2.getChild(name)) throw createError(EEXIST, 'link', filename1, filename2);
 
     const node = link1.getNode();
     node.nlink++;
@@ -1291,12 +1287,12 @@ export class Volume {
 
     if (flags & COPYFILE_EXCL) {
       if (this.existsSync(dest)) {
-        throwError(EEXIST, 'copyFile', src, dest);
+        throw createError(EEXIST, 'copyFile', src, dest);
       }
     }
 
     if (flags & COPYFILE_FICLONE_FORCE) {
-      throwError(ENOSYS, 'copyFile', src, dest);
+      throw createError(ENOSYS, 'copyFile', src, dest);
     }
 
     this.writeFileBase(dest, buf, FLAGS.w, MODE.DEFAULT);
@@ -1346,7 +1342,7 @@ export class Volume {
   private unlinkBase(filename: string) {
     const steps = filenameToSteps(filename);
     const link = this.getLink(steps);
-    if (!link) throwError(ENOENT, 'unlink', filename);
+    if (!link) throw createError(ENOENT, 'unlink', filename);
 
     // TODO: Check if it is file, dir, other...
 
@@ -1378,12 +1374,12 @@ export class Volume {
 
     // Check if directory exists, where we about to create a symlink.
     const dirLink = this.getLinkParent(pathSteps);
-    if (!dirLink) throwError(ENOENT, 'symlink', targetFilename, pathFilename);
+    if (!dirLink) throw createError(ENOENT, 'symlink', targetFilename, pathFilename);
 
     const name = pathSteps[pathSteps.length - 1];
 
     // Check if new file already exists.
-    if (dirLink.getChild(name)) throwError(EEXIST, 'symlink', targetFilename, pathFilename);
+    if (dirLink.getChild(name)) throw createError(EEXIST, 'symlink', targetFilename, pathFilename);
 
     // Create symlink.
     const symlink: Link = dirLink.createChild(name);
@@ -1411,11 +1407,11 @@ export class Volume {
     const steps = filenameToSteps(filename);
     const link: Link = this.getLink(steps);
     // TODO: this check has to be perfomed by `lstat`.
-    if (!link) throwError(ENOENT, 'realpath', filename);
+    if (!link) throw createError(ENOENT, 'realpath', filename);
 
     // Resolve symlinks.
     const realLink = this.resolveSymlinks(link);
-    if (!realLink) throwError(ENOENT, 'realpath', filename);
+    if (!realLink) throw createError(ENOENT, 'realpath', filename);
 
     return strToEncoding(realLink.getPath(), encoding);
   }
@@ -1436,7 +1432,7 @@ export class Volume {
   private lstatBase(filename: string, bigint: true): Stats<bigint>;
   private lstatBase(filename: string, bigint: boolean = false): Stats {
     const link: Link = this.getLink(filenameToSteps(filename));
-    if (!link) throwError(ENOENT, 'lstat', filename);
+    if (!link) throw createError(ENOENT, 'lstat', filename);
     return Stats.build(link.getNode(), bigint);
   }
 
@@ -1459,11 +1455,11 @@ export class Volume {
   private statBase(filename: string, bigint: true): Stats<bigint>;
   private statBase(filename: string, bigint: boolean = false): Stats {
     let link: Link = this.getLink(filenameToSteps(filename));
-    if (!link) throwError(ENOENT, 'stat', filename);
+    if (!link) throw createError(ENOENT, 'stat', filename);
 
     // Resolve symlinks.
     link = this.resolveSymlinks(link);
-    if (!link) throwError(ENOENT, 'stat', filename);
+    if (!link) throw createError(ENOENT, 'stat', filename);
 
     return Stats.build(link.getNode(), bigint);
   }
@@ -1487,7 +1483,7 @@ export class Volume {
   private fstatBase(fd: number, bigint: true): Stats<bigint>;
   private fstatBase(fd: number, bigint: boolean = false): Stats {
     const file = this.getFileByFd(fd);
-    if (!file) throwError(EBADF, 'fstat');
+    if (!file) throw createError(EBADF, 'fstat');
     return Stats.build(file.node, bigint);
   }
 
@@ -1507,7 +1503,7 @@ export class Volume {
 
   private renameBase(oldPathFilename: string, newPathFilename: string) {
     const link: Link = this.getLink(filenameToSteps(oldPathFilename));
-    if (!link) throwError(ENOENT, 'rename', oldPathFilename, newPathFilename);
+    if (!link) throw createError(ENOENT, 'rename', oldPathFilename, newPathFilename);
 
     // TODO: Check if it is directory, if non-empty, we cannot move it, right?
 
@@ -1515,7 +1511,7 @@ export class Volume {
 
     // Check directory exists for the new location.
     const newPathDirLink: Link = this.getLinkParent(newPathSteps);
-    if (!newPathDirLink) throwError(ENOENT, 'rename', oldPathFilename, newPathFilename);
+    if (!newPathDirLink) throw createError(ENOENT, 'rename', oldPathFilename, newPathFilename);
 
     // TODO: Also treat cases with directories and symbolic links.
     // TODO: See: http://man7.org/linux/man-pages/man2/rename.2.html
@@ -1622,10 +1618,10 @@ export class Volume {
   private readdirBase(filename: string, options: IReaddirOptions): TDataOut[] | Dirent[] {
     const steps = filenameToSteps(filename);
     const link: Link = this.getResolvedLink(steps);
-    if (!link) throwError(ENOENT, 'readdir', filename);
+    if (!link) throw createError(ENOENT, 'readdir', filename);
 
     const node = link.getNode();
-    if (!node.isDirectory()) throwError(ENOTDIR, 'scandir', filename);
+    if (!node.isDirectory()) throw createError(ENOTDIR, 'scandir', filename);
 
     if (options.withFileTypes) {
       const list: Dirent[] = [];
@@ -1669,7 +1665,7 @@ export class Volume {
     const link = this.getLinkOrThrow(filename, 'readlink');
     const node = link.getNode();
 
-    if (!node.isSymlink()) throwError(EINVAL, 'readlink', filename);
+    if (!node.isSymlink()) throw createError(EINVAL, 'readlink', filename);
 
     const str = sep + node.symlink.join(sep);
     return strToEncoding(str, encoding);
@@ -1790,14 +1786,14 @@ export class Volume {
 
     // This will throw if user tries to create root dir `fs.mkdirSync('/')`.
     if (!steps.length) {
-      throwError(EISDIR, 'mkdir', filename);
+      throw createError(EISDIR, 'mkdir', filename);
     }
 
     const dir = this.getLinkParentAsDirOrThrow(filename, 'mkdir');
 
     // Check path already exists.
     const name = steps[steps.length - 1];
-    if (dir.getChild(name)) throwError(EEXIST, 'mkdir', filename);
+    if (dir.getChild(name)) throw createError(EEXIST, 'mkdir', filename);
 
     dir.createChild(name, this.createNode(true, modeNum));
   }
@@ -1813,12 +1809,12 @@ export class Volume {
     for (let i = 0; i < steps.length; i++) {
       const step = steps[i];
 
-      if (!link.getNode().isDirectory()) throwError(ENOTDIR, 'mkdir', link.getPath());
+      if (!link.getNode().isDirectory()) throw createError(ENOTDIR, 'mkdir', link.getPath());
 
       const child = link.getChild(step);
       if (child) {
         if (child.getNode().isDirectory()) link = child;
-        else throwError(ENOTDIR, 'mkdir', child.getPath());
+        else throw createError(ENOTDIR, 'mkdir', child.getPath());
       } else {
         link = link.createChild(step, this.createNode(true, modeNum));
       }
@@ -1895,7 +1891,7 @@ export class Volume {
     const link = this.getLinkAsDirOrThrow(filename, 'rmdir');
 
     // Check directory is empty.
-    if (link.length) throwError(ENOTEMPTY, 'rmdir', filename);
+    if (link.length) throw createError(ENOTEMPTY, 'rmdir', filename);
 
     this.deleteLink(link);
   }

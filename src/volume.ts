@@ -193,7 +193,7 @@ export type TFlagsCopy =
   | typeof constants.COPYFILE_FICLONE
   | typeof constants.COPYFILE_FICLONE_FORCE;
 
-export function flagsToNumber(flags: TFlags): number {
+export function flagsToNumber(flags: TFlags | undefined): number {
   if (typeof flags === 'number') return flags;
 
   if (typeof flags === 'string') {

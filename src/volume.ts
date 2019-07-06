@@ -1150,10 +1150,10 @@ export class Volume {
     validateFd(fd);
 
     let offset: number;
-    let length: number;
+    let length: number | undefined;
     let position: number;
-    let encoding: TEncoding;
-    let callback: (...args) => void;
+    let encoding: TEncoding | undefined;
+    let callback: ((...args) => void) | undefined;
 
     const tipa = typeof a;
     const tipb = typeof b;
@@ -1198,18 +1198,18 @@ export class Volume {
       length = buf.length;
     }
 
-    validateCallback(callback);
+    const cb = validateCallback(callback);
 
     setImmediate(() => {
       try {
         const bytes = this.writeBase(fd, buf, offset, length, position);
         if (tipa !== 'string') {
-          callback(null, bytes, buf);
+          cb(null, bytes, buf);
         } else {
-          callback(null, bytes, a);
+          cb(null, bytes, a);
         }
       } catch (err) {
-        callback(err);
+        cb(err);
       }
     });
   }

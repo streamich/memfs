@@ -1103,14 +1103,14 @@ export class Volume {
   writeSync(fd: number, a: string | Buffer | Uint8Array, b?: number, c?: number | TEncoding, d?: number): number {
     validateFd(fd);
 
-    let encoding: TEncoding;
-    let offset: number;
-    let length: number;
-    let position: number;
+    let encoding: TEncoding | undefined;
+    let offset: number | undefined;
+    let length: number | undefined;
+    let position: number | undefined;
 
     const isBuffer = typeof a !== 'string';
     if (isBuffer) {
-      offset = b | 0;
+      offset = (b || 0) | 0;
       length = c as number;
       position = d;
     } else {

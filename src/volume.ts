@@ -2129,7 +2129,7 @@ export class StatWatcher extends EventEmitter {
   vol: Volume = null;
   filename: string;
   interval: number;
-  timeoutRef = null;
+  timeoutRef?;
   setTimeout: TSetTimeout;
   prev: Stats = null;
 

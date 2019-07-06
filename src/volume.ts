@@ -456,7 +456,7 @@ function _modeToNumber(mode: TMode | undefined, def?): number | undefined {
   return undefined;
 }
 
-function modeToNumber(mode: TMode, def?): number {
+function modeToNumber(mode: TMode | undefined, def?): number {
   const result = _modeToNumber(mode, def);
   if (typeof result !== 'number' || isNaN(result)) throw new TypeError(ERRSTR.MODE_INT);
   return result;

@@ -1413,7 +1413,7 @@ export class Volume {
     this.wrapAsync(this.symlinkBase, [targetFilename, pathFilename], callback);
   }
 
-  private realpathBase(filename: string, encoding: TEncodingExtended): TDataOut {
+  private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
     const steps = filenameToSteps(filename);
     const link: Link = this.getLink(steps);
     // TODO: this check has to be perfomed by `lstat`.

@@ -923,14 +923,19 @@ export class Volume {
     return file;
   }
 
-  private openFile(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): File {
+  private openFile(
+    filename: string,
+    flagsNum: number,
+    modeNum: number | undefined,
+    resolveSymlinks: boolean = true,
+  ): File {
     const steps = filenameToSteps(filename);
-    let link: Link = resolveSymlinks ? this.getResolvedLink(steps) : this.getLink(steps);
+    let link: Link | null = resolveSymlinks ? this.getResolvedLink(steps) : this.getLink(steps);
 
     // Try creating a new file, if it does not exist.
     if (!link && flagsNum & O_CREAT) {
       // const dirLink: Link = this.getLinkParent(steps);
-      const dirLink: Link = this.getResolvedLink(steps.slice(0, steps.length - 1));
+      const dirLink: Link | null = this.getResolvedLink(steps.slice(0, steps.length - 1));
       // if(!dirLink) throw createError(ENOENT, 'open', filename);
       if (!dirLink) throw createError(ENOENT, 'open', sep + steps.join(sep));
 

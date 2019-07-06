@@ -647,7 +647,9 @@ export class Volume {
   }
 
   private newInoNumber(): number {
-    if (this.releasedInos.length) return this.releasedInos.pop();
+    const releasedFd = this.releasedInos.pop();
+
+    if (releasedFd) return releasedFd;
     else {
       this.ino = (this.ino + 1) % 0xffffffff;
       return this.ino;

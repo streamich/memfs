@@ -1230,13 +1230,13 @@ export class Volume {
 
     let offset = 0;
     let length = buf.length;
-    let position = flagsNum & O_APPEND ? null : 0;
+    let position = flagsNum & O_APPEND ? undefined : 0;
     try {
       while (length > 0) {
         const written = this.writeSync(fd, buf, offset, length, position);
         offset += written;
         length -= written;
-        if (position !== null) position += written;
+        if (position !== undefined) position += written;
       }
     } finally {
       if (!isUserFd) this.closeSync(fd);

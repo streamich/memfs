@@ -57,7 +57,7 @@ export type TData = TDataOut | Uint8Array; // Data formats users can give us.
 export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
 export type TTime = number | string | Date;
-export type TCallback<TData> = (error?: IError, data?: TData) => void;
+export type TCallback<TData> = (error?: IError | null, data?: TData) => void;
 // type TCallbackWrite = (err?: IError, bytesWritten?: number, source?: Buffer) => void;
 // type TCallbackWriteStr = (err?: IError, written?: number, str?: string) => void;
 export type TSymlinkType = 'file' | 'dir' | 'junction';

@@ -1026,7 +1026,7 @@ export class Volume {
     offset: number,
     length: number,
     position: number,
-    callback: (err?: Error, bytesRead?: number, buffer?: Buffer | Uint8Array) => void,
+    callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | Uint8Array) => void,
   ) {
     validateCallback(callback);
 

@@ -655,7 +655,8 @@ export class Volume {
   }
 
   private newFdNumber(): number {
-    return this.releasedFds.length ? this.releasedFds.pop() : Volume.fd--;
+    const releasedFd = this.releasedFds.pop();
+    return typeof releasedFd === 'number' ? releasedFd : Volume.fd--;
   }
 
   createNode(isDirectory: boolean = false, perm?: number): Node {

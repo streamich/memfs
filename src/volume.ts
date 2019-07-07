@@ -2037,7 +2037,7 @@ export class Volume {
   watchFile(path: TFilePath, a, b?): StatWatcher {
     const filename = pathToFilename(path);
 
-    let options: IWatchFileOptions = a;
+    let options: IWatchFileOptions | null = a;
     let listener: (curr: Stats, prev: Stats) => void = b;
 
     if (typeof options === 'function') {

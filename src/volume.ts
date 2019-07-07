@@ -1863,7 +1863,7 @@ export class Volume {
     this.mkdir(path, { mode, recursive: true }, callback);
   }
 
-  private mkdtempBase(prefix: string, encoding: TEncodingExtended, retry: number = 5): TDataOut {
+  private mkdtempBase(prefix: string, encoding?: TEncodingExtended, retry: number = 5): TDataOut {
     const filename = prefix + this.genRndStr();
     try {
       this.mkdirBase(filename, MODE.DIR);

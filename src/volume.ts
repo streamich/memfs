@@ -1881,7 +1881,7 @@ export class Volume {
 
     if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
 
-    if (!nullCheck(prefix)) return;
+    nullCheck(prefix);
 
     return this.mkdtempBase(prefix, encoding);
   }

@@ -1591,16 +1591,17 @@ export class Volume {
   access(path: TFilePath, callback: TCallback<void>);
   access(path: TFilePath, mode: number, callback: TCallback<void>);
   access(path: TFilePath, a: TCallback<void> | number, b?: TCallback<void>) {
-    let mode: number = a as number;
-    let callback: TCallback<void> = b;
+    let mode: number = F_OK;
+    let callback: TCallback<void>;
 
-    if (typeof mode === 'function') {
-      mode = F_OK;
-      callback = a as TCallback<void>;
+    if (typeof a !== 'function') {
+      mode = a | 0; // cast to number
+      callback = validateCallback(b);
+    } else {
+      callback = a;
     }
 
     const filename = pathToFilename(path);
-    mode = mode | 0;
 
     this.wrapAsync(this.accessBase, [filename, mode], callback);
   }

@@ -1872,7 +1872,7 @@ export class Volume {
       return strToEncoding(filename, encoding);
     } catch (err) {
       if (err.code === EEXIST) {
-        if (retry > 1) this.mkdtempBase(prefix, encoding, retry - 1);
+        if (retry > 1) return this.mkdtempBase(prefix, encoding, retry - 1);
         else throw Error('Could not create temp dir.');
       } else throw err;
     }

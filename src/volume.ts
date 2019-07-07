@@ -1754,9 +1754,11 @@ export class Volume {
   truncate(id: TFileId, callback: TCallback<void>);
   truncate(id: TFileId, len: number, callback: TCallback<void>);
   truncate(id: TFileId, a: TCallback<void> | number, b?: TCallback<void>) {
-    if (isFd(id)) return this.ftruncate(id as number, a as any, b);
+    const len: number = typeof a === 'number' ? a : 0;
+    const callback: TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
 
-    const [len, callback] = getArgAndCb<number, void>(a, b, 0);
+    if (isFd(id)) return this.ftruncate(id as number, len, callback);
+
     this.wrapAsync(this.truncateBase, [id, len], callback);
   }
 

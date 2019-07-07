@@ -1628,7 +1628,7 @@ export class Volume {
 
   private readdirBase(filename: string, options: IReaddirOptions): TDataOut[] | Dirent[] {
     const steps = filenameToSteps(filename);
-    const link: Link = this.getResolvedLink(steps);
+    const link: Link | null = this.getResolvedLink(steps);
     if (!link) throw createError(ENOENT, 'readdir', filename);
 
     const node = link.getNode();

@@ -1672,7 +1672,7 @@ export class Volume {
     this.wrapAsync(this.readdirBase, [filename, options], callback);
   }
 
-  private readlinkBase(filename: string, encoding: TEncodingExtended): TDataOut {
+  private readlinkBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
     const link = this.getLinkOrThrow(filename, 'readlink');
     const node = link.getNode();
 

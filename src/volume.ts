@@ -2102,14 +2102,15 @@ export class Volume {
     listener?: (eventType: string, filename: string) => void,
   ): FSWatcher {
     const filename = pathToFilename(path);
+    let givenOptions: (typeof options) | null = options;
 
     if (typeof options === 'function') {
       listener = options;
-      options = null;
+      givenOptions = null;
     }
 
     // tslint:disable-next-line prefer-const
-    let { persistent, recursive, encoding }: IWatchOptions = getDefaultOpts(options);
+    let { persistent, recursive, encoding }: IWatchOptions = getDefaultOpts(givenOptions);
     if (persistent === undefined) persistent = true;
     if (recursive === undefined) recursive = false;
 

@@ -926,6 +926,14 @@ describe('volume', () => {
         vol.writeFileSync(name + '/file.txt', 'lol');
         expect(vol.toJSON()).toEqual({ [name + '/file.txt']: 'lol' });
       });
+      it('throws when prefix is not a string', () => {
+        const vol = new Volume();
+        expect(() => vol.mkdtempSync({} as string)).toThrow(TypeError);
+      });
+      it('throws when prefix contains null bytes', () => {
+        const vol = new Volume();
+        expect(() => vol.mkdtempSync('/tmp-\u0000')).toThrow(/path.+string.+null bytes/i);
+      });
     });
     describe('.mkdtemp(prefix[, options], callback)', () => {
       xit('Create temp dir at root', () => {});

@@ -1312,7 +1312,7 @@ export class Volume {
     const srcFilename = pathToFilename(src);
     const destFilename = pathToFilename(dest);
 
-    return this.copyFileBase(srcFilename, destFilename, flags | 0);
+    return this.copyFileBase(srcFilename, destFilename, (flags || 0) | 0);
   }
 
   copyFile(src: TFilePath, dest: TFilePath, callback: TCallback<void>);

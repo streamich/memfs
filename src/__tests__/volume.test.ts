@@ -937,6 +937,14 @@ describe('volume', () => {
     });
     describe('.mkdtemp(prefix[, options], callback)', () => {
       xit('Create temp dir at root', () => {});
+      it('throws when prefix is not a string', () => {
+        const vol = new Volume();
+        expect(() => vol.mkdtemp({} as string, () => {})).toThrow(TypeError);
+      });
+      it('throws when prefix contains null bytes', () => {
+        const vol = new Volume();
+        expect(() => vol.mkdtemp('/tmp-\u0000', () => {})).toThrow(/path.+string.+null bytes/i);
+      });
     });
     describe('.rmdirSync(path)', () => {
       it('Remove single dir', () => {

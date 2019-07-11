@@ -625,8 +625,7 @@ export class Volume {
     const parent = link.parent;
     if (parent) {
       parent.deleteChild(link);
-      link.vol = null;
-      link.parent = null;
+
       return true;
     }
     return false;

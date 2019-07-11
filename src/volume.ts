@@ -488,20 +488,6 @@ export function toUnixTimestamp(time) {
   throw new Error('Cannot parse time: ' + time);
 }
 
-/**
- * Returns optional argument and callback
- * @param arg Argument or callback value
- * @param callback Callback or undefined
- * @param def Default argument value
- */
-function getArgAndCb<TArg, TRes>(
-  arg: TArg | TCallback<TRes>,
-  callback?: TCallback<TRes>,
-  def?: TArg,
-): [TArg, TCallback<TRes>] {
-  return typeof arg === 'function' ? [def, arg as TCallback<TRes>] : [arg, callback];
-}
-
 function validateUid(uid: number) {
   if (typeof uid !== 'number') throw TypeError(ERRSTR.UID);
 }

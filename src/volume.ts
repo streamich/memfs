@@ -1406,8 +1406,9 @@ export class Volume {
 
   symlink(target: TFilePath, path: TFilePath, callback: TCallback<void>);
   symlink(target: TFilePath, path: TFilePath, type: TSymlinkType, callback: TCallback<void>);
-  symlink(target: TFilePath, path: TFilePath, a, b?) {
-    const [type, callback] = getArgAndCb<TSymlinkType, TCallback<void>>(a, b);
+  symlink(target: TFilePath, path: TFilePath, a: TSymlinkType | TCallback<void>, b?: TCallback<void>) {
+    const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
+
     const targetFilename = pathToFilename(target);
     const pathFilename = pathToFilename(path);
     this.wrapAsync(this.symlinkBase, [targetFilename, pathFilename], callback);

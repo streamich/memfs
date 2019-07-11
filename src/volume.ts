@@ -1865,7 +1865,9 @@ export class Volume {
   mkdirp(path: TFilePath, callback: TCallback<void>);
   mkdirp(path: TFilePath, mode: TMode, callback: TCallback<void>);
   mkdirp(path: TFilePath, a: TCallback<void> | TMode, b?: TCallback<void>) {
-    const [mode, callback] = getArgAndCb<TMode, void>(a, b);
+    const mode: TMode | undefined = typeof a === 'function' ? undefined : a;
+    const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
+
     this.mkdir(path, { mode, recursive: true }, callback);
   }
 

@@ -2136,7 +2136,7 @@ export class StatWatcher extends EventEmitter {
   interval: number;
   timeoutRef?;
   setTimeout: TSetTimeout;
-  prev: Stats = null;
+  prev: Stats;
 
   constructor(vol: Volume) {
     super();

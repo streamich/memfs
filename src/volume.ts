@@ -1733,7 +1733,9 @@ export class Volume {
   ftruncate(fd: number, callback: TCallback<void>);
   ftruncate(fd: number, len: number, callback: TCallback<void>);
   ftruncate(fd: number, a: TCallback<void> | number, b?: TCallback<void>) {
-    const [len, callback] = getArgAndCb<number, void>(a, b);
+    const len: number = typeof a === 'number' ? a : 0;
+    const callback: TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
+
     this.wrapAsync(this.ftruncateBase, [fd, len], callback);
   }
 

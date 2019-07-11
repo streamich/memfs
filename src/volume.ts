@@ -2131,7 +2131,7 @@ function emitStop(self) {
 }
 
 export class StatWatcher extends EventEmitter {
-  vol: Volume = null;
+  vol: Volume;
   filename: string;
   interval: number;
   timeoutRef?;

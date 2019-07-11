@@ -618,7 +618,15 @@ export class Volume {
   createLink(): Link;
   createLink(parent: Link, name: string, isDirectory?: boolean, perm?: number): Link;
   createLink(parent?: Link, name?: string, isDirectory: boolean = false, perm?: number): Link {
-    return parent ? parent.createChild(name, this.createNode(isDirectory, perm)) : new this.props.Link(this, null, '');
+    if (!parent) {
+      return new this.props.Link(this, null, '');
+    }
+
+    if (!name) {
+      throw new Error('createLink: name cannot be empty');
+    }
+
+    return parent.createChild(name, this.createNode(isDirectory, perm));
   }
 
   deleteLink(link: Link): boolean {

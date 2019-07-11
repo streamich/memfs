@@ -337,7 +337,7 @@ const mkdirDefaults: IMkdirOptions = {
   mode: MODE.DIR,
   recursive: false,
 };
-const getMkdirOptions = options => {
+const getMkdirOptions = (options): IMkdirOptions => {
   if (typeof options === 'number') return extend({}, mkdirDefaults, { mode: options });
   return extend({}, mkdirDefaults, options);
 };
@@ -1848,8 +1848,9 @@ export class Volume {
   mkdir(path: TFilePath, callback: TCallback<void>);
   mkdir(path: TFilePath, mode: TMode | IMkdirOptions, callback: TCallback<void>);
   mkdir(path: TFilePath, a: TCallback<void> | TMode | IMkdirOptions, b?: TCallback<void>) {
-    const [options, callback] = getArgAndCb<TMode | IMkdirOptions, void>(a, b);
-    const opts = getMkdirOptions(options);
+    const opts: TMode | IMkdirOptions = getMkdirOptions(a);
+    const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
+
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
     if (opts.recursive) this.wrapAsync(this.mkdirpBase, [filename, modeNum], callback);

@@ -363,7 +363,7 @@ export class File {
    * Reference to a `Node`.
    * @type {Node}
    */
-  node: Node = null;
+  node: Node;
 
   /**
    * A cursor/offset position in a file, where data will be written on write.

@@ -679,7 +679,7 @@ export class Volume {
   }
 
   // Returns a `Link` (hard link) referenced by path "split" into steps.
-  getLink(steps: string[]): Link {
+  getLink(steps: string[]): Link | null {
     return this.root.walk(steps);
   }
 
@@ -695,7 +695,7 @@ export class Volume {
   getResolvedLink(filenameOrSteps: string | string[]): Link | null {
     let steps: string[] = typeof filenameOrSteps === 'string' ? filenameToSteps(filenameOrSteps) : filenameOrSteps;
 
-    let link = this.root;
+    let link: Link | undefined = this.root;
     let i = 0;
     while (i < steps.length) {
       const step = steps[i];
@@ -742,7 +742,7 @@ export class Volume {
   }
 
   // Get the immediate parent directory of the link.
-  private getLinkParent(steps: string[]): Link {
+  private getLinkParent(steps: string[]): Link | null {
     return this.root.walk(steps, steps.length - 1);
   }
 
@@ -772,7 +772,7 @@ export class Volume {
       return file.node;
     } else {
       const steps = pathToSteps(id as TFilePath);
-      let link: Link = this.getLink(steps);
+      let link = this.getLink(steps);
       if (link) return link.getNode();
 
       // Try creating a node if not found.
@@ -807,6 +807,10 @@ export class Volume {
       isEmpty = false;
 
       const child = link.getChild(name);
+
+      if (!child) {
+        throw new Error('_toJSON: unexpected undefined');
+      }
       const node = child.getNode();
       if (node.isFile()) {
         let filename = child.getPath();
@@ -1409,7 +1413,7 @@ export class Volume {
 
   private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
     const steps = filenameToSteps(filename);
-    const link: Link = this.getLink(steps);
+    const link = this.getLink(steps);
     // TODO: this check has to be perfomed by `lstat`.
     if (!link) throw createError(ENOENT, 'realpath', filename);
 
@@ -1435,7 +1439,7 @@ export class Volume {
   private lstatBase(filename: string, bigint: false): Stats<number>;
   private lstatBase(filename: string, bigint: true): Stats<bigint>;
   private lstatBase(filename: string, bigint: boolean = false): Stats {
-    const link: Link = this.getLink(filenameToSteps(filename));
+    const link = this.getLink(filenameToSteps(filename));
     if (!link) throw createError(ENOENT, 'lstat', filename);
     return Stats.build(link.getNode(), bigint);
   }
@@ -1506,7 +1510,7 @@ export class Volume {
   }
 
   private renameBase(oldPathFilename: string, newPathFilename: string) {
-    const link: Link = this.getLink(filenameToSteps(oldPathFilename));
+    const link = this.getLink(filenameToSteps(oldPathFilename));
     if (!link) throw createError(ENOENT, 'rename', oldPathFilename, newPathFilename);
 
     // TODO: Check if it is directory, if non-empty, we cannot move it, right?
@@ -1514,7 +1518,7 @@ export class Volume {
     const newPathSteps = filenameToSteps(newPathFilename);
 
     // Check directory exists for the new location.
-    const newPathDirLink: Link = this.getLinkParent(newPathSteps);
+    const newPathDirLink = this.getLinkParent(newPathSteps);
     if (!newPathDirLink) throw createError(ENOENT, 'rename', oldPathFilename, newPathFilename);
 
     // TODO: Also treat cases with directories and symbolic links.
@@ -1631,7 +1635,13 @@ export class Volume {
     if (options.withFileTypes) {
       const list: Dirent[] = [];
       for (const name in link.children) {
-        list.push(Dirent.build(link.children[name], options.encoding));
+        const child = link.getChild(name);
+
+        if (!child) {
+          continue;
+        }
+
+        list.push(Dirent.build(child, options.encoding));
       }
       if (!isWin && options.encoding !== 'buffer')
         list.sort((a, b) => {

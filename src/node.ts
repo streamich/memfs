@@ -325,9 +325,10 @@ export class Link extends EventEmitter {
    * @param steps {string[]} Desired location.
    * @param stop {number} Max steps to go into.
    * @param i {number} Current step in the `steps` array.
-   * @returns {any}
+   *
+   * @return {Link|null}
    */
-  walk(steps: string[], stop: number = steps.length, i: number = 0): Link {
+  walk(steps: string[], stop: number = steps.length, i: number = 0): Link | null {
     if (i >= steps.length) return this;
     if (i >= stop) return this;
 

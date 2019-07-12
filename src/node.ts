@@ -236,7 +236,7 @@ export class Link extends EventEmitter {
 
   parent: Link;
 
-  children: { [child: string]: Link } = {};
+  children: { [child: string]: Link | undefined } = {};
 
   // Path to this node as Array: ['usr', 'bin', 'node'].
   steps: string[] = [];
@@ -299,7 +299,7 @@ export class Link extends EventEmitter {
     this.emit('child:delete', link, this);
   }
 
-  getChild(name: string): Link {
+  getChild(name: string): Link | undefined {
     return this.children[name];
   }
 

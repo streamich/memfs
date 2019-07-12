@@ -357,7 +357,7 @@ export class File {
    * Hard link that this file opened.
    * @type {any}
    */
-  link: Link = null;
+  link: Link;
 
   /**
    * Reference to a `Node`.

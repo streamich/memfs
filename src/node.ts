@@ -234,7 +234,7 @@ export class Node extends EventEmitter {
 export class Link extends EventEmitter {
   vol: Volume;
 
-  parent: Link = null;
+  parent: Link;
 
   children: { [child: string]: Link } = {};
 

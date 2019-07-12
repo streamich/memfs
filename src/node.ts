@@ -25,7 +25,7 @@ export class Node extends EventEmitter {
   ctime = new Date();
 
   // data: string = '';
-  buf: Buffer = null;
+  buf: Buffer;
 
   perm = 0o666; // Permissions `chmod`, `fchmod`
 

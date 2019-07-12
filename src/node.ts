@@ -242,7 +242,7 @@ export class Link extends EventEmitter {
   steps: string[] = [];
 
   // "i-node" of this hard link.
-  node: Node = null;
+  node: Node;
 
   // "i-node" number of the node.
   ino: number = 0;

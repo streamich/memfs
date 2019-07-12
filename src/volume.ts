@@ -2492,7 +2492,7 @@ FsWriteStream.prototype.destroySoon = FsWriteStream.prototype.end;
 export class FSWatcher extends EventEmitter {
   _vol: Volume;
   _filename: string = '';
-  _steps: string[] = null;
+  _steps: string[];
   _filenameEncoded: TDataOut = '';
   // _persistent: boolean = true;
   _recursive: boolean = false;

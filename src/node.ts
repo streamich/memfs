@@ -35,7 +35,7 @@ export class Node extends EventEmitter {
   nlink = 1;
 
   // Steps to another node, if this node is a symlink.
-  symlink: string[] = null;
+  symlink: string[];
 
   constructor(ino: number, perm: number = 0o666) {
     super();

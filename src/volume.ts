@@ -2497,7 +2497,7 @@ export class FSWatcher extends EventEmitter {
   // _persistent: boolean = true;
   _recursive: boolean = false;
   _encoding: TEncoding = ENCODING_UTF8;
-  _link: Link = null;
+  _link: Link;
 
   _timer; // Timer that keeps this task persistent.
 

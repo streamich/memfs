@@ -4,7 +4,7 @@ import Stats from '../Stats';
 import Dirent from '../Dirent';
 import { Volume, filenameToSteps, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
-import { tryGetChildNode } from './util';
+import { tryGetChild, tryGetChildNode } from './util';
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
@@ -873,7 +873,7 @@ describe('volume', () => {
       it('Create dir at root', () => {
         const vol = new Volume();
         vol.mkdirSync('/test');
-        const child = vol.root.getChild('test');
+        const child = tryGetChild(vol.root, 'test');
         expect(child).toBeInstanceOf(Link);
         expect(child.getNode().isDirectory()).toBe(true);
       });
@@ -881,10 +881,10 @@ describe('volume', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir1');
         vol.mkdirSync('/dir1/dir2');
-        const dir1 = vol.root.getChild('dir1');
+        const dir1 = tryGetChild(vol.root, 'dir1');
         expect(dir1).toBeInstanceOf(Link);
         expect(dir1.getNode().isDirectory()).toBe(true);
-        const dir2 = dir1.getChild('dir2');
+        const dir2 = tryGetChild(dir1, 'dir2');
         expect(dir2).toBeInstanceOf(Link);
         expect(dir2.getNode().isDirectory()).toBe(true);
         expect(dir2.getPath()).toBe('/dir1/dir2');
@@ -892,9 +892,9 @@ describe('volume', () => {
       it('Create /dir1/dir2/dir3 recursively', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
-        const dir1 = vol.root.getChild('dir1');
-        const dir2 = dir1.getChild('dir2');
-        const dir3 = dir2.getChild('dir3');
+        const dir1 = tryGetChild(vol.root, 'dir1');
+        const dir2 = tryGetChild(dir1, 'dir2');
+        const dir3 = tryGetChild(dir2, 'dir3');
         expect(dir1).toBeInstanceOf(Link);
         expect(dir2).toBeInstanceOf(Link);
         expect(dir3).toBeInstanceOf(Link);

@@ -4,6 +4,7 @@ import Stats from '../Stats';
 import Dirent from '../Dirent';
 import { Volume, filenameToSteps, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
+import { tryGetChildNode } from './util';
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
@@ -388,12 +389,7 @@ describe('volume', () => {
           expect(err).toBe(null);
           expect(vol.root.getChild('b.txt')).toBeInstanceOf(Link);
           expect(typeof fd).toBe('number');
-          expect(
-            vol.root
-              .getChild('b.txt')
-              .getNode()
-              .canWrite(),
-          ).toBe(true);
+          expect(tryGetChildNode(vol.root, 'b.txt').canWrite()).toBe(true);
           done();
         });
       });
@@ -544,10 +540,7 @@ describe('volume', () => {
       it('Create a file at root (/writeFile.json)', done => {
         vol.writeFile('/writeFile.json', data, err => {
           expect(err).toBe(null);
-          const str = vol.root
-            .getChild('writeFile.json')
-            .getNode()
-            .getString();
+          const str = tryGetChildNode(vol.root, 'writeFile.json').getString();
           expect(str).toBe(data);
           done();
         });
@@ -569,12 +562,7 @@ describe('volume', () => {
       it('Create a symlink', () => {
         vol.symlinkSync('/jquery.js', '/test.js');
         expect(vol.root.getChild('test.js')).toBeInstanceOf(Link);
-        expect(
-          vol.root
-            .getChild('test.js')
-            .getNode()
-            .isSymlink(),
-        ).toBe(true);
+        expect(tryGetChildNode(vol.root, 'test.js').isSymlink()).toBe(true);
       });
       it('Read from symlink', () => {
         vol.symlinkSync('/jquery.js', '/test2.js');
@@ -950,12 +938,7 @@ describe('volume', () => {
       it('Remove single dir', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir');
-        expect(
-          vol.root
-            .getChild('dir')
-            .getNode()
-            .isDirectory(),
-        ).toBe(true);
+        expect(tryGetChildNode(vol.root, 'dir').isDirectory()).toBe(true);
         vol.rmdirSync('/dir');
         expect(!!vol.root.getChild('dir')).toBe(false);
       });

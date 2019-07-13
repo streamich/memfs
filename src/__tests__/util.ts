@@ -10,12 +10,14 @@ export const createFs = (json?) => {
   return createFsFromVolume(create(json));
 };
 
-export const tryGetChildNode = (link: Link, name: string): Node => {
+export const tryGetChild = (link: Link, name: string): Link => {
   const child = link.getChild(name);
 
   if (!child) {
     throw new Error(`expected link to have a child named "${name}"`);
   }
 
-  return child.getNode();
+  return child;
 };
+
+export const tryGetChildNode = (link: Link, name: string): Node => tryGetChild(link, name).getNode();

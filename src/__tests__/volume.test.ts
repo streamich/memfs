@@ -342,7 +342,7 @@ describe('volume', () => {
       });
       it('Error on file not found', done => {
         vol.open('/non-existing-file.txt', 'r', (err, fd) => {
-          expect(err.code).toBe('ENOENT');
+          expect(err).toHaveProperty('code', 'ENOENT');
           done();
         });
       });
@@ -395,7 +395,7 @@ describe('volume', () => {
       });
       it('Error on incorrect flags for directory', done => {
         vol.open('/test-dir', 'r+', (err, fd) => {
-          expect(err.code).toBe('EISDIR');
+          expect(err).toHaveProperty('code', 'EISDIR');
           done();
         });
       });
@@ -412,7 +412,7 @@ describe('volume', () => {
       it('Closes file without errors', done => {
         vol.open('/test.txt', 'w', (err, fd) => {
           expect(err).toBe(null);
-          vol.close(fd, err => {
+          vol.close(fd || -1, err => {
             expect(err).toBe(null);
             done();
           });
@@ -547,7 +547,7 @@ describe('volume', () => {
       });
       it('Throws error when no callback provided', () => {
         try {
-          vol.writeFile('/asdf.txt', 'asdf', 'utf8', undefined);
+          vol.writeFile('/asdf.txt', 'asdf', 'utf8', undefined as any);
           throw Error('This should not throw');
         } catch (err) {
           expect(err.message).toBe('callback must be a function');

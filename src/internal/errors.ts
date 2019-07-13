@@ -4,12 +4,11 @@
 // value statically and permanently identifies the error. While the error
 // message may change, the code should not.
 
+import * as assert from 'assert';
+import * as util from 'util';
+
 const kCode = typeof Symbol === 'undefined' ? '_kCode' : (Symbol as any)('code');
 const messages = {}; // new Map();
-
-// Lazily loaded
-let assert = null;
-let util = null;
 
 function makeNodeError(Base) {
   return class NodeError extends Base {
@@ -37,9 +36,6 @@ class AssertionError extends global.Error {
     if (options.message) {
       super(options.message);
     } else {
-      if (util === null) {
-        util = require('util');
-      }
       super(
         `${util.inspect(options.actual).slice(0, 128)} ` +
           `${options.operator} ${util.inspect(options.expected).slice(0, 128)}`,
@@ -57,9 +53,6 @@ class AssertionError extends global.Error {
 }
 
 function message(key, args) {
-  if (assert === null) {
-    assert = require('assert');
-  }
   assert.strictEqual(typeof key, 'string');
   // const msg = messages.get(key);
   const msg = messages[key];
@@ -68,9 +61,6 @@ function message(key, args) {
   if (typeof msg === 'function') {
     fmt = msg;
   } else {
-    if (util === null) {
-      util = require('util');
-    }
     fmt = util.format;
     if (args === undefined || args.length === 0) return msg;
     args.unshift(msg);

@@ -12,7 +12,8 @@ export interface IProcess {
   };
 }
 
-export function createProcess(p: IProcess = process): IProcess {
+export function createProcess(): IProcess {
+  let p: IProcess = typeof process !== 'undefined' && process;
   if (!p) {
     try {
       p = require('process');

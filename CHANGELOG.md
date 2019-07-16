@@ -1,3 +1,11 @@
+## [2.15.5](https://github.com/streamich/memfs/compare/v2.15.4...v2.15.5) (2019-07-16)
+
+
+### Bug Fixes
+
+* check for process ([8b9b00c](https://github.com/streamich/memfs/commit/8b9b00c))
+* check for process ([#396](https://github.com/streamich/memfs/issues/396)) ([2314dad](https://github.com/streamich/memfs/commit/2314dad))
+
 ## [2.15.4](https://github.com/streamich/memfs/compare/v2.15.3...v2.15.4) (2019-06-01)
 
 

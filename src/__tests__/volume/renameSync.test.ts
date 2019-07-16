@@ -1,22 +1,12 @@
-import { create } from '../util';
+import { create, tryGetChildNode } from '../util';
 
 describe('renameSync(fromPath, toPath)', () => {
   it('Renames a file', () => {
     const vol = create({ '/foo': 'bar' });
-    expect(
-      vol.root
-        .getChild('foo')
-        .getNode()
-        .isFile(),
-    ).toBe(true);
+    expect(tryGetChildNode(vol.root, 'foo').isFile()).toBe(true);
     vol.renameSync('/foo', '/baz');
     expect(vol.root.getChild('foo')).toBeUndefined();
-    expect(
-      vol.root
-        .getChild('baz')
-        .getNode()
-        .isFile(),
-    ).toBe(true);
+    expect(tryGetChildNode(vol.root, 'baz').isFile()).toBe(true);
     expect(vol.readFileSync('/baz', 'utf8')).toBe('bar');
   });
   it('Rename file two levels deep', () => {

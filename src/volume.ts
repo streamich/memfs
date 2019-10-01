@@ -516,7 +516,7 @@ function validateGid(gid: number) {
 
 // ---------------------------------------- Volume
 
-let promisesWarn = !process.env.MEMFS_DONT_WARN;
+let promisesWarn = true;
 
 export type DirectoryJSON = Record<string, string | null>;
 
@@ -582,9 +582,11 @@ export class Volume {
   private promisesApi = createPromisesApi(this);
 
   get promises() {
-    if (promisesWarn) {
-      promisesWarn = false;
-      process.emitWarning('The fs.promises API is experimental', 'ExperimentalWarning');
+    if (!process.env.MEMFS_DONT_WARN) {
+      if (promisesWarn) {
+        promisesWarn = false;
+        process.emitWarning('The fs.promises API is experimental', 'ExperimentalWarning');
+      }
     }
     if (this.promisesApi === null) throw new Error('Promise is not supported in this environment.');
     return this.promisesApi;

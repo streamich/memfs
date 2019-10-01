@@ -30,6 +30,10 @@ export function createFsFromVolume(vol: _Volume): IFs {
   for (const method of fsSyncMethods) if (typeof vol[method] === 'function') fs[method] = vol[method].bind(vol);
   for (const method of fsAsyncMethods) if (typeof vol[method] === 'function') fs[method] = vol[method].bind(vol);
 
+  const HAS_MEMFS_DONT_WARN = 'MEMFS_DONT_WARN' in process.env;
+  const MEMFS_DONT_WARN = process.env.MEMFS_DONT_WARN;
+  process.env.MEMFS_DONT_WARN = 'true';
+
   fs.StatWatcher = vol.StatWatcher;
   fs.FSWatcher = vol.FSWatcher;
   fs.WriteStream = vol.WriteStream;
@@ -37,6 +41,12 @@ export function createFsFromVolume(vol: _Volume): IFs {
   fs.promises = vol.promises;
 
   fs._toUnixTimestamp = toUnixTimestamp;
+
+  if (HAS_MEMFS_DONT_WARN) {
+    process.env.MEMFS_DONT_WARN = MEMFS_DONT_WARN;
+  } else {
+    delete process.env.MEMFS_DONT_WARN;
+  }
 
   return fs;
 }

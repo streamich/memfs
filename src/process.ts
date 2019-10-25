@@ -10,9 +10,7 @@ export interface IProcess {
   platform: string;
   nextTick: (callback: (...args) => void, ...args) => void;
   emitWarning: (message: string, type: string) => void;
-  env: {
-    MEMFS_DONT_WARN?: boolean;
-  };
+  env: {};
 }
 
 /**

@@ -6,18 +6,18 @@ This package exports `vol` and `fs` objects which both can be used for
 filesystem operations but are slightly different.
 
 ```js
-import {vol, fs} from 'memfs';
+import { vol, fs } from 'memfs';
 ```
 
 `vol` is an instance of `Volume` constructor, it is the default volume created
-for your convenience. `fs` is an *fs-like* object created from `vol` using
+for your convenience. `fs` is an _fs-like_ object created from `vol` using
 `createFsFromVolume(vol)`, see reference below.
 
 All contents of the `fs` object are also exported individually, so you can use
 `memfs` just like you would use the `fs` module:
 
 ```js
-import {readFileSync, F_OK, ReadStream} from 'memfs';
+import { readFileSync, F_OK, ReadStream } from 'memfs';
 ```
 
 ## `Volume` Constructor
@@ -25,8 +25,8 @@ import {readFileSync, F_OK, ReadStream} from 'memfs';
 `Volume` is a constructor function for creating new volumes:
 
 ```js
-import {Volume} from 'memfs';
-const vol = new Volume;
+import { Volume } from 'memfs';
+const vol = new Volume();
 ```
 
 `Volume` implements all [Node's filesystem methods](https://nodejs.org/api/fs.html):
@@ -45,8 +45,8 @@ A new volume can be create using the `Volume.fromJSON` convenience method:
 
 ```js
 const vol = Volume.fromJSON({
-    '/app/index.js': '...',
-    '/app/package.json': '...',
+  '/app/index.js': '...',
+  '/app/package.json': '...',
 });
 ```
 
@@ -63,10 +63,13 @@ given in a relative form.
 **Note:** To remove all existing files, use `vol.reset()` method.
 
 ```js
-vol.fromJSON({
+vol.fromJSON(
+  {
     './index.js': '...',
     './package.json': '...',
-}, '/app');
+  },
+  '/app',
+);
 ```
 
 #### `vol.mountSync(cwd, json)`
@@ -92,7 +95,7 @@ an array of paths. A path can be a string, `Buffer` or an `URL` object.
 Removes all files from the volume.
 
 ```js
-vol.fromJSON({'/index.js': '...'});
+vol.fromJSON({ '/index.js': '...' });
 vol.toJSON(); // {'/index.js': '...' }
 vol.reset();
 vol.toJSON(); // {}
@@ -120,30 +123,22 @@ A synchronous version of `vol.mkdirp()`. This method throws.
 
 ## `createFsFromVolume(vol)`
 
-Returns an *fs-like* object created from a `Volume` instance `vol`.
+Returns an _fs-like_ object created from a `Volume` instance `vol`.
 
 ```js
-import {createFsFromVolume, Volume} from 'memfs';
+import { createFsFromVolume, Volume } from 'memfs';
 
-const vol = new Volume;
+const vol = new Volume();
 const fs = createFsFromVolume(vol);
 ```
 
-The idea behind the *fs-like* object is to make it identical to the one
+The idea behind the _fs-like_ object is to make it identical to the one
 you get from `require('fs')`. Here are some things this function does:
 
-  - Binds all methods, so you can do:
-
-  ```js
-  const {createFileSync, readFileSync} = fs;
-  ```
-
-  - Adds constants `fs.constants`, `fs.F_OK`, etc.
-
-## Experimental fs.promise api warnings
-
-Supress warnings when using the promise api of fs by setting
+- Binds all methods, so you can do:
 
 ```js
-process.env.MEMFS_DONT_WARN = true;
+const { createFileSync, readFileSync } = fs;
 ```
+
+- Adds constants `fs.constants`, `fs.F_OK`, etc.

@@ -26,7 +26,7 @@
     "url": "https://github.com/streamich/memfs.git"
   },
   "dependencies": {
-    "fast-extend": "0.0.2",
+    "fast-extend": "1.0.2",
     "fs-monkey": "^0.3.3"
   },
   "devDependencies": {

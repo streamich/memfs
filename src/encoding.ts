@@ -1,3 +1,4 @@
+import { Buffer } from './internal/buffer';
 import * as errors from './internal/errors';
 
 export type TDataOut = string | Buffer; // Data formats we give back to users.

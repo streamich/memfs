@@ -2,7 +2,7 @@ import * as pathModule from 'path';
 import { Node, Link, File } from './node';
 import Stats, { TStatNumber } from './Stats';
 import Dirent from './Dirent';
-import { Buffer } from 'buffer';
+import { Buffer, bufferAllocUnsafe, bufferFrom } from './internal/buffer';
 import setImmediate from './setImmediate';
 import process from './process';
 import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
@@ -427,14 +427,14 @@ export function pathToSteps(path: TFilePath): string[] {
 
 export function dataToStr(data: TData, encoding: string = ENCODING_UTF8): string {
   if (Buffer.isBuffer(data)) return data.toString(encoding);
-  else if (data instanceof Uint8Array) return Buffer.from(data).toString(encoding);
+  else if (data instanceof Uint8Array) return bufferFrom(data).toString(encoding);
   else return String(data);
 }
 
 export function dataToBuffer(data: TData, encoding: string = ENCODING_UTF8): Buffer {
   if (Buffer.isBuffer(data)) return data;
-  else if (data instanceof Uint8Array) return Buffer.from(data);
-  else return Buffer.from(String(data), encoding);
+  else if (data instanceof Uint8Array) return bufferFrom(data);
+  else return bufferFrom(String(data), encoding);
 }
 
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): TDataOut {
@@ -2185,7 +2185,7 @@ export interface IReadStream extends Readable {
 var pool;
 
 function allocNewPool(poolSize) {
-  pool = Buffer.allocUnsafe(poolSize);
+  pool = bufferAllocUnsafe(poolSize);
   pool.used = 0;
 }
 

@@ -30,9 +30,9 @@
     "fs-monkey": "^0.3.3"
   },
   "devDependencies": {
-    "@semantic-release/changelog": "3.0.4",
-    "@semantic-release/git": "7.0.16",
-    "@semantic-release/npm": "5.2.0",
+    "@semantic-release/changelog": "3.0.5",
+    "@semantic-release/git": "7.0.17",
+    "@semantic-release/npm": "5.3.1",
     "@types/jest": "23.3.14",
     "@types/node": "10.17.0",
     "cpy-cli": "2.0.0",
@@ -41,7 +41,7 @@
     "prettier": "1.18.2",
     "pretty-quick": "1.11.1",
     "rimraf": "2.7.1",
-    "semantic-release": "15.13.27",
+    "semantic-release": "15.13.28",
     "ts-jest": "24.1.0",
     "ts-node": "8.4.1",
     "tslint": "5.20.0",

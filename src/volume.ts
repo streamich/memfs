@@ -1459,11 +1459,7 @@ export class Volume {
   private statBase(filename: string, bigint: false): Stats<number>;
   private statBase(filename: string, bigint: true): Stats<bigint>;
   private statBase(filename: string, bigint: boolean = false): Stats {
-    let link: Link = this.getLink(filenameToSteps(filename));
-    if (!link) throwError(ENOENT, 'stat', filename);
-
-    // Resolve symlinks.
-    link = this.resolveSymlinks(link);
+    const link = this.getResolvedLink(filenameToSteps(filename));
     if (!link) throwError(ENOENT, 'stat', filename);
 
     return Stats.build(link.getNode(), bigint);

@@ -1410,12 +1410,7 @@ export class Volume {
 
   private realpathBase(filename: string, encoding: TEncodingExtended): TDataOut {
     const steps = filenameToSteps(filename);
-    const link: Link = this.getLink(steps);
-    // TODO: this check has to be perfomed by `lstat`.
-    if (!link) throwError(ENOENT, 'realpath', filename);
-
-    // Resolve symlinks.
-    const realLink = this.resolveSymlinks(link);
+    const realLink = this.getResolvedLink(steps);
     if (!realLink) throwError(ENOENT, 'realpath', filename);
 
     return strToEncoding(realLink.getPath(), encoding);

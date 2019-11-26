@@ -1,6 +1,6 @@
 import { create } from '../util';
 
-describe('.realpath(...)', () => {
+describe('.statSync(...)', () => {
   it('works with symlinks, #463', () => {
     const vol = create({});
     vol.mkdirSync('/a');

@@ -1,4 +1,4 @@
-# memfs 2.0
+# memfs
 
 [![][npm-badge]][npm-url] [![][travis-badge]][travis-url]
 

@@ -41,7 +41,11 @@
     "ts-node": "8.5.2",
     "tslint": "5.20.1",
     "tslint-config-common": "1.6.0",
-    "typescript": "3.6.4"
+    "typescript": "3.6.4",
+    "semantic-release": "15.13.31",
+    "@semantic-release/changelog": "3.0.6",
+    "@semantic-release/git": "7.0.18",
+    "@semantic-release/npm": "5.3.4"
   },
   "config": {
     "commitizen": {

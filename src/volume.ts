@@ -1415,7 +1415,7 @@ export class Volume {
   private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
     const steps = filenameToSteps(filename);
     const realLink = this.getResolvedLink(steps);
-    if (!realLink) throwError(ENOENT, 'realpath', filename);
+    if (!realLink) throw createError(ENOENT, 'realpath', filename);
 
     return strToEncoding(realLink.getPath(), encoding);
   }
@@ -1459,7 +1459,7 @@ export class Volume {
   private statBase(filename: string, bigint: true): Stats<bigint>;
   private statBase(filename: string, bigint: boolean = false): Stats {
     const link = this.getResolvedLink(filenameToSteps(filename));
-    if (!link) throwError(ENOENT, 'stat', filename);
+    if (!link) throw createError(ENOENT, 'stat', filename);
 
     return Stats.build(link.getNode(), bigint);
   }

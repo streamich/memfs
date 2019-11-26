@@ -300,7 +300,7 @@ export class Link extends EventEmitter {
     this.emit('child:delete', link, this);
   }
 
-  getChild(name: string): Link {
+  getChild(name: string): Link | undefined {
     if (Object.hasOwnProperty.call(this.children, name)) {
       return this.children[name];
     }

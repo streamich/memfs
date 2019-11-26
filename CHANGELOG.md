@@ -1,3 +1,10 @@
+## [2.17.1](https://github.com/streamich/memfs/compare/v2.17.0...v2.17.1) (2019-11-26)
+
+
+### Bug Fixes
+
+* set-up semantic-release packages ([0554c7e](https://github.com/streamich/memfs/commit/0554c7e9ae472e4a3f7afe47d5aa990abd7f05bf))
+
 ## [2.15.5](https://github.com/streamich/memfs/compare/v2.15.4...v2.15.5) (2019-07-16)
 
 

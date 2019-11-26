@@ -11,7 +11,7 @@ import { constants } from './constants';
 import { EventEmitter } from 'events';
 import { TEncoding, TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as errors from './internal/errors';
-import extend = require('fast-extend');
+const { extend } = require('fast-extend');
 import util = require('util');
 import createPromisesApi from './promises';
 
@@ -2105,7 +2105,7 @@ export class Volume {
     listener?: (eventType: string, filename: string) => void,
   ): FSWatcher {
     const filename = pathToFilename(path);
-    let givenOptions: (typeof options) | null = options;
+    let givenOptions: typeof options | null = options;
 
     if (typeof options === 'function') {
       listener = options;

@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/streamich/memfs/compare/v3.0.0...v3.0.1) (2019-11-26)
+
+
+### Performance Improvements
+
+* ⚡️ bump fast-extend ([606775b](https://github.com/streamich/memfs/commit/606775bb6f20bc16a53b911d2a095bf8a6385e1a))
+
 # [3.0.0](https://github.com/streamich/memfs/compare/v2.17.1...v3.0.0) (2019-11-26)
 
 

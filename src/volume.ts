@@ -2,7 +2,7 @@ import * as pathModule from 'path';
 import { Node, Link, File } from './node';
 import Stats, { TStatNumber } from './Stats';
 import Dirent from './Dirent';
-import { Buffer } from 'buffer';
+import { Buffer, bufferAllocUnsafe, bufferFrom } from './internal/buffer';
 import setImmediate from './setImmediate';
 import process from './process';
 import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
@@ -423,14 +423,14 @@ export function pathToSteps(path: TFilePath): string[] {
 
 export function dataToStr(data: TData, encoding: string = ENCODING_UTF8): string {
   if (Buffer.isBuffer(data)) return data.toString(encoding);
-  else if (data instanceof Uint8Array) return Buffer.from(data).toString(encoding);
+  else if (data instanceof Uint8Array) return bufferFrom(data).toString(encoding);
   else return String(data);
 }
 
 export function dataToBuffer(data: TData, encoding: string = ENCODING_UTF8): Buffer {
   if (Buffer.isBuffer(data)) return data;
-  else if (data instanceof Uint8Array) return Buffer.from(data);
-  else return Buffer.from(String(data), encoding);
+  else if (data instanceof Uint8Array) return bufferFrom(data);
+  else return bufferFrom(String(data), encoding);
 }
 
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): TDataOut {
@@ -498,8 +498,6 @@ function validateGid(gid: number) {
 
 // ---------------------------------------- Volume
 
-let promisesWarn = !process.env.MEMFS_DONT_WARN;
-
 export type DirectoryJSON = Record<string, string | null>;
 
 /**
@@ -564,10 +562,6 @@ export class Volume {
   private promisesApi = createPromisesApi(this);
 
   get promises() {
-    if (promisesWarn) {
-      promisesWarn = false;
-      process.emitWarning('The fs.promises API is experimental', 'ExperimentalWarning');
-    }
     if (this.promisesApi === null) throw new Error('Promise is not supported in this environment.');
     return this.promisesApi;
   }
@@ -803,7 +797,14 @@ export class Volume {
   private _toJSON(link = this.root, json = {}, path?: string): DirectoryJSON {
     let isEmpty = true;
 
-    for (const name in link.children) {
+    let children = link.children;
+
+    if (link.getNode().isFile()) {
+      children = { [link.getName()]: link.parent.getChild(link.getName()) };
+      link = link.parent;
+    }
+
+    for (const name in children) {
       isEmpty = false;
 
       const child = link.getChild(name);
@@ -1413,13 +1414,8 @@ export class Volume {
 
   private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
     const steps = filenameToSteps(filename);
-    const link = this.getLink(steps);
-    // TODO: this check has to be perfomed by `lstat`.
-    if (!link) throw createError(ENOENT, 'realpath', filename);
-
-    // Resolve symlinks.
-    const realLink = this.resolveSymlinks(link);
-    if (!realLink) throw createError(ENOENT, 'realpath', filename);
+    const realLink = this.getResolvedLink(steps);
+    if (!realLink) throwError(ENOENT, 'realpath', filename);
 
     return strToEncoding(realLink.getPath(), encoding);
   }
@@ -1462,12 +1458,8 @@ export class Volume {
   private statBase(filename: string, bigint: false): Stats<number>;
   private statBase(filename: string, bigint: true): Stats<bigint>;
   private statBase(filename: string, bigint: boolean = false): Stats {
-    let link: Link | null = this.getLink(filenameToSteps(filename));
-    if (!link) throw createError(ENOENT, 'stat', filename);
-
-    // Resolve symlinks.
-    link = this.resolveSymlinks(link);
-    if (!link) throw createError(ENOENT, 'stat', filename);
+    const link = this.getResolvedLink(filenameToSteps(filename));
+    if (!link) throwError(ENOENT, 'stat', filename);
 
     return Stats.build(link.getNode(), bigint);
   }
@@ -2204,7 +2196,7 @@ export interface IReadStream extends Readable {
 var pool;
 
 function allocNewPool(poolSize) {
-  pool = Buffer.allocUnsafe(poolSize);
+  pool = bufferAllocUnsafe(poolSize);
   pool.used = 0;
 }
 

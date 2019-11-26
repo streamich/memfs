@@ -1,4 +1,5 @@
 import process from './process';
+import { bufferAllocUnsafe, bufferFrom } from './internal/buffer';
 import { constants, S } from './constants';
 import { Volume } from './volume';
 import { EventEmitter } from 'events';
@@ -49,18 +50,18 @@ export class Node extends EventEmitter {
   }
 
   setString(str: string) {
-    // this.setBuffer(Buffer.from(str, 'utf8'));
-    this.buf = Buffer.from(str, 'utf8');
+    // this.setBuffer(bufferFrom(str, 'utf8'));
+    this.buf = bufferFrom(str, 'utf8');
     this.touch();
   }
 
   getBuffer(): Buffer {
-    if (!this.buf) this.setBuffer(Buffer.allocUnsafe(0));
-    return Buffer.from(this.buf); // Return a copy.
+    if (!this.buf) this.setBuffer(bufferAllocUnsafe(0));
+    return bufferFrom(this.buf); // Return a copy.
   }
 
   setBuffer(buf: Buffer) {
-    this.buf = Buffer.from(buf); // Creates a copy of data.
+    this.buf = bufferFrom(buf); // Creates a copy of data.
     this.touch();
   }
 
@@ -103,10 +104,10 @@ export class Node extends EventEmitter {
   }
 
   write(buf: Buffer, off: number = 0, len: number = buf.length, pos: number = 0): number {
-    if (!this.buf) this.buf = Buffer.allocUnsafe(0);
+    if (!this.buf) this.buf = bufferAllocUnsafe(0);
 
     if (pos + len > this.buf.length) {
-      const newBuf = Buffer.allocUnsafe(pos + len);
+      const newBuf = bufferAllocUnsafe(pos + len);
       this.buf.copy(newBuf, 0, 0, this.buf.length);
       this.buf = newBuf;
     }
@@ -120,7 +121,7 @@ export class Node extends EventEmitter {
 
   // Returns the number of bytes read.
   read(buf: Buffer | Uint8Array, off: number = 0, len: number = buf.byteLength, pos: number = 0): number {
-    if (!this.buf) this.buf = Buffer.allocUnsafe(0);
+    if (!this.buf) this.buf = bufferAllocUnsafe(0);
 
     let actualLen = len;
     if (actualLen > buf.byteLength) {
@@ -135,13 +136,13 @@ export class Node extends EventEmitter {
   }
 
   truncate(len: number = 0) {
-    if (!len) this.buf = Buffer.allocUnsafe(0);
+    if (!len) this.buf = bufferAllocUnsafe(0);
     else {
-      if (!this.buf) this.buf = Buffer.allocUnsafe(0);
+      if (!this.buf) this.buf = bufferAllocUnsafe(0);
       if (len <= this.buf.length) {
         this.buf = this.buf.slice(0, len);
       } else {
-        const buf = Buffer.allocUnsafe(0);
+        const buf = bufferAllocUnsafe(0);
         this.buf.copy(buf);
         buf.fill(0, len);
       }
@@ -299,8 +300,10 @@ export class Link extends EventEmitter {
     this.emit('child:delete', link, this);
   }
 
-  getChild(name: string): Link | undefined {
-    return this.children[name];
+  getChild(name: string): Link {
+    if (Object.hasOwnProperty.call(this.children, name)) {
+      return this.children[name];
+    }
   }
 
   getPath(): string {

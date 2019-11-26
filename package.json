@@ -60,6 +60,18 @@
     },
     "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$"
   },
+  "release": {
+    "verifyConditions": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/git"
+    ],
+    "prepare": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/git"
+    ]
+  },
   "keywords": [
     "fs",
     "filesystem",

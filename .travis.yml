@@ -18,7 +18,7 @@ matrix:
   allow_failures: []
   fast_finish: true
 after_success:
-  - yarn semantic-release
+  - npx semantic-release
 branches:
   except:
     - /^v\d+\.\d+\.\d+$/

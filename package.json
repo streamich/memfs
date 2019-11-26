@@ -14,7 +14,6 @@
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "watch": "watch \"npm run build\" ./src",
-    "semantic-release": "semantic-release",
     "prettier": "prettier --ignore-path .gitignore --write \"src/**/*.{ts,js}\"",
     "prettier:diff": "prettier -l \"src/**/*.{ts,js}\"",
     "tslint": "tslint \"src/**/*.ts\" -t verbose",
@@ -30,9 +29,6 @@
     "fs-monkey": "^0.3.3"
   },
   "devDependencies": {
-    "@semantic-release/changelog": "3.0.6",
-    "@semantic-release/git": "7.0.18",
-    "@semantic-release/npm": "5.3.4",
     "@types/jest": "23.3.14",
     "@types/node": "10.17.6",
     "cpy-cli": "2.0.0",
@@ -41,7 +37,6 @@
     "prettier": "1.19.1",
     "pretty-quick": "1.11.1",
     "rimraf": "2.7.1",
-    "semantic-release": "15.13.31",
     "ts-jest": "24.1.0",
     "ts-node": "8.5.2",
     "tslint": "5.20.1",
@@ -64,18 +59,6 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$"
-  },
-  "release": {
-    "verifyConditions": [
-      "@semantic-release/changelog",
-      "@semantic-release/npm",
-      "@semantic-release/git"
-    ],
-    "prepare": [
-      "@semantic-release/changelog",
-      "@semantic-release/npm",
-      "@semantic-release/git"
-    ]
   },
   "keywords": [
     "fs",

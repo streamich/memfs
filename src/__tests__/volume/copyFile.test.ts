@@ -36,7 +36,7 @@ describe('copyFile(src, dest[, flags], callback)', () => {
 
     vol.copyFile('/foo', '/bar', constants.COPYFILE_EXCL, (err, result) => {
       expect(err).toBeInstanceOf(Error);
-      expect(err.message).toContain('EEXIST');
+      expect(err).toHaveProperty('message', expect.stringContaining('EEXIST'));
       expect(result).toBe(undefined);
 
       expect(vol.readFileSync('/foo', 'utf8')).toBe('hello world');

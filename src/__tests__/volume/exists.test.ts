@@ -16,7 +16,7 @@ describe('exists(path, callback)', () => {
   });
   it('Throws correct error if callback not provided', done => {
     try {
-      vol.exists('/foo', undefined);
+      vol.exists('/foo', undefined as any);
       throw new Error('not_this');
     } catch (err) {
       expect(err.message).toEqual('callback must be a function');

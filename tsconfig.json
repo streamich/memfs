@@ -5,6 +5,7 @@
     "module": "commonjs",
     "removeComments": false,
     "noImplicitAny": false,
+    "strictNullChecks": true,
     "sourceMap": false,
     "outDir": "lib",
     "declaration": true

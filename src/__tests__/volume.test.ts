@@ -4,6 +4,7 @@ import Stats from '../Stats';
 import Dirent from '../Dirent';
 import { Volume, filenameToSteps, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
+import { tryGetChild, tryGetChildNode } from './util';
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
@@ -353,7 +354,7 @@ describe('volume', () => {
       });
       it('Error on file not found', done => {
         vol.open('/non-existing-file.txt', 'r', (err, fd) => {
-          expect(err.code).toBe('ENOENT');
+          expect(err).toHaveProperty('code', 'ENOENT');
           done();
         });
       });
@@ -400,18 +401,13 @@ describe('volume', () => {
           expect(err).toBe(null);
           expect(vol.root.getChild('b.txt')).toBeInstanceOf(Link);
           expect(typeof fd).toBe('number');
-          expect(
-            vol.root
-              .getChild('b.txt')
-              .getNode()
-              .canWrite(),
-          ).toBe(true);
+          expect(tryGetChildNode(vol.root, 'b.txt').canWrite()).toBe(true);
           done();
         });
       });
       it('Error on incorrect flags for directory', done => {
         vol.open('/test-dir', 'r+', (err, fd) => {
-          expect(err.code).toBe('EISDIR');
+          expect(err).toHaveProperty('code', 'EISDIR');
           done();
         });
       });
@@ -428,7 +424,7 @@ describe('volume', () => {
       it('Closes file without errors', done => {
         vol.open('/test.txt', 'w', (err, fd) => {
           expect(err).toBe(null);
-          vol.close(fd, err => {
+          vol.close(fd || -1, err => {
             expect(err).toBe(null);
             done();
           });
@@ -556,17 +552,14 @@ describe('volume', () => {
       it('Create a file at root (/writeFile.json)', done => {
         vol.writeFile('/writeFile.json', data, err => {
           expect(err).toBe(null);
-          const str = vol.root
-            .getChild('writeFile.json')
-            .getNode()
-            .getString();
+          const str = tryGetChildNode(vol.root, 'writeFile.json').getString();
           expect(str).toBe(data);
           done();
         });
       });
       it('Throws error when no callback provided', () => {
         try {
-          vol.writeFile('/asdf.txt', 'asdf', 'utf8', undefined);
+          vol.writeFile('/asdf.txt', 'asdf', 'utf8', undefined as any);
           throw Error('This should not throw');
         } catch (err) {
           expect(err.message).toBe('callback must be a function');
@@ -581,12 +574,7 @@ describe('volume', () => {
       it('Create a symlink', () => {
         vol.symlinkSync('/jquery.js', '/test.js');
         expect(vol.root.getChild('test.js')).toBeInstanceOf(Link);
-        expect(
-          vol.root
-            .getChild('test.js')
-            .getNode()
-            .isSymlink(),
-        ).toBe(true);
+        expect(tryGetChildNode(vol.root, 'test.js').isSymlink()).toBe(true);
       });
       it('Read from symlink', () => {
         vol.symlinkSync('/jquery.js', '/test2.js');
@@ -897,7 +885,7 @@ describe('volume', () => {
       it('Create dir at root', () => {
         const vol = new Volume();
         vol.mkdirSync('/test');
-        const child = vol.root.getChild('test');
+        const child = tryGetChild(vol.root, 'test');
         expect(child).toBeInstanceOf(Link);
         expect(child.getNode().isDirectory()).toBe(true);
       });
@@ -905,10 +893,10 @@ describe('volume', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir1');
         vol.mkdirSync('/dir1/dir2');
-        const dir1 = vol.root.getChild('dir1');
+        const dir1 = tryGetChild(vol.root, 'dir1');
         expect(dir1).toBeInstanceOf(Link);
         expect(dir1.getNode().isDirectory()).toBe(true);
-        const dir2 = dir1.getChild('dir2');
+        const dir2 = tryGetChild(dir1, 'dir2');
         expect(dir2).toBeInstanceOf(Link);
         expect(dir2.getNode().isDirectory()).toBe(true);
         expect(dir2.getPath()).toBe('/dir1/dir2');
@@ -916,9 +904,9 @@ describe('volume', () => {
       it('Create /dir1/dir2/dir3 recursively', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
-        const dir1 = vol.root.getChild('dir1');
-        const dir2 = dir1.getChild('dir2');
-        const dir3 = dir2.getChild('dir3');
+        const dir1 = tryGetChild(vol.root, 'dir1');
+        const dir2 = tryGetChild(dir1, 'dir2');
+        const dir3 = tryGetChild(dir2, 'dir3');
         expect(dir1).toBeInstanceOf(Link);
         expect(dir2).toBeInstanceOf(Link);
         expect(dir3).toBeInstanceOf(Link);
@@ -938,20 +926,31 @@ describe('volume', () => {
         vol.writeFileSync(name + '/file.txt', 'lol');
         expect(vol.toJSON()).toEqual({ [name + '/file.txt']: 'lol' });
       });
+      it('throws when prefix is not a string', () => {
+        const vol = new Volume();
+        expect(() => vol.mkdtempSync({} as string)).toThrow(TypeError);
+      });
+      it('throws when prefix contains null bytes', () => {
+        const vol = new Volume();
+        expect(() => vol.mkdtempSync('/tmp-\u0000')).toThrow(/path.+string.+null bytes/i);
+      });
     });
     describe('.mkdtemp(prefix[, options], callback)', () => {
       xit('Create temp dir at root', () => {});
+      it('throws when prefix is not a string', () => {
+        const vol = new Volume();
+        expect(() => vol.mkdtemp({} as string, () => {})).toThrow(TypeError);
+      });
+      it('throws when prefix contains null bytes', () => {
+        const vol = new Volume();
+        expect(() => vol.mkdtemp('/tmp-\u0000', () => {})).toThrow(/path.+string.+null bytes/i);
+      });
     });
     describe('.rmdirSync(path)', () => {
       it('Remove single dir', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir');
-        expect(
-          vol.root
-            .getChild('dir')
-            .getNode()
-            .isDirectory(),
-        ).toBe(true);
+        expect(tryGetChildNode(vol.root, 'dir').isDirectory()).toBe(true);
         vol.rmdirSync('/dir');
         expect(!!vol.root.getChild('dir')).toBe(false);
       });

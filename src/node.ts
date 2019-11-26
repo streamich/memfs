@@ -26,7 +26,7 @@ export class Node extends EventEmitter {
   ctime = new Date();
 
   // data: string = '';
-  buf: Buffer = null;
+  buf: Buffer;
 
   perm = 0o666; // Permissions `chmod`, `fchmod`
 
@@ -36,7 +36,7 @@ export class Node extends EventEmitter {
   nlink = 1;
 
   // Steps to another node, if this node is a symlink.
-  symlink: string[] = null;
+  symlink: string[];
 
   constructor(ino: number, perm: number = 0o666) {
     super();
@@ -235,15 +235,15 @@ export class Node extends EventEmitter {
 export class Link extends EventEmitter {
   vol: Volume;
 
-  parent: Link = null;
+  parent: Link;
 
-  children: { [child: string]: Link } = {};
+  children: { [child: string]: Link | undefined } = {};
 
   // Path to this node as Array: ['usr', 'bin', 'node'].
   steps: string[] = [];
 
   // "i-node" of this hard link.
-  node: Node = null;
+  node: Node;
 
   // "i-node" number of the node.
   ino: number = 0;
@@ -300,7 +300,7 @@ export class Link extends EventEmitter {
     this.emit('child:delete', link, this);
   }
 
-  getChild(name: string): Link {
+  getChild(name: string): Link | undefined {
     if (Object.hasOwnProperty.call(this.children, name)) {
       return this.children[name];
     }
@@ -328,9 +328,10 @@ export class Link extends EventEmitter {
    * @param steps {string[]} Desired location.
    * @param stop {number} Max steps to go into.
    * @param i {number} Current step in the `steps` array.
-   * @returns {any}
+   *
+   * @return {Link|null}
    */
-  walk(steps: string[], stop: number = steps.length, i: number = 0): Link {
+  walk(steps: string[], stop: number = steps.length, i: number = 0): Link | null {
     if (i >= steps.length) return this;
     if (i >= stop) return this;
 
@@ -359,13 +360,13 @@ export class File {
    * Hard link that this file opened.
    * @type {any}
    */
-  link: Link = null;
+  link: Link;
 
   /**
    * Reference to a `Node`.
    * @type {Node}
    */
-  node: Node = null;
+  node: Node;
 
   /**
    * A cursor/offset position in a file, where data will be written on write.

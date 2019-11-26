@@ -57,7 +57,7 @@ export type TData = TDataOut | Uint8Array; // Data formats users can give us.
 export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
 export type TTime = number | string | Date;
-export type TCallback<TData> = (error?: IError, data?: TData) => void;
+export type TCallback<TData> = (error?: IError | null, data?: TData) => void;
 // type TCallbackWrite = (err?: IError, bytesWritten?: number, source?: Buffer) => void;
 // type TCallbackWriteStr = (err?: IError, written?: number, str?: string) => void;
 export type TSymlinkType = 'file' | 'dir' | 'junction';
@@ -152,10 +152,6 @@ function createError(errorCode: string, func = '', path = '', path2 = '', Constr
   return error;
 }
 
-function throwError(errorCode: string, func = '', path = '', path2 = '', Constructor = Error) {
-  throw createError(errorCode, func, path, path2, Constructor);
-}
-
 // ---------------------------------------- Flags
 
 // List of file `flags` as defined by Node.
@@ -197,7 +193,7 @@ export type TFlagsCopy =
   | typeof constants.COPYFILE_FICLONE
   | typeof constants.COPYFILE_FICLONE_FORCE;
 
-export function flagsToNumber(flags: TFlags): number {
+export function flagsToNumber(flags: TFlags | undefined): number {
   if (typeof flags === 'number') return flags;
 
   if (typeof flags === 'string') {
@@ -341,7 +337,7 @@ const mkdirDefaults: IMkdirOptions = {
   mode: MODE.DIR,
   recursive: false,
 };
-const getMkdirOptions = options => {
+const getMkdirOptions = (options): IMkdirOptions => {
   if (typeof options === 'number') return extend({}, mkdirDefaults, { mode: options });
   return extend({}, mkdirDefaults, options);
 };
@@ -453,14 +449,14 @@ function nullCheck(path, callback?) {
   return true;
 }
 
-function _modeToNumber(mode: TMode, def?): number {
+function _modeToNumber(mode: TMode | undefined, def?): number | undefined {
   if (typeof mode === 'number') return mode;
   if (typeof mode === 'string') return parseInt(mode, 8);
   if (def) return modeToNumber(def);
   return undefined;
 }
 
-function modeToNumber(mode: TMode, def?): number {
+function modeToNumber(mode: TMode | undefined, def?): number {
   const result = _modeToNumber(mode, def);
   if (typeof result !== 'number' || isNaN(result)) throw new TypeError(ERRSTR.MODE_INT);
   return result;
@@ -490,20 +486,6 @@ export function toUnixTimestamp(time) {
     return time;
   }
   throw new Error('Cannot parse time: ' + time);
-}
-
-/**
- * Returns optional argument and callback
- * @param arg Argument or callback value
- * @param callback Callback or undefined
- * @param def Default argument value
- */
-function getArgAndCb<TArg, TRes>(
-  arg: TArg | TCallback<TRes>,
-  callback?: TCallback<TRes>,
-  def?: TArg,
-): [TArg, TCallback<TRes>] {
-  return typeof arg === 'function' ? [def, arg as TCallback<TRes>] : [arg, callback];
 }
 
 function validateUid(uid: number) {
@@ -558,7 +540,7 @@ export class Volume {
 
   // A list of reusable (opened and closed) file descriptors, that should be
   // used first before creating a new file descriptor.
-  releasedFds = [];
+  releasedFds: number[] = [];
 
   // Max number of open files.
   maxFiles = 10000;
@@ -630,22 +612,31 @@ export class Volume {
   createLink(): Link;
   createLink(parent: Link, name: string, isDirectory?: boolean, perm?: number): Link;
   createLink(parent?: Link, name?: string, isDirectory: boolean = false, perm?: number): Link {
-    return parent ? parent.createChild(name, this.createNode(isDirectory, perm)) : new this.props.Link(this, null, '');
+    if (!parent) {
+      return new this.props.Link(this, null, '');
+    }
+
+    if (!name) {
+      throw new Error('createLink: name cannot be empty');
+    }
+
+    return parent.createChild(name, this.createNode(isDirectory, perm));
   }
 
   deleteLink(link: Link): boolean {
     const parent = link.parent;
     if (parent) {
       parent.deleteChild(link);
-      link.vol = null;
-      link.parent = null;
+
       return true;
     }
     return false;
   }
 
   private newInoNumber(): number {
-    if (this.releasedInos.length) return this.releasedInos.pop();
+    const releasedFd = this.releasedInos.pop();
+
+    if (releasedFd) return releasedFd;
     else {
       this.ino = (this.ino + 1) % 0xffffffff;
       return this.ino;
@@ -653,7 +644,8 @@ export class Volume {
   }
 
   private newFdNumber(): number {
-    return this.releasedFds.length ? this.releasedFds.pop() : Volume.fd--;
+    const releasedFd = this.releasedFds.pop();
+    return typeof releasedFd === 'number' ? releasedFd : Volume.fd--;
   }
 
   createNode(isDirectory: boolean = false, perm?: number): Node {
@@ -681,7 +673,7 @@ export class Volume {
   }
 
   // Returns a `Link` (hard link) referenced by path "split" into steps.
-  getLink(steps: string[]): Link {
+  getLink(steps: string[]): Link | null {
     return this.root.walk(steps);
   }
 
@@ -689,15 +681,15 @@ export class Volume {
   getLinkOrThrow(filename: string, funcName?: string): Link {
     const steps = filenameToSteps(filename);
     const link = this.getLink(steps);
-    if (!link) throwError(ENOENT, funcName, filename);
+    if (!link) throw createError(ENOENT, funcName, filename);
     return link;
   }
 
   // Just like `getLink`, but also dereference/resolves symbolic links.
-  getResolvedLink(filenameOrSteps: string | string[]): Link {
+  getResolvedLink(filenameOrSteps: string | string[]): Link | null {
     let steps: string[] = typeof filenameOrSteps === 'string' ? filenameToSteps(filenameOrSteps) : filenameOrSteps;
 
-    let link = this.root;
+    let link: Link | undefined = this.root;
     let i = 0;
     while (i < steps.length) {
       const step = steps[i];
@@ -721,11 +713,11 @@ export class Volume {
   // Just like `getLinkOrThrow`, but also dereference/resolves symbolic links.
   getResolvedLinkOrThrow(filename: string, funcName?: string): Link {
     const link = this.getResolvedLink(filename);
-    if (!link) throwError(ENOENT, funcName, filename);
+    if (!link) throw createError(ENOENT, funcName, filename);
     return link;
   }
 
-  resolveSymlinks(link: Link): Link {
+  resolveSymlinks(link: Link): Link | null {
     // let node: Node = link.getNode();
     // while(link && node.isSymlink()) {
     //     link = this.getLink(node.symlink);
@@ -739,20 +731,20 @@ export class Volume {
   // Just like `getLinkOrThrow`, but also verifies that the link is a directory.
   private getLinkAsDirOrThrow(filename: string, funcName?: string): Link {
     const link = this.getLinkOrThrow(filename, funcName);
-    if (!link.getNode().isDirectory()) throwError(ENOTDIR, funcName, filename);
+    if (!link.getNode().isDirectory()) throw createError(ENOTDIR, funcName, filename);
     return link;
   }
 
   // Get the immediate parent directory of the link.
-  private getLinkParent(steps: string[]): Link {
+  private getLinkParent(steps: string[]): Link | null {
     return this.root.walk(steps, steps.length - 1);
   }
 
   private getLinkParentAsDirOrThrow(filenameOrSteps: string | string[], funcName?: string): Link {
     const steps = filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps);
     const link = this.getLinkParent(steps);
-    if (!link) throwError(ENOENT, funcName, sep + steps.join(sep));
-    if (!link.getNode().isDirectory()) throwError(ENOTDIR, funcName, sep + steps.join(sep));
+    if (!link) throw createError(ENOENT, funcName, sep + steps.join(sep));
+    if (!link.getNode().isDirectory()) throw createError(ENOTDIR, funcName, sep + steps.join(sep));
     return link;
   }
 
@@ -763,7 +755,7 @@ export class Volume {
   private getFileByFdOrThrow(fd: number, funcName?: string): File {
     if (!isFd(fd)) throw TypeError(ERRSTR.FD);
     const file = this.getFileByFd(fd);
-    if (!file) throwError(EBADF, funcName);
+    if (!file) throw createError(EBADF, funcName);
     return file;
   }
 
@@ -774,7 +766,7 @@ export class Volume {
       return file.node;
     } else {
       const steps = pathToSteps(id as TFilePath);
-      let link: Link = this.getLink(steps);
+      let link = this.getLink(steps);
       if (link) return link.getNode();
 
       // Try creating a node if not found.
@@ -787,7 +779,7 @@ export class Volume {
         }
       }
 
-      throwError(ENOENT, 'getNodeByIdOrCreate', pathToFilename(id));
+      throw createError(ENOENT, 'getNodeByIdOrCreate', pathToFilename(id));
     }
   }
 
@@ -816,6 +808,10 @@ export class Volume {
       isEmpty = false;
 
       const child = link.getChild(name);
+
+      if (!child) {
+        throw new Error('_toJSON: unexpected undefined');
+      }
       const node = child.getNode();
       if (node.isFile()) {
         let filename = child.getPath();
@@ -900,17 +896,17 @@ export class Volume {
     }
 
     // Resolve symlinks.
-    let realLink: Link = link;
+    let realLink: Link | null = link;
     if (resolveSymlinks) realLink = this.resolveSymlinks(link);
-    if (!realLink) throwError(ENOENT, 'open', link.getPath());
+    if (!realLink) throw createError(ENOENT, 'open', link.getPath());
 
     const node = realLink.getNode();
-    if (node.isDirectory() && flagsNum !== FLAGS.r) throwError(EISDIR, 'open', link.getPath());
+    if (node.isDirectory() && flagsNum !== FLAGS.r) throw createError(EISDIR, 'open', link.getPath());
 
     // Check node permissions
     if (!(flagsNum & O_WRONLY)) {
       if (!node.canRead()) {
-        throwError(EACCES, 'open', link.getPath());
+        throw createError(EACCES, 'open', link.getPath());
       }
     }
     if (flagsNum & O_RDWR) {
@@ -925,16 +921,21 @@ export class Volume {
     return file;
   }
 
-  private openFile(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): File {
+  private openFile(
+    filename: string,
+    flagsNum: number,
+    modeNum: number | undefined,
+    resolveSymlinks: boolean = true,
+  ): File {
     const steps = filenameToSteps(filename);
-    let link: Link = resolveSymlinks ? this.getResolvedLink(steps) : this.getLink(steps);
+    let link: Link | null = resolveSymlinks ? this.getResolvedLink(steps) : this.getLink(steps);
 
     // Try creating a new file, if it does not exist.
     if (!link && flagsNum & O_CREAT) {
       // const dirLink: Link = this.getLinkParent(steps);
-      const dirLink: Link = this.getResolvedLink(steps.slice(0, steps.length - 1));
-      // if(!dirLink) throwError(ENOENT, 'open', filename);
-      if (!dirLink) throwError(ENOENT, 'open', sep + steps.join(sep));
+      const dirLink: Link | null = this.getResolvedLink(steps.slice(0, steps.length - 1));
+      // if(!dirLink) throw createError(ENOENT, 'open', filename);
+      if (!dirLink) throw createError(ENOENT, 'open', sep + steps.join(sep));
 
       if (flagsNum & O_CREAT && typeof modeNum === 'number') {
         link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
@@ -942,12 +943,12 @@ export class Volume {
     }
 
     if (link) return this.openLink(link, flagsNum, resolveSymlinks);
-    throwError(ENOENT, 'open', filename);
+    throw createError(ENOENT, 'open', filename);
   }
 
   private openBase(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): number {
     const file = this.openFile(filename, flagsNum, modeNum, resolveSymlinks);
-    if (!file) throwError(ENOENT, 'open', filename);
+    if (!file) throw createError(ENOENT, 'open', filename);
     return file.fd;
   }
 
@@ -1023,7 +1024,7 @@ export class Volume {
     offset: number,
     length: number,
     position: number,
-    callback: (err?: Error, bytesRead?: number, buffer?: Buffer | Uint8Array) => void,
+    callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | Uint8Array) => void,
   ) {
     validateCallback(callback);
 
@@ -1055,11 +1056,11 @@ export class Volume {
     else {
       const filename = pathToFilename(id as TFilePath);
       const steps = filenameToSteps(filename);
-      const link: Link = this.getResolvedLink(steps);
+      const link: Link | null = this.getResolvedLink(steps);
 
       if (link) {
         const node = link.getNode();
-        if (node.isDirectory()) throwError(EISDIR, 'open', link.getPath());
+        if (node.isDirectory()) throw createError(EISDIR, 'open', link.getPath());
       }
 
       fd = this.openSync(id as TFilePath, flagsNum);
@@ -1100,14 +1101,14 @@ export class Volume {
   writeSync(fd: number, a: string | Buffer | Uint8Array, b?: number, c?: number | TEncoding, d?: number): number {
     validateFd(fd);
 
-    let encoding: TEncoding;
-    let offset: number;
-    let length: number;
-    let position: number;
+    let encoding: TEncoding | undefined;
+    let offset: number | undefined;
+    let length: number | undefined;
+    let position: number | undefined;
 
     const isBuffer = typeof a !== 'string';
     if (isBuffer) {
-      offset = b | 0;
+      offset = (b || 0) | 0;
       length = c as number;
       position = d;
     } else {
@@ -1147,10 +1148,10 @@ export class Volume {
     validateFd(fd);
 
     let offset: number;
-    let length: number;
+    let length: number | undefined;
     let position: number;
-    let encoding: TEncoding;
-    let callback: (...args) => void;
+    let encoding: TEncoding | undefined;
+    let callback: ((...args) => void) | undefined;
 
     const tipa = typeof a;
     const tipb = typeof b;
@@ -1195,18 +1196,18 @@ export class Volume {
       length = buf.length;
     }
 
-    validateCallback(callback);
+    const cb = validateCallback(callback);
 
     setImmediate(() => {
       try {
         const bytes = this.writeBase(fd, buf, offset, length, position);
         if (tipa !== 'string') {
-          callback(null, bytes, buf);
+          cb(null, bytes, buf);
         } else {
-          callback(null, bytes, a);
+          cb(null, bytes, a);
         }
       } catch (err) {
-        callback(err);
+        cb(err);
       }
     });
   }
@@ -1227,13 +1228,13 @@ export class Volume {
 
     let offset = 0;
     let length = buf.length;
-    let position = flagsNum & O_APPEND ? null : 0;
+    let position = flagsNum & O_APPEND ? undefined : 0;
     try {
       while (length > 0) {
         const written = this.writeSync(fd, buf, offset, length, position);
         offset += written;
         length -= written;
-        if (position !== null) position += written;
+        if (position !== undefined) position += written;
       }
     } finally {
       if (!isUserFd) this.closeSync(fd);
@@ -1252,35 +1253,37 @@ export class Volume {
   writeFile(id: TFileId, data: TData, options: IWriteFileOptions | string, callback: TCallback<void>);
   writeFile(id: TFileId, data: TData, a: TCallback<void> | IWriteFileOptions | string, b?: TCallback<void>) {
     let options: IWriteFileOptions | string = a as IWriteFileOptions;
-    let callback: TCallback<void> = b;
+    let callback: TCallback<void> | undefined = b;
 
     if (typeof a === 'function') {
       options = writeFileDefaults;
       callback = a;
     }
 
+    const cb = validateCallback(callback);
+
     const opts = getWriteFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     const modeNum = modeToNumber(opts.mode);
     const buf = dataToBuffer(data, opts.encoding);
-    this.wrapAsync(this.writeFileBase, [id, buf, flagsNum, modeNum], callback);
+    this.wrapAsync(this.writeFileBase, [id, buf, flagsNum, modeNum], cb);
   }
 
   private linkBase(filename1: string, filename2: string) {
     const steps1 = filenameToSteps(filename1);
     const link1 = this.getLink(steps1);
-    if (!link1) throwError(ENOENT, 'link', filename1, filename2);
+    if (!link1) throw createError(ENOENT, 'link', filename1, filename2);
 
     const steps2 = filenameToSteps(filename2);
 
     // Check new link directory exists.
     const dir2 = this.getLinkParent(steps2);
-    if (!dir2) throwError(ENOENT, 'link', filename1, filename2);
+    if (!dir2) throw createError(ENOENT, 'link', filename1, filename2);
 
     const name = steps2[steps2.length - 1];
 
     // Check if new file already exists.
-    if (dir2.getChild(name)) throwError(EEXIST, 'link', filename1, filename2);
+    if (dir2.getChild(name)) throw createError(EEXIST, 'link', filename1, filename2);
 
     const node = link1.getNode();
     node.nlink++;
@@ -1292,12 +1295,12 @@ export class Volume {
 
     if (flags & COPYFILE_EXCL) {
       if (this.existsSync(dest)) {
-        throwError(EEXIST, 'copyFile', src, dest);
+        throw createError(EEXIST, 'copyFile', src, dest);
       }
     }
 
     if (flags & COPYFILE_FICLONE_FORCE) {
-      throwError(ENOSYS, 'copyFile', src, dest);
+      throw createError(ENOSYS, 'copyFile', src, dest);
     }
 
     this.writeFileBase(dest, buf, FLAGS.w, MODE.DEFAULT);
@@ -1307,7 +1310,7 @@ export class Volume {
     const srcFilename = pathToFilename(src);
     const destFilename = pathToFilename(dest);
 
-    return this.copyFileBase(srcFilename, destFilename, flags | 0);
+    return this.copyFileBase(srcFilename, destFilename, (flags || 0) | 0);
   }
 
   copyFile(src: TFilePath, dest: TFilePath, callback: TCallback<void>);
@@ -1347,7 +1350,7 @@ export class Volume {
   private unlinkBase(filename: string) {
     const steps = filenameToSteps(filename);
     const link = this.getLink(steps);
-    if (!link) throwError(ENOENT, 'unlink', filename);
+    if (!link) throw createError(ENOENT, 'unlink', filename);
 
     // TODO: Check if it is file, dir, other...
 
@@ -1379,12 +1382,12 @@ export class Volume {
 
     // Check if directory exists, where we about to create a symlink.
     const dirLink = this.getLinkParent(pathSteps);
-    if (!dirLink) throwError(ENOENT, 'symlink', targetFilename, pathFilename);
+    if (!dirLink) throw createError(ENOENT, 'symlink', targetFilename, pathFilename);
 
     const name = pathSteps[pathSteps.length - 1];
 
     // Check if new file already exists.
-    if (dirLink.getChild(name)) throwError(EEXIST, 'symlink', targetFilename, pathFilename);
+    if (dirLink.getChild(name)) throw createError(EEXIST, 'symlink', targetFilename, pathFilename);
 
     // Create symlink.
     const symlink: Link = dirLink.createChild(name);
@@ -1401,17 +1404,18 @@ export class Volume {
 
   symlink(target: TFilePath, path: TFilePath, callback: TCallback<void>);
   symlink(target: TFilePath, path: TFilePath, type: TSymlinkType, callback: TCallback<void>);
-  symlink(target: TFilePath, path: TFilePath, a, b?) {
-    const [type, callback] = getArgAndCb<TSymlinkType, TCallback<void>>(a, b);
+  symlink(target: TFilePath, path: TFilePath, a: TSymlinkType | TCallback<void>, b?: TCallback<void>) {
+    const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
+
     const targetFilename = pathToFilename(target);
     const pathFilename = pathToFilename(path);
     this.wrapAsync(this.symlinkBase, [targetFilename, pathFilename], callback);
   }
 
-  private realpathBase(filename: string, encoding: TEncodingExtended): TDataOut {
+  private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
     const steps = filenameToSteps(filename);
     const realLink = this.getResolvedLink(steps);
-    if (!realLink) throwError(ENOENT, 'realpath', filename);
+    if (!realLink) throw createError(ENOENT, 'realpath', filename);
 
     return strToEncoding(realLink.getPath(), encoding);
   }
@@ -1431,8 +1435,8 @@ export class Volume {
   private lstatBase(filename: string, bigint: false): Stats<number>;
   private lstatBase(filename: string, bigint: true): Stats<bigint>;
   private lstatBase(filename: string, bigint: boolean = false): Stats {
-    const link: Link = this.getLink(filenameToSteps(filename));
-    if (!link) throwError(ENOENT, 'lstat', filename);
+    const link = this.getLink(filenameToSteps(filename));
+    if (!link) throw createError(ENOENT, 'lstat', filename);
     return Stats.build(link.getNode(), bigint);
   }
 
@@ -1455,7 +1459,7 @@ export class Volume {
   private statBase(filename: string, bigint: true): Stats<bigint>;
   private statBase(filename: string, bigint: boolean = false): Stats {
     const link = this.getResolvedLink(filenameToSteps(filename));
-    if (!link) throwError(ENOENT, 'stat', filename);
+    if (!link) throw createError(ENOENT, 'stat', filename);
 
     return Stats.build(link.getNode(), bigint);
   }
@@ -1479,7 +1483,7 @@ export class Volume {
   private fstatBase(fd: number, bigint: true): Stats<bigint>;
   private fstatBase(fd: number, bigint: boolean = false): Stats {
     const file = this.getFileByFd(fd);
-    if (!file) throwError(EBADF, 'fstat');
+    if (!file) throw createError(EBADF, 'fstat');
     return Stats.build(file.node, bigint);
   }
 
@@ -1498,16 +1502,16 @@ export class Volume {
   }
 
   private renameBase(oldPathFilename: string, newPathFilename: string) {
-    const link: Link = this.getLink(filenameToSteps(oldPathFilename));
-    if (!link) throwError(ENOENT, 'rename', oldPathFilename, newPathFilename);
+    const link = this.getLink(filenameToSteps(oldPathFilename));
+    if (!link) throw createError(ENOENT, 'rename', oldPathFilename, newPathFilename);
 
     // TODO: Check if it is directory, if non-empty, we cannot move it, right?
 
     const newPathSteps = filenameToSteps(newPathFilename);
 
     // Check directory exists for the new location.
-    const newPathDirLink: Link = this.getLinkParent(newPathSteps);
-    if (!newPathDirLink) throwError(ENOENT, 'rename', oldPathFilename, newPathFilename);
+    const newPathDirLink = this.getLinkParent(newPathSteps);
+    if (!newPathDirLink) throw createError(ENOENT, 'rename', oldPathFilename, newPathFilename);
 
     // TODO: Also treat cases with directories and symbolic links.
     // TODO: See: http://man7.org/linux/man-pages/man2/rename.2.html
@@ -1577,16 +1581,17 @@ export class Volume {
   access(path: TFilePath, callback: TCallback<void>);
   access(path: TFilePath, mode: number, callback: TCallback<void>);
   access(path: TFilePath, a: TCallback<void> | number, b?: TCallback<void>) {
-    let mode: number = a as number;
-    let callback: TCallback<void> = b;
+    let mode: number = F_OK;
+    let callback: TCallback<void>;
 
-    if (typeof mode === 'function') {
-      mode = F_OK;
-      callback = a as TCallback<void>;
+    if (typeof a !== 'function') {
+      mode = a | 0; // cast to number
+      callback = validateCallback(b);
+    } else {
+      callback = a;
     }
 
     const filename = pathToFilename(path);
-    mode = mode | 0;
 
     this.wrapAsync(this.accessBase, [filename, mode], callback);
   }
@@ -1613,16 +1618,22 @@ export class Volume {
 
   private readdirBase(filename: string, options: IReaddirOptions): TDataOut[] | Dirent[] {
     const steps = filenameToSteps(filename);
-    const link: Link = this.getResolvedLink(steps);
-    if (!link) throwError(ENOENT, 'readdir', filename);
+    const link: Link | null = this.getResolvedLink(steps);
+    if (!link) throw createError(ENOENT, 'readdir', filename);
 
     const node = link.getNode();
-    if (!node.isDirectory()) throwError(ENOTDIR, 'scandir', filename);
+    if (!node.isDirectory()) throw createError(ENOTDIR, 'scandir', filename);
 
     if (options.withFileTypes) {
       const list: Dirent[] = [];
       for (const name in link.children) {
-        list.push(Dirent.build(link.children[name], options.encoding));
+        const child = link.getChild(name);
+
+        if (!child) {
+          continue;
+        }
+
+        list.push(Dirent.build(child, options.encoding));
       }
       if (!isWin && options.encoding !== 'buffer')
         list.sort((a, b) => {
@@ -1657,11 +1668,11 @@ export class Volume {
     this.wrapAsync(this.readdirBase, [filename, options], callback);
   }
 
-  private readlinkBase(filename: string, encoding: TEncodingExtended): TDataOut {
+  private readlinkBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
     const link = this.getLinkOrThrow(filename, 'readlink');
     const node = link.getNode();
 
-    if (!node.isSymlink()) throwError(EINVAL, 'readlink', filename);
+    if (!node.isSymlink()) throw createError(EINVAL, 'readlink', filename);
 
     const str = sep + node.symlink.join(sep);
     return strToEncoding(str, encoding);
@@ -1717,7 +1728,9 @@ export class Volume {
   ftruncate(fd: number, callback: TCallback<void>);
   ftruncate(fd: number, len: number, callback: TCallback<void>);
   ftruncate(fd: number, a: TCallback<void> | number, b?: TCallback<void>) {
-    const [len, callback] = getArgAndCb<number, void>(a, b);
+    const len: number = typeof a === 'number' ? a : 0;
+    const callback: TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
+
     this.wrapAsync(this.ftruncateBase, [fd, len], callback);
   }
 
@@ -1739,9 +1752,11 @@ export class Volume {
   truncate(id: TFileId, callback: TCallback<void>);
   truncate(id: TFileId, len: number, callback: TCallback<void>);
   truncate(id: TFileId, a: TCallback<void> | number, b?: TCallback<void>) {
-    if (isFd(id)) return this.ftruncate(id as number, a as any, b);
+    const len: number = typeof a === 'number' ? a : 0;
+    const callback: TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
 
-    const [len, callback] = getArgAndCb<number, void>(a, b, 0);
+    if (isFd(id)) return this.ftruncate(id as number, len, callback);
+
     this.wrapAsync(this.truncateBase, [id, len], callback);
   }
 
@@ -1782,14 +1797,14 @@ export class Volume {
 
     // This will throw if user tries to create root dir `fs.mkdirSync('/')`.
     if (!steps.length) {
-      throwError(EISDIR, 'mkdir', filename);
+      throw createError(EISDIR, 'mkdir', filename);
     }
 
     const dir = this.getLinkParentAsDirOrThrow(filename, 'mkdir');
 
     // Check path already exists.
     const name = steps[steps.length - 1];
-    if (dir.getChild(name)) throwError(EEXIST, 'mkdir', filename);
+    if (dir.getChild(name)) throw createError(EEXIST, 'mkdir', filename);
 
     dir.createChild(name, this.createNode(true, modeNum));
   }
@@ -1805,12 +1820,12 @@ export class Volume {
     for (let i = 0; i < steps.length; i++) {
       const step = steps[i];
 
-      if (!link.getNode().isDirectory()) throwError(ENOTDIR, 'mkdir', link.getPath());
+      if (!link.getNode().isDirectory()) throw createError(ENOTDIR, 'mkdir', link.getPath());
 
       const child = link.getChild(step);
       if (child) {
         if (child.getNode().isDirectory()) link = child;
-        else throwError(ENOTDIR, 'mkdir', child.getPath());
+        else throw createError(ENOTDIR, 'mkdir', child.getPath());
       } else {
         link = link.createChild(step, this.createNode(true, modeNum));
       }
@@ -1828,8 +1843,9 @@ export class Volume {
   mkdir(path: TFilePath, callback: TCallback<void>);
   mkdir(path: TFilePath, mode: TMode | IMkdirOptions, callback: TCallback<void>);
   mkdir(path: TFilePath, a: TCallback<void> | TMode | IMkdirOptions, b?: TCallback<void>) {
-    const [options, callback] = getArgAndCb<TMode | IMkdirOptions, void>(a, b);
-    const opts = getMkdirOptions(options);
+    const opts: TMode | IMkdirOptions = getMkdirOptions(a);
+    const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
+
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
     if (opts.recursive) this.wrapAsync(this.mkdirpBase, [filename, modeNum], callback);
@@ -1844,18 +1860,20 @@ export class Volume {
   mkdirp(path: TFilePath, callback: TCallback<void>);
   mkdirp(path: TFilePath, mode: TMode, callback: TCallback<void>);
   mkdirp(path: TFilePath, a: TCallback<void> | TMode, b?: TCallback<void>) {
-    const [mode, callback] = getArgAndCb<TMode, void>(a, b);
+    const mode: TMode | undefined = typeof a === 'function' ? undefined : a;
+    const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
+
     this.mkdir(path, { mode, recursive: true }, callback);
   }
 
-  private mkdtempBase(prefix: string, encoding: TEncodingExtended, retry: number = 5): TDataOut {
+  private mkdtempBase(prefix: string, encoding?: TEncodingExtended, retry: number = 5): TDataOut {
     const filename = prefix + this.genRndStr();
     try {
       this.mkdirBase(filename, MODE.DIR);
       return strToEncoding(filename, encoding);
     } catch (err) {
       if (err.code === EEXIST) {
-        if (retry > 1) this.mkdtempBase(prefix, encoding, retry - 1);
+        if (retry > 1) return this.mkdtempBase(prefix, encoding, retry - 1);
         else throw Error('Could not create temp dir.');
       } else throw err;
     }
@@ -1866,7 +1884,7 @@ export class Volume {
 
     if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
 
-    if (!nullCheck(prefix)) return;
+    nullCheck(prefix);
 
     return this.mkdtempBase(prefix, encoding);
   }
@@ -1887,7 +1905,7 @@ export class Volume {
     const link = this.getLinkAsDirOrThrow(filename, 'rmdir');
 
     // Check directory is empty.
-    if (link.length) throwError(ENOTEMPTY, 'rmdir', filename);
+    if (link.length) throw createError(ENOTEMPTY, 'rmdir', filename);
 
     this.deleteLink(link);
   }
@@ -2022,7 +2040,7 @@ export class Volume {
   watchFile(path: TFilePath, a, b?): StatWatcher {
     const filename = pathToFilename(path);
 
-    let options: IWatchFileOptions = a;
+    let options: IWatchFileOptions | null = a;
     let listener: (curr: Stats, prev: Stats) => void = b;
 
     if (typeof options === 'function') {
@@ -2087,14 +2105,15 @@ export class Volume {
     listener?: (eventType: string, filename: string) => void,
   ): FSWatcher {
     const filename = pathToFilename(path);
+    let givenOptions: (typeof options) | null = options;
 
     if (typeof options === 'function') {
       listener = options;
-      options = null;
+      givenOptions = null;
     }
 
     // tslint:disable-next-line prefer-const
-    let { persistent, recursive, encoding }: IWatchOptions = getDefaultOpts(options);
+    let { persistent, recursive, encoding }: IWatchOptions = getDefaultOpts(givenOptions);
     if (persistent === undefined) persistent = true;
     if (recursive === undefined) recursive = false;
 
@@ -2114,12 +2133,12 @@ function emitStop(self) {
 }
 
 export class StatWatcher extends EventEmitter {
-  vol: Volume = null;
+  vol: Volume;
   filename: string;
   interval: number;
-  timeoutRef = null;
+  timeoutRef?;
   setTimeout: TSetTimeout;
-  prev: Stats = null;
+  prev: Stats;
 
   constructor(vol: Volume) {
     super();
@@ -2475,12 +2494,12 @@ FsWriteStream.prototype.destroySoon = FsWriteStream.prototype.end;
 export class FSWatcher extends EventEmitter {
   _vol: Volume;
   _filename: string = '';
-  _steps: string[] = null;
+  _steps: string[];
   _filenameEncoded: TDataOut = '';
   // _persistent: boolean = true;
   _recursive: boolean = false;
   _encoding: TEncoding = ENCODING_UTF8;
-  _link: Link = null;
+  _link: Link;
 
   _timer; // Timer that keeps this task persistent.
 

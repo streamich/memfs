@@ -301,7 +301,9 @@ export class Link extends EventEmitter {
   }
 
   getChild(name: string): Link {
-    return this.children[name];
+    if (Object.hasOwnProperty.call(this.children, name)) {
+      return this.children[name];
+    }
   }
 
   getPath(): string {

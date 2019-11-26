@@ -1410,12 +1410,7 @@ export class Volume {
 
   private realpathBase(filename: string, encoding: TEncodingExtended): TDataOut {
     const steps = filenameToSteps(filename);
-    const link: Link = this.getLink(steps);
-    // TODO: this check has to be perfomed by `lstat`.
-    if (!link) throwError(ENOENT, 'realpath', filename);
-
-    // Resolve symlinks.
-    const realLink = this.resolveSymlinks(link);
+    const realLink = this.getResolvedLink(steps);
     if (!realLink) throwError(ENOENT, 'realpath', filename);
 
     return strToEncoding(realLink.getPath(), encoding);
@@ -1459,11 +1454,7 @@ export class Volume {
   private statBase(filename: string, bigint: false): Stats<number>;
   private statBase(filename: string, bigint: true): Stats<bigint>;
   private statBase(filename: string, bigint: boolean = false): Stats {
-    let link: Link = this.getLink(filenameToSteps(filename));
-    if (!link) throwError(ENOENT, 'stat', filename);
-
-    // Resolve symlinks.
-    link = this.resolveSymlinks(link);
+    const link = this.getResolvedLink(filenameToSteps(filename));
     if (!link) throwError(ENOENT, 'stat', filename);
 
     return Stats.build(link.getNode(), bigint);

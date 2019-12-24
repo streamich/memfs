@@ -954,6 +954,12 @@ describe('volume', () => {
         vol.rmdirSync('/dir');
         expect(!!vol.root.getChild('dir')).toBe(false);
       });
+      it('Remove dir /dir1/dir2/dir3 recursively', () => {
+        const vol = new Volume();
+        vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
+        vol.rmdirSync('/dir1', { recursive: true });
+        expect(!!vol.root.getChild('/dir1')).toBe(false);
+      });
     });
     describe('.rmdir(path, callback)', () => {
       xit('Remove single dir', () => {});

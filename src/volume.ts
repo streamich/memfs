@@ -2563,6 +2563,9 @@ export class FSWatcher extends EventEmitter {
 
     this._link.getNode().on('change', this._onNodeChange);
 
+    this._link.on('child:add', this._onNodeChange);
+    this._link.on('child:delete', this._onNodeChange);
+
     const parent = this._link.parent;
     if (parent) {
       // parent.on('child:add', this._onParentChild);

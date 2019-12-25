@@ -1,3 +1,10 @@
+## [3.0.2](https://github.com/streamich/memfs/compare/v3.0.1...v3.0.2) (2019-12-25)
+
+
+### Bug Fixes
+
+* **watch:** trigger change event for creation/deletion of children in a folder ([b1b7884](https://github.com/streamich/memfs/commit/b1b7884d4b9af734773c178ab4377e55a5bb2cc6))
+
 ## [3.0.1](https://github.com/streamich/memfs/compare/v3.0.0...v3.0.1) (2019-11-26)
 
 

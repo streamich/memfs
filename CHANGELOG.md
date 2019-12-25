@@ -1,3 +1,12 @@
+## [3.0.3](https://github.com/streamich/memfs/compare/v3.0.2...v3.0.3) (2019-12-25)
+
+
+### Bug Fixes
+
+* **rmdir:** proper async functionality ([cc75c56](https://github.com/streamich/memfs/commit/cc75c566b8d485720457315d267c0d8cab6283cf))
+* **rmdir:** support recursive option ([1e943ae](https://github.com/streamich/memfs/commit/1e943ae5911b3490f6c78d92a16ee0920480265c))
+* **watch:** suppress event-emitter warnings ([1ab2dcb](https://github.com/streamich/memfs/commit/1ab2dcb4706b7fe02868d94e335673b72d1ce0d7))
+
 ## [3.0.2](https://github.com/streamich/memfs/compare/v3.0.1...v3.0.2) (2019-12-25)
 
 

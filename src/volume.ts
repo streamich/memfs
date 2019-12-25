@@ -342,6 +342,17 @@ const getMkdirOptions = (options): IMkdirOptions => {
   return extend({}, mkdirDefaults, options);
 };
 
+// Options for `fs.rmdir` and `fs.rmdirSync`
+export interface IRmdirOptions {
+  recursive?: boolean;
+}
+const rmdirDefaults: IRmdirOptions = {
+  recursive: false,
+};
+const getRmdirOptions = (options): IRmdirOptions => {
+  return extend({}, rmdirDefaults, options);
+};
+
 // Options for `fs.readdir` and `fs.readdirSync`
 export interface IReaddirOptions extends IOptions {
   withFileTypes?: boolean;
@@ -1901,21 +1912,26 @@ export class Volume {
     this.wrapAsync(this.mkdtempBase, [prefix, encoding], callback);
   }
 
-  private rmdirBase(filename: string) {
+  private rmdirBase(filename: string, options?: IRmdirOptions) {
+    const opts = getRmdirOptions(options);
     const link = this.getLinkAsDirOrThrow(filename, 'rmdir');
 
     // Check directory is empty.
-    if (link.length) throw createError(ENOTEMPTY, 'rmdir', filename);
+    if (link.length && !opts.recursive) throw createError(ENOTEMPTY, 'rmdir', filename);
 
     this.deleteLink(link);
   }
 
-  rmdirSync(path: TFilePath) {
-    this.rmdirBase(pathToFilename(path));
+  rmdirSync(path: TFilePath, options?: IRmdirOptions) {
+    this.rmdirBase(pathToFilename(path), options);
   }
 
-  rmdir(path: TFilePath, callback: TCallback<void>) {
-    this.wrapAsync(this.rmdirBase, [pathToFilename(path)], callback);
+  rmdir(path: TFilePath, callback: TCallback<void>);
+  rmdir(path: TFilePath, options: IRmdirOptions, callback: TCallback<void>);
+  rmdir(path: TFilePath, a: TCallback<void> | IRmdirOptions, b?: TCallback<void>) {
+    const opts: IRmdirOptions = getRmdirOptions(a);
+    const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
+    this.wrapAsync(this.rmdirBase, [pathToFilename(path), opts], callback);
   }
 
   private fchmodBase(fd: number, modeNum: number) {

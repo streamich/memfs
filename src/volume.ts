@@ -2566,6 +2566,7 @@ export class FSWatcher extends EventEmitter {
     const parent = this._link.parent;
     if (parent) {
       // parent.on('child:add', this._onParentChild);
+      parent.setMaxListeners(parent.getMaxListeners() + 1);
       parent.on('child:delete', this._onParentChild);
     }
 

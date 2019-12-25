@@ -958,11 +958,19 @@ describe('volume', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
         vol.rmdirSync('/dir1', { recursive: true });
-        expect(!!vol.root.getChild('/dir1')).toBe(false);
+        expect(!!vol.root.getChild('dir1')).toBe(false);
       });
     });
     describe('.rmdir(path, callback)', () => {
       xit('Remove single dir', () => {});
+      it('Async remove dir /dir1/dir2/dir3 recursively', done => {
+        const vol = new Volume();
+        vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
+        vol.rmdir('/dir1', { recursive: true }, () => {
+          expect(!!vol.root.getChild('dir1')).toBe(false);
+          done();
+        });
+      });
     });
     describe('.watchFile(path[, options], listener)', () => {
       it('Calls listener on .writeFile', done => {

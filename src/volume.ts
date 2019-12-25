@@ -1931,7 +1931,7 @@ export class Volume {
   rmdir(path: TFilePath, a: TCallback<void> | IRmdirOptions, b?: TCallback<void>) {
     const opts: IRmdirOptions = getRmdirOptions(a);
     const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
-    this.wrapAsync(this.rmdirBase, [pathToFilename(path)], callback);
+    this.wrapAsync(this.rmdirBase, [pathToFilename(path), opts], callback);
   }
 
   private fchmodBase(fd: number, modeNum: number) {

@@ -25,6 +25,7 @@ const {
   O_TRUNC,
   O_APPEND,
   O_SYNC,
+  O_DIRECTORY,
   F_OK,
   COPYFILE_EXCL,
   COPYFILE_FICLONE_FORCE,
@@ -912,7 +913,13 @@ export class Volume {
     if (!realLink) throw createError(ENOENT, 'open', link.getPath());
 
     const node = realLink.getNode();
-    if (node.isDirectory() && flagsNum !== FLAGS.r) throw createError(EISDIR, 'open', link.getPath());
+
+    // Check whether node is a directory
+    if (node.isDirectory()) {
+      if ((flagsNum & (O_RDONLY | O_RDWR | O_WRONLY)) !== O_RDONLY) throw createError(EISDIR, 'open', link.getPath());
+    } else {
+      if (flagsNum & O_DIRECTORY) throw createError(ENOTDIR, 'open', link.getPath());
+    }
 
     // Check node permissions
     if (!(flagsNum & O_WRONLY)) {

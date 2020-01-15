@@ -1,3 +1,10 @@
+## [3.0.4](https://github.com/streamich/memfs/compare/v3.0.3...v3.0.4) (2020-01-15)
+
+
+### Bug Fixes
+
+* 🐛 handle opening directories with O_DIRECTORY ([acdfac8](https://github.com/streamich/memfs/commit/acdfac872b657776d32f1bfd346726c422a199f0)), closes [#494](https://github.com/streamich/memfs/issues/494)
+
 ## [3.0.3](https://github.com/streamich/memfs/compare/v3.0.2...v3.0.3) (2019-12-25)
 
 

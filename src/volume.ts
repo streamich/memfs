@@ -143,7 +143,7 @@ function formatError(errorCode: string, func = '', path = '', path2 = '') {
     case ENOSYS:
       return `ENOSYS: function not implemented, ${func}${pathFormatted}`;
     default:
-      return `${errorCode} : error occurred, ${func}${pathFormatted}`;
+      return `${errorCode}: error occurred, ${func}${pathFormatted}`;
   }
 }
 

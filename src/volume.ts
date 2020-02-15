@@ -2083,7 +2083,7 @@ export class Volume {
     this.wrapAsync(this.lchownBase, [pathToFilename(path), uid, gid], callback);
   }
 
-  private statWatchers = {};
+  private statWatchers: Record<string, StatWatcher> = {};
 
   watchFile(path: PathLike, listener: (curr: Stats, prev: Stats) => void): StatWatcher;
   watchFile(path: PathLike, options: IWatchFileOptions, listener: (curr: Stats, prev: Stats) => void): StatWatcher;

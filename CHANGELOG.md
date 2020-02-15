@@ -1,3 +1,12 @@
+## [3.0.5](https://github.com/streamich/memfs/compare/v3.0.4...v3.0.5) (2020-02-15)
+
+
+### Bug Fixes
+
+* remove space from error message ([42f870a](https://github.com/streamich/memfs/commit/42f870a31d902f37ccdad7915df8e7806cd3ce29))
+* use `IStore` interface instead of `Storage` ([ff82480](https://github.com/streamich/memfs/commit/ff824809b84c98e0ee26b81e601e983bfb6c2e97))
+* use `PathLike` type from node ([98a4014](https://github.com/streamich/memfs/commit/98a40143dbc0422541458e1f3243b3c4656e1e98))
+
 ## [3.0.4](https://github.com/streamich/memfs/compare/v3.0.3...v3.0.4) (2020-01-15)
 
 

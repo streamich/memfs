@@ -15,7 +15,6 @@ import {
   IWriteFileOptions,
   IStatOptions,
 } from './volume';
-import { Buffer } from './internal/buffer';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import { TDataOut } from './encoding';

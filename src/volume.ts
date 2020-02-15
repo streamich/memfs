@@ -10,7 +10,7 @@ import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
 import { Readable, Writable } from 'stream';
 import { constants } from './constants';
 import { EventEmitter } from 'events';
-import { TEncoding, TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
+import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as errors from './internal/errors';
 const { extend } = require('fast-extend');
 import util = require('util');
@@ -143,7 +143,7 @@ function formatError(errorCode: string, func = '', path = '', path2 = '') {
     case ENOSYS:
       return `ENOSYS: function not implemented, ${func}${pathFormatted}`;
     default:
-      return `${errorCode}: error occurred, ${func}${pathFormatted}`;
+      return `${errorCode} : error occurred, ${func}${pathFormatted}`;
   }
 }
 
@@ -246,7 +246,7 @@ function optsAndCbGenerator<TOpts, TResult>(getOpts): (options, callback?) => [T
 
 // General options with optional `encoding` property that most commands accept.
 export interface IOptions {
-  encoding?: TEncoding | TEncodingExtended;
+  encoding?: BufferEncoding | TEncodingExtended;
 }
 
 export interface IFileOptions extends IOptions {
@@ -305,7 +305,7 @@ export interface IWatchFileOptions {
 // Options for `fs.createReadStream`
 export interface IReadStreamOptions {
   flags?: TFlags;
-  encoding?: TEncoding;
+  encoding?: BufferEncoding;
   fd?: number;
   mode?: TMode;
   autoClose?: boolean;
@@ -316,7 +316,7 @@ export interface IReadStreamOptions {
 // Options for `fs.createWriteStream`
 export interface IWriteStreamOptions {
   flags?: TFlags;
-  defaultEncoding?: TEncoding;
+  defaultEncoding?: BufferEncoding;
   fd?: number;
   mode?: TMode;
   autoClose?: boolean;
@@ -1063,7 +1063,7 @@ export class Volume {
     });
   }
 
-  private readFileBase(id: TFileId, flagsNum: number, encoding: TEncoding): Buffer | string {
+  private readFileBase(id: TFileId, flagsNum: number, encoding: BufferEncoding): Buffer | string {
     let result: Buffer | string;
 
     const isUserFd = typeof id === 'number';
@@ -1098,7 +1098,7 @@ export class Volume {
   readFileSync(file: TFileId, options?: IReadFileOptions | string): TDataOut {
     const opts = getReadFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
-    return this.readFileBase(file, flagsNum, opts.encoding as TEncoding);
+    return this.readFileBase(file, flagsNum, opts.encoding as BufferEncoding);
   }
 
   readFile(id: TFileId, callback: TCallback<TDataOut>);
@@ -1115,11 +1115,11 @@ export class Volume {
   }
 
   writeSync(fd: number, buffer: Buffer | Uint8Array, offset?: number, length?: number, position?: number): number;
-  writeSync(fd: number, str: string, position?: number, encoding?: TEncoding): number;
-  writeSync(fd: number, a: string | Buffer | Uint8Array, b?: number, c?: number | TEncoding, d?: number): number {
+  writeSync(fd: number, str: string, position?: number, encoding?: BufferEncoding): number;
+  writeSync(fd: number, a: string | Buffer | Uint8Array, b?: number, c?: number | BufferEncoding, d?: number): number {
     validateFd(fd);
 
-    let encoding: TEncoding | undefined;
+    let encoding: BufferEncoding | undefined;
     let offset: number | undefined;
     let length: number | undefined;
     let position: number | undefined;
@@ -1131,7 +1131,7 @@ export class Volume {
       position = d;
     } else {
       position = b;
-      encoding = c as TEncoding;
+      encoding = c as BufferEncoding;
     }
 
     const buf: Buffer = dataToBuffer(a, encoding);
@@ -1161,14 +1161,14 @@ export class Volume {
   );
   write(fd: number, str: string, callback: (...args) => void);
   write(fd: number, str: string, position: number, callback: (...args) => void);
-  write(fd: number, str: string, position: number, encoding: TEncoding, callback: (...args) => void);
+  write(fd: number, str: string, position: number, encoding: BufferEncoding, callback: (...args) => void);
   write(fd: number, a?, b?, c?, d?, e?) {
     validateFd(fd);
 
     let offset: number;
     let length: number | undefined;
     let position: number;
-    let encoding: TEncoding | undefined;
+    let encoding: BufferEncoding | undefined;
     let callback: ((...args) => void) | undefined;
 
     const tipa = typeof a;
@@ -2138,7 +2138,7 @@ export class Volume {
     if (recursive === undefined) recursive = false;
 
     const watcher = new this.FSWatcher();
-    watcher.start(filename, persistent, recursive, encoding as TEncoding);
+    watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
 
     if (listener) {
       watcher.addListener('change', listener);
@@ -2518,7 +2518,7 @@ export class FSWatcher extends EventEmitter {
   _filenameEncoded: TDataOut = '';
   // _persistent: boolean = true;
   _recursive: boolean = false;
-  _encoding: TEncoding = ENCODING_UTF8;
+  _encoding: BufferEncoding = ENCODING_UTF8;
   _link: Link;
 
   _timer; // Timer that keeps this task persistent.
@@ -2564,7 +2564,12 @@ export class FSWatcher extends EventEmitter {
     this._timer = setTimeout(this._persist, 1e6);
   };
 
-  start(path: PathLike, persistent: boolean = true, recursive: boolean = false, encoding: TEncoding = ENCODING_UTF8) {
+  start(
+    path: PathLike,
+    persistent: boolean = true,
+    recursive: boolean = false,
+    encoding: BufferEncoding = ENCODING_UTF8,
+  ) {
     this._filename = pathToFilename(path);
     this._steps = filenameToSteps(this._filename);
     this._filenameEncoded = strToEncoding(this._filename);

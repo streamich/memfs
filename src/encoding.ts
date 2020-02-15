@@ -2,10 +2,9 @@ import { Buffer } from './internal/buffer';
 import * as errors from './internal/errors';
 
 export type TDataOut = string | Buffer; // Data formats we give back to users.
-export type TEncoding = 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'latin1' | 'binary' | 'hex';
-export type TEncodingExtended = TEncoding | 'buffer';
+export type TEncodingExtended = BufferEncoding | 'buffer';
 
-export const ENCODING_UTF8: TEncoding = 'utf8';
+export const ENCODING_UTF8: BufferEncoding = 'utf8';
 
 export function assertEncoding(encoding: string | undefined) {
   if (encoding && !Buffer.isEncoding(encoding)) throw new errors.TypeError('ERR_INVALID_OPT_VALUE_ENCODING', encoding);

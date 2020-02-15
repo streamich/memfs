@@ -29,7 +29,7 @@ export class ObjectStore {
   }
 }
 
-export function createVolume(namespace: string, LS: Storage | object = localStorage): new (...args) => Volume {
+export function createVolume(namespace: string, LS: IStore | object = localStorage): new (...args) => Volume {
   const store = new ObjectStore(LS);
   const key = (type, id) => `memfs.${namespace}.${type}.${id}`;
 

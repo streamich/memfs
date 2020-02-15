@@ -1,4 +1,5 @@
 import * as pathModule from 'path';
+import { PathLike } from 'fs';
 import { Node, Link, File } from './node';
 import Stats, { TStatNumber } from './Stats';
 import Dirent from './Dirent';
@@ -9,7 +10,7 @@ import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
 import { Readable, Writable } from 'stream';
 import { constants } from './constants';
 import { EventEmitter } from 'events';
-import { TEncoding, TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
+import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as errors from './internal/errors';
 const { extend } = require('fast-extend');
 import util = require('util');
@@ -52,8 +53,7 @@ export interface IError extends Error {
   code?: string;
 }
 
-export type TFilePath = string | Buffer | URL;
-export type TFileId = TFilePath | number; // Number is used as a file descriptor.
+export type TFileId = PathLike | number; // Number is used as a file descriptor.
 export type TData = TDataOut | Uint8Array; // Data formats users can give us.
 export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
@@ -246,7 +246,7 @@ function optsAndCbGenerator<TOpts, TResult>(getOpts): (options, callback?) => [T
 
 // General options with optional `encoding` property that most commands accept.
 export interface IOptions {
-  encoding?: TEncoding | TEncodingExtended;
+  encoding?: BufferEncoding | TEncodingExtended;
 }
 
 export interface IFileOptions extends IOptions {
@@ -305,7 +305,7 @@ export interface IWatchFileOptions {
 // Options for `fs.createReadStream`
 export interface IReadStreamOptions {
   flags?: TFlags;
-  encoding?: TEncoding;
+  encoding?: BufferEncoding;
   fd?: number;
   mode?: TMode;
   autoClose?: boolean;
@@ -316,7 +316,7 @@ export interface IReadStreamOptions {
 // Options for `fs.createWriteStream`
 export interface IWriteStreamOptions {
   flags?: TFlags;
-  defaultEncoding?: TEncoding;
+  defaultEncoding?: BufferEncoding;
   fd?: number;
   mode?: TMode;
   autoClose?: boolean;
@@ -397,7 +397,7 @@ function getPathFromURLPosix(url): string {
   return decodeURIComponent(pathname);
 }
 
-export function pathToFilename(path: TFilePath): string {
+export function pathToFilename(path: PathLike): string {
   if (typeof path !== 'string' && !Buffer.isBuffer(path)) {
     try {
       if (!(path instanceof require('url').URL)) throw new TypeError(ERRSTR.PATH_STR);
@@ -429,7 +429,7 @@ export function filenameToSteps(filename: string, base?: string): string[] {
   return fullPathSansSlash.split(sep);
 }
 
-export function pathToSteps(path: TFilePath): string[] {
+export function pathToSteps(path: PathLike): string[] {
   return filenameToSteps(pathToFilename(path));
 }
 
@@ -777,7 +777,7 @@ export class Volume {
       if (!file) throw Error('File nto found');
       return file.node;
     } else {
-      const steps = pathToSteps(id as TFilePath);
+      const steps = pathToSteps(id as PathLike);
       let link = this.getLink(steps);
       if (link) return link.getNode();
 
@@ -845,7 +845,7 @@ export class Volume {
     return json;
   }
 
-  toJSON(paths?: TFilePath | TFilePath[], json = {}, isRelative = false): DirectoryJSON {
+  toJSON(paths?: PathLike | PathLike[], json = {}, isRelative = false): DirectoryJSON {
     const links: Link[] = [];
 
     if (paths) {
@@ -970,7 +970,7 @@ export class Volume {
     return file.fd;
   }
 
-  openSync(path: TFilePath, flags: TFlags, mode: TMode = MODE.DEFAULT): number {
+  openSync(path: PathLike, flags: TFlags, mode: TMode = MODE.DEFAULT): number {
     // Validate (1) mode; (2) path; (3) flags - in that order.
     const modeNum = modeToNumber(mode);
     const fileName = pathToFilename(path);
@@ -978,9 +978,9 @@ export class Volume {
     return this.openBase(fileName, flagsNum, modeNum);
   }
 
-  open(path: TFilePath, flags: TFlags, /* ... */ callback: TCallback<number>);
-  open(path: TFilePath, flags: TFlags, mode: TMode, callback: TCallback<number>);
-  open(path: TFilePath, flags: TFlags, a: TMode | TCallback<number>, b?: TCallback<number>) {
+  open(path: PathLike, flags: TFlags, /* ... */ callback: TCallback<number>);
+  open(path: PathLike, flags: TFlags, mode: TMode, callback: TCallback<number>);
+  open(path: PathLike, flags: TFlags, a: TMode | TCallback<number>, b?: TCallback<number>) {
     let mode: TMode = a as TMode;
     let callback: TCallback<number> = b as TCallback<number>;
 
@@ -1063,7 +1063,7 @@ export class Volume {
     });
   }
 
-  private readFileBase(id: TFileId, flagsNum: number, encoding: TEncoding): Buffer | string {
+  private readFileBase(id: TFileId, flagsNum: number, encoding: BufferEncoding): Buffer | string {
     let result: Buffer | string;
 
     const isUserFd = typeof id === 'number';
@@ -1072,7 +1072,7 @@ export class Volume {
 
     if (userOwnsFd) fd = id as number;
     else {
-      const filename = pathToFilename(id as TFilePath);
+      const filename = pathToFilename(id as PathLike);
       const steps = filenameToSteps(filename);
       const link: Link | null = this.getResolvedLink(steps);
 
@@ -1081,7 +1081,7 @@ export class Volume {
         if (node.isDirectory()) throw createError(EISDIR, 'open', link.getPath());
       }
 
-      fd = this.openSync(id as TFilePath, flagsNum);
+      fd = this.openSync(id as PathLike, flagsNum);
     }
 
     try {
@@ -1098,7 +1098,7 @@ export class Volume {
   readFileSync(file: TFileId, options?: IReadFileOptions | string): TDataOut {
     const opts = getReadFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
-    return this.readFileBase(file, flagsNum, opts.encoding as TEncoding);
+    return this.readFileBase(file, flagsNum, opts.encoding as BufferEncoding);
   }
 
   readFile(id: TFileId, callback: TCallback<TDataOut>);
@@ -1115,11 +1115,11 @@ export class Volume {
   }
 
   writeSync(fd: number, buffer: Buffer | Uint8Array, offset?: number, length?: number, position?: number): number;
-  writeSync(fd: number, str: string, position?: number, encoding?: TEncoding): number;
-  writeSync(fd: number, a: string | Buffer | Uint8Array, b?: number, c?: number | TEncoding, d?: number): number {
+  writeSync(fd: number, str: string, position?: number, encoding?: BufferEncoding): number;
+  writeSync(fd: number, a: string | Buffer | Uint8Array, b?: number, c?: number | BufferEncoding, d?: number): number {
     validateFd(fd);
 
-    let encoding: TEncoding | undefined;
+    let encoding: BufferEncoding | undefined;
     let offset: number | undefined;
     let length: number | undefined;
     let position: number | undefined;
@@ -1131,7 +1131,7 @@ export class Volume {
       position = d;
     } else {
       position = b;
-      encoding = c as TEncoding;
+      encoding = c as BufferEncoding;
     }
 
     const buf: Buffer = dataToBuffer(a, encoding);
@@ -1161,14 +1161,14 @@ export class Volume {
   );
   write(fd: number, str: string, callback: (...args) => void);
   write(fd: number, str: string, position: number, callback: (...args) => void);
-  write(fd: number, str: string, position: number, encoding: TEncoding, callback: (...args) => void);
+  write(fd: number, str: string, position: number, encoding: BufferEncoding, callback: (...args) => void);
   write(fd: number, a?, b?, c?, d?, e?) {
     validateFd(fd);
 
     let offset: number;
     let length: number | undefined;
     let position: number;
-    let encoding: TEncoding | undefined;
+    let encoding: BufferEncoding | undefined;
     let callback: ((...args) => void) | undefined;
 
     const tipa = typeof a;
@@ -1240,8 +1240,8 @@ export class Volume {
 
     if (isUserFd) fd = id as number;
     else {
-      fd = this.openBase(pathToFilename(id as TFilePath), flagsNum, modeNum);
-      // fd = this.openSync(id as TFilePath, flagsNum, modeNum);
+      fd = this.openBase(pathToFilename(id as PathLike), flagsNum, modeNum);
+      // fd = this.openSync(id as PathLike, flagsNum, modeNum);
     }
 
     let offset = 0;
@@ -1324,16 +1324,16 @@ export class Volume {
     this.writeFileBase(dest, buf, FLAGS.w, MODE.DEFAULT);
   }
 
-  copyFileSync(src: TFilePath, dest: TFilePath, flags?: TFlagsCopy) {
+  copyFileSync(src: PathLike, dest: PathLike, flags?: TFlagsCopy) {
     const srcFilename = pathToFilename(src);
     const destFilename = pathToFilename(dest);
 
     return this.copyFileBase(srcFilename, destFilename, (flags || 0) | 0);
   }
 
-  copyFile(src: TFilePath, dest: TFilePath, callback: TCallback<void>);
-  copyFile(src: TFilePath, dest: TFilePath, flags: TFlagsCopy, callback: TCallback<void>);
-  copyFile(src: TFilePath, dest: TFilePath, a, b?) {
+  copyFile(src: PathLike, dest: PathLike, callback: TCallback<void>);
+  copyFile(src: PathLike, dest: PathLike, flags: TFlagsCopy, callback: TCallback<void>);
+  copyFile(src: PathLike, dest: PathLike, a, b?) {
     const srcFilename = pathToFilename(src);
     const destFilename = pathToFilename(dest);
 
@@ -1353,13 +1353,13 @@ export class Volume {
     this.wrapAsync(this.copyFileBase, [srcFilename, destFilename, flags], callback);
   }
 
-  linkSync(existingPath: TFilePath, newPath: TFilePath) {
+  linkSync(existingPath: PathLike, newPath: PathLike) {
     const existingPathFilename = pathToFilename(existingPath);
     const newPathFilename = pathToFilename(newPath);
     this.linkBase(existingPathFilename, newPathFilename);
   }
 
-  link(existingPath: TFilePath, newPath: TFilePath, callback: TCallback<void>) {
+  link(existingPath: PathLike, newPath: PathLike, callback: TCallback<void>) {
     const existingPathFilename = pathToFilename(existingPath);
     const newPathFilename = pathToFilename(newPath);
     this.wrapAsync(this.linkBase, [existingPathFilename, newPathFilename], callback);
@@ -1385,12 +1385,12 @@ export class Volume {
     }
   }
 
-  unlinkSync(path: TFilePath) {
+  unlinkSync(path: PathLike) {
     const filename = pathToFilename(path);
     this.unlinkBase(filename);
   }
 
-  unlink(path: TFilePath, callback: TCallback<void>) {
+  unlink(path: PathLike, callback: TCallback<void>) {
     const filename = pathToFilename(path);
     this.wrapAsync(this.unlinkBase, [filename], callback);
   }
@@ -1414,17 +1414,16 @@ export class Volume {
   }
 
   // `type` argument works only on Windows.
-  symlinkSync(target: TFilePath, path: TFilePath, type?: TSymlinkType) {
+  symlinkSync(target: PathLike, path: PathLike, type?: TSymlinkType) {
     const targetFilename = pathToFilename(target);
     const pathFilename = pathToFilename(path);
     this.symlinkBase(targetFilename, pathFilename);
   }
 
-  symlink(target: TFilePath, path: TFilePath, callback: TCallback<void>);
-  symlink(target: TFilePath, path: TFilePath, type: TSymlinkType, callback: TCallback<void>);
-  symlink(target: TFilePath, path: TFilePath, a: TSymlinkType | TCallback<void>, b?: TCallback<void>) {
+  symlink(target: PathLike, path: PathLike, callback: TCallback<void>);
+  symlink(target: PathLike, path: PathLike, type: TSymlinkType, callback: TCallback<void>);
+  symlink(target: PathLike, path: PathLike, a: TSymlinkType | TCallback<void>, b?: TCallback<void>) {
     const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
-
     const targetFilename = pathToFilename(target);
     const pathFilename = pathToFilename(path);
     this.wrapAsync(this.symlinkBase, [targetFilename, pathFilename], callback);
@@ -1438,13 +1437,13 @@ export class Volume {
     return strToEncoding(realLink.getPath(), encoding);
   }
 
-  realpathSync(path: TFilePath, options?: IRealpathOptions | string): TDataOut {
+  realpathSync(path: PathLike, options?: IRealpathOptions | string): TDataOut {
     return this.realpathBase(pathToFilename(path), getRealpathOptions(options).encoding);
   }
 
-  realpath(path: TFilePath, callback: TCallback<TDataOut>);
-  realpath(path: TFilePath, options: IRealpathOptions | string, callback: TCallback<TDataOut>);
-  realpath(path: TFilePath, a: TCallback<TDataOut> | IRealpathOptions | string, b?: TCallback<TDataOut>) {
+  realpath(path: PathLike, callback: TCallback<TDataOut>);
+  realpath(path: PathLike, options: IRealpathOptions | string, callback: TCallback<TDataOut>);
+  realpath(path: PathLike, a: TCallback<TDataOut> | IRealpathOptions | string, b?: TCallback<TDataOut>) {
     const [opts, callback] = getRealpathOptsAndCb(a, b);
     const pathFilename = pathToFilename(path);
     this.wrapAsync(this.realpathBase, [pathFilename, opts.encoding], callback);
@@ -1458,16 +1457,16 @@ export class Volume {
     return Stats.build(link.getNode(), bigint);
   }
 
-  lstatSync(path: TFilePath): Stats<number>;
-  lstatSync(path: TFilePath, options: { bigint: false }): Stats<number>;
-  lstatSync(path: TFilePath, options: { bigint: true }): Stats<bigint>;
-  lstatSync(path: TFilePath, options?: IStatOptions): Stats {
+  lstatSync(path: PathLike): Stats<number>;
+  lstatSync(path: PathLike, options: { bigint: false }): Stats<number>;
+  lstatSync(path: PathLike, options: { bigint: true }): Stats<bigint>;
+  lstatSync(path: PathLike, options?: IStatOptions): Stats {
     return this.lstatBase(pathToFilename(path), getStatOptions(options).bigint as any);
   }
 
-  lstat(path: TFilePath, callback: TCallback<Stats>);
-  lstat(path: TFilePath, options: IStatOptions, callback: TCallback<Stats>);
-  lstat(path: TFilePath, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>) {
+  lstat(path: PathLike, callback: TCallback<Stats>);
+  lstat(path: PathLike, options: IStatOptions, callback: TCallback<Stats>);
+  lstat(path: PathLike, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>) {
     const [opts, callback] = getStatOptsAndCb(a, b);
     this.wrapAsync(this.lstatBase, [pathToFilename(path), opts.bigint], callback);
   }
@@ -1482,16 +1481,16 @@ export class Volume {
     return Stats.build(link.getNode(), bigint);
   }
 
-  statSync(path: TFilePath): Stats<number>;
-  statSync(path: TFilePath, options: { bigint: false }): Stats<number>;
-  statSync(path: TFilePath, options: { bigint: true }): Stats<bigint>;
-  statSync(path: TFilePath, options?: IStatOptions): Stats {
+  statSync(path: PathLike): Stats<number>;
+  statSync(path: PathLike, options: { bigint: false }): Stats<number>;
+  statSync(path: PathLike, options: { bigint: true }): Stats<bigint>;
+  statSync(path: PathLike, options?: IStatOptions): Stats {
     return this.statBase(pathToFilename(path), getStatOptions(options).bigint as any);
   }
 
-  stat(path: TFilePath, callback: TCallback<Stats>);
-  stat(path: TFilePath, options: IStatOptions, callback: TCallback<Stats>);
-  stat(path: TFilePath, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>) {
+  stat(path: PathLike, callback: TCallback<Stats>);
+  stat(path: PathLike, options: IStatOptions, callback: TCallback<Stats>);
+  stat(path: PathLike, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>) {
     const [opts, callback] = getStatOptsAndCb(a, b);
     this.wrapAsync(this.statBase, [pathToFilename(path), opts.bigint], callback);
   }
@@ -1546,13 +1545,13 @@ export class Volume {
     newPathDirLink.setChild(link.getName(), link);
   }
 
-  renameSync(oldPath: TFilePath, newPath: TFilePath) {
+  renameSync(oldPath: PathLike, newPath: PathLike) {
     const oldPathFilename = pathToFilename(oldPath);
     const newPathFilename = pathToFilename(newPath);
     this.renameBase(oldPathFilename, newPathFilename);
   }
 
-  rename(oldPath: TFilePath, newPath: TFilePath, callback: TCallback<void>) {
+  rename(oldPath: PathLike, newPath: PathLike, callback: TCallback<void>) {
     const oldPathFilename = pathToFilename(oldPath);
     const newPathFilename = pathToFilename(newPath);
     this.wrapAsync(this.renameBase, [oldPathFilename, newPathFilename], callback);
@@ -1562,7 +1561,7 @@ export class Volume {
     return !!this.statBase(filename);
   }
 
-  existsSync(path: TFilePath): boolean {
+  existsSync(path: PathLike): boolean {
     try {
       return this.existsBase(pathToFilename(path));
     } catch (err) {
@@ -1570,7 +1569,7 @@ export class Volume {
     }
   }
 
-  exists(path: TFilePath, callback: (exists: boolean) => void) {
+  exists(path: PathLike, callback: (exists: boolean) => void) {
     const filename = pathToFilename(path);
 
     if (typeof callback !== 'function') throw Error(ERRSTR.CB);
@@ -1590,15 +1589,15 @@ export class Volume {
     // TODO: Verify permissions
   }
 
-  accessSync(path: TFilePath, mode: number = F_OK) {
+  accessSync(path: PathLike, mode: number = F_OK) {
     const filename = pathToFilename(path);
     mode = mode | 0;
     this.accessBase(filename, mode);
   }
 
-  access(path: TFilePath, callback: TCallback<void>);
-  access(path: TFilePath, mode: number, callback: TCallback<void>);
-  access(path: TFilePath, a: TCallback<void> | number, b?: TCallback<void>) {
+  access(path: PathLike, callback: TCallback<void>);
+  access(path: PathLike, mode: number, callback: TCallback<void>);
+  access(path: PathLike, a: TCallback<void> | number, b?: TCallback<void>) {
     let mode: number = F_OK;
     let callback: TCallback<void>;
 
@@ -1672,15 +1671,15 @@ export class Volume {
     return list;
   }
 
-  readdirSync(path: TFilePath, options?: IReaddirOptions | string): TDataOut[] | Dirent[] {
+  readdirSync(path: PathLike, options?: IReaddirOptions | string): TDataOut[] | Dirent[] {
     const opts = getReaddirOptions(options);
     const filename = pathToFilename(path);
     return this.readdirBase(filename, opts);
   }
 
-  readdir(path: TFilePath, callback: TCallback<TDataOut[] | Dirent[]>);
-  readdir(path: TFilePath, options: IReaddirOptions | string, callback: TCallback<TDataOut[] | Dirent[]>);
-  readdir(path: TFilePath, a?, b?) {
+  readdir(path: PathLike, callback: TCallback<TDataOut[] | Dirent[]>);
+  readdir(path: PathLike, options: IReaddirOptions | string, callback: TCallback<TDataOut[] | Dirent[]>);
+  readdir(path: PathLike, a?, b?) {
     const [options, callback] = getReaddirOptsAndCb(a, b);
     const filename = pathToFilename(path);
     this.wrapAsync(this.readdirBase, [filename, options], callback);
@@ -1696,15 +1695,15 @@ export class Volume {
     return strToEncoding(str, encoding);
   }
 
-  readlinkSync(path: TFilePath, options?: IOptions): TDataOut {
+  readlinkSync(path: PathLike, options?: IOptions): TDataOut {
     const opts = getDefaultOpts(options);
     const filename = pathToFilename(path);
     return this.readlinkBase(filename, opts.encoding);
   }
 
-  readlink(path: TFilePath, callback: TCallback<TDataOut>);
-  readlink(path: TFilePath, options: IOptions, callback: TCallback<TDataOut>);
-  readlink(path: TFilePath, a: TCallback<TDataOut> | IOptions, b?: TCallback<TDataOut>) {
+  readlink(path: PathLike, callback: TCallback<TDataOut>);
+  readlink(path: PathLike, options: IOptions, callback: TCallback<TDataOut>);
+  readlink(path: PathLike, a: TCallback<TDataOut> | IOptions, b?: TCallback<TDataOut>) {
     const [opts, callback] = getDefaultOptsAndCb(a, b);
     const filename = pathToFilename(path);
     this.wrapAsync(this.readlinkBase, [filename, opts.encoding], callback);
@@ -1752,7 +1751,7 @@ export class Volume {
     this.wrapAsync(this.ftruncateBase, [fd, len], callback);
   }
 
-  private truncateBase(path: TFilePath, len?: number) {
+  private truncateBase(path: PathLike, len?: number) {
     const fd = this.openSync(path, 'r+');
     try {
       this.ftruncateSync(fd, len);
@@ -1764,7 +1763,7 @@ export class Volume {
   truncateSync(id: TFileId, len?: number) {
     if (isFd(id)) return this.ftruncateSync(id as number, len);
 
-    this.truncateBase(id as TFilePath, len);
+    this.truncateBase(id as PathLike, len);
   }
 
   truncate(id: TFileId, callback: TCallback<void>);
@@ -1802,11 +1801,11 @@ export class Volume {
     }
   }
 
-  utimesSync(path: TFilePath, atime: TTime, mtime: TTime) {
+  utimesSync(path: PathLike, atime: TTime, mtime: TTime) {
     this.utimesBase(pathToFilename(path), toUnixTimestamp(atime), toUnixTimestamp(mtime));
   }
 
-  utimes(path: TFilePath, atime: TTime, mtime: TTime, callback: TCallback<void>) {
+  utimes(path: PathLike, atime: TTime, mtime: TTime, callback: TCallback<void>) {
     this.wrapAsync(this.utimesBase, [pathToFilename(path), toUnixTimestamp(atime), toUnixTimestamp(mtime)], callback);
   }
 
@@ -1850,7 +1849,7 @@ export class Volume {
     }
   }
 
-  mkdirSync(path: TFilePath, options?: TMode | IMkdirOptions) {
+  mkdirSync(path: PathLike, options?: TMode | IMkdirOptions) {
     const opts = getMkdirOptions(options);
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
@@ -1858,12 +1857,11 @@ export class Volume {
     else this.mkdirBase(filename, modeNum);
   }
 
-  mkdir(path: TFilePath, callback: TCallback<void>);
-  mkdir(path: TFilePath, mode: TMode | IMkdirOptions, callback: TCallback<void>);
-  mkdir(path: TFilePath, a: TCallback<void> | TMode | IMkdirOptions, b?: TCallback<void>) {
+  mkdir(path: PathLike, callback: TCallback<void>);
+  mkdir(path: PathLike, mode: TMode | IMkdirOptions, callback: TCallback<void>);
+  mkdir(path: PathLike, a: TCallback<void> | TMode | IMkdirOptions, b?: TCallback<void>) {
     const opts: TMode | IMkdirOptions = getMkdirOptions(a);
     const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
-
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
     if (opts.recursive) this.wrapAsync(this.mkdirpBase, [filename, modeNum], callback);
@@ -1871,16 +1869,15 @@ export class Volume {
   }
 
   // legacy interface
-  mkdirpSync(path: TFilePath, mode?: TMode) {
+  mkdirpSync(path: PathLike, mode?: TMode) {
     this.mkdirSync(path, { mode, recursive: true });
   }
 
-  mkdirp(path: TFilePath, callback: TCallback<void>);
-  mkdirp(path: TFilePath, mode: TMode, callback: TCallback<void>);
-  mkdirp(path: TFilePath, a: TCallback<void> | TMode, b?: TCallback<void>) {
+  mkdirp(path: PathLike, callback: TCallback<void>);
+  mkdirp(path: PathLike, mode: TMode, callback: TCallback<void>);
+  mkdirp(path: PathLike, a: TCallback<void> | TMode, b?: TCallback<void>) {
     const mode: TMode | undefined = typeof a === 'function' ? undefined : a;
     const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
-
     this.mkdir(path, { mode, recursive: true }, callback);
   }
 
@@ -1929,13 +1926,13 @@ export class Volume {
     this.deleteLink(link);
   }
 
-  rmdirSync(path: TFilePath, options?: IRmdirOptions) {
+  rmdirSync(path: PathLike, options?: IRmdirOptions) {
     this.rmdirBase(pathToFilename(path), options);
   }
 
-  rmdir(path: TFilePath, callback: TCallback<void>);
-  rmdir(path: TFilePath, options: IRmdirOptions, callback: TCallback<void>);
-  rmdir(path: TFilePath, a: TCallback<void> | IRmdirOptions, b?: TCallback<void>) {
+  rmdir(path: PathLike, callback: TCallback<void>);
+  rmdir(path: PathLike, options: IRmdirOptions, callback: TCallback<void>);
+  rmdir(path: PathLike, a: TCallback<void> | IRmdirOptions, b?: TCallback<void>) {
     const opts: IRmdirOptions = getRmdirOptions(a);
     const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
     this.wrapAsync(this.rmdirBase, [pathToFilename(path), opts], callback);
@@ -1963,13 +1960,13 @@ export class Volume {
     }
   }
 
-  chmodSync(path: TFilePath, mode: TMode) {
+  chmodSync(path: PathLike, mode: TMode) {
     const modeNum = modeToNumber(mode);
     const filename = pathToFilename(path);
     this.chmodBase(filename, modeNum);
   }
 
-  chmod(path: TFilePath, mode: TMode, callback: TCallback<void>) {
+  chmod(path: PathLike, mode: TMode, callback: TCallback<void>) {
     const modeNum = modeToNumber(mode);
     const filename = pathToFilename(path);
     this.wrapAsync(this.chmodBase, [filename, modeNum], callback);
@@ -1984,13 +1981,13 @@ export class Volume {
     }
   }
 
-  lchmodSync(path: TFilePath, mode: TMode) {
+  lchmodSync(path: PathLike, mode: TMode) {
     const modeNum = modeToNumber(mode);
     const filename = pathToFilename(path);
     this.lchmodBase(filename, modeNum);
   }
 
-  lchmod(path: TFilePath, mode: TMode, callback: TCallback<void>) {
+  lchmod(path: PathLike, mode: TMode, callback: TCallback<void>) {
     const modeNum = modeToNumber(mode);
     const filename = pathToFilename(path);
     this.wrapAsync(this.lchmodBase, [filename, modeNum], callback);
@@ -2026,13 +2023,13 @@ export class Volume {
     // }
   }
 
-  chownSync(path: TFilePath, uid: number, gid: number) {
+  chownSync(path: PathLike, uid: number, gid: number) {
     validateUid(uid);
     validateGid(gid);
     this.chownBase(pathToFilename(path), uid, gid);
   }
 
-  chown(path: TFilePath, uid: number, gid: number, callback: TCallback<void>) {
+  chown(path: PathLike, uid: number, gid: number, callback: TCallback<void>) {
     validateUid(uid);
     validateGid(gid);
     this.wrapAsync(this.chownBase, [pathToFilename(path), uid, gid], callback);
@@ -2044,13 +2041,13 @@ export class Volume {
       .chown(uid, gid);
   }
 
-  lchownSync(path: TFilePath, uid: number, gid: number) {
+  lchownSync(path: PathLike, uid: number, gid: number) {
     validateUid(uid);
     validateGid(gid);
     this.lchownBase(pathToFilename(path), uid, gid);
   }
 
-  lchown(path: TFilePath, uid: number, gid: number, callback: TCallback<void>) {
+  lchown(path: PathLike, uid: number, gid: number, callback: TCallback<void>) {
     validateUid(uid);
     validateGid(gid);
     this.wrapAsync(this.lchownBase, [pathToFilename(path), uid, gid], callback);
@@ -2058,9 +2055,9 @@ export class Volume {
 
   private statWatchers = {};
 
-  watchFile(path: TFilePath, listener: (curr: Stats, prev: Stats) => void): StatWatcher;
-  watchFile(path: TFilePath, options: IWatchFileOptions, listener: (curr: Stats, prev: Stats) => void): StatWatcher;
-  watchFile(path: TFilePath, a, b?): StatWatcher {
+  watchFile(path: PathLike, listener: (curr: Stats, prev: Stats) => void): StatWatcher;
+  watchFile(path: PathLike, options: IWatchFileOptions, listener: (curr: Stats, prev: Stats) => void): StatWatcher;
+  watchFile(path: PathLike, a, b?): StatWatcher {
     const filename = pathToFilename(path);
 
     let options: IWatchFileOptions | null = a;
@@ -2095,7 +2092,7 @@ export class Volume {
     return watcher;
   }
 
-  unwatchFile(path: TFilePath, listener?: (curr: Stats, prev: Stats) => void) {
+  unwatchFile(path: PathLike, listener?: (curr: Stats, prev: Stats) => void) {
     const filename = pathToFilename(path);
     const watcher = this.statWatchers[filename];
     if (!watcher) return;
@@ -2112,18 +2109,18 @@ export class Volume {
     }
   }
 
-  createReadStream(path: TFilePath, options?: IReadStreamOptions | string): IReadStream {
+  createReadStream(path: PathLike, options?: IReadStreamOptions | string): IReadStream {
     return new this.ReadStream(path, options);
   }
 
-  createWriteStream(path: TFilePath, options?: IWriteStreamOptions | string): IWriteStream {
+  createWriteStream(path: PathLike, options?: IWriteStreamOptions | string): IWriteStream {
     return new this.WriteStream(path, options);
   }
 
-  // watch(path: TFilePath): FSWatcher;
-  // watch(path: TFilePath, options?: IWatchOptions | string): FSWatcher;
+  // watch(path: PathLike): FSWatcher;
+  // watch(path: PathLike, options?: IWatchOptions | string): FSWatcher;
   watch(
-    path: TFilePath,
+    path: PathLike,
     options?: IWatchOptions | string,
     listener?: (eventType: string, filename: string) => void,
   ): FSWatcher {
@@ -2141,7 +2138,7 @@ export class Volume {
     if (recursive === undefined) recursive = false;
 
     const watcher = new this.FSWatcher();
-    watcher.start(filename, persistent, recursive, encoding as TEncoding);
+    watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
 
     if (listener) {
       watcher.addListener('change', listener);
@@ -2209,7 +2206,7 @@ export class StatWatcher extends EventEmitter {
 // ---------------------------------------- ReadStream
 
 export interface IReadStream extends Readable {
-  new (path: TFilePath, options: IReadStreamOptions);
+  new (path: PathLike, options: IReadStreamOptions);
   open();
   close(callback: TCallback<void>);
   bytesRead: number;
@@ -2382,7 +2379,7 @@ function closeOnOpen(fd) {
 export interface IWriteStream extends Writable {
   bytesWritten: number;
   path: string;
-  new (path: TFilePath, options: IWriteStreamOptions);
+  new (path: PathLike, options: IWriteStreamOptions);
   open();
   close();
 }
@@ -2521,7 +2518,7 @@ export class FSWatcher extends EventEmitter {
   _filenameEncoded: TDataOut = '';
   // _persistent: boolean = true;
   _recursive: boolean = false;
-  _encoding: TEncoding = ENCODING_UTF8;
+  _encoding: BufferEncoding = ENCODING_UTF8;
   _link: Link;
 
   _timer; // Timer that keeps this task persistent.
@@ -2567,7 +2564,12 @@ export class FSWatcher extends EventEmitter {
     this._timer = setTimeout(this._persist, 1e6);
   };
 
-  start(path: TFilePath, persistent: boolean = true, recursive: boolean = false, encoding: TEncoding = ENCODING_UTF8) {
+  start(
+    path: PathLike,
+    persistent: boolean = true,
+    recursive: boolean = false,
+    encoding: BufferEncoding = ENCODING_UTF8,
+  ) {
     this._filename = pathToFilename(path);
     this._steps = filenameToSteps(this._filename);
     this._filenameEncoded = strToEncoding(this._filename);

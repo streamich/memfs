@@ -1,6 +1,5 @@
 import {
   Volume,
-  TFilePath,
   TData,
   TMode,
   TFlags,
@@ -20,6 +19,7 @@ import { Buffer } from './internal/buffer';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import { TDataOut } from './encoding';
+import { PathLike } from 'fs';
 
 function promisify(
   vol: Volume,
@@ -66,33 +66,33 @@ export interface IFileHandle {
   writeFile(data: TData, options?: IWriteFileOptions): Promise<void>;
 }
 
-export type TFileHandle = TFilePath | IFileHandle;
+export type TFileHandle = PathLike | IFileHandle;
 
 export interface IPromisesAPI {
   FileHandle;
-  access(path: TFilePath, mode?: number): Promise<void>;
+  access(path: PathLike, mode?: number): Promise<void>;
   appendFile(path: TFileHandle, data: TData, options?: IAppendFileOptions | string): Promise<void>;
-  chmod(path: TFilePath, mode: TMode): Promise<void>;
-  chown(path: TFilePath, uid: number, gid: number): Promise<void>;
-  copyFile(src: TFilePath, dest: TFilePath, flags?: TFlagsCopy): Promise<void>;
-  lchmod(path: TFilePath, mode: TMode): Promise<void>;
-  lchown(path: TFilePath, uid: number, gid: number): Promise<void>;
-  link(existingPath: TFilePath, newPath: TFilePath): Promise<void>;
-  lstat(path: TFilePath, options?: IStatOptions): Promise<Stats>;
-  mkdir(path: TFilePath, options?: TMode | IMkdirOptions): Promise<void>;
+  chmod(path: PathLike, mode: TMode): Promise<void>;
+  chown(path: PathLike, uid: number, gid: number): Promise<void>;
+  copyFile(src: PathLike, dest: PathLike, flags?: TFlagsCopy): Promise<void>;
+  lchmod(path: PathLike, mode: TMode): Promise<void>;
+  lchown(path: PathLike, uid: number, gid: number): Promise<void>;
+  link(existingPath: PathLike, newPath: PathLike): Promise<void>;
+  lstat(path: PathLike, options?: IStatOptions): Promise<Stats>;
+  mkdir(path: PathLike, options?: TMode | IMkdirOptions): Promise<void>;
   mkdtemp(prefix: string, options?: IOptions): Promise<TDataOut>;
-  open(path: TFilePath, flags: TFlags, mode?: TMode): Promise<FileHandle>;
-  readdir(path: TFilePath, options?: IReaddirOptions | string): Promise<TDataOut[] | Dirent[]>;
+  open(path: PathLike, flags: TFlags, mode?: TMode): Promise<FileHandle>;
+  readdir(path: PathLike, options?: IReaddirOptions | string): Promise<TDataOut[] | Dirent[]>;
   readFile(id: TFileHandle, options?: IReadFileOptions | string): Promise<TDataOut>;
-  readlink(path: TFilePath, options?: IOptions): Promise<TDataOut>;
-  realpath(path: TFilePath, options?: IRealpathOptions | string): Promise<TDataOut>;
-  rename(oldPath: TFilePath, newPath: TFilePath): Promise<void>;
-  rmdir(path: TFilePath): Promise<void>;
-  stat(path: TFilePath, options?: IStatOptions): Promise<Stats>;
-  symlink(target: TFilePath, path: TFilePath, type?: TSymlinkType): Promise<void>;
-  truncate(path: TFilePath, len?: number): Promise<void>;
-  unlink(path: TFilePath): Promise<void>;
-  utimes(path: TFilePath, atime: TTime, mtime: TTime): Promise<void>;
+  readlink(path: PathLike, options?: IOptions): Promise<TDataOut>;
+  realpath(path: PathLike, options?: IRealpathOptions | string): Promise<TDataOut>;
+  rename(oldPath: PathLike, newPath: PathLike): Promise<void>;
+  rmdir(path: PathLike): Promise<void>;
+  stat(path: PathLike, options?: IStatOptions): Promise<Stats>;
+  symlink(target: PathLike, path: PathLike, type?: TSymlinkType): Promise<void>;
+  truncate(path: PathLike, len?: number): Promise<void>;
+  unlink(path: PathLike): Promise<void>;
+  utimes(path: PathLike, atime: TTime, mtime: TTime): Promise<void>;
   writeFile(id: TFileHandle, data: TData, options?: IWriteFileOptions): Promise<void>;
 }
 
@@ -175,43 +175,43 @@ export default function createPromisesApi(vol: Volume): null | IPromisesAPI {
   return {
     FileHandle,
 
-    access(path: TFilePath, mode?: number): Promise<void> {
+    access(path: PathLike, mode?: number): Promise<void> {
       return promisify(vol, 'access')(path, mode);
     },
 
     appendFile(path: TFileHandle, data: TData, options?: IAppendFileOptions | string): Promise<void> {
-      return promisify(vol, 'appendFile')(path instanceof FileHandle ? path.fd : (path as TFilePath), data, options);
+      return promisify(vol, 'appendFile')(path instanceof FileHandle ? path.fd : (path as PathLike), data, options);
     },
 
-    chmod(path: TFilePath, mode: TMode): Promise<void> {
+    chmod(path: PathLike, mode: TMode): Promise<void> {
       return promisify(vol, 'chmod')(path, mode);
     },
 
-    chown(path: TFilePath, uid: number, gid: number): Promise<void> {
+    chown(path: PathLike, uid: number, gid: number): Promise<void> {
       return promisify(vol, 'chown')(path, uid, gid);
     },
 
-    copyFile(src: TFilePath, dest: TFilePath, flags?: TFlagsCopy): Promise<void> {
+    copyFile(src: PathLike, dest: PathLike, flags?: TFlagsCopy): Promise<void> {
       return promisify(vol, 'copyFile')(src, dest, flags);
     },
 
-    lchmod(path: TFilePath, mode: TMode): Promise<void> {
+    lchmod(path: PathLike, mode: TMode): Promise<void> {
       return promisify(vol, 'lchmod')(path, mode);
     },
 
-    lchown(path: TFilePath, uid: number, gid: number): Promise<void> {
+    lchown(path: PathLike, uid: number, gid: number): Promise<void> {
       return promisify(vol, 'lchown')(path, uid, gid);
     },
 
-    link(existingPath: TFilePath, newPath: TFilePath): Promise<void> {
+    link(existingPath: PathLike, newPath: PathLike): Promise<void> {
       return promisify(vol, 'link')(existingPath, newPath);
     },
 
-    lstat(path: TFilePath, options?: IStatOptions): Promise<Stats> {
+    lstat(path: PathLike, options?: IStatOptions): Promise<Stats> {
       return promisify(vol, 'lstat')(path, options);
     },
 
-    mkdir(path: TFilePath, options?: TMode | IMkdirOptions): Promise<void> {
+    mkdir(path: PathLike, options?: TMode | IMkdirOptions): Promise<void> {
       return promisify(vol, 'mkdir')(path, options);
     },
 
@@ -219,56 +219,56 @@ export default function createPromisesApi(vol: Volume): null | IPromisesAPI {
       return promisify(vol, 'mkdtemp')(prefix, options);
     },
 
-    open(path: TFilePath, flags: TFlags, mode?: TMode): Promise<FileHandle> {
+    open(path: PathLike, flags: TFlags, mode?: TMode): Promise<FileHandle> {
       return promisify(vol, 'open', fd => new FileHandle(vol, fd))(path, flags, mode);
     },
 
-    readdir(path: TFilePath, options?: IReaddirOptions | string): Promise<TDataOut[] | Dirent[]> {
+    readdir(path: PathLike, options?: IReaddirOptions | string): Promise<TDataOut[] | Dirent[]> {
       return promisify(vol, 'readdir')(path, options);
     },
 
     readFile(id: TFileHandle, options?: IReadFileOptions | string): Promise<TDataOut> {
-      return promisify(vol, 'readFile')(id instanceof FileHandle ? id.fd : (id as TFilePath), options);
+      return promisify(vol, 'readFile')(id instanceof FileHandle ? id.fd : (id as PathLike), options);
     },
 
-    readlink(path: TFilePath, options?: IOptions): Promise<TDataOut> {
+    readlink(path: PathLike, options?: IOptions): Promise<TDataOut> {
       return promisify(vol, 'readlink')(path, options);
     },
 
-    realpath(path: TFilePath, options?: IRealpathOptions | string): Promise<TDataOut> {
+    realpath(path: PathLike, options?: IRealpathOptions | string): Promise<TDataOut> {
       return promisify(vol, 'realpath')(path, options);
     },
 
-    rename(oldPath: TFilePath, newPath: TFilePath): Promise<void> {
+    rename(oldPath: PathLike, newPath: PathLike): Promise<void> {
       return promisify(vol, 'rename')(oldPath, newPath);
     },
 
-    rmdir(path: TFilePath): Promise<void> {
+    rmdir(path: PathLike): Promise<void> {
       return promisify(vol, 'rmdir')(path);
     },
 
-    stat(path: TFilePath, options?: IStatOptions): Promise<Stats> {
+    stat(path: PathLike, options?: IStatOptions): Promise<Stats> {
       return promisify(vol, 'stat')(path, options);
     },
 
-    symlink(target: TFilePath, path: TFilePath, type?: TSymlinkType): Promise<void> {
+    symlink(target: PathLike, path: PathLike, type?: TSymlinkType): Promise<void> {
       return promisify(vol, 'symlink')(target, path, type);
     },
 
-    truncate(path: TFilePath, len?: number): Promise<void> {
+    truncate(path: PathLike, len?: number): Promise<void> {
       return promisify(vol, 'truncate')(path, len);
     },
 
-    unlink(path: TFilePath): Promise<void> {
+    unlink(path: PathLike): Promise<void> {
       return promisify(vol, 'unlink')(path);
     },
 
-    utimes(path: TFilePath, atime: TTime, mtime: TTime): Promise<void> {
+    utimes(path: PathLike, atime: TTime, mtime: TTime): Promise<void> {
       return promisify(vol, 'utimes')(path, atime, mtime);
     },
 
     writeFile(id: TFileHandle, data: TData, options?: IWriteFileOptions): Promise<void> {
-      return promisify(vol, 'writeFile')(id instanceof FileHandle ? id.fd : (id as TFilePath), data, options);
+      return promisify(vol, 'writeFile')(id instanceof FileHandle ? id.fd : (id as PathLike), data, options);
     },
   };
 }

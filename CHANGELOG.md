@@ -1,3 +1,10 @@
+## [3.0.6](https://github.com/streamich/memfs/compare/v3.0.5...v3.0.6) (2020-02-16)
+
+
+### Bug Fixes
+
+* export `DirectoryJSON` from `index` ([c447a6c](https://github.com/streamich/memfs/commit/c447a6c8f8ee66b8a55d4cb2a2a2279ab5cf03d1))
+
 ## [3.0.5](https://github.com/streamich/memfs/compare/v3.0.4...v3.0.5) (2020-02-15)
 
 

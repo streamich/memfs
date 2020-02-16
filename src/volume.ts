@@ -1,7 +1,7 @@
 import * as pathModule from 'path';
 import { PathLike, symlink } from 'fs';
 import { Node, Link, File } from './node';
-import Stats, { TStatNumber } from './Stats';
+import Stats from './Stats';
 import Dirent from './Dirent';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from './internal/buffer';
 import setImmediate from './setImmediate';

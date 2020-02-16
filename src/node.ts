@@ -5,7 +5,7 @@ import { Volume } from './volume';
 import { EventEmitter } from 'events';
 import Stats from './Stats';
 
-const { S_IFMT, S_IFDIR, S_IFREG, S_IFBLK, S_IFCHR, S_IFLNK, S_IFIFO, S_IFSOCK, O_APPEND } = constants;
+const { S_IFMT, S_IFDIR, S_IFREG, S_IFLNK, O_APPEND } = constants;
 
 export const SEP = '/';
 

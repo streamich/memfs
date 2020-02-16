@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["es5", "dom", "es2015.promise"],
+    "lib": ["ES2017", "dom"],
     "module": "commonjs",
     "removeComments": false,
     "noImplicitAny": false,

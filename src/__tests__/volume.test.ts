@@ -1,5 +1,5 @@
 import { URL } from 'url';
-import { Link, Node } from '../node';
+import { Link } from '../node';
 import Stats from '../Stats';
 import Dirent from '../Dirent';
 import { Volume, filenameToSteps, StatWatcher } from '../volume';

@@ -1,5 +1,5 @@
 import { Node } from '../node';
-import { constants, S } from '../constants';
+import { constants } from '../constants';
 
 describe('node.ts', () => {
   describe('Node', () => {

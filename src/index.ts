@@ -1,11 +1,20 @@
 import Stats from './Stats';
 import Dirent from './Dirent';
-import { Volume as _Volume, StatWatcher, FSWatcher, toUnixTimestamp, IReadStream, IWriteStream } from './volume';
+import {
+  Volume as _Volume,
+  StatWatcher,
+  FSWatcher,
+  toUnixTimestamp,
+  IReadStream,
+  IWriteStream,
+  DirectoryJSON,
+} from './volume';
 import { IPromisesAPI } from './promises';
 const { fsSyncMethods, fsAsyncMethods } = require('fs-monkey/lib/util/lists');
 import { constants } from './constants';
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
+export { DirectoryJSON };
 export const Volume = _Volume;
 
 // Default volume.

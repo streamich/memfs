@@ -4,7 +4,6 @@ import {
   TMode,
   TFlags,
   TFlagsCopy,
-  TSymlinkType,
   TTime,
   IOptions,
   IAppendFileOptions,
@@ -18,7 +17,7 @@ import {
 import Stats from './Stats';
 import Dirent from './Dirent';
 import { TDataOut } from './encoding';
-import { PathLike } from 'fs';
+import { PathLike, symlink } from 'fs';
 
 function promisify(
   vol: Volume,
@@ -88,7 +87,7 @@ export interface IPromisesAPI {
   rename(oldPath: PathLike, newPath: PathLike): Promise<void>;
   rmdir(path: PathLike): Promise<void>;
   stat(path: PathLike, options?: IStatOptions): Promise<Stats>;
-  symlink(target: PathLike, path: PathLike, type?: TSymlinkType): Promise<void>;
+  symlink(target: PathLike, path: PathLike, type?: symlink.Type): Promise<void>;
   truncate(path: PathLike, len?: number): Promise<void>;
   unlink(path: PathLike): Promise<void>;
   utimes(path: PathLike, atime: TTime, mtime: TTime): Promise<void>;
@@ -250,7 +249,7 @@ export default function createPromisesApi(vol: Volume): null | IPromisesAPI {
       return promisify(vol, 'stat')(path, options);
     },
 
-    symlink(target: PathLike, path: PathLike, type?: TSymlinkType): Promise<void> {
+    symlink(target: PathLike, path: PathLike, type?: symlink.Type): Promise<void> {
       return promisify(vol, 'symlink')(target, path, type);
     },
 

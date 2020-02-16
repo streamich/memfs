@@ -1,5 +1,5 @@
 import * as pathModule from 'path';
-import { PathLike } from 'fs';
+import { PathLike, symlink } from 'fs';
 import { Node, Link, File } from './node';
 import Stats, { TStatNumber } from './Stats';
 import Dirent from './Dirent';
@@ -61,7 +61,6 @@ export type TTime = number | string | Date;
 export type TCallback<TData> = (error?: IError | null, data?: TData) => void;
 // type TCallbackWrite = (err?: IError, bytesWritten?: number, source?: Buffer) => void;
 // type TCallbackWriteStr = (err?: IError, written?: number, str?: string) => void;
-export type TSymlinkType = 'file' | 'dir' | 'junction';
 
 // ---------------------------------------- Constants
 
@@ -1414,15 +1413,15 @@ export class Volume {
   }
 
   // `type` argument works only on Windows.
-  symlinkSync(target: PathLike, path: PathLike, type?: TSymlinkType) {
+  symlinkSync(target: PathLike, path: PathLike, type?: symlink.Type) {
     const targetFilename = pathToFilename(target);
     const pathFilename = pathToFilename(path);
     this.symlinkBase(targetFilename, pathFilename);
   }
 
   symlink(target: PathLike, path: PathLike, callback: TCallback<void>);
-  symlink(target: PathLike, path: PathLike, type: TSymlinkType, callback: TCallback<void>);
-  symlink(target: PathLike, path: PathLike, a: TSymlinkType | TCallback<void>, b?: TCallback<void>) {
+  symlink(target: PathLike, path: PathLike, type: symlink.Type, callback: TCallback<void>);
+  symlink(target: PathLike, path: PathLike, a: symlink.Type | TCallback<void>, b?: TCallback<void>) {
     const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
     const targetFilename = pathToFilename(target);
     const pathFilename = pathToFilename(path);

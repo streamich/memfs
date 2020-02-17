@@ -1,3 +1,11 @@
+# [3.1.0](https://github.com/streamich/memfs/compare/v3.0.6...v3.1.0) (2020-02-17)
+
+
+### Features
+
+* replace `fast-extend` with native `Object.assign` ([934f1f3](https://github.com/streamich/memfs/commit/934f1f31948e5b4afc9ea101f9c5ad20017df217))
+* specify `engines` field with `node` constraint of `>= 8.3.0` ([7d3b132](https://github.com/streamich/memfs/commit/7d3b132c35639c10a5750e8e17b839b619f2ab41))
+
 ## [3.0.6](https://github.com/streamich/memfs/compare/v3.0.5...v3.0.6) (2020-02-16)
 
 

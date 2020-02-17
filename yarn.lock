@@ -2366,10 +2366,10 @@ fs-minipass@^1.2.5:
   dependencies:
     minipass "^2.6.0"
 
-fs-monkey@0.3.3:
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/fs-monkey/-/fs-monkey-0.3.3.tgz#7960bb2b1fa2653731b9d0e2e84812a7e8b3664a"
-  integrity sha512-FNUvuTAJ3CqCQb5ELn+qCbGR/Zllhf2HtwsdAtBi59s1WeCjKMT81fHcSu7dwIskqGVK+MmOrb7VOBlq3/SItw==
+fs-monkey@0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/fs-monkey/-/fs-monkey-0.4.0.tgz#977acf48908333a80cd061d22de98ea5d3568212"
+  integrity sha512-yLrXie7AN95f1CKhtJnggKTaSitiafDlKL/oV/cFSY+EXrjKrvBJ0LLuXKvZHU9NDjrWRn8EEHhDFFZ5sXZxKQ==
 
 fs-vacuum@^1.2.10, fs-vacuum@~1.2.10:
   version "1.2.10"

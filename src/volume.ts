@@ -12,7 +12,6 @@ import { constants } from './constants';
 import { EventEmitter } from 'events';
 import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as errors from './internal/errors';
-const { extend } = require('fast-extend');
 import util = require('util');
 import createPromisesApi from './promises';
 
@@ -214,10 +213,10 @@ function getOptions<T extends IOptions>(defaults: T, options?: T | string): T {
     const tipeof = typeof options;
     switch (tipeof) {
       case 'string':
-        opts = extend({}, defaults, { encoding: options as string });
+        opts = Object.assign({}, defaults, { encoding: options as string });
         break;
       case 'object':
-        opts = extend({}, defaults, options);
+        opts = Object.assign({}, defaults, options);
         break;
       default:
         throw TypeError(ERRSTR_OPTS(tipeof));
@@ -338,8 +337,8 @@ const mkdirDefaults: IMkdirOptions = {
   recursive: false,
 };
 const getMkdirOptions = (options): IMkdirOptions => {
-  if (typeof options === 'number') return extend({}, mkdirDefaults, { mode: options });
-  return extend({}, mkdirDefaults, options);
+  if (typeof options === 'number') return Object.assign({}, mkdirDefaults, { mode: options });
+  return Object.assign({}, mkdirDefaults, options);
 };
 
 // Options for `fs.rmdir` and `fs.rmdirSync`
@@ -350,7 +349,7 @@ const rmdirDefaults: IRmdirOptions = {
   recursive: false,
 };
 const getRmdirOptions = (options): IRmdirOptions => {
-  return extend({}, rmdirDefaults, options);
+  return Object.assign({}, rmdirDefaults, options);
 };
 
 // Options for `fs.readdir` and `fs.readdirSync`
@@ -371,7 +370,7 @@ export interface IStatOptions {
 const statDefaults: IStatOptions = {
   bigint: false,
 };
-const getStatOptions: (options?: any) => IStatOptions = (options = {}) => extend({}, statDefaults, options);
+const getStatOptions: (options?: any) => IStatOptions = (options = {}) => Object.assign({}, statDefaults, options);
 const getStatOptsAndCb: (options: any, callback?: TCallback<Stats>) => [IStatOptions, TCallback<Stats>] = (
   options,
   callback?,
@@ -578,7 +577,7 @@ export class Volume {
   }
 
   constructor(props = {}) {
-    this.props = extend({ Node, Link, File }, props);
+    this.props = Object.assign({ Node, Link, File }, props);
 
     const root = this.createLink();
     root.setNode(this.createNode(true));
@@ -2227,7 +2226,7 @@ function FsReadStream(vol, path, options) {
   this._vol = vol;
 
   // a little bit bigger buffer and water marks by default
-  options = extend({}, getOptions(options, {}));
+  options = Object.assign({}, getOptions(options, {}));
   if (options.highWaterMark === undefined) options.highWaterMark = 64 * 1024;
 
   Readable.call(this, options);
@@ -2389,7 +2388,7 @@ function FsWriteStream(vol, path, options) {
   if (!(this instanceof FsWriteStream)) return new (FsWriteStream as any)(vol, path, options);
 
   this._vol = vol;
-  options = extend({}, getOptions(options, {}));
+  options = Object.assign({}, getOptions(options, {}));
 
   Writable.call(this, options);
 

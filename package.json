@@ -23,7 +23,6 @@
     "url": "https://github.com/streamich/memfs.git"
   },
   "dependencies": {
-    "fast-extend": "1.0.2",
     "fs-monkey": "0.3.3"
   },
   "devDependencies": {
@@ -61,6 +60,9 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$"
+  },
+  "engines": {
+    "node": ">= 4.0.0"
   },
   "release": {
     "verifyConditions": [

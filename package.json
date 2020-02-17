@@ -62,7 +62,7 @@
     "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$"
   },
   "engines": {
-    "node": ">= 8.3.0"
+    "node": ">= 4.0.0"
   },
   "release": {
     "verifyConditions": [

@@ -1812,7 +1812,7 @@ export class Volume {
 
     // This will throw if user tries to create root dir `fs.mkdirSync('/')`.
     if (!steps.length) {
-      throw createError(EISDIR, 'mkdir', filename);
+      throw createError(EEXIST, 'mkdir', filename);
     }
 
     const dir = this.getLinkParentAsDirOrThrow(filename, 'mkdir');

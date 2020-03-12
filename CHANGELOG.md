@@ -1,3 +1,10 @@
+## [3.1.2](https://github.com/streamich/memfs/compare/v3.1.1...v3.1.2) (2020-03-12)
+
+
+### Bug Fixes
+
+* should throw `EEXIST` instead of `EISDIR` on `mkdirSync('/')` ([f89eede](https://github.com/streamich/memfs/commit/f89eede9530c3f5bd8d8a523be1927d396cda662))
+
 ## [3.1.1](https://github.com/streamich/memfs/compare/v3.1.0...v3.1.1) (2020-02-17)
 
 

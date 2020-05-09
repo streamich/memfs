@@ -34,7 +34,7 @@
     "prettier": "1.19.1",
     "pretty-quick": "2.0.1",
     "rimraf": "3.0.2",
-    "ts-jest": "24.3.0",
+    "ts-jest": "25.5.1",
     "ts-node": "8.10.1",
     "tslint": "5.20.1",
     "tslint-config-common": "1.6.0",

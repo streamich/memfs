@@ -222,6 +222,35 @@ describe('volume', () => {
         expect(vol.toJSON()).toEqual(json);
       });
 
+      it('Accept a nested dict as input because its nicer to read', () => {
+        const vol1 = new Volume();
+        const vol2 = new Volume();
+
+        const jsonFlat = {
+          '/dir/file': '...',
+          '/dir/dir/dir2/hello.sh': 'world',
+          '/hello.js': 'console.log(123)',
+          '/dir/dir/test.txt': 'Windows',
+        };
+        const jsonNested = {
+          '/dir/': {
+            file: '...',
+            dir: {
+              dir2: {
+                'hello.sh': 'world',
+              },
+              'test.txt': 'Windows',
+            },
+          },
+          '/hello.js': 'console.log(123)',
+        };
+
+        vol1.fromJSON(jsonFlat);
+        vol2.fromJSON(jsonNested);
+
+        expect(vol1.toJSON()).toEqual(vol2.toJSON());
+      });
+
       it('Invalid JSON throws error', () => {
         try {
           const vol = new Volume();

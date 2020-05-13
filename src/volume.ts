@@ -509,6 +509,10 @@ function validateGid(gid: number) {
 // ---------------------------------------- Volume
 
 export type DirectoryJSON = Record<string, string | null>;
+// tslint:disable-next-line:interface-over-type-literal
+export type NestedDirectoryJSON = {
+  [key: string]: string | NestedDirectoryJSON | null;
+};
 
 /**
  * `Volume` represents a file system.
@@ -864,7 +868,7 @@ export class Volume {
   }
 
   // fromJSON(json: {[filename: string]: string}, cwd: string = '/') {
-  fromJSON(json: DirectoryJSON, cwd: string = process.cwd()) {
+  fromJSON(json: NestedDirectoryJSON, cwd: string = process.cwd()) {
     for (let filename in json) {
       const data = json[filename];
 
@@ -878,6 +882,25 @@ export class Volume {
         this.writeFileSync(filename, data);
       } else {
         this.mkdirpBase(filename, MODE.DIR);
+
+        if (data !== null && typeof data === 'object') {
+          const child: NestedDirectoryJSON = {};
+
+          for (const childFilename in data) {
+            let combinedFilename;
+
+            // the path interpreted as directory could end with the separator symbol...
+            if (filename.endsWith(sep)) {
+              combinedFilename = filename + childFilename;
+            } else {
+              combinedFilename = filename + sep + childFilename;
+            }
+
+            child[combinedFilename] = data[childFilename];
+          }
+
+          this.fromJSON(child, '');
+        }
       }
     }
   }

@@ -872,8 +872,9 @@ export class Volume {
     for (let filename in json) {
       const data = json[filename];
 
+      filename = resolve(filename, cwd);
+
       if (typeof data === 'string') {
-        filename = resolve(filename, cwd);
         const steps = filenameToSteps(filename);
         if (steps.length > 1) {
           const dirname = sep + steps.slice(0, steps.length - 1).join(sep);

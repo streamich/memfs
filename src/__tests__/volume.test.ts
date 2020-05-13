@@ -197,16 +197,18 @@ describe('volume', () => {
         expect(vol.toJSON()).toEqual(json);
       });
 
-      it('Files at root with relative paths', () => {
+      it('Files and directories at root with relative paths', () => {
         const vol = new Volume();
         const json = {
           hello: 'world',
           'app.js': 'console.log(123)',
+          dir: {},
         };
         vol.fromJSON(json, '/');
         expect(vol.toJSON()).toEqual({
           '/hello': 'world',
           '/app.js': 'console.log(123)',
+          '/dir': null,
         });
       });
 

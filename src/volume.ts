@@ -31,17 +31,7 @@ const {
   COPYFILE_FICLONE_FORCE,
 } = constants;
 
-let sep;
-let relative;
-if (pathModule.posix) {
-  const { posix } = pathModule;
-
-  sep = posix.sep;
-  relative = posix.relative;
-} else {
-  sep = pathModule.sep;
-  relative = pathModule.relative;
-}
+const { sep, relative, join, dirname } = pathModule.posix ? pathModule.posix : pathModule;
 
 const isWin = process.platform === 'win32';
 
@@ -508,16 +498,15 @@ function validateGid(gid: number) {
 
 // ---------------------------------------- Volume
 
-export type DirectoryJSON = Record<string, string | null>;
-// tslint:disable-next-line:interface-over-type-literal
-export type NestedDirectoryJSON = {
-  [key: string]: string | NestedDirectoryJSON | null;
-};
+export interface DirectoryJSON {
+  [key: string]: string | DirectoryJSON | null;
+}
 
 /**
  * `Volume` represents a file system.
  */
 export class Volume {
+  // TODO{FL}
   static fromJSON(json: DirectoryJSON, cwd?: string): Volume {
     const vol = new Volume();
     vol.fromJSON(json, cwd);
@@ -867,36 +856,25 @@ export class Volume {
     return json;
   }
 
-  // fromJSON(json: {[filename: string]: string}, cwd: string = '/') {
-  fromJSON(json: NestedDirectoryJSON, cwd: string = process.cwd()) {
+  fromJSON(json: DirectoryJSON, cwd: string = process.cwd()) {
     for (let filename in json) {
       const data = json[filename];
 
       filename = resolve(filename, cwd);
 
       if (typeof data === 'string') {
-        const steps = filenameToSteps(filename);
-        if (steps.length > 1) {
-          const dirname = sep + steps.slice(0, steps.length - 1).join(sep);
-          this.mkdirpBase(dirname, MODE.DIR);
-        }
+        const dir = dirname(filename);
+        this.mkdirpBase(dir, MODE.DIR);
+
         this.writeFileSync(filename, data);
       } else {
         this.mkdirpBase(filename, MODE.DIR);
 
         if (data !== null && typeof data === 'object') {
-          const child: NestedDirectoryJSON = {};
+          const child: DirectoryJSON = {};
 
           for (const childFilename in data) {
-            let combinedFilename;
-
-            // the path interpreted as directory could end with the separator symbol...
-            if (filename.endsWith(sep)) {
-              combinedFilename = filename + childFilename;
-            } else {
-              combinedFilename = filename + sep + childFilename;
-            }
-
+            const combinedFilename = join(filename, childFilename);
             child[combinedFilename] = data[childFilename];
           }
 

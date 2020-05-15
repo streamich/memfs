@@ -499,18 +499,52 @@ function validateGid(gid: number) {
 // ---------------------------------------- Volume
 
 export interface DirectoryJSON {
-  [key: string]: string | DirectoryJSON | null;
+  [key: string]: string | null;
+}
+export interface NestedDirectoryJSON {
+  [key: string]: string | NestedDirectoryJSON | null;
+}
+
+function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {
+  const flatJSON: DirectoryJSON = {};
+
+  flatten('', nestedJSON);
+
+  return flatJSON;
+
+  function flatten(pathPrefix: string, node: NestedDirectoryJSON) {
+    for (const path in node) {
+      const contentOrNode = node[path];
+
+      const joinedPath = join(pathPrefix, path);
+
+      if (typeof contentOrNode === 'string') {
+        flatJSON[joinedPath] = contentOrNode;
+      } else if (typeof contentOrNode === 'object' && contentOrNode !== null && Object.keys(contentOrNode).length > 0) {
+        // empty directories need an explicit entry and therefore get handled in `else`, non-empty ones are implicitly considered
+
+        flatten(joinedPath, contentOrNode);
+      } else {
+        // without this branch null, empty-object or non-object entries would not be handled in the same way
+        // by both fromJSON() and fromNestedJSON()
+        flatJSON[joinedPath] = null;
+      }
+    }
+  }
 }
 
 /**
  * `Volume` represents a file system.
  */
 export class Volume {
-  // TODO{FL}
   static fromJSON(json: DirectoryJSON, cwd?: string): Volume {
     const vol = new Volume();
     vol.fromJSON(json, cwd);
     return vol;
+  }
+
+  static fromNestedJSON(json: NestedDirectoryJSON, cwd?: string): Volume {
+    return Volume.fromJSON(flattenJSON(json), cwd);
   }
 
   /**
@@ -869,19 +903,12 @@ export class Volume {
         this.writeFileSync(filename, data);
       } else {
         this.mkdirpBase(filename, MODE.DIR);
-
-        if (data !== null && typeof data === 'object') {
-          const child: DirectoryJSON = {};
-
-          for (const childFilename in data) {
-            const combinedFilename = join(filename, childFilename);
-            child[combinedFilename] = data[childFilename];
-          }
-
-          this.fromJSON(child, '');
-        }
       }
     }
+  }
+
+  fromNestedJSON(json: NestedDirectoryJSON, cwd?: string) {
+    this.fromJSON(flattenJSON(json), cwd);
   }
 
   reset() {

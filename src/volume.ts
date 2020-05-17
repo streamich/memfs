@@ -497,12 +497,13 @@ function validateGid(gid: number) {
 }
 
 // ---------------------------------------- Volume
+type DirectoryContent = string | null;
 
 export interface DirectoryJSON {
-  [key: string]: string | null;
+  [key: string]: DirectoryContent;
 }
 export interface NestedDirectoryJSON {
-  [key: string]: string | null | NestedDirectoryJSON;
+  [key: string]: DirectoryContent | NestedDirectoryJSON;
 }
 
 function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {

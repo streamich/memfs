@@ -1,6 +1,6 @@
 # memfs
 
-[![][npm-badge]][npm-url] [![][travis-badge]][travis-url]
+[![][chat-badge]][chat] [![][npm-badge]][npm-url] [![][travis-badge]][travis-url]
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
@@ -107,6 +107,8 @@ require('/index'); // hi world
 - [`fs-monkey`][fs-monkey] - monkey-patches Node's `fs` module and `require` function
 - [`libfs`](https://github.com/streamich/full-js/blob/master/src/lib/fs.ts) - real filesystem (that executes UNIX system calls) implemented in JavaScript
 
+[chat]: https://onp4.com/@vadim/~memfs
+[chat-badge]: https://img.shields.io/badge/Chat-%F0%9F%92%AC-green?style=flat&logo=chat&link=https://onp4.com/@vadim/~memfs
 [npm-url]: https://www.npmjs.com/package/memfs
 [npm-badge]: https://img.shields.io/npm/v/memfs.svg
 [travis-url]: https://travis-ci.org/streamich/memfs

@@ -502,15 +502,11 @@ export interface DirectoryJSON {
   [key: string]: string | null;
 }
 export interface NestedDirectoryJSON {
-  [key: string]: string | NestedDirectoryJSON | null;
+  [key: string]: string | null | NestedDirectoryJSON;
 }
 
 function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {
   const flatJSON: DirectoryJSON = {};
-
-  flatten('', nestedJSON);
-
-  return flatJSON;
 
   function flatten(pathPrefix: string, node: NestedDirectoryJSON) {
     for (const path in node) {
@@ -531,6 +527,10 @@ function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {
       }
     }
   }
+
+  flatten('', nestedJSON);
+
+  return flatJSON;
 }
 
 /**
@@ -544,7 +544,9 @@ export class Volume {
   }
 
   static fromNestedJSON(json: NestedDirectoryJSON, cwd?: string): Volume {
-    return Volume.fromJSON(flattenJSON(json), cwd);
+    const vol = new Volume();
+    vol.fromNestedJSON(json, cwd);
+    return vol;
   }
 
   /**

@@ -265,7 +265,7 @@ describe('volume', () => {
       });
     });
 
-    describe('.fromNestedJSON(nestedJSON[, cwd]', () => {
+    describe('.fromNestedJSON(nestedJSON[, cwd])', () => {
       it('Accept a nested dict as input because its nicer to read', () => {
         const vol1 = new Volume();
         const vol2 = new Volume();

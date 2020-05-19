@@ -197,16 +197,18 @@ describe('volume', () => {
         expect(vol.toJSON()).toEqual(json);
       });
 
-      it('Files at root with relative paths', () => {
+      it('Files and directories at root with relative paths', () => {
         const vol = new Volume();
         const json = {
           hello: 'world',
           'app.js': 'console.log(123)',
+          dir: null,
         };
         vol.fromJSON(json, '/');
         expect(vol.toJSON()).toEqual({
           '/hello': 'world',
           '/app.js': 'console.log(123)',
+          '/dir': null,
         });
       });
 
@@ -252,7 +254,7 @@ describe('volume', () => {
         }
       });
 
-      it('creates a folder if values is not a string', () => {
+      it('creates a folder if value is not a string', () => {
         const vol = Volume.fromJSON({
           '/dir': null,
         });
@@ -260,6 +262,46 @@ describe('volume', () => {
 
         expect(stat.isDirectory()).toBe(true);
         expect(vol.readdirSync('/dir')).toEqual([]);
+      });
+    });
+
+    describe('.fromNestedJSON(nestedJSON[, cwd])', () => {
+      it('Accept a nested dict as input because its nicer to read', () => {
+        const vol1 = new Volume();
+        const vol2 = new Volume();
+
+        const jsonFlat = {
+          '/dir/file': '...',
+          '/emptyDir': null,
+          '/anotherEmptyDir': null,
+          '/oneMoreEmptyDir': null,
+          '/dir/dir/dir2/hello.sh': 'world',
+          '/hello.js': 'console.log(123)',
+          '/dir/dir/test.txt': 'File with leading slash',
+        };
+        const jsonNested = {
+          '/dir/': {
+            file: '...',
+            dir: {
+              dir2: {
+                'hello.sh': 'world',
+              },
+              '/test.txt': 'File with leading slash',
+            },
+          },
+          '/emptyDir': {},
+          '/anotherEmptyDir': null,
+          '/oneMoreEmptyDir': {
+            '': null, // this could be considered a glitch, but "" is not a valid filename anyway
+            // (same as 'file/name' is invalid and would lead to problems)
+          },
+          '/hello.js': 'console.log(123)',
+        };
+
+        vol1.fromJSON(jsonFlat);
+        vol2.fromNestedJSON(jsonNested);
+
+        expect(vol1.toJSON()).toEqual(vol2.toJSON());
       });
     });
 

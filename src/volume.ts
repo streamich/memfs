@@ -31,17 +31,7 @@ const {
   COPYFILE_FICLONE_FORCE,
 } = constants;
 
-let sep;
-let relative;
-if (pathModule.posix) {
-  const { posix } = pathModule;
-
-  sep = posix.sep;
-  relative = posix.relative;
-} else {
-  sep = pathModule.sep;
-  relative = pathModule.relative;
-}
+const { sep, relative, join, dirname } = pathModule.posix ? pathModule.posix : pathModule;
 
 const isWin = process.platform === 'win32';
 
@@ -507,8 +497,42 @@ function validateGid(gid: number) {
 }
 
 // ---------------------------------------- Volume
+type DirectoryContent = string | null;
 
-export type DirectoryJSON = Record<string, string | null>;
+export interface DirectoryJSON {
+  [key: string]: DirectoryContent;
+}
+export interface NestedDirectoryJSON {
+  [key: string]: DirectoryContent | NestedDirectoryJSON;
+}
+
+function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {
+  const flatJSON: DirectoryJSON = {};
+
+  function flatten(pathPrefix: string, node: NestedDirectoryJSON) {
+    for (const path in node) {
+      const contentOrNode = node[path];
+
+      const joinedPath = join(pathPrefix, path);
+
+      if (typeof contentOrNode === 'string') {
+        flatJSON[joinedPath] = contentOrNode;
+      } else if (typeof contentOrNode === 'object' && contentOrNode !== null && Object.keys(contentOrNode).length > 0) {
+        // empty directories need an explicit entry and therefore get handled in `else`, non-empty ones are implicitly considered
+
+        flatten(joinedPath, contentOrNode);
+      } else {
+        // without this branch null, empty-object or non-object entries would not be handled in the same way
+        // by both fromJSON() and fromNestedJSON()
+        flatJSON[joinedPath] = null;
+      }
+    }
+  }
+
+  flatten('', nestedJSON);
+
+  return flatJSON;
+}
 
 /**
  * `Volume` represents a file system.
@@ -517,6 +541,12 @@ export class Volume {
   static fromJSON(json: DirectoryJSON, cwd?: string): Volume {
     const vol = new Volume();
     vol.fromJSON(json, cwd);
+    return vol;
+  }
+
+  static fromNestedJSON(json: NestedDirectoryJSON, cwd?: string): Volume {
+    const vol = new Volume();
+    vol.fromNestedJSON(json, cwd);
     return vol;
   }
 
@@ -863,23 +893,25 @@ export class Volume {
     return json;
   }
 
-  // fromJSON(json: {[filename: string]: string}, cwd: string = '/') {
   fromJSON(json: DirectoryJSON, cwd: string = process.cwd()) {
     for (let filename in json) {
       const data = json[filename];
 
+      filename = resolve(filename, cwd);
+
       if (typeof data === 'string') {
-        filename = resolve(filename, cwd);
-        const steps = filenameToSteps(filename);
-        if (steps.length > 1) {
-          const dirname = sep + steps.slice(0, steps.length - 1).join(sep);
-          this.mkdirpBase(dirname, MODE.DIR);
-        }
+        const dir = dirname(filename);
+        this.mkdirpBase(dir, MODE.DIR);
+
         this.writeFileSync(filename, data);
       } else {
         this.mkdirpBase(filename, MODE.DIR);
       }
     }
+  }
+
+  fromNestedJSON(json: NestedDirectoryJSON, cwd?: string) {
+    this.fromJSON(flattenJSON(json), cwd);
   }
 
   reset() {

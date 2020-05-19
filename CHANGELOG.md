@@ -1,3 +1,15 @@
+# [3.2.0](https://github.com/streamich/memfs/compare/v3.1.3...v3.2.0) (2020-05-19)
+
+
+### Bug Fixes
+
+* 'fromJSON()' did not consider cwd when creating directories ([3d6ee3b](https://github.com/streamich/memfs/commit/3d6ee3b2c0eef0345ba2bd400e9836f2d685321f))
+
+
+### Features
+
+* support nested objects in 'fromJSON()' ([f8c329c](https://github.com/streamich/memfs/commit/f8c329c8e57c85cc4a394a74802af1f37dcedefd))
+
 ## [3.1.3](https://github.com/streamich/memfs/compare/v3.1.2...v3.1.3) (2020-05-14)
 
 

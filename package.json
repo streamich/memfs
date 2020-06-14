@@ -26,15 +26,15 @@
     "fs-monkey": "1.0.1"
   },
   "devDependencies": {
-    "@types/jest": "23.3.14",
+    "@types/jest": "25.2.3",
     "@types/node": "10.17.26",
     "cpy-cli": "3.1.0",
     "husky": "3.1.0",
-    "jest": "24.9.0",
+    "jest": "25.5.4",
     "prettier": "1.19.1",
     "pretty-quick": "2.0.1",
     "rimraf": "3.0.2",
-    "ts-jest": "24.3.0",
+    "ts-jest": "25.5.1",
     "ts-node": "8.10.2",
     "tslint": "5.20.1",
     "tslint-config-common": "1.6.0",
@@ -56,6 +56,7 @@
       "js",
       "jsx"
     ],
+    "testEnvironment": "node",
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },

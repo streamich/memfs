@@ -1020,8 +1020,10 @@ describe('volume', () => {
         vol.writeFileSync('/lol.txt', '1');
         setTimeout(() => {
           vol.watchFile('/lol.txt', { interval: 1 }, (curr, prev) => {
-            vol.unwatchFile('/lol.txt');
-            done();
+            process.nextTick(() => {
+              vol.unwatchFile('/lol.txt');
+              done();
+            });
           });
           vol.writeFileSync('/lol.txt', '2');
         }, 1);

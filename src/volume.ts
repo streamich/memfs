@@ -471,14 +471,10 @@ function validateFd(fd) {
 }
 
 function validateBufferRange(buf: Buffer | Uint8Array, off = 0, len = buf.length) {
-  if (off < 0)
-    throw RangeError(`offset must be a non-negative number. Received ${off}, buffer's length is ${buf.length}`);
+  if (off < 0) throw RangeError(`offset must be a non-negative number. Received ${off}`);
   if (off >= buf.length)
     throw RangeError(`offset must be less than buffer's length. Received ${off}, buffer's length is ${buf.length}`);
-  if (len < 0)
-    throw RangeError(
-      `length must be a non-negative number. Received ${len}, offset is ${off}, buffer's length is ${buf.length}`,
-    );
+  if (len < 0) throw RangeError(`length must be a non-negative number. Received ${len}, offset is ${off}`);
   if (off + len > buf.length)
     throw RangeError(
       `(offset + length) must not be bigger than buffer\'s length. Received ${len}, offset is ${off}, buffer's length is ${buf.length}`,

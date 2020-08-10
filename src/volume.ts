@@ -470,6 +470,21 @@ function validateFd(fd) {
   if (!isFd(fd)) throw TypeError(ERRSTR.FD);
 }
 
+function validateBufferRange(buf: Buffer | Uint8Array, off = 0, len = buf.length) {
+  if (off < 0)
+    throw RangeError(`offset must be a non-negative number. Received ${off}, buffer's length is ${buf.length}`);
+  if (off >= buf.length)
+    throw RangeError(`offset must be less than buffer's length. Received ${off}, buffer's length is ${buf.length}`);
+  if (len < 0)
+    throw RangeError(
+      `length must be a non-negative number. Received ${len}, offset is ${off}, buffer's length is ${buf.length}`,
+    );
+  if (off + len > buf.length)
+    throw RangeError(
+      `(offset + length) must not be bigger than buffer\'s length. Received ${len}, offset is ${off}, buffer's length is ${buf.length}`,
+    );
+}
+
 // converts Date or number to a fractional UNIX timestamp
 export function toUnixTimestamp(time) {
   // tslint:disable-next-line triple-equals
@@ -1057,6 +1072,7 @@ export class Volume {
   }
 
   private readBase(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number): number {
+    validateBufferRange(buffer, offset, length);
     const file = this.getFileByFdOrThrow(fd);
     return file.read(buffer, Number(offset), Number(length), position);
   }
@@ -1140,6 +1156,7 @@ export class Volume {
   }
 
   private writeBase(fd: number, buf: Buffer, offset?: number, length?: number, position?: number): number {
+    validateBufferRange(buf, offset, length);
     const file = this.getFileByFdOrThrow(fd, 'write');
     return file.write(buf, offset, length, position);
   }

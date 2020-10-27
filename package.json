@@ -23,7 +23,7 @@
     "url": "https://github.com/streamich/memfs.git"
   },
   "dependencies": {
-    "fs-monkey": "1.0.1"
+    "fs-monkey": "^1.0.1"
   },
   "devDependencies": {
     "@types/jest": "25.2.3",

@@ -30,7 +30,7 @@
     "@semantic-release/git": "7.0.18",
     "@semantic-release/npm": "5.3.5",
     "@types/jest": "25.2.3",
-    "@types/node": "10.17.32",
+    "@types/node": "10.17.44",
     "cpy-cli": "3.1.1",
     "husky": "3.1.0",
     "jest": "25.5.4",
@@ -42,7 +42,11 @@
     "ts-node": "8.10.2",
     "tslint": "5.20.1",
     "tslint-config-common": "1.6.0",
-    "typescript": "3.9.7"
+    "typescript": "4.0.5",
+    "semantic-release": "15.14.0",
+    "@semantic-release/changelog": "3.0.6",
+    "@semantic-release/git": "7.0.18",
+    "@semantic-release/npm": "5.3.5"
   },
   "config": {
     "commitizen": {

@@ -10,5 +10,11 @@
   "devDependencies": {
     "automerge": true,
     "pinVersions": true
-  }
+  },
+  "packageRules": [
+    {
+      "packageNames": ["@types/jest", "ts-jest"],
+      "groupName": "jest monorepo"
+    }
+  ]
 }

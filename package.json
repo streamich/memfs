@@ -29,7 +29,7 @@
     "@types/jest": "25.2.3",
     "@types/node": "10.17.49",
     "cpy-cli": "3.1.1",
-    "husky": "3.1.0",
+    "husky": "4.3.5",
     "jest": "25.5.4",
     "prettier": "1.19.1",
     "pretty-quick": "2.0.2",

@@ -283,7 +283,7 @@ export class Link extends EventEmitter {
   }
 
   setChild(name: string, link: Link = new Link(this.vol, this, name)): Link {
-    this.children[name] = link;
+    this.children[this.vol.caseSensitive ? name : name.toLowerCase()] = link;
     link.parent = this;
     this.length++;
 
@@ -293,13 +293,15 @@ export class Link extends EventEmitter {
   }
 
   deleteChild(link: Link) {
-    delete this.children[link.getName()];
+    const name = link.getName();
+    delete this.children[this.vol.caseSensitive ? name : name.toLowerCase()];
     this.length--;
 
     this.emit('child:delete', link, this);
   }
 
   getChild(name: string): Link | undefined {
+    if (!this.vol.caseSensitive) name = name.toLowerCase();
     if (Object.hasOwnProperty.call(this.children, name)) {
       return this.children[name];
     }

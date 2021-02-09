@@ -588,6 +588,8 @@ export class Volume {
   // Current number of open files.
   openFiles = 0;
 
+  caseSensitive: boolean;
+
   StatWatcher: new () => StatWatcher;
   ReadStream: new (...args) => IReadStream;
   WriteStream: new (...args) => IWriteStream;
@@ -606,9 +608,10 @@ export class Volume {
     return this.promisesApi;
   }
 
-  constructor(props = {}) {
+  constructor(props = {}, caseSensitive = true) {
     this.props = Object.assign({ Node, Link, File }, props);
 
+    this.caseSensitive = caseSensitive;
     const root = this.createLink();
     root.setNode(this.createNode(true));
 
@@ -1693,7 +1696,7 @@ export class Volume {
 
     const list: TDataOut[] = [];
     for (const name in link.children) {
-      list.push(strToEncoding(name, options.encoding));
+      list.push(strToEncoding(link.children[name]!.getName(), options.encoding));
     }
 
     if (!isWin && options.encoding !== 'buffer') list.sort();

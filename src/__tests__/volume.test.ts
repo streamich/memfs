@@ -1054,6 +1054,31 @@ describe('volume', () => {
         expect(typeof vol.promises).toBe('object');
       });
     });
+    describe('caseSensitive: false', () => {
+      it('is case insensitive', () => {
+        const vol = new Volume(undefined, false);
+        vol.mkdirSync('/dir');
+        vol.writeFileSync('/Dir/Foo.txt', 'foo');
+        expect(vol.readFileSync('/dir/foo.TXT', {encoding: 'utf8'})).toBe('foo');
+        vol.unlinkSync('/dir/foo.txt');
+        expect(vol.existsSync('/Dir/Foo.txt')).toBe(false)
+      });
+      it('preserve original filename casing', () => {
+        const vol = new Volume(undefined, false);
+        vol.fromJSON({
+          '/Dir': null,
+          '/dir': null,
+          '/fileA.txt': '1',
+          '/filea.txt': '2',
+          '/FileB.txt': '1',
+          '/fileb.txt': '2',
+        });
+        expect(vol.readdirSync('/', {encoding: 'utf8'})).toEqual(['Dir', 'fileA.txt', 'FileB.txt']);
+        expect((vol.readdirSync('/', {encoding: 'utf8', withFileTypes: true}) as Dirent[]).map(({name}) => name)).toEqual(['Dir', 'fileA.txt', 'FileB.txt']);
+        expect(vol.readFileSync('/fileA.txt', {encoding: 'utf8'})).toBe('2');
+        expect(vol.readFileSync('/FileB.txt', {encoding: 'utf8'})).toBe('2');
+      });
+    });
   });
   describe('StatWatcher', () => {
     it('.vol points to current volume', () => {

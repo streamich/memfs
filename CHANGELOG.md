@@ -1,3 +1,10 @@
+## [3.2.1](https://github.com/streamich/memfs/compare/v3.2.0...v3.2.1) (2021-03-31)
+
+
+### Bug Fixes
+
+* add `The Unlicense` license SDPX in package.json ([#594](https://github.com/streamich/memfs/issues/594)) ([0e7b04b](https://github.com/streamich/memfs/commit/0e7b04b0d5172846340e95619edaa18579ed5d06))
+
 # [3.2.0](https://github.com/streamich/memfs/compare/v3.1.3...v3.2.0) (2020-05-19)
 
 

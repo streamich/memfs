@@ -1,3 +1,11 @@
+## [3.2.2](https://github.com/streamich/memfs/compare/v3.2.1...v3.2.2) (2021-04-05)
+
+
+### Bug Fixes
+
+* **deps:** update dependency fs-monkey to v1.0.2 ([07f05db](https://github.com/streamich/memfs/commit/07f05db8b0aed43360abaf172d4297f3873d44fe))
+* **deps:** update dependency fs-monkey to v1.0.3 ([84346ed](https://github.com/streamich/memfs/commit/84346ed7d0556b2b79f57b9b10889e54afcaebd1))
+
 ## [3.2.1](https://github.com/streamich/memfs/compare/v3.2.0...v3.2.1) (2021-03-31)
 
 

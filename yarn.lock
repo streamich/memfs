@@ -936,10 +936,10 @@
     p-retry "^4.0.0"
     url-join "^4.0.0"
 
-"@semantic-release/npm@7.1.2":
-  version "7.1.2"
-  resolved "https://registry.yarnpkg.com/@semantic-release/npm/-/npm-7.1.2.tgz#622304601d2f1c777910e0085c8fb4c458764cdd"
-  integrity sha512-OZ8rz7qNEGlI7JSml+IS3kk18hYXFax4S49Xc2OjBeMk3A26xhvs/A1mwSpuD4NhGLwjCm4iD6s7bqJod6Hrhg==
+"@semantic-release/npm@7.1.3":
+  version "7.1.3"
+  resolved "https://registry.yarnpkg.com/@semantic-release/npm/-/npm-7.1.3.tgz#1d64c41ff31b100299029c766ecc4d1f03aa5f5b"
+  integrity sha512-x52kQ/jR09WjuWdaTEHgQCvZYMOTx68WnS+TZ4fya5ZAJw4oRtJETtrvUw10FdfM28d/keInQdc66R1Gw5+OEQ==
   dependencies:
     "@semantic-release/error" "^2.2.0"
     aggregate-error "^3.0.0"

@@ -430,7 +430,7 @@ export function dataToStr(data: TData, encoding: string = ENCODING_UTF8): string
 export function dataToBuffer(data: TData, encoding: string = ENCODING_UTF8): Buffer {
   if (Buffer.isBuffer(data)) return data;
   else if (data instanceof Uint8Array) return bufferFrom(data);
-  else return bufferFrom(String(data), encoding);
+  else return bufferFrom(data.toString());
 }
 
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): TDataOut {

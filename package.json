@@ -26,7 +26,7 @@
     "fs-monkey": "1.0.3"
   },
   "devDependencies": {
-    "@types/jest": "26.0.23",
+    "@types/jest": "26.0.24",
     "@types/node": "10.17.60",
     "cpy-cli": "3.1.1",
     "husky": "7.0.1",

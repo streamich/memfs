@@ -1,26 +1,18 @@
 import Stats from './Stats';
 import Dirent from './Dirent';
-import {
-  Volume as _Volume,
-  StatWatcher,
-  FSWatcher,
-  toUnixTimestamp,
-  IReadStream,
-  IWriteStream,
-  DirectoryJSON,
-} from './volume';
+import { Volume, StatWatcher, FSWatcher, toUnixTimestamp, IReadStream, IWriteStream, DirectoryJSON } from './volume';
 import { IPromisesAPI } from './promises';
 const { fsSyncMethods, fsAsyncMethods } = require('fs-monkey/lib/util/lists');
 import { constants } from './constants';
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
 export { DirectoryJSON };
-export const Volume = _Volume;
+export { Volume };
 
 // Default volume.
-export const vol = new _Volume();
+export const vol = new Volume();
 
-export interface IFs extends _Volume {
+export interface IFs extends Volume {
   constants: typeof constants;
   Stats: new (...args) => Stats;
   Dirent: new (...args) => Dirent;
@@ -32,7 +24,7 @@ export interface IFs extends _Volume {
   _toUnixTimestamp;
 }
 
-export function createFsFromVolume(vol: _Volume): IFs {
+export function createFsFromVolume(vol: Volume): IFs {
   const fs = ({ F_OK, R_OK, W_OK, X_OK, constants, Stats, Dirent } as any) as IFs;
 
   // Bind FS methods.

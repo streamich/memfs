@@ -2220,7 +2220,7 @@ export class StatWatcher extends EventEmitter {
 
   start(path: string, persistent: boolean = true, interval: number = 5007) {
     this.filename = pathToFilename(path);
-    this.setTimeout = persistent ? setTimeout : setTimeoutUnref;
+    this.setTimeout = persistent ? setTimeout.bind(globalThis) : setTimeoutUnref;
     this.interval = interval;
     this.prev = this.vol.statSync(this.filename);
     this.loop();

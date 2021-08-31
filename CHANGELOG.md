@@ -1,3 +1,12 @@
+## [3.2.3](https://github.com/streamich/memfs/compare/v3.2.2...v3.2.3) (2021-08-31)
+
+
+### Bug Fixes
+
+* global and timers this arg in browser ([1e93ab1](https://github.com/streamich/memfs/commit/1e93ab1628e230762471737a1d2586b5bc86b496))
+* prevent callback from triggering twice when callback throws ([07e8215](https://github.com/streamich/memfs/commit/07e8215b4a862ae2e0f1cd7f7cfe4b1465bfc2e6))
+* prevent callback from triggering twice when callback throws ([6db755d](https://github.com/streamich/memfs/commit/6db755dabc32d81eceeb3152413bb70298a5c710)), closes [#542](https://github.com/streamich/memfs/issues/542)
+
 ## [3.2.2](https://github.com/streamich/memfs/compare/v3.2.1...v3.2.2) (2021-04-05)
 
 

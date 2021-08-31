@@ -10,7 +10,7 @@
   "scripts": {
     "clean": "rimraf lib types",
     "build": "tsc -p . && cpy src/*.js lib",
-    "test": "jest",
+    "test": "jest --maxWorkers 2",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "watch": "watch \"npm run build\" ./src",

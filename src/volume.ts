@@ -826,11 +826,14 @@ export class Volume {
   private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
     validateCallback(callback);
     setImmediate(() => {
+      let result;
       try {
-        callback(null, method.apply(this, args));
+        result = method.apply(this, args);
       } catch (err) {
         callback(err);
+        return;
       }
+      callback(null, result);
     });
   }
 

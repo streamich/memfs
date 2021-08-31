@@ -21,7 +21,7 @@ function makeNodeError(Base) {
   };
 }
 
-class AssertionError extends global.Error {
+class AssertionError extends globalThis.Error {
   generatedMessage: any;
   name: any;
   code: any;
@@ -74,9 +74,9 @@ function E(sym, val) {
   messages[sym] = typeof val === 'function' ? val : String(val);
 }
 
-export const Error = makeNodeError(global.Error);
-export const TypeError = makeNodeError(global.TypeError);
-export const RangeError = makeNodeError(global.RangeError);
+export const Error = makeNodeError(globalThis.Error);
+export const TypeError = makeNodeError(globalThis.TypeError);
+export const RangeError = makeNodeError(globalThis.RangeError);
 
 export {
   message,

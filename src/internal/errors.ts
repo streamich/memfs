@@ -21,7 +21,9 @@ function makeNodeError(Base) {
   };
 }
 
-class AssertionError extends globalThis.Error {
+const g = typeof globalThis !== 'undefined' ? globalThis : global;
+
+class AssertionError extends g.Error {
   generatedMessage: any;
   name: any;
   code: any;
@@ -74,9 +76,9 @@ function E(sym, val) {
   messages[sym] = typeof val === 'function' ? val : String(val);
 }
 
-export const Error = makeNodeError(globalThis.Error);
-export const TypeError = makeNodeError(globalThis.TypeError);
-export const RangeError = makeNodeError(globalThis.RangeError);
+export const Error = makeNodeError(g.Error);
+export const TypeError = makeNodeError(g.TypeError);
+export const RangeError = makeNodeError(g.RangeError);
 
 export {
   message,

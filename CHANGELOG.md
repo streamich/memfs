@@ -1,3 +1,10 @@
+## [3.2.4](https://github.com/streamich/memfs/compare/v3.2.3...v3.2.4) (2021-09-02)
+
+
+### Bug Fixes
+
+* 🐛 use globalThis defensively ([eed6bbf](https://github.com/streamich/memfs/commit/eed6bbfa2fc310639974ed9e163876ff8253b321))
+
 ## [3.2.3](https://github.com/streamich/memfs/compare/v3.2.2...v3.2.3) (2021-08-31)
 
 

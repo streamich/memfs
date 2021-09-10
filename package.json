@@ -38,7 +38,7 @@
     "ts-node": "10.2.1",
     "tslint": "5.20.1",
     "tslint-config-common": "1.6.0",
-    "typescript": "4.4.2",
+    "typescript": "4.4.3",
     "semantic-release": "17.4.7",
     "@semantic-release/changelog": "5.0.1",
     "@semantic-release/git": "9.0.1",

@@ -1,7 +1,7 @@
 import { createFsFromVolume, Volume } from '..';
 import { Link, Node } from '../node';
 
-export const create = (json: { [s: string]: string } = { '/foo': 'bar' }) => {
+export const create = (json: { [s: string]: string | null } = { '/foo': 'bar' }) => {
   const vol = Volume.fromJSON(json);
   return vol;
 };

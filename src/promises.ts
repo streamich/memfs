@@ -14,11 +14,13 @@ import {
   IWriteFileOptions,
   IStatOptions,
   IRmOptions,
+  IWatchOptions,
 } from './volume';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import { TDataOut } from './encoding';
 import { PathLike, symlink } from 'fs';
+import asyncify from 'callback-to-async-iterator';
 
 function promisify(
   vol: Volume,
@@ -94,6 +96,7 @@ export interface IPromisesAPI {
   unlink(path: PathLike): Promise<void>;
   utimes(path: PathLike, atime: TTime, mtime: TTime): Promise<void>;
   writeFile(id: TFileHandle, data: TData, options?: IWriteFileOptions): Promise<void>;
+  watch(path: PathLike, options?: string | IWatchOptions): AsyncIterator<{eventType: string, filename: string | Buffer}>;
 }
 
 export class FileHandle implements IFileHandle {
@@ -274,5 +277,13 @@ export default function createPromisesApi(vol: Volume): null | IPromisesAPI {
     writeFile(id: TFileHandle, data: TData, options?: IWriteFileOptions): Promise<void> {
       return promisify(vol, 'writeFile')(id instanceof FileHandle ? id.fd : (id as PathLike), data, options);
     },
+
+    watch(path: PathLike, options?: string | IWatchOptions): AsyncIterator<{eventType: string, filename: string | Buffer}> {
+      return asyncify((callback) => {
+        vol.watch(path, options || 'utf8', (eventType, filename) => {
+          callback({eventType, filename});
+        });
+      });
+    }
   };
 }

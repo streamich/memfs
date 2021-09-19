@@ -23,9 +23,13 @@
     "url": "https://github.com/streamich/memfs.git"
   },
   "dependencies": {
+    "callback-to-async-iterator": "^1.1.1",
     "fs-monkey": "1.0.3"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "5.0.1",
+    "@semantic-release/git": "9.0.1",
+    "@semantic-release/npm": "8.0.0",
     "@types/jest": "27.0.1",
     "@types/node": "10.17.60",
     "cpy-cli": "3.1.1",
@@ -34,15 +38,12 @@
     "prettier": "2.4.1",
     "pretty-quick": "3.1.1",
     "rimraf": "3.0.2",
+    "semantic-release": "18.0.0",
     "ts-jest": "27.0.5",
     "ts-node": "10.2.1",
     "tslint": "5.20.1",
     "tslint-config-common": "1.6.0",
-    "typescript": "4.4.3",
-    "semantic-release": "18.0.0",
-    "@semantic-release/changelog": "5.0.1",
-    "@semantic-release/git": "9.0.1",
-    "@semantic-release/npm": "8.0.0"
+    "typescript": "4.4.3"
   },
   "config": {
     "commitizen": {

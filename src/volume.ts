@@ -99,6 +99,7 @@ const EACCES = 'EACCES';
 const EISDIR = 'EISDIR';
 const ENOTEMPTY = 'ENOTEMPTY';
 const ENOSYS = 'ENOSYS';
+const ERR_FS_EISDIR = 'ERR_FS_EISDIR';
 
 function formatError(errorCode: string, func = '', path = '', path2 = '') {
   let pathFormatted = '';
@@ -130,6 +131,8 @@ function formatError(errorCode: string, func = '', path = '', path2 = '') {
       return `EMFILE: too many open files, ${func}${pathFormatted}`;
     case ENOSYS:
       return `ENOSYS: function not implemented, ${func}${pathFormatted}`;
+    case ERR_FS_EISDIR:
+      return `[ERR_FS_EISDIR]: Path is a directory: ${func} returned EISDIR (is a directory) ${path}`
     default:
       return `${errorCode}: error occurred, ${func}${pathFormatted}`;
   }
@@ -1986,9 +1989,17 @@ export class Volume {
   }
 
   private rmBase(filename: string, options: IRmOptions = {}): void {
-    const force = !!options.force;
-    const recursive = !!options.recursive;
-    const link = this.getLinkAsDirOrThrow(filename, 'rm');
+    const link = this.getResolvedLink(filename);
+    if (!link) {
+      // "stat" is used to match Node's native error message.
+      if (!options.force) throw createError(ENOENT, 'stat', filename);
+      return;
+    }
+    if (link.getNode().isDirectory()) {
+      if (!options.recursive) {
+        throw createError(ERR_FS_EISDIR, 'rm', filename);
+      }
+    }
     this.deleteLink(link);
   }
 

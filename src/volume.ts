@@ -342,6 +342,15 @@ const getRmdirOptions = (options): IRmdirOptions => {
   return Object.assign({}, rmdirDefaults, options);
 };
 
+export interface IRmOptions {
+  force?: boolean;
+  maxRetries?: number;
+  recursive?: boolean;
+  retryDelay?: number;
+}
+const getRmOpts = optsGenerator<IOptions>(optsDefaults);
+const getRmOptsAndCb = optsAndCbGenerator<IRmOptions, any>(getRmOpts);
+
 // Options for `fs.readdir` and `fs.readdirSync`
 export interface IReaddirOptions extends IOptions {
   withFileTypes?: boolean;
@@ -1974,6 +1983,24 @@ export class Volume {
     const opts: IRmdirOptions = getRmdirOptions(a);
     const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
     this.wrapAsync(this.rmdirBase, [pathToFilename(path), opts], callback);
+  }
+
+  private rmBase(filename: string, options: IRmOptions = {}): void {
+    const force = !!options.force;
+    const recursive = !!options.recursive;
+    const link = this.getLinkAsDirOrThrow(filename, 'rm');
+    this.deleteLink(link);
+  }
+
+  public rmSync(path: PathLike, options?: IRmOptions): void {
+    this.rmBase(pathToFilename(path), options);
+  }
+
+  public rm(path: PathLike, callback: TCallback<void>): void;
+  public rm(path: PathLike, options: IRmOptions, callback: TCallback<void>): void;
+  public rm(path: PathLike, a: TCallback<void> | IRmOptions, b?: TCallback<void>): void {
+    const [opts, callback] = getRmOptsAndCb(a, b);
+    this.wrapAsync(this.rmBase, [pathToFilename(path), opts], callback);
   }
 
   private fchmodBase(fd: number, modeNum: number) {

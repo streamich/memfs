@@ -13,6 +13,7 @@ import {
   IRealpathOptions,
   IWriteFileOptions,
   IStatOptions,
+  IRmOptions,
 } from './volume';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -86,6 +87,7 @@ export interface IPromisesAPI {
   realpath(path: PathLike, options?: IRealpathOptions | string): Promise<TDataOut>;
   rename(oldPath: PathLike, newPath: PathLike): Promise<void>;
   rmdir(path: PathLike): Promise<void>;
+  rm(path: PathLike, options?: IRmOptions): Promise<void>;
   stat(path: PathLike, options?: IStatOptions): Promise<Stats>;
   symlink(target: PathLike, path: PathLike, type?: symlink.Type): Promise<void>;
   truncate(path: PathLike, len?: number): Promise<void>;
@@ -243,6 +245,10 @@ export default function createPromisesApi(vol: Volume): null | IPromisesAPI {
 
     rmdir(path: PathLike): Promise<void> {
       return promisify(vol, 'rmdir')(path);
+    },
+
+    rm(path: PathLike, options?: IRmOptions): Promise<void> {
+      return promisify(vol, 'rm')(path, options);
     },
 
     stat(path: PathLike, options?: IStatOptions): Promise<Stats> {

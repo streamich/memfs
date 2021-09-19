@@ -1,3 +1,16 @@
+# [3.3.0](https://github.com/streamich/memfs/compare/v3.2.4...v3.3.0) (2021-09-19)
+
+
+### Bug Fixes
+
+* 🐛 remove unused method ([05b2a47](https://github.com/streamich/memfs/commit/05b2a472f75b46ce52a4730a8cd2d666a5deb196))
+
+
+### Features
+
+* 🎸 add .rmSync(), .rm(), and .promises.rm() methods ([2414fb6](https://github.com/streamich/memfs/commit/2414fb6dae207536bf46120c4e09d8d51366a6c1))
+* 🎸 add support for "recursive" and "force" flags in .rm() ([7f6714c](https://github.com/streamich/memfs/commit/7f6714cf14b90ce9cf50eeae517663b843687f90))
+
 ## [3.2.4](https://github.com/streamich/memfs/compare/v3.2.3...v3.2.4) (2021-09-02)
 
 

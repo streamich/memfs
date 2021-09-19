@@ -799,6 +799,10 @@ export class Volume {
     return file;
   }
 
+  /**
+   * @todo This is not used anymore. Remove.
+   */
+  /*
   private getNodeByIdOrCreate(id: TFileId, flags: number, perm: number): Node {
     if (typeof id === 'number') {
       const file = this.getFileByFd(id);
@@ -822,6 +826,7 @@ export class Volume {
       throw createError(ENOENT, 'getNodeByIdOrCreate', pathToFilename(id));
     }
   }
+  */
 
   private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
     validateCallback(callback);

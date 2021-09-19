@@ -99,6 +99,7 @@ const EACCES = 'EACCES';
 const EISDIR = 'EISDIR';
 const ENOTEMPTY = 'ENOTEMPTY';
 const ENOSYS = 'ENOSYS';
+const ERR_FS_EISDIR = 'ERR_FS_EISDIR';
 
 function formatError(errorCode: string, func = '', path = '', path2 = '') {
   let pathFormatted = '';
@@ -130,6 +131,8 @@ function formatError(errorCode: string, func = '', path = '', path2 = '') {
       return `EMFILE: too many open files, ${func}${pathFormatted}`;
     case ENOSYS:
       return `ENOSYS: function not implemented, ${func}${pathFormatted}`;
+    case ERR_FS_EISDIR:
+      return `[ERR_FS_EISDIR]: Path is a directory: ${func} returned EISDIR (is a directory) ${path}`
     default:
       return `${errorCode}: error occurred, ${func}${pathFormatted}`;
   }
@@ -341,6 +344,15 @@ const rmdirDefaults: IRmdirOptions = {
 const getRmdirOptions = (options): IRmdirOptions => {
   return Object.assign({}, rmdirDefaults, options);
 };
+
+export interface IRmOptions {
+  force?: boolean;
+  maxRetries?: number;
+  recursive?: boolean;
+  retryDelay?: number;
+}
+const getRmOpts = optsGenerator<IOptions>(optsDefaults);
+const getRmOptsAndCb = optsAndCbGenerator<IRmOptions, any>(getRmOpts);
 
 // Options for `fs.readdir` and `fs.readdirSync`
 export interface IReaddirOptions extends IOptions {
@@ -799,6 +811,10 @@ export class Volume {
     return file;
   }
 
+  /**
+   * @todo This is not used anymore. Remove.
+   */
+  /*
   private getNodeByIdOrCreate(id: TFileId, flags: number, perm: number): Node {
     if (typeof id === 'number') {
       const file = this.getFileByFd(id);
@@ -822,6 +838,7 @@ export class Volume {
       throw createError(ENOENT, 'getNodeByIdOrCreate', pathToFilename(id));
     }
   }
+  */
 
   private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
     validateCallback(callback);
@@ -1969,6 +1986,32 @@ export class Volume {
     const opts: IRmdirOptions = getRmdirOptions(a);
     const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
     this.wrapAsync(this.rmdirBase, [pathToFilename(path), opts], callback);
+  }
+
+  private rmBase(filename: string, options: IRmOptions = {}): void {
+    const link = this.getResolvedLink(filename);
+    if (!link) {
+      // "stat" is used to match Node's native error message.
+      if (!options.force) throw createError(ENOENT, 'stat', filename);
+      return;
+    }
+    if (link.getNode().isDirectory()) {
+      if (!options.recursive) {
+        throw createError(ERR_FS_EISDIR, 'rm', filename);
+      }
+    }
+    this.deleteLink(link);
+  }
+
+  public rmSync(path: PathLike, options?: IRmOptions): void {
+    this.rmBase(pathToFilename(path), options);
+  }
+
+  public rm(path: PathLike, callback: TCallback<void>): void;
+  public rm(path: PathLike, options: IRmOptions, callback: TCallback<void>): void;
+  public rm(path: PathLike, a: TCallback<void> | IRmOptions, b?: TCallback<void>): void {
+    const [opts, callback] = getRmOptsAndCb(a, b);
+    this.wrapAsync(this.rmBase, [pathToFilename(path), opts], callback);
   }
 
   private fchmodBase(fd: number, modeNum: number) {

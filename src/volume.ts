@@ -2193,11 +2193,11 @@ export class Volume {
     return new this.WriteStream(path, options);
   }
 
-  // watch(path: PathLike): FSWatcher;
-  // watch(path: PathLike, options?: IWatchOptions | string): FSWatcher;
+  watch(path: PathLike, listener: (eventType: string, filename: string) => void): FSWatcher;
+  watch(path: PathLike, options: IWatchOptions | string, listener: (eventType: string, filename: string) => void): FSWatcher;
   watch(
     path: PathLike,
-    options?: IWatchOptions | string,
+    options: (IWatchOptions | string) | ((eventType: string, filename: string) => void),
     listener?: (eventType: string, filename: string) => void,
   ): FSWatcher {
     const filename = pathToFilename(path);

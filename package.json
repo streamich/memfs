@@ -16,7 +16,7 @@
     "watch": "watch \"npm run build\" ./src",
     "prettier": "prettier --ignore-path .gitignore --write \"src/**/*.{ts,js}\"",
     "prettier:diff": "prettier -l \"src/**/*.{ts,js}\"",
-    "tslint": "tslint \"src/**/*.ts\" -t verbose"
+    "eslint": "eslint -c eslint.json \"src/**/*.ts\""
   },
   "repository": {
     "type": "git",
@@ -26,9 +26,15 @@
     "fs-monkey": "1.0.3"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "6.0.0",
+    "@semantic-release/git": "10.0.0",
+    "@semantic-release/npm": "8.0.0",
     "@types/jest": "27.0.2",
     "@types/node": "10.17.60",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
     "cpy-cli": "3.1.1",
+    "eslint": "^7.32.0",
     "husky": "7.0.2",
     "jest": "27.2.5",
     "prettier": "2.4.1",
@@ -36,8 +42,6 @@
     "rimraf": "3.0.2",
     "ts-jest": "27.0.6",
     "ts-node": "10.3.0",
-    "tslint": "5.20.1",
-    "tslint-config-common": "1.6.0",
     "typescript": "4.4.4",
     "semantic-release": "18.0.0",
     "@semantic-release/changelog": "6.0.0",

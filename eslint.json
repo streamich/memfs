@@ -1,0 +1,26 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "no-var": 0,
+    "no-empty": 0,
+    "prefer-const": 0,
+    "prefer-spread": 0,
+    "prefer-rest-params": 0,
+    "@typescript-eslint/no-unused-vars": 0,
+    "@typescript-eslint/explicit-module-boundary-types": 0,
+    "@typescript-eslint/no-explicit-any": 0,
+    "@typescript-eslint/no-inferrable-types": 0,
+    "@typescript-eslint/no-this-alias": 0,
+    "@typescript-eslint/no-var-requires": 0,
+    "@typescript-eslint/no-empty-interface": 0,
+    "@typescript-eslint/no-empty-function": 0,
+    "@typescript-eslint/ban-types": 0
+  }
+}

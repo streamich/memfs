@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/jest": "27.0.2",
-    "@types/node": "10.17.60",
+    "@types/node": "14.17.31",
     "cpy-cli": "3.1.1",
     "husky": "7.0.4",
     "jest": "27.3.1",

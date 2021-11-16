@@ -32,7 +32,7 @@
     "husky": "7.0.4",
     "jest": "27.3.1",
     "prettier": "2.4.1",
-    "pretty-quick": "3.1.1",
+    "pretty-quick": "3.1.2",
     "rimraf": "3.0.2",
     "ts-jest": "27.0.7",
     "ts-node": "10.4.0",

@@ -695,6 +695,40 @@ describe('volume', () => {
         });
       });
     });
+    describe('.statSync(path, options)', () => {
+      const vol = new Volume();
+
+      it('Does not throw when entry does not exist if throwIfNoEntry is false', () => {
+        const stat = vol.statSync('/foo', { throwIfNoEntry: false });
+        expect(stat).toBeUndefined();
+      });
+      it('Throws when entry does not exist if throwIfNoEntry is true', () => {
+        expect(() => vol.statSync('/foo', { throwIfNoEntry: true })).toThrow();
+      });
+      it('Throws when entry does not exist if throwIfNoEntry is not specified', () => {
+        expect(() => vol.statSync('/foo')).toThrow();
+      });
+      it('Throws when entry does not exist if throwIfNoEntry is explicitly undefined', () => {
+        expect(() => vol.statSync('/foo', { throwIfNoEntry: undefined })).toThrow();
+      });
+    });
+    describe('.lstatSync(path, options)', () => {
+      const vol = new Volume();
+
+      it('Does not throw when entry does not exist if throwIfNoEntry is false', () => {
+        const stat = vol.lstatSync('/foo', { throwIfNoEntry: false });
+        expect(stat).toBeUndefined();
+      });
+      it('Throws when entry does not exist if throwIfNoEntry is true', () => {
+        expect(() => vol.lstatSync('/foo', { throwIfNoEntry: true })).toThrow();
+      });
+      it('Throws when entry does not exist if throwIfNoEntry is not specified', () => {
+        expect(() => vol.lstatSync('/foo')).toThrow();
+      });
+      it('Throws when entry does not exist if throwIfNoEntry is explicitly undefined', () => {
+        expect(() => vol.lstatSync('/foo', { throwIfNoEntry: undefined })).toThrow();
+      });
+    });
     describe('.lstatSync(path)', () => {
       const vol = new Volume();
       const dojo = vol.root.createChild('dojo.js');

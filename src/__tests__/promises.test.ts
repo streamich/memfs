@@ -149,6 +149,40 @@ describe('Promises API', () => {
         return expect(fileHandle.stat()).rejects.toBeInstanceOf(Error);
       });
     });
+    describe('.stat(path, options)', () => {
+      const { promises: vol } = new Volume();
+
+      it('Does not reject when entry does not exist if throwIfNoEntry is false', async () => {
+        const stat = await vol.stat('/no', { throwIfNoEntry: false });
+        expect(stat).toBeUndefined();
+      });
+      it('Rejects when entry does not exist if throwIfNoEntry is true', async () => {
+        await expect(vol.stat('/foo', { throwIfNoEntry: true })).rejects.toBeInstanceOf(Error);
+      });
+      it('Rejects when entry does not exist if throwIfNoEntry is not specified', async () => {
+        await expect(vol.stat('/foo')).rejects.toBeInstanceOf(Error);
+      });
+      it('Rejects when entry does not exist if throwIfNoEntry is explicitly undefined', async () => {
+        await expect(vol.stat('/foo', { throwIfNoEntry: undefined })).rejects.toBeInstanceOf(Error);
+      });
+    });
+    describe('.lstat(path, options)', () => {
+      const { promises: vol } = new Volume();
+
+      it('Does not throw when entry does not exist if throwIfNoEntry is false', async () => {
+        const stat = await vol.lstat('/foo', { throwIfNoEntry: false });
+        expect(stat).toBeUndefined();
+      });
+      it('Rejects when entry does not exist if throwIfNoEntry is true', async () => {
+        await expect(vol.lstat('/foo', { throwIfNoEntry: true })).rejects.toBeInstanceOf(Error);
+      });
+      it('Rejects when entry does not exist if throwIfNoEntry is not specified', async () => {
+        await expect(vol.lstat('/foo')).rejects.toBeInstanceOf(Error);
+      });
+      it('Rejects when entry does not exist if throwIfNoEntry is explicitly undefined', async () => {
+        await expect(vol.lstat('/foo', { throwIfNoEntry: undefined })).rejects.toBeInstanceOf(Error);
+      });
+    });
     describe('truncate([len])', () => {
       const vol = new Volume();
       const { promises } = vol;

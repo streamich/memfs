@@ -1,3 +1,10 @@
+# [3.4.0](https://github.com/streamich/memfs/compare/v3.3.0...v3.4.0) (2021-11-24)
+
+
+### Features
+
+* support the `throwIfNoEntry` option ([80cf803](https://github.com/streamich/memfs/commit/80cf80380757b1cb08c5ae6af828b8aff1b8cb93))
+
 # [3.3.0](https://github.com/streamich/memfs/compare/v3.2.4...v3.3.0) (2021-09-19)
 
 

@@ -14,6 +14,7 @@ import {
   IWriteFileOptions,
   IStatOptions,
   IRmOptions,
+  IFStatOptions,
 } from './volume';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -134,7 +135,7 @@ export class FileHandle implements IFileHandle {
     return promisify(this.vol, 'readFile')(this.fd, options);
   }
 
-  stat(options?: IStatOptions): Promise<Stats> {
+  stat(options?: IFStatOptions): Promise<Stats> {
     return promisify(this.vol, 'fstat')(this.fd, options);
   }
 

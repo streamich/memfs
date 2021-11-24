@@ -365,10 +365,17 @@ const readdirDefaults: IReaddirOptions = {
 const getReaddirOptions = optsGenerator<IReaddirOptions>(readdirDefaults);
 const getReaddirOptsAndCb = optsAndCbGenerator<IReaddirOptions, TDataOut[] | Dirent[]>(getReaddirOptions);
 
-// Options for `fs.fstat`, `fs.fstatSync`, `fs.lstat`, `fs.lstatSync`, `fs.stat`, and `fs.statSync`
+// Options for `fs.lstat`, `fs.lstatSync`, `fs.stat`, and `fs.statSync`
 export interface IStatOptions {
   bigint?: boolean;
+  throwIfNoEntry?: boolean;
 }
+
+// Options for `fs.fstat`, fs.fstatSync
+export interface IFStatOptions {
+  bigint?: boolean;
+}
+
 const statDefaults: IStatOptions = {
   bigint: false,
 };
@@ -1499,50 +1506,78 @@ export class Volume {
     this.wrapAsync(this.realpathBase, [pathFilename, opts.encoding], callback);
   }
 
-  private lstatBase(filename: string, bigint: false): Stats<number>;
-  private lstatBase(filename: string, bigint: true): Stats<bigint>;
-  private lstatBase(filename: string, bigint: boolean = false): Stats {
+  private lstatBase(filename: string, bigint: false, throwIfNoEntry: true): Stats<number>;
+  private lstatBase(filename: string, bigint: true, throwIfNoEntry: true): Stats<bigint>;
+  private lstatBase(filename: string, bigint: true, throwIfNoEntry: false): Stats<bigint> | undefined;
+  private lstatBase(filename: string, bigint: false, throwIfNoEntry: false): Stats<number> | undefined;
+  private lstatBase(filename: string, bigint = false, throwIfNoEntry = false): Stats | undefined {
     const link = this.getLink(filenameToSteps(filename));
-    if (!link) throw createError(ENOENT, 'lstat', filename);
-    return Stats.build(link.getNode(), bigint);
+
+    if (link) {
+      return Stats.build(link.getNode(), bigint);
+    } else if (!throwIfNoEntry) {
+      return undefined;
+    } else {
+      throw createError(ENOENT, 'lstat', filename);
+    }
   }
 
   lstatSync(path: PathLike): Stats<number>;
-  lstatSync(path: PathLike, options: { bigint: false }): Stats<number>;
-  lstatSync(path: PathLike, options: { bigint: true }): Stats<bigint>;
-  lstatSync(path: PathLike, options?: IStatOptions): Stats {
-    return this.lstatBase(pathToFilename(path), getStatOptions(options).bigint as any);
+  lstatSync(path: PathLike, options: { throwIfNoEntry?: true | undefined }): Stats<number>;
+  lstatSync(path: PathLike, options: { bigint: false; throwIfNoEntry?: true | undefined }): Stats<number>;
+  lstatSync(path: PathLike, options: { bigint: true; throwIfNoEntry?: true | undefined }): Stats<bigint>;
+  lstatSync(path: PathLike, options: { throwIfNoEntry: false }): Stats<number> | undefined;
+  lstatSync(path: PathLike, options: { bigint: false; throwIfNoEntry: false }): Stats<number> | undefined;
+  lstatSync(path: PathLike, options: { bigint: true; throwIfNoEntry: false }): Stats<bigint> | undefined;
+  lstatSync(path: PathLike, options?: IStatOptions): Stats | undefined {
+    const { throwIfNoEntry = true, bigint = false } = getStatOptions(options);
+
+    return this.lstatBase(pathToFilename(path), bigint as any, throwIfNoEntry as any);
   }
 
-  lstat(path: PathLike, callback: TCallback<Stats>);
-  lstat(path: PathLike, options: IStatOptions, callback: TCallback<Stats>);
-  lstat(path: PathLike, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>) {
-    const [opts, callback] = getStatOptsAndCb(a, b);
-    this.wrapAsync(this.lstatBase, [pathToFilename(path), opts.bigint], callback);
+  lstat(path: PathLike, callback: TCallback<Stats>): void;
+  lstat(path: PathLike, options: IStatOptions, callback: TCallback<Stats>): void;
+  lstat(path: PathLike, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>): void {
+    const [{ throwIfNoEntry = true, bigint = false }, callback] = getStatOptsAndCb(a, b);
+    this.wrapAsync(this.lstatBase, [pathToFilename(path), bigint, throwIfNoEntry], callback);
   }
 
   private statBase(filename: string): Stats<number>;
-  private statBase(filename: string, bigint: false): Stats<number>;
-  private statBase(filename: string, bigint: true): Stats<bigint>;
-  private statBase(filename: string, bigint: boolean = false): Stats {
+  private statBase(filename: string, bigint: false, throwIfNoEntry: true): Stats<number>;
+  private statBase(filename: string, bigint: true, throwIfNoEntry: true): Stats<bigint>;
+  private statBase(filename: string, bigint: true, throwIfNoEntry: false): Stats<bigint> | undefined;
+  private statBase(filename: string, bigint: false, throwIfNoEntry: false): Stats<number> | undefined;
+  private statBase(filename: string, bigint = false, throwIfNoEntry = true): Stats | undefined {
     const link = this.getResolvedLink(filenameToSteps(filename));
-    if (!link) throw createError(ENOENT, 'stat', filename);
 
-    return Stats.build(link.getNode(), bigint);
+    if (link) {
+      return Stats.build(link.getNode(), bigint);
+    } else if (!throwIfNoEntry) {
+      return undefined;
+    } else {
+      throw createError(ENOENT, 'stat', filename);
+    }
   }
 
   statSync(path: PathLike): Stats<number>;
-  statSync(path: PathLike, options: { bigint: false }): Stats<number>;
-  statSync(path: PathLike, options: { bigint: true }): Stats<bigint>;
-  statSync(path: PathLike, options?: IStatOptions): Stats {
-    return this.statBase(pathToFilename(path), getStatOptions(options).bigint as any);
+  statSync(path: PathLike, options: { throwIfNoEntry?: true }): Stats<number>;
+  statSync(path: PathLike, options: { throwIfNoEntry: false }): Stats<number> | undefined;
+  statSync(path: PathLike, options: { bigint: false; throwIfNoEntry?: true }): Stats<number>;
+  statSync(path: PathLike, options: { bigint: true; throwIfNoEntry?: true }): Stats<bigint>;
+  statSync(path: PathLike, options: { bigint: false; throwIfNoEntry: false }): Stats<number> | undefined;
+  statSync(path: PathLike, options: { bigint: true; throwIfNoEntry: false }): Stats<bigint> | undefined;
+  statSync(path: PathLike, options?: IStatOptions): Stats | undefined {
+    const { bigint = true, throwIfNoEntry = true } = getStatOptions(options);
+
+    return this.statBase(pathToFilename(path), bigint as any, throwIfNoEntry as any);
   }
 
-  stat(path: PathLike, callback: TCallback<Stats>);
-  stat(path: PathLike, options: IStatOptions, callback: TCallback<Stats>);
-  stat(path: PathLike, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>) {
-    const [opts, callback] = getStatOptsAndCb(a, b);
-    this.wrapAsync(this.statBase, [pathToFilename(path), opts.bigint], callback);
+  stat(path: PathLike, callback: TCallback<Stats>): void;
+  stat(path: PathLike, options: IStatOptions, callback: TCallback<Stats>): void;
+  stat(path: PathLike, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>): void {
+    const [{ bigint = false, throwIfNoEntry = true }, callback] = getStatOptsAndCb(a, b);
+
+    this.wrapAsync(this.statBase, [pathToFilename(path), bigint, throwIfNoEntry], callback);
   }
 
   private fstatBase(fd: number): Stats<number>;
@@ -1557,13 +1592,13 @@ export class Volume {
   fstatSync(fd: number): Stats<number>;
   fstatSync(fd: number, options: { bigint: false }): Stats<number>;
   fstatSync(fd: number, options: { bigint: true }): Stats<bigint>;
-  fstatSync(fd: number, options?: IStatOptions): Stats {
+  fstatSync(fd: number, options?: IFStatOptions): Stats {
     return this.fstatBase(fd, getStatOptions(options).bigint as any);
   }
 
-  fstat(fd: number, callback: TCallback<Stats>);
-  fstat(fd: number, options: IStatOptions, callback: TCallback<Stats>);
-  fstat(fd: number, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>) {
+  fstat(fd: number, callback: TCallback<Stats>): void;
+  fstat(fd: number, options: IFStatOptions, callback: TCallback<Stats>): void;
+  fstat(fd: number, a: TCallback<Stats> | IFStatOptions, b?: TCallback<Stats>): void {
     const [opts, callback] = getStatOptsAndCb(a, b);
     this.wrapAsync(this.fstatBase, [fd, opts.bigint], callback);
   }

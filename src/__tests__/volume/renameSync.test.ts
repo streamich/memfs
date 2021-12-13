@@ -9,6 +9,30 @@ describe('renameSync(fromPath, toPath)', () => {
     expect(tryGetChildNode(vol.root, 'baz').isFile()).toBe(true);
     expect(vol.readFileSync('/baz', 'utf8')).toBe('bar');
   });
+  it('Updates deep links properly when renaming a directory', () => {
+    const vol = create({});
+    vol.mkdirpSync('/foo/bar/qux');
+    vol.writeFileSync('/foo/bar/qux/a.txt', 'hello');
+    vol.renameSync('/foo/', '/faa/');
+    expect(vol.toJSON()).toEqual({
+      '/faa/bar/qux/a.txt': 'hello',
+    });
+
+    vol.renameSync('/faa/bar/qux/a.txt', '/faa/bar/qux/b.txt');
+    expect(vol.toJSON()).toEqual({
+      '/faa/bar/qux/b.txt': 'hello',
+    });
+
+    vol.renameSync('/faa/', '/fuu/');
+    expect(vol.toJSON()).toEqual({
+      '/fuu/bar/qux/b.txt': 'hello',
+    });
+
+    vol.renameSync('/fuu/bar/', '/fuu/bur/');
+    expect(vol.toJSON()).toEqual({
+      '/fuu/bur/qux/b.txt': 'hello',
+    });
+  });
   it('Rename file two levels deep', () => {
     const vol = create({ '/1/2': 'foobar' });
     vol.renameSync('/1/2', '/1/3');

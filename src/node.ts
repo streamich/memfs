@@ -239,7 +239,7 @@ export class Link extends EventEmitter {
   children: { [child: string]: Link | undefined } = {};
 
   // Path to this node as Array: ['usr', 'bin', 'node'].
-  steps: string[] = [];
+  private _steps: string[] = [];
 
   // "i-node" of this hard link.
   node: Node;
@@ -250,11 +250,26 @@ export class Link extends EventEmitter {
   // Number of children.
   length: number = 0;
 
+  name: string;
+
+  get steps() {
+    return this._steps;
+  }
+
+  // Recursively sync children steps, e.g. in case of dir rename
+  set steps(val) {
+    this._steps = val;
+    for (const child of Object.values(this.children)) {
+      child?.syncSteps()
+    }
+  }
+
   constructor(vol: Volume, parent: Link, name: string) {
     super();
     this.vol = vol;
     this.parent = parent;
-    this.steps = parent ? parent.steps.concat([name]) : [name];
+    this.name = name;
+    this.syncSteps();
   }
 
   setNode(node: Node) {
@@ -346,6 +361,10 @@ export class Link extends EventEmitter {
       ino: this.ino,
       children: Object.keys(this.children),
     };
+  }
+
+  syncSteps() {
+    this.steps = this.parent ? this.parent.steps.concat([this.name]) : [this.name];
   }
 }
 

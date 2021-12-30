@@ -1626,6 +1626,7 @@ export class Volume {
 
     // Rename should overwrite the new path, if that exists.
     const name = newPathSteps[newPathSteps.length - 1];
+    link.name = name;
     link.steps = [...newPathDirLink.steps, name];
     newPathDirLink.setChild(link.getName(), link);
   }

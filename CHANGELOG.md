@@ -1,3 +1,10 @@
+## [3.4.1](https://github.com/streamich/memfs/compare/v3.4.0...v3.4.1) (2021-12-30)
+
+
+### Bug Fixes
+
+* recursively sync children steps to fix rename ([43e8222](https://github.com/streamich/memfs/commit/43e82223046362c5e0176c112675c5636baac389))
+
 # [3.4.0](https://github.com/streamich/memfs/compare/v3.3.0...v3.4.0) (2021-11-24)
 
 

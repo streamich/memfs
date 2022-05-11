@@ -2470,7 +2470,14 @@ FsReadStream.prototype.close = function(cb) {
     return process.nextTick(() => this.emit('close'));
   }
 
-  this.closed = true;
+  // Since Node 18, there is only a getter for '.closed'.
+  // The first branch mimics other setters from Readable.
+  // See https://github.com/nodejs/node/blob/v18.0.0/lib/internal/streams/readable.js#L1243
+  if (this._readableState && typeof this._readableState.closed === 'boolean') {
+    this._readableState.closed = true;
+  } else {
+    this.closed = true;
+  }
 
   this._vol.close(this.fd, er => {
     if (er) this.emit('error', er);

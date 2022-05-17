@@ -1,3 +1,10 @@
+## [3.4.3](https://github.com/streamich/memfs/compare/v3.4.2...v3.4.3) (2022-05-17)
+
+
+### Bug Fixes
+
+* ensure js file is copied to expected place ([#838](https://github.com/streamich/memfs/issues/838)) ([90e2e1d](https://github.com/streamich/memfs/commit/90e2e1d917ca2a053739c7d214d805a3bc9bcded))
+
 ## [3.4.2](https://github.com/streamich/memfs/compare/v3.4.1...v3.4.2) (2022-05-17)
 
 

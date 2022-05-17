@@ -1,3 +1,10 @@
+## [3.4.2](https://github.com/streamich/memfs/compare/v3.4.1...v3.4.2) (2022-05-17)
+
+
+### Bug Fixes
+
+* set `closed` property correct on Node 18 ([#836](https://github.com/streamich/memfs/issues/836)) ([d1823e1](https://github.com/streamich/memfs/commit/d1823e1cf986cc0d3982311b13fbdfd4de16f8fd))
+
 ## [3.4.1](https://github.com/streamich/memfs/compare/v3.4.0...v3.4.1) (2021-12-30)
 
 

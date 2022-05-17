@@ -2470,7 +2470,14 @@ FsReadStream.prototype.close = function(cb) {
     return process.nextTick(() => this.emit('close'));
   }
 
-  this.closed = true;
+  // Since Node 18, there is only a getter for '.closed'.
+  // The first branch mimics other setters from Readable.
+  // See https://github.com/nodejs/node/blob/v18.0.0/lib/internal/streams/readable.js#L1243
+  if (typeof this._readableState?.closed === 'boolean') {
+    this._readableState.closed = true;
+  } else {
+    this.closed = true;
+  }
 
   this._vol.close(this.fd, er => {
     if (er) this.emit('error', er);
@@ -2615,8 +2622,35 @@ FsWriteStream.prototype._writev = function(data, cb) {
   if (this.pos !== undefined) this.pos += size;
 };
 
+FsWriteStream.prototype.close = function(cb) {
+  if (cb) this.once('close', cb);
+
+  if (this.closed || typeof this.fd !== 'number') {
+    if (typeof this.fd !== 'number') {
+      this.once('open', closeOnOpen);
+      return;
+    }
+    return process.nextTick(() => this.emit('close'));
+  }
+
+  // Since Node 18, there is only a getter for '.closed'.
+  // The first branch mimics other setters from Writable.
+  // See https://github.com/nodejs/node/blob/v18.0.0/lib/internal/streams/writable.js#L766
+  if (typeof this._writableState?.closed === 'boolean') {
+    this._writableState.closed = true;
+  } else {
+    this.closed = true;
+  }
+
+  this._vol.close(this.fd, er => {
+    if (er) this.emit('error', er);
+    else this.emit('close');
+  });
+
+  this.fd = null;
+};
+
 FsWriteStream.prototype._destroy = FsReadStream.prototype._destroy;
-FsWriteStream.prototype.close = FsReadStream.prototype.close;
 
 // There is no shutdown() for files.
 FsWriteStream.prototype.destroySoon = FsWriteStream.prototype.end;

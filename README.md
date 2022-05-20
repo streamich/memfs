@@ -4,7 +4,7 @@
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
-- Node's `fs` API implemented, see [_API Status_](./docs/api-status.md)
+- Node's `fs` API implemented, see [_old API Status_](./docs/api-status.md), [missing list](https://github.com/streamich/memfs/issues/735), [missing `opendir`](https://github.com/streamich/memfs/issues/663)
 - Stores files in memory, in `Buffer`s
 - Throws sameish\* errors as Node.js
 - Has concept of _i-nodes_

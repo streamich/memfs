@@ -1,3 +1,10 @@
+## [3.4.4](https://github.com/streamich/memfs/compare/v3.4.3...v3.4.4) (2022-05-28)
+
+
+### Bug Fixes
+
+* allow `Uint8Array`s to be passed to `FsWriteStream` ([#842](https://github.com/streamich/memfs/issues/842)) ([4398992](https://github.com/streamich/memfs/commit/43989925480f8326cdb602f23265c2191a9e1d1d))
+
 ## [3.4.3](https://github.com/streamich/memfs/compare/v3.4.2...v3.4.3) (2022-05-17)
 
 

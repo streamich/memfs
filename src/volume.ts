@@ -2567,7 +2567,7 @@ FsWriteStream.prototype.open = function() {
 };
 
 FsWriteStream.prototype._write = function(data, encoding, cb) {
-  if (!(data instanceof Buffer)) return this.emit('error', new Error('Invalid data'));
+  if (!(data instanceof Buffer || data instanceof Uint8Array)) return this.emit('error', new Error('Invalid data'));
 
   if (typeof this.fd !== 'number') {
     return this.once('open', function() {

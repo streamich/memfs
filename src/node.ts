@@ -6,6 +6,8 @@ import { EventEmitter } from 'events';
 import Stats from './Stats';
 
 const { S_IFMT, S_IFDIR, S_IFREG, S_IFLNK, O_APPEND } = constants;
+const getuid = (): number => process.getuid?.() ?? 0;
+const getgid = (): number => process.getgid?.() ?? 0;
 
 export const SEP = '/';
 
@@ -17,8 +19,8 @@ export class Node extends EventEmitter {
   ino: number;
 
   // User ID and group ID.
-  uid: number = process.getuid();
-  gid: number = process.getgid();
+  uid: number = getuid();
+  gid: number = getgid();
 
   atime = new Date();
   mtime = new Date();
@@ -167,7 +169,7 @@ export class Node extends EventEmitter {
     this.emit('change', this);
   }
 
-  canRead(uid: number = process.getuid(), gid: number = process.getgid()): boolean {
+  canRead(uid: number = getuid(), gid: number = getgid()): boolean {
     if (this.perm & S.IROTH) {
       return true;
     }
@@ -187,7 +189,7 @@ export class Node extends EventEmitter {
     return false;
   }
 
-  canWrite(uid: number = process.getuid(), gid: number = process.getgid()): boolean {
+  canWrite(uid: number = getuid(), gid: number = getgid()): boolean {
     if (this.perm & S.IWOTH) {
       return true;
     }

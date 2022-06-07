@@ -1,9 +1,9 @@
 // Here we mock the global `process` variable in case we are not in Node's environment.
 
 export interface IProcess {
-  getuid(): number;
+  getuid?(): number;
 
-  getgid(): number;
+  getgid?(): number;
 
   cwd(): string;
 
@@ -38,8 +38,6 @@ const maybeReturnProcess = (): IProcess | undefined => {
 export function createProcess(): IProcess {
   const p: IProcess = maybeReturnProcess() || ({} as IProcess);
 
-  if (!p.getuid) p.getuid = () => 0;
-  if (!p.getgid) p.getgid = () => 0;
   if (!p.cwd) p.cwd = () => '/';
   if (!p.nextTick) p.nextTick = require('./setImmediate').default;
   if (!p.emitWarning)

@@ -400,6 +400,13 @@ describe('volume', () => {
           done();
         });
       });
+      it('Error with exclude flag if file exists', (done) => {
+        vol.writeFileSync('/existing-file.txt', 'foo');
+        vol.open('/existing-file.txt', 'wx', (err) => {
+          expect(err).toHaveProperty('code', 'EEXIST');
+          done();
+        });
+      });
       it('Invalid path correct error code thrown synchronously', done => {
         try {
           (vol as any).open(123, 'r', (err, fd) => {

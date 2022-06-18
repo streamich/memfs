@@ -1024,6 +1024,7 @@ export class Volume {
   private openBase(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): number {
     const file = this.openFile(filename, flagsNum, modeNum, resolveSymlinks);
     if (!file) throw createError(ENOENT, 'open', filename);
+    if (file && flagsNum & O_EXCL) throw createError(EEXIST, 'open', filename);
     return file.fd;
   }
 

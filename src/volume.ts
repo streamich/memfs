@@ -1005,6 +1005,8 @@ export class Volume {
     const steps = filenameToSteps(filename);
     let link: Link | null = resolveSymlinks ? this.getResolvedLink(steps) : this.getLink(steps);
 
+    if (link && flagsNum & O_EXCL) throw createError(EEXIST, 'open', filename);
+
     // Try creating a new file, if it does not exist.
     if (!link && flagsNum & O_CREAT) {
       // const dirLink: Link = this.getLinkParent(steps);
@@ -1024,7 +1026,6 @@ export class Volume {
   private openBase(filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): number {
     const file = this.openFile(filename, flagsNum, modeNum, resolveSymlinks);
     if (!file) throw createError(ENOENT, 'open', filename);
-    if (file && flagsNum & O_EXCL) throw createError(EEXIST, 'open', filename);
     return file.fd;
   }
 

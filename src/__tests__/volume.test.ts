@@ -606,6 +606,14 @@ describe('volume', () => {
           done();
         });
       });
+      it('Create a file at root (/writeFile2.json) with exclude flag', done => {
+        vol.writeFile('/writeFile2.json', data, { flag: "wx" }, err => {
+          expect(err).toBe(null);
+          const str = tryGetChildNode(vol.root, 'writeFile2.json').getString();
+          expect(str).toBe(data);
+          done();
+        });
+      });
       it('Throws error when no callback provided', () => {
         try {
           vol.writeFile('/asdf.txt', 'asdf', 'utf8', undefined as any);

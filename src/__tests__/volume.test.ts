@@ -400,6 +400,13 @@ describe('volume', () => {
           done();
         });
       });
+      it('Error with exclude flag if file exists', (done) => {
+        vol.writeFileSync('/existing-file.txt', 'foo');
+        vol.open('/existing-file.txt', 'wx', (err) => {
+          expect(err).toHaveProperty('code', 'EEXIST');
+          done();
+        });
+      });
       it('Invalid path correct error code thrown synchronously', done => {
         try {
           (vol as any).open(123, 'r', (err, fd) => {
@@ -595,6 +602,14 @@ describe('volume', () => {
         vol.writeFile('/writeFile.json', data, err => {
           expect(err).toBe(null);
           const str = tryGetChildNode(vol.root, 'writeFile.json').getString();
+          expect(str).toBe(data);
+          done();
+        });
+      });
+      it('Create a file at root (/writeFile2.json) with exclude flag', done => {
+        vol.writeFile('/writeFile2.json', data, { flag: "wx" }, err => {
+          expect(err).toBe(null);
+          const str = tryGetChildNode(vol.root, 'writeFile2.json').getString();
           expect(str).toBe(data);
           done();
         });

@@ -1,3 +1,10 @@
+## [3.4.5](https://github.com/streamich/memfs/compare/v3.4.4...v3.4.5) (2022-06-18)
+
+
+### Bug Fixes
+
+* throw EEXIST when opening file that already exists with 'wx' flag ([#853](https://github.com/streamich/memfs/issues/853)) ([8b021b3](https://github.com/streamich/memfs/commit/8b021b3bb3205ceb3024fbd88ab01b63189f7575))
+
 ## [3.4.4](https://github.com/streamich/memfs/compare/v3.4.3...v3.4.4) (2022-05-28)
 
 

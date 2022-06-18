@@ -1,3 +1,10 @@
+## [3.4.6](https://github.com/streamich/memfs/compare/v3.4.5...v3.4.6) (2022-06-18)
+
+
+### Bug Fixes
+
+* loosen dependency constraints ([#855](https://github.com/streamich/memfs/issues/855)) ([af1c224](https://github.com/streamich/memfs/commit/af1c2242194b932859a63be61cc0a3dd6064fec9))
+
 ## [3.4.5](https://github.com/streamich/memfs/compare/v3.4.4...v3.4.5) (2022-06-18)
 
 

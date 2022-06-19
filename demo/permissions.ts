@@ -1,7 +1,6 @@
-import {Volume} from '../src/index';
+import { Volume } from '../src/index';
 
-
-const vol = Volume.fromJSON({'/foo': 'bar'});
+const vol = Volume.fromJSON({ '/foo': 'bar' });
 
 console.log(vol.readFileSync('/foo', 'utf8'));
 

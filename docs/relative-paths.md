@@ -1,11 +1,11 @@
 # Relative paths
 
-If you work with *absolute* paths, you should get what you expect from `memfs`.
+If you work with _absolute_ paths, you should get what you expect from `memfs`.
 
-You can also use *relative* paths but the gotcha is that then `memfs` needs
+You can also use _relative_ paths but the gotcha is that then `memfs` needs
 to somehow resolve those relative paths into absolute paths. `memfs` will use
 the value of `process.cwd()` to resolve the relative paths. The problem is
-that `process.cwd()` specifies the *current working directory* of your
+that `process.cwd()` specifies the _current working directory_ of your
 on-disk filesystem and you will probably not have that directory available in your
 `memfs` volume.
 

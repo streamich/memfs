@@ -8,7 +8,7 @@ describe('rmSync', () => {
       '/oof': 'zab',
     });
 
-    await vol.promises.rm('/foo', {force: true, recursive: true});
+    await vol.promises.rm('/foo', { force: true, recursive: true });
 
     expect(vol.toJSON()).toEqual({
       '/oof': 'zab',
@@ -49,7 +49,7 @@ describe('rmSync', () => {
         '/foo.txt': 'content',
       });
 
-      await vol.promises.rm('/bar.txt', {force: true});
+      await vol.promises.rm('/bar.txt', { force: true });
     });
   });
 
@@ -61,13 +61,15 @@ describe('rmSync', () => {
 
       let error;
       try {
-        await vol.promises.rm('/usr/bin')
+        await vol.promises.rm('/usr/bin');
         throw new Error('Not this');
       } catch (err) {
         error = err;
       }
 
-      expect(error).toEqual(new Error("[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /usr/bin"));
+      expect(error).toEqual(
+        new Error('[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /usr/bin'),
+      );
     });
 
     it('throws by when force flag is set', async () => {
@@ -77,13 +79,15 @@ describe('rmSync', () => {
 
       let error;
       try {
-        await vol.promises.rm('/usr/bin', {force: true});
+        await vol.promises.rm('/usr/bin', { force: true });
         throw new Error('Not this');
       } catch (err) {
         error = err;
       }
 
-      expect(error).toEqual(new Error("[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /usr/bin"));
+      expect(error).toEqual(
+        new Error('[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /usr/bin'),
+      );
     });
 
     it('deletes all directory contents when recursive flag is set', async () => {
@@ -91,9 +95,9 @@ describe('rmSync', () => {
         '/usr/bin/bash': '...',
       });
 
-      await vol.promises.rm('/usr/bin', {recursive: true});
+      await vol.promises.rm('/usr/bin', { recursive: true });
 
-      expect(vol.toJSON()).toEqual({'/usr': null});
+      expect(vol.toJSON()).toEqual({ '/usr': null });
     });
 
     it('deletes all directory contents recursively when recursive flag is set', async () => {
@@ -106,7 +110,7 @@ describe('rmSync', () => {
         '/a/c/a': '6',
       });
 
-      await vol.promises.rm('/a/a', {recursive: true});
+      await vol.promises.rm('/a/a', { recursive: true });
 
       expect(vol.toJSON()).toEqual({
         '/a/b/a': '4',
@@ -114,20 +118,20 @@ describe('rmSync', () => {
         '/a/c/a': '6',
       });
 
-      await vol.promises.rm('/a/c', {recursive: true});
+      await vol.promises.rm('/a/c', { recursive: true });
 
       expect(vol.toJSON()).toEqual({
         '/a/b/a': '4',
         '/a/b/b': '5',
       });
 
-      await vol.promises.rm('/a/b', {recursive: true});
+      await vol.promises.rm('/a/b', { recursive: true });
 
       expect(vol.toJSON()).toEqual({
         '/a': null,
       });
 
-      await vol.promises.rm('/a', {recursive: true});
+      await vol.promises.rm('/a', { recursive: true });
 
       expect(vol.toJSON()).toEqual({});
     });

@@ -132,7 +132,7 @@ function formatError(errorCode: string, func = '', path = '', path2 = '') {
     case ENOSYS:
       return `ENOSYS: function not implemented, ${func}${pathFormatted}`;
     case ERR_FS_EISDIR:
-      return `[ERR_FS_EISDIR]: Path is a directory: ${func} returned EISDIR (is a directory) ${path}`
+      return `[ERR_FS_EISDIR]: Path is a directory: ${func} returned EISDIR (is a directory) ${path}`;
     default:
       return `${errorCode}: error occurred, ${func}${pathFormatted}`;
   }
@@ -640,18 +640,18 @@ export class Volume {
     };
 
     const _ReadStream: new (...args) => IReadStream = FsReadStream as any;
-    this.ReadStream = (class extends _ReadStream {
+    this.ReadStream = class extends _ReadStream {
       constructor(...args) {
         super(self, ...args);
       }
-    } as any) as new (...args) => IReadStream;
+    } as any as new (...args) => IReadStream;
 
     const _WriteStream: new (...args) => IWriteStream = FsWriteStream as any;
-    this.WriteStream = (class extends _WriteStream {
+    this.WriteStream = class extends _WriteStream {
       constructor(...args) {
         super(self, ...args);
       }
-    } as any) as new (...args) => IWriteStream;
+    } as any as new (...args) => IWriteStream;
 
     this.FSWatcher = class extends FSWatcher {
       constructor() {
@@ -2150,9 +2150,7 @@ export class Volume {
   }
 
   private lchownBase(filename: string, uid: number, gid: number) {
-    this.getLinkOrThrow(filename, 'lchown')
-      .getNode()
-      .chown(uid, gid);
+    this.getLinkOrThrow(filename, 'lchown').getNode().chown(uid, gid);
   }
 
   lchownSync(path: PathLike, uid: number, gid: number) {
@@ -2304,7 +2302,9 @@ export class StatWatcher extends EventEmitter {
 
   start(path: string, persistent: boolean = true, interval: number = 5007) {
     this.filename = pathToFilename(path);
-    this.setTimeout = persistent ? setTimeout.bind(typeof globalThis !== 'undefined' ? globalThis : global) : setTimeoutUnref;
+    this.setTimeout = persistent
+      ? setTimeout.bind(typeof globalThis !== 'undefined' ? globalThis : global)
+      : setTimeoutUnref;
     this.interval = interval;
     this.prev = this.vol.statSync(this.filename);
     this.loop();
@@ -2377,14 +2377,14 @@ function FsReadStream(vol, path, options) {
 
   if (typeof this.fd !== 'number') this.open();
 
-  this.on('end', function() {
+  this.on('end', function () {
     if (this.autoClose) {
       if (this.destroy) this.destroy();
     }
   });
 }
 
-FsReadStream.prototype.open = function() {
+FsReadStream.prototype.open = function () {
   var self = this; // tslint:disable-line no-this-assignment
   this._vol.open(this.path, this.flags, this.mode, (er, fd) => {
     if (er) {
@@ -2402,9 +2402,9 @@ FsReadStream.prototype.open = function() {
   });
 };
 
-FsReadStream.prototype._read = function(n) {
+FsReadStream.prototype._read = function (n) {
   if (typeof this.fd !== 'number') {
-    return this.once('open', function() {
+    return this.once('open', function () {
       this._read(n);
     });
   }
@@ -2455,13 +2455,13 @@ FsReadStream.prototype._read = function(n) {
   }
 };
 
-FsReadStream.prototype._destroy = function(err, cb) {
+FsReadStream.prototype._destroy = function (err, cb) {
   this.close(err2 => {
     cb(err || err2);
   });
 };
 
-FsReadStream.prototype.close = function(cb) {
+FsReadStream.prototype.close = function (cb) {
   if (cb) this.once('close', cb);
 
   if (this.closed || typeof this.fd !== 'number') {
@@ -2541,19 +2541,19 @@ function FsWriteStream(vol, path, options) {
   if (typeof this.fd !== 'number') this.open();
 
   // dispose on finish.
-  this.once('finish', function() {
+  this.once('finish', function () {
     if (this.autoClose) {
       this.close();
     }
   });
 }
 
-FsWriteStream.prototype.open = function() {
+FsWriteStream.prototype.open = function () {
   this._vol.open(
     this.path,
     this.flags,
     this.mode,
-    function(er, fd) {
+    function (er, fd) {
       if (er) {
         if (this.autoClose && this.destroy) {
           this.destroy();
@@ -2568,11 +2568,11 @@ FsWriteStream.prototype.open = function() {
   );
 };
 
-FsWriteStream.prototype._write = function(data, encoding, cb) {
+FsWriteStream.prototype._write = function (data, encoding, cb) {
   if (!(data instanceof Buffer || data instanceof Uint8Array)) return this.emit('error', new Error('Invalid data'));
 
   if (typeof this.fd !== 'number') {
-    return this.once('open', function() {
+    return this.once('open', function () {
       this._write(data, encoding, cb);
     });
   }
@@ -2592,9 +2592,9 @@ FsWriteStream.prototype._write = function(data, encoding, cb) {
   if (this.pos !== undefined) this.pos += data.length;
 };
 
-FsWriteStream.prototype._writev = function(data, cb) {
+FsWriteStream.prototype._writev = function (data, cb) {
   if (typeof this.fd !== 'number') {
-    return this.once('open', function() {
+    return this.once('open', function () {
       this._writev(data, cb);
     });
   }
@@ -2624,7 +2624,7 @@ FsWriteStream.prototype._writev = function(data, cb) {
   if (this.pos !== undefined) this.pos += size;
 };
 
-FsWriteStream.prototype.close = function(cb) {
+FsWriteStream.prototype.close = function (cb) {
   if (cb) this.once('close', cb);
 
   if (this.closed || typeof this.fd !== 'number') {

@@ -400,9 +400,9 @@ describe('volume', () => {
           done();
         });
       });
-      it('Error with exclude flag if file exists', (done) => {
+      it('Error with exclude flag if file exists', done => {
         vol.writeFileSync('/existing-file.txt', 'foo');
-        vol.open('/existing-file.txt', 'wx', (err) => {
+        vol.open('/existing-file.txt', 'wx', err => {
           expect(err).toHaveProperty('code', 'EEXIST');
           done();
         });
@@ -607,7 +607,7 @@ describe('volume', () => {
         });
       });
       it('Create a file at root (/writeFile2.json) with exclude flag', done => {
-        vol.writeFile('/writeFile2.json', data, { flag: "wx" }, err => {
+        vol.writeFile('/writeFile2.json', data, { flag: 'wx' }, err => {
           expect(err).toBe(null);
           const str = tryGetChildNode(vol.root, 'writeFile2.json').getString();
           expect(str).toBe(data);

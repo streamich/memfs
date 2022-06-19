@@ -1,10 +1,8 @@
-import {Volume} from '../src/index';
+import { Volume } from '../src/index';
 
-
-const vol = new Volume;
+const vol = new Volume();
 vol.mountSync('/test', {
-    'foo': 'bar',
+  foo: 'bar',
 });
-
 
 console.log(vol.toJSON());

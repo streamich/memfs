@@ -8,7 +8,7 @@ describe('rmSync', () => {
       '/oof': 'zab',
     });
 
-    vol.rmSync('/foo', {force: true, recursive: true});
+    vol.rmSync('/foo', { force: true, recursive: true });
 
     expect(vol.toJSON()).toEqual({
       '/oof': 'zab',
@@ -33,7 +33,9 @@ describe('rmSync', () => {
         '/foo.txt': 'content',
       });
 
-      expect(() => vol.rmSync('/bar.txt')).toThrowError(new Error("ENOENT: no such file or directory, stat '/bar.txt'"));
+      expect(() => vol.rmSync('/bar.txt')).toThrowError(
+        new Error("ENOENT: no such file or directory, stat '/bar.txt'"),
+      );
     });
 
     it('does not throw if "force" is set to true', () => {
@@ -41,7 +43,7 @@ describe('rmSync', () => {
         '/foo.txt': 'content',
       });
 
-      vol.rmSync('/bar.txt', {force: true});
+      vol.rmSync('/bar.txt', { force: true });
     });
   });
 
@@ -51,7 +53,9 @@ describe('rmSync', () => {
         '/usr/bin/bash': '...',
       });
 
-      expect(() => vol.rmSync('/usr/bin')).toThrowError(new Error("[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /usr/bin"));
+      expect(() => vol.rmSync('/usr/bin')).toThrowError(
+        new Error('[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /usr/bin'),
+      );
     });
 
     it('throws by when force flag is set', () => {
@@ -59,7 +63,9 @@ describe('rmSync', () => {
         '/usr/bin/bash': '...',
       });
 
-      expect(() => vol.rmSync('/usr/bin', {force: true})).toThrowError(new Error("[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /usr/bin"));
+      expect(() => vol.rmSync('/usr/bin', { force: true })).toThrowError(
+        new Error('[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /usr/bin'),
+      );
     });
 
     it('deletes all directory contents when recursive flag is set', () => {
@@ -67,9 +73,9 @@ describe('rmSync', () => {
         '/usr/bin/bash': '...',
       });
 
-      vol.rmSync('/usr/bin', {recursive: true});
+      vol.rmSync('/usr/bin', { recursive: true });
 
-      expect(vol.toJSON()).toEqual({'/usr': null});
+      expect(vol.toJSON()).toEqual({ '/usr': null });
     });
 
     it('deletes all directory contents recursively when recursive flag is set', () => {
@@ -82,7 +88,7 @@ describe('rmSync', () => {
         '/a/c/a': '6',
       });
 
-      vol.rmSync('/a/a', {recursive: true});
+      vol.rmSync('/a/a', { recursive: true });
 
       expect(vol.toJSON()).toEqual({
         '/a/b/a': '4',
@@ -90,20 +96,20 @@ describe('rmSync', () => {
         '/a/c/a': '6',
       });
 
-      vol.rmSync('/a/c', {recursive: true});
+      vol.rmSync('/a/c', { recursive: true });
 
       expect(vol.toJSON()).toEqual({
         '/a/b/a': '4',
         '/a/b/b': '5',
       });
 
-      vol.rmSync('/a/b', {recursive: true});
+      vol.rmSync('/a/b', { recursive: true });
 
       expect(vol.toJSON()).toEqual({
         '/a': null,
       });
 
-      vol.rmSync('/a', {recursive: true});
+      vol.rmSync('/a', { recursive: true });
 
       expect(vol.toJSON()).toEqual({});
     });

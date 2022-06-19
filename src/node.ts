@@ -260,7 +260,7 @@ export class Link extends EventEmitter {
   set steps(val) {
     this._steps = val;
     for (const child of Object.values(this.children)) {
-      child?.syncSteps()
+      child?.syncSteps();
     }
   }
 

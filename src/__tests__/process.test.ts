@@ -6,10 +6,6 @@ describe('process', () => {
     it('Exports default object', () => {
       expect(typeof _process).toBe('object');
     });
-    it('.getuid() and .getgid()', () => {
-      expect(typeof proc.getuid?.() ?? 0).toBe('number');
-      expect(typeof proc.getgid?.() ?? 0).toBe('number');
-    });
     it('.cwd()', () => {
       expect(typeof proc.cwd()).toBe('string');
     });

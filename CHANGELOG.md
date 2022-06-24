@@ -1,3 +1,10 @@
+## [3.4.7](https://github.com/streamich/memfs/compare/v3.4.6...v3.4.7) (2022-06-24)
+
+
+### Bug Fixes
+
+* dont patch `getuid` and `getgid` on `process` anymore ([#847](https://github.com/streamich/memfs/issues/847)) ([1c19e87](https://github.com/streamich/memfs/commit/1c19e873641c68dcc2c0f406b8cd3a331e563a25))
+
 ## [3.4.6](https://github.com/streamich/memfs/compare/v3.4.5...v3.4.6) (2022-06-18)
 
 

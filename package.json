@@ -3,19 +3,30 @@
   "version": "3.4.7",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
+  "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
   "files": [
     "lib"
   ],
+  "exports": {
+    ".": {
+      "require": "./lib/index.js",
+      "import": "./lib/index.mjs"
+    },
+    "./lib/promises": {
+      "require": "./lib/promises.js",
+      "import": "./lib/promises.mjs"
+    }
+  },
   "scripts": {
     "clean": "rimraf lib types",
-    "build": "tsc -p . && cp src/getBigInt.js lib/",
+    "build": "tsup",
     "test": "jest --maxWorkers 2",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "watch": "watch \"npm run build\" ./src",
-    "prettier": "prettier --ignore-path .gitignore --write \"src/**/*.{ts,js}\"",
-    "prettier:diff": "prettier -l \"src/**/*.{ts,js}\"",
+    "prettier": "prettier --ignore-path .gitignore --write \"**/*.{ts,js}\" ",
+    "prettier:diff": "prettier -l \"**/*.{ts,js}\"",
     "tslint": "tslint \"src/**/*.ts\" -t verbose"
   },
   "repository": {
@@ -41,6 +52,7 @@
     "ts-node": "^10.8.1",
     "tslint": "^5.20.1",
     "tslint-config-common": "^1.6.0",
+    "tsup": "^6.2.3",
     "typescript": "^4.7.4"
   },
   "config": {

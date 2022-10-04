@@ -12,8 +12,10 @@ import { constants } from './constants';
 import { EventEmitter } from 'events';
 import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as errors from './internal/errors';
-import util = require('util');
+import { inherits } from 'util';
 import createPromisesApi from './promises';
+import { URL } from 'url';
+import { unixify } from './internal/unixify';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -407,7 +409,7 @@ function getPathFromURLPosix(url): string {
 export function pathToFilename(path: PathLike): string {
   if (typeof path !== 'string' && !Buffer.isBuffer(path)) {
     try {
-      if (!(path instanceof require('url').URL)) throw new TypeError(ERRSTR.PATH_STR);
+      if (!(path instanceof URL)) throw new TypeError(ERRSTR.PATH_STR);
     } catch (err) {
       throw new TypeError(ERRSTR.PATH_STR);
     }
@@ -425,7 +427,6 @@ type TResolve = (filename: string, base?: string) => string;
 let resolve: TResolve = (filename, base = process.cwd()) => resolveCrossPlatform(base, filename);
 if (isWin) {
   const _resolve = resolve;
-  const { unixify } = require('fs-monkey/lib/correctPath');
   resolve = (filename, base) => unixify(_resolve(filename, base));
 }
 
@@ -2334,9 +2335,8 @@ function allocNewPool(poolSize) {
   pool.used = 0;
 }
 
-util.inherits(FsReadStream, Readable);
-exports.ReadStream = FsReadStream;
-function FsReadStream(vol, path, options) {
+inherits(FsReadStream, Readable);
+export function FsReadStream(vol, path, options) {
   if (!(this instanceof FsReadStream)) return new (FsReadStream as any)(vol, path, options);
 
   this._vol = vol;
@@ -2505,9 +2505,8 @@ export interface IWriteStream extends Writable {
   close();
 }
 
-util.inherits(FsWriteStream, Writable);
-exports.WriteStream = FsWriteStream;
-function FsWriteStream(vol, path, options) {
+inherits(FsWriteStream, Writable);
+export function FsWriteStream(vol, path, options) {
   if (!(this instanceof FsWriteStream)) return new (FsWriteStream as any)(vol, path, options);
 
   this._vol = vol;

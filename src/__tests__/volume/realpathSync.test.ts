@@ -14,6 +14,6 @@ describe('.realpathSync(...)', () => {
 });
 
 describe("edge case -- realpathSync('/') returns '/'", () => {
-  const vol = create({'./a':'a'});
+  const vol = create({ './a': 'a' });
   expect(vol.realpathSync('/')).toBe('/');
 });

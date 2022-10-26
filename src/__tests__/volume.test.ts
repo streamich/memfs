@@ -1103,6 +1103,14 @@ describe('volume', () => {
         expect(typeof vol.promises).toBe('object');
       });
     });
+    describe('.chmodSync(directory) works (see https://github.com/streamich/memfs/issues/558', () => {
+      const vol = new Volume();
+      vol.mkdirSync('/dir');
+      vol.chmodSync('/dir', 0o666);
+      expect(vol.statSync('/dir').mode.toString(8)).toBe('40666');
+      vol.chmodSync('/dir', 0o777);
+      expect(vol.statSync('/dir').mode.toString(8)).toBe('40777');
+    });
   });
   describe('StatWatcher', () => {
     it('.vol points to current volume', () => {

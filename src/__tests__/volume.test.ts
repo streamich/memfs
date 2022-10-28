@@ -955,6 +955,13 @@ describe('volume', () => {
         vol.truncateSync('/1', 2);
         expect(vol.readFileSync('/1', 'utf8')).toBe('12');
       });
+      it('Larger truncate', () => {
+        const fd = vol.openSync('/2', 'w');
+        vol.writeFileSync(fd, '12345');
+        expect(vol.readFileSync('/2', 'utf8')).toBe('12345');
+        vol.truncateSync('/2', 10);
+        expect(vol.readFileSync('/2', 'utf8')).toBe('12345\0\0\0\0\0');
+      });
     });
     describe('.truncate(path[, len], callback)', () => {
       xit('...', () => {});

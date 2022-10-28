@@ -143,9 +143,10 @@ export class Node extends EventEmitter {
       if (len <= this.buf.length) {
         this.buf = this.buf.slice(0, len);
       } else {
-        const buf = bufferAllocUnsafe(0);
+        const buf = bufferAllocUnsafe(len);
         this.buf.copy(buf);
-        buf.fill(0, len);
+        buf.fill(0, this.buf.length);
+        this.buf = buf;
       }
     }
 

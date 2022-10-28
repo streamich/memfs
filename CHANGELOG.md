@@ -1,3 +1,10 @@
+## [3.4.8](https://github.com/streamich/memfs/compare/v3.4.7...v3.4.8) (2022-10-28)
+
+
+### Bug Fixes
+
+* extend with null bytes when calling `truncate` with a `len` greater than the current file size ([#875](https://github.com/streamich/memfs/issues/875)) ([25027fb](https://github.com/streamich/memfs/commit/25027fb79ed32334259b7164ea1d784676e1b1bf))
+
 ## [3.4.7](https://github.com/streamich/memfs/compare/v3.4.6...v3.4.7) (2022-06-24)
 
 

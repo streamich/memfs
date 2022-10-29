@@ -1,3 +1,10 @@
+## [3.4.9](https://github.com/streamich/memfs/compare/v3.4.8...v3.4.9) (2022-10-29)
+
+
+### Bug Fixes
+
+* support calling `utimes` on a directory ([#866](https://github.com/streamich/memfs/issues/866)) ([301f2d1](https://github.com/streamich/memfs/commit/301f2d19a2c9ae72d436b412e3c009112631c736)), closes [#391](https://github.com/streamich/memfs/issues/391)
+
 ## [3.4.8](https://github.com/streamich/memfs/compare/v3.4.7...v3.4.8) (2022-10-28)
 
 

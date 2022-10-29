@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "3.4.7",
+  "version": "3.4.8",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -16,7 +16,8 @@
     "watch": "watch \"npm run build\" ./src",
     "prettier": "prettier --ignore-path .gitignore --write \"src/**/*.{ts,js}\"",
     "prettier:diff": "prettier -l \"src/**/*.{ts,js}\"",
-    "tslint": "tslint \"src/**/*.ts\" -t verbose"
+    "tslint": "tslint \"src/**/*.ts\" -t verbose",
+    "typecheck": "tsc -p ."
   },
   "repository": {
     "type": "git",

@@ -976,7 +976,7 @@ describe('volume', () => {
         expect(Math.round(stats.atime.getTime() / 1000)).toBe(1234);
         expect(Math.round(stats.mtime.getTime() / 1000)).toBe(12345);
       });
-      it('Sets times on a directory (see https://github.com/streamich/memfs/issues/391)', () => {
+      it('Sets times on a directory', () => {
         vol.utimesSync('/foo', 1234, 12345);
         const stats = vol.statSync('/foo');
         expect(Math.round(stats.atime.getTime() / 1000)).toBe(1234);

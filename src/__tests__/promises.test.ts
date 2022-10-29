@@ -193,6 +193,8 @@ describe('Promises API', () => {
         const fileHandle = await promises.open('/foo', 'r+');
         await fileHandle.truncate(5);
         expect(vol.readFileSync('/foo').toString()).toEqual('01234');
+        await fileHandle.truncate(7);
+        expect(vol.readFileSync('/foo').toString()).toEqual('01234\0\0');
         await fileHandle.close();
       });
       it('Reject when the file handle was closed', async () => {
@@ -592,6 +594,8 @@ describe('Promises API', () => {
     it('Truncate an existing file', async () => {
       await promises.truncate('/foo', 5);
       expect(vol.readFileSync('/foo').toString()).toEqual('01234');
+      await promises.truncate('/foo', 7);
+      expect(vol.readFileSync('/foo').toString()).toEqual('01234\0\0');
     });
     it('Reject when file does not exist', () => {
       return expect(promises.truncate('/bar')).rejects.toBeInstanceOf(Error);

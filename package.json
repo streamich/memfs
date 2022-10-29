@@ -49,6 +49,11 @@
       "path": "git-cz"
     }
   },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
   "jest": {
     "moduleFileExtensions": [
       "ts",

@@ -1,3 +1,10 @@
+## [3.4.10](https://github.com/streamich/memfs/compare/v3.4.9...v3.4.10) (2022-11-03)
+
+
+### Bug Fixes
+
+* support calling `chmod` on a directory ([#870](https://github.com/streamich/memfs/issues/870)) ([7c5999c](https://github.com/streamich/memfs/commit/7c5999c88e58527861557fdfddc4069aedba3eef)), closes [#558](https://github.com/streamich/memfs/issues/558)
+
 ## [3.4.9](https://github.com/streamich/memfs/compare/v3.4.8...v3.4.9) (2022-10-29)
 
 

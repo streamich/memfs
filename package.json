@@ -31,7 +31,7 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/npm": "^9.0.1",
     "@types/jest": "^27.5.2",
-    "@types/node": "^10.17.60",
+    "@types/node": "^18.0.0",
     "husky": "^8.0.1",
     "jest": "^28.1.1",
     "prettier": "^2.7.1",

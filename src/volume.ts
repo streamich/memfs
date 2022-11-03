@@ -1882,7 +1882,7 @@ export class Volume {
   }
 
   private utimesBase(filename: string, atime: number, mtime: number) {
-    const fd = this.openSync(filename, 'r+');
+    const fd = this.openSync(filename, 'r');
     try {
       this.futimesBase(fd, atime, mtime);
     } finally {

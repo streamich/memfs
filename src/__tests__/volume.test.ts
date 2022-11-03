@@ -968,10 +968,17 @@ describe('volume', () => {
     });
     describe('.utimesSync(path, atime, mtime)', () => {
       const vol = new Volume();
+      vol.mkdirSync('/foo');
       it('Set times on file', () => {
-        vol.writeFileSync('/lol', '12345');
-        vol.utimesSync('/lol', 1234, 12345);
-        const stats = vol.statSync('/lol');
+        vol.writeFileSync('/foo/lol', '12345');
+        vol.utimesSync('/foo/lol', 1234, 12345);
+        const stats = vol.statSync('/foo/lol');
+        expect(Math.round(stats.atime.getTime() / 1000)).toBe(1234);
+        expect(Math.round(stats.mtime.getTime() / 1000)).toBe(12345);
+      });
+      it('Sets times on a directory', () => {
+        vol.utimesSync('/foo', 1234, 12345);
+        const stats = vol.statSync('/foo');
         expect(Math.round(stats.atime.getTime() / 1000)).toBe(1234);
         expect(Math.round(stats.mtime.getTime() / 1000)).toBe(12345);
       });

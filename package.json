@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "3.4.8",
+  "version": "3.4.9",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -48,6 +48,11 @@
     "commitizen": {
       "path": "git-cz"
     }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "jest": {
     "moduleFileExtensions": [

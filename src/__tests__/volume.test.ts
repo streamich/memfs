@@ -1111,6 +1111,24 @@ describe('volume', () => {
         }, 1);
       });
     });
+    describe('.chmodSync(path, mode)', () => {
+      it('works with directories', () => {
+        const vol = new Volume();
+        vol.mkdirSync('/dir');
+        vol.chmodSync('/dir', 0o666);
+        expect(vol.statSync('/dir').mode.toString(8)).toBe('40666');
+        vol.chmodSync('/dir', 0o777);
+        expect(vol.statSync('/dir').mode.toString(8)).toBe('40777');
+      });
+      it('works with files', () => {
+        const vol = new Volume();
+        vol.writeFileSync('/file', 'contents');
+        vol.chmodSync('/file', 0o666);
+        expect(vol.statSync('/file').mode.toString(8)).toBe('100666');
+        vol.chmodSync('/file', 0o777);
+        expect(vol.statSync('/file').mode.toString(8)).toBe('100777');
+      });
+    });
     describe('.promises', () => {
       it('Have a promises property', () => {
         const vol = new Volume();

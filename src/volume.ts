@@ -2066,7 +2066,7 @@ export class Volume {
   }
 
   private chmodBase(filename: string, modeNum: number) {
-    const fd = this.openSync(filename, 'r+');
+    const fd = this.openSync(filename, 'r');
     try {
       this.fchmodBase(fd, modeNum);
     } finally {

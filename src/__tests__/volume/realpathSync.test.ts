@@ -11,9 +11,8 @@ describe('.realpathSync(...)', () => {
     const path = vol.realpathSync('/a/b/index.js');
     expect(path).toBe('/c/index.js');
   });
-});
-
-describe("edge case -- realpathSync('/') returns '/'", () => {
-  const vol = create({ './a': 'a' });
-  expect(vol.realpathSync('/')).toBe('/');
+  it('returns the root correctly', () => {
+    const vol = create({ './a': 'a' });
+    expect(vol.realpathSync('/')).toBe('/');
+  });
 });

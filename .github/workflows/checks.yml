@@ -1,12 +1,36 @@
 name: Checks
 
 on:
-  pull_request:
   push:
     branches:
       - master
+      - next
+  pull_request:
+    branches:
+      - master
+      - next
 
 jobs:
+  prepare-yarn-cache:
+    name: Prepare yarn cache
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          cache: yarn
+
+      - name: Validate cache
+        env:
+          # Use PnP and disable postinstall scripts as this just needs to
+          # populate the cache for the other jobs
+          YARN_NODE_LINKER: pnp
+          YARN_ENABLE_SCRIPTS: false
+        run: yarn --immutable
+
   prettier:
     runs-on: ubuntu-latest
     steps:
@@ -14,3 +38,82 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
       - run: npx prettier --check .
+
+  typecheck:
+    needs: prepare-yarn-cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          cache: yarn
+      - name: install
+        run: yarn
+      - name: run typecheck
+        run: yarn typecheck
+
+  test-node:
+    name:
+      # prettier-ignore
+      Test on Node.js v${{ matrix.node-version }}
+    needs: prepare-yarn-cache
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [14.x, 16.x, 17.x, 18.x]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+      - name: install
+        run: yarn install
+      - name: run tests
+        run: yarn test
+        env:
+          CI: true
+  test-os:
+    name: Test on ${{ matrix.os }} using Node.js LTS
+    needs: prepare-yarn-cache
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          cache: yarn
+      - name: install
+        run: yarn install
+      - name: run tests
+        run: yarn test
+        env:
+          CI: true
+  release:
+    if:
+      # prettier-ignore
+      ${{ github.event_name == 'push' && (github.event.ref == 'refs/heads/main' || github.event.ref == 'refs/heads/next') }}
+    name: Release new version
+    needs: [prettier, typecheck, test-node, test-os]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          cache: yarn
+      - name: install
+        run: yarn
+      - run: yarn semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

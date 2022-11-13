@@ -1,3 +1,10 @@
+## [3.4.11](https://github.com/streamich/memfs/compare/v3.4.10...v3.4.11) (2022-11-13)
+
+
+### Bug Fixes
+
+* return `/` when calling `realpathSync` with `/` ([#867](https://github.com/streamich/memfs/issues/867)) ([8d8e8d1](https://github.com/streamich/memfs/commit/8d8e8d150b4aea30f173c12bc9ca36709b44bcf5)), closes [#863](https://github.com/streamich/memfs/issues/863)
+
 ## [3.4.10](https://github.com/streamich/memfs/compare/v3.4.9...v3.4.10) (2022-11-03)
 
 

@@ -1493,8 +1493,7 @@ export class Volume {
     const realLink = this.getResolvedLink(steps);
     if (!realLink) throw createError(ENOENT, 'realpath', filename);
 
-    const path = realLink.getPath();
-    return strToEncoding(path ? path : '/', encoding);
+    return strToEncoding(realLink.getPath() || '/', encoding);
   }
 
   realpathSync(path: PathLike, options?: IRealpathOptions | string): TDataOut {

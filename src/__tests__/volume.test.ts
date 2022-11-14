@@ -1008,7 +1008,7 @@ describe('volume', () => {
       });
       it('Create /dir1/dir2/dir3 recursively', () => {
         const vol = new Volume();
-        vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
+        const fullPath = vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
         const dir1 = tryGetChild(vol.root, 'dir1');
         const dir2 = tryGetChild(dir1, 'dir2');
         const dir3 = tryGetChild(dir2, 'dir3');
@@ -1018,6 +1018,9 @@ describe('volume', () => {
         expect(dir1.getNode().isDirectory()).toBe(true);
         expect(dir2.getNode().isDirectory()).toBe(true);
         expect(dir3.getNode().isDirectory()).toBe(true);
+        expect(fullPath).toBe('/dir1/dir2/dir3');
+        const dirAlreadyExists = vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
+        expect(dirAlreadyExists).toBe(undefined);
       });
     });
     describe('.mkdir(path[, mode], callback)', () => {

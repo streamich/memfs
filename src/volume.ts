@@ -1970,7 +1970,7 @@ export class Volume {
 
   // legacy interface
   mkdirpSync(path: PathLike, mode?: TMode) {
-    this.mkdirSync(path, { mode, recursive: true });
+    return this.mkdirSync(path, { mode, recursive: true });
   }
 
   mkdirp(path: PathLike, callback: TCallback<string>);

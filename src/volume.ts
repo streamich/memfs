@@ -433,7 +433,7 @@ if (isWin) {
 
 export function filenameToSteps(filename: string, base?: string): string[] {
   const fullPath = resolve(filename, base);
-  const fullPathSansSlash = fullPath.substr(1);
+  const fullPathSansSlash = fullPath.substring(1);
   if (!fullPathSansSlash) return [];
   return fullPathSansSlash.split(sep);
 }
@@ -728,7 +728,7 @@ export class Volume {
 
   // Generates 6 character long random string, used by `mkdtemp`.
   genRndStr() {
-    const str = (Math.random() + 1).toString(36).substr(2, 6);
+    const str = (Math.random() + 1).toString(36).substring(2, 8);
     if (str.length === 6) return str;
     else return this.genRndStr();
   }
@@ -1923,7 +1923,7 @@ export class Volume {
    */
   private mkdirpBase(filename: string, modeNum: number) {
     const fullPath = resolve(filename);
-    const fullPathSansSlash = fullPath.substr(1);
+    const fullPathSansSlash = fullPath.substring(1);
     const steps = !fullPathSansSlash ? [] : fullPathSansSlash.split(sep);
     let link = this.root;
     let created = false;

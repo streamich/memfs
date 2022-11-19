@@ -1,3 +1,10 @@
+## [3.4.12](https://github.com/streamich/memfs/compare/v3.4.11...v3.4.12) (2022-11-19)
+
+
+### Bug Fixes
+
+* `mkdir` return value ([#882](https://github.com/streamich/memfs/issues/882)) ([125ad2e](https://github.com/streamich/memfs/commit/125ad2e2bf268963fb0b8f287965bb7e2a2b230d))
+
 ## [3.4.11](https://github.com/streamich/memfs/compare/v3.4.10...v3.4.11) (2022-11-13)
 
 

@@ -225,9 +225,11 @@ function optsGenerator<TOpts>(defaults: TOpts): (opts) => TOpts {
   return options => getOptions(defaults, options);
 }
 
-function validateCallback(callback) {
+type AssertCallback<T> = T extends Function ? T : never;
+
+function validateCallback<T>(callback: T): AssertCallback<T> {
   if (typeof callback !== 'function') throw TypeError(ERRSTR.CB);
-  return callback;
+  return callback as AssertCallback<T>;
 }
 
 function optsAndCbGenerator<TOpts, TResult>(getOpts): (options, callback?) => [TOpts, TCallback<TResult>] {
@@ -431,7 +433,7 @@ if (isWin) {
 
 export function filenameToSteps(filename: string, base?: string): string[] {
   const fullPath = resolve(filename, base);
-  const fullPathSansSlash = fullPath.substr(1);
+  const fullPathSansSlash = fullPath.substring(1);
   if (!fullPathSansSlash) return [];
   return fullPathSansSlash.split(sep);
 }
@@ -726,7 +728,7 @@ export class Volume {
 
   // Generates 6 character long random string, used by `mkdtemp`.
   genRndStr() {
-    const str = (Math.random() + 1).toString(36).substr(2, 6);
+    const str = (Math.random() + 1).toString(36).substring(2, 8);
     if (str.length === 6) return str;
     else return this.genRndStr();
   }
@@ -1920,8 +1922,11 @@ export class Volume {
    * @param modeNum
    */
   private mkdirpBase(filename: string, modeNum: number) {
-    const steps = filenameToSteps(filename);
+    const fullPath = resolve(filename);
+    const fullPathSansSlash = fullPath.substring(1);
+    const steps = !fullPathSansSlash ? [] : fullPathSansSlash.split(sep);
     let link = this.root;
+    let created = false;
     for (let i = 0; i < steps.length; i++) {
       const step = steps[i];
 
@@ -1933,23 +1938,30 @@ export class Volume {
         else throw createError(ENOTDIR, 'mkdir', child.getPath());
       } else {
         link = link.createChild(step, this.createNode(true, modeNum));
+        created = true;
       }
     }
+    return created ? fullPath : undefined;
   }
 
+  mkdirSync(path: PathLike, options: IMkdirOptions & { recursive: true }): string | undefined;
+  mkdirSync(path: PathLike, options?: TMode | (IMkdirOptions & { recursive?: false })): void;
+  mkdirSync(path: PathLike, options?: TMode | IMkdirOptions): string | undefined;
   mkdirSync(path: PathLike, options?: TMode | IMkdirOptions) {
     const opts = getMkdirOptions(options);
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
-    if (opts.recursive) this.mkdirpBase(filename, modeNum);
-    else this.mkdirBase(filename, modeNum);
+    if (opts.recursive) return this.mkdirpBase(filename, modeNum);
+    this.mkdirBase(filename, modeNum);
   }
 
   mkdir(path: PathLike, callback: TCallback<void>);
-  mkdir(path: PathLike, mode: TMode | IMkdirOptions, callback: TCallback<void>);
-  mkdir(path: PathLike, a: TCallback<void> | TMode | IMkdirOptions, b?: TCallback<void>) {
+  mkdir(path: PathLike, mode: TMode | (IMkdirOptions & { recursive?: false }), callback: TCallback<void>);
+  mkdir(path: PathLike, mode: IMkdirOptions & { recursive: true }, callback: TCallback<string>);
+  mkdir(path: PathLike, mode: TMode | IMkdirOptions, callback: TCallback<string>);
+  mkdir(path: PathLike, a: TCallback<void> | TMode | IMkdirOptions, b?: TCallback<string> | TCallback<void>) {
     const opts: TMode | IMkdirOptions = getMkdirOptions(a);
-    const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
+    const callback = validateCallback(typeof a === 'function' ? a : b!);
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
     if (opts.recursive) this.wrapAsync(this.mkdirpBase, [filename, modeNum], callback);
@@ -1958,14 +1970,14 @@ export class Volume {
 
   // legacy interface
   mkdirpSync(path: PathLike, mode?: TMode) {
-    this.mkdirSync(path, { mode, recursive: true });
+    return this.mkdirSync(path, { mode, recursive: true });
   }
 
-  mkdirp(path: PathLike, callback: TCallback<void>);
-  mkdirp(path: PathLike, mode: TMode, callback: TCallback<void>);
-  mkdirp(path: PathLike, a: TCallback<void> | TMode, b?: TCallback<void>) {
+  mkdirp(path: PathLike, callback: TCallback<string>);
+  mkdirp(path: PathLike, mode: TMode, callback: TCallback<string>);
+  mkdirp(path: PathLike, a: TCallback<string> | TMode, b?: TCallback<string>) {
     const mode: TMode | undefined = typeof a === 'function' ? undefined : a;
-    const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
+    const callback = validateCallback(typeof a === 'function' ? a : b);
     this.mkdir(path, { mode, recursive: true }, callback);
   }
 

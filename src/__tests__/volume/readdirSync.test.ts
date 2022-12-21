@@ -7,7 +7,7 @@ describe('readdirSync()', () => {
     });
     const dirs = vol.readdirSync('/');
 
-    expect(dirs).toEqual(['foo']);
+    expect(dirs).toEqual(['.', '..', 'foo']);
   });
 
   it('returns multiple directories', () => {
@@ -20,14 +20,14 @@ describe('readdirSync()', () => {
 
     (dirs as any).sort();
 
-    expect(dirs).toEqual(['ab', 'foo', 'tro']);
+    expect(dirs).toEqual(['.', '..', 'ab', 'foo', 'tro']);
   });
 
   it('returns empty array when dir empty', () => {
     const vol = create({});
     const dirs = vol.readdirSync('/');
 
-    expect(dirs).toEqual([]);
+    expect(dirs).toEqual(['.', '..']);
   });
 
   it('respects symlinks', () => {
@@ -43,7 +43,7 @@ describe('readdirSync()', () => {
 
     (dirs as any).sort();
 
-    expect(dirs).toEqual(['a', 'aa']);
+    expect(dirs).toEqual(['.', '..', 'a', 'aa']);
   });
 
   it('respects recursive symlinks', () => {
@@ -53,6 +53,6 @@ describe('readdirSync()', () => {
 
     const dirs = vol.readdirSync('/foo');
 
-    expect(dirs).toEqual(['foo']);
+    expect(dirs).toEqual(['.', '..', 'foo']);
   });
 });

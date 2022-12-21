@@ -462,7 +462,7 @@ describe('Promises API', () => {
       '/foo/baz': 'baz',
     });
     it('Read an existing directory', async () => {
-      expect(await promises.readdir('/foo')).toEqual(['bar', 'baz']);
+      expect(await promises.readdir('/foo')).toEqual(['.', '..', 'bar', 'baz']);
     });
     it('Reject when directory does not exist', () => {
       return expect(promises.readdir('/bar')).rejects.toBeInstanceOf(Error);

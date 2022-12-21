@@ -44,9 +44,21 @@ export class Node extends EventEmitter {
     this.perm = perm;
     this.mode |= perm;
     this.ino = ino;
+
+    return new Proxy(this, {
+      set(target, name, value): boolean {
+        const metadataProps = ['uid', 'gid', 'atime', 'mtime', 'perm', 'nlink'];
+        if (metadataProps.includes(String(name))) {
+          target.ctime = new Date();
+        }
+        target[name] = value;
+        return true;
+      },
+    });
   }
 
   getString(encoding = 'utf8'): string {
+    this.atime = new Date();
     return this.getBuffer().toString(encoding);
   }
 
@@ -57,6 +69,7 @@ export class Node extends EventEmitter {
   }
 
   getBuffer(): Buffer {
+    this.atime = new Date();
     if (!this.buf) this.setBuffer(bufferAllocUnsafe(0));
     return bufferFrom(this.buf); // Return a copy.
   }
@@ -122,6 +135,7 @@ export class Node extends EventEmitter {
 
   // Returns the number of bytes read.
   read(buf: Buffer | Uint8Array, off: number = 0, len: number = buf.byteLength, pos: number = 0): number {
+    this.atime = new Date();
     if (!this.buf) this.buf = bufferAllocUnsafe(0);
 
     let actualLen = len;
@@ -262,8 +276,11 @@ export class Link extends EventEmitter {
   // Recursively sync children steps, e.g. in case of dir rename
   set steps(val) {
     this._steps = val;
-    for (const child of Object.values(this.children)) {
-      child?.syncSteps();
+    for (const [child, link] of Object.entries(this.children)) {
+      if (child === '.' || child === '..') {
+        continue;
+      }
+      link?.syncSteps();
     }
   }
 
@@ -289,10 +306,8 @@ export class Link extends EventEmitter {
     link.setNode(node);
 
     if (node.isDirectory()) {
-      // link.setChild('.', link);
-      // link.getNode().nlink++;
-      // link.setChild('..', this);
-      // this.getNode().nlink++;
+      link.children['.'] = link;
+      link.getNode().nlink++;
     }
 
     this.setChild(name, link);
@@ -305,12 +320,25 @@ export class Link extends EventEmitter {
     link.parent = this;
     this.length++;
 
+    const node = link.getNode();
+    if (node.isDirectory()) {
+      link.children['..'] = this;
+      this.getNode().nlink++;
+      this.getNode().mtime = new Date();
+    }
+
     this.emit('child:add', link, this);
 
     return link;
   }
 
   deleteChild(link: Link) {
+    const node = link.getNode();
+    if (node.isDirectory()) {
+      delete link.children['..'];
+      this.getNode().nlink--;
+      this.getNode().mtime = new Date();
+    }
     delete this.children[link.getName()];
     this.length--;
 
@@ -318,6 +346,7 @@ export class Link extends EventEmitter {
   }
 
   getChild(name: string): Link | undefined {
+    this.getNode().mtime = new Date();
     if (Object.hasOwnProperty.call(this.children, name)) {
       return this.children[name];
     }

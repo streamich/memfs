@@ -1,4 +1,4 @@
-import { Node } from '../node';
+import { Node, Link } from '../node';
 import { constants } from '../constants';
 
 describe('node.ts', () => {
@@ -68,6 +68,32 @@ describe('node.ts', () => {
       node.chmod(0o600);
       expect(node.perm).toBe(0o600);
       expect(node.isFile()).toBe(true);
+    });
+    describe.each([['uid'], ['gid'], ['atime'], ['mtime'], ['perm'], ['nlink']])('ctime changes', field => {
+      it(`set ${field}`, () => {
+        const node = new Node(1);
+        const oldCtime = node.ctime;
+        node[field] = 1;
+        const newCtime = node.ctime;
+        expect(newCtime !== oldCtime).toBeTruthy();
+      });
+    });
+
+    describe.each([
+      ['getString', []],
+      ['getBuffer', []],
+      ['read', [Buffer.alloc(0)]],
+    ])('atime changes', (method, args) => {
+      it(`${method}()`, () => {
+        const node = new Node(1);
+        const oldAtime = node.atime;
+        const oldCtime = node.ctime;
+        node[method](...args);
+        const newAtime = node.atime;
+        const newCtime = node.ctime;
+        expect(newAtime !== oldAtime).toBeTruthy();
+        expect(newCtime !== oldCtime).toBeTruthy();
+      });
     });
   });
 });

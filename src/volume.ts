@@ -141,6 +141,11 @@ function formatError(errorCode: string, func = '', path = '', path2 = '') {
 function createError(errorCode: string, func = '', path = '', path2 = '', Constructor = Error) {
   const error = new Constructor(formatError(errorCode, func, path, path2));
   (error as any).code = errorCode;
+
+  if (path) {
+    (error as any).path = path;
+  }
+
   return error;
 }
 

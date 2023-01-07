@@ -1,3 +1,10 @@
+## [3.4.13](https://github.com/streamich/memfs/compare/v3.4.12...v3.4.13) (2023-01-07)
+
+
+### Bug Fixes
+
+* set `path` on errors when possible ([#893](https://github.com/streamich/memfs/issues/893)) ([fb6e1e6](https://github.com/streamich/memfs/commit/fb6e1e65ef26a9a363499ff473af1e37e309d157))
+
 ## [3.4.12](https://github.com/streamich/memfs/compare/v3.4.11...v3.4.12) (2022-11-19)
 
 

@@ -1744,7 +1744,7 @@ export class Volume {
       for (const name in link.children) {
         const child = link.getChild(name);
 
-        if (!child) {
+        if (!child || name === '.' || name === '..') {
           continue;
         }
 
@@ -1761,6 +1761,9 @@ export class Volume {
 
     const list: TDataOut[] = [];
     for (const name in link.children) {
+      if (name === '.' || name === '..') {
+        continue;
+      }
       list.push(strToEncoding(name, options.encoding));
     }
 
@@ -2801,8 +2804,8 @@ export class FSWatcher extends EventEmitter {
       };
 
       // children nodes changed
-      Object.values(link.children).forEach(childLink => {
-        if (childLink) {
+      Object.entries(link.children).forEach(([name, childLink]) => {
+        if (childLink && name !== '.' && name !== '..') {
           watchLinkNodeChanged(childLink);
         }
       });
@@ -2817,8 +2820,8 @@ export class FSWatcher extends EventEmitter {
       });
 
       if (recursive) {
-        Object.values(link.children).forEach(childLink => {
-          if (childLink) {
+        Object.entries(link.children).forEach(([name, childLink]) => {
+          if (childLink && name !== '.' && name !== '..') {
             watchLinkChildrenChanged(childLink);
           }
         });

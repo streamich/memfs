@@ -261,7 +261,7 @@ describe('volume', () => {
         const stat = vol.statSync('/dir');
 
         expect(stat.isDirectory()).toBe(true);
-        expect(vol.readdirSync('/dir')).toEqual(['.', '..']);
+        expect(vol.readdirSync('/dir')).toEqual([]);
       });
     });
 
@@ -338,7 +338,7 @@ describe('volume', () => {
         expect(vol.root.getChild('test.txt')).toBeInstanceOf(Link);
         expect(typeof fd).toBe('number');
         expect(fd).toBeGreaterThan(0);
-        expect(oldMtime !== newMtime).toBeTruthy();
+        expect(oldMtime).not.toBe(newMtime);
       });
       it('Error on file not found', () => {
         try {
@@ -873,20 +873,20 @@ describe('volume', () => {
         vol.writeFileSync('/1.js', '123');
         vol.writeFileSync('/2.js', '123');
         const list = vol.readdirSync('/');
-        expect(list.length).toBe(4);
-        expect(list).toEqual(['.', '..', '1.js', '2.js']);
+        expect(list.length).toBe(2);
+        expect(list).toEqual(['1.js', '2.js']);
       });
       it('Returns a Dirent list', () => {
         const vol = new Volume();
         vol.writeFileSync('/1', '123');
         vol.mkdirSync('/2');
         const list = vol.readdirSync('/', { withFileTypes: true });
-        expect(list.length).toBe(4);
-        expect(list[2]).toBeInstanceOf(Dirent);
-        const dirent0 = list[2] as Dirent;
+        expect(list.length).toBe(2);
+        expect(list[0]).toBeInstanceOf(Dirent);
+        const dirent0 = list[0] as Dirent;
         expect(dirent0.name).toBe('1');
         expect(dirent0.isFile()).toBe(true);
-        const dirent1 = list[3] as Dirent;
+        const dirent1 = list[1] as Dirent;
         expect(dirent1.name).toBe('2');
         expect(dirent1.isDirectory()).toBe(true);
       });
@@ -1000,8 +1000,8 @@ describe('volume', () => {
         const child = tryGetChild(vol.root, 'test');
         expect(child).toBeInstanceOf(Link);
         expect(child.getNode().isDirectory()).toBe(true);
-        expect(oldMtime !== newMtime).toBeTruthy();
-        expect(newNlink === oldNlink + 1).toBeTruthy;
+        expect(oldMtime).not.toBe(newMtime);
+        expect(newNlink).toBe(oldNlink + 1);
       });
       it('Create 2 levels deep folders', () => {
         const vol = new Volume();

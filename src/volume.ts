@@ -1,5 +1,5 @@
 import * as pathModule from 'path';
-import { PathLike, symlink } from 'fs';
+import { PathLike, symlink, readdirSync, readFileSync as readFileModule } from 'fs';
 import { Node, Link, File } from './node';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -576,6 +576,12 @@ export class Volume {
     return vol;
   }
 
+  static fromDirectory(dir: string, cwd?: string): Volume {
+    const vol = new Volume();
+    vol.fromDirectory(dir, cwd);
+    return vol;
+  }
+
   /**
    * Global file descriptor counter. UNIX file descriptors start from 0 and go sequentially
    * up, so here, in order not to conflict with them, we choose some big number and descrease
@@ -942,6 +948,38 @@ export class Volume {
         this.mkdirpBase(filename, MODE.DIR);
       }
     }
+  }
+
+  fromDirectory(dir: string, cwd:string = process.cwd()) {
+    const curDir = process.cwd();
+    global.process.chdir(dir);
+    const files = this.walkDir('.');
+    global.process.chdir(curDir);
+    for(const curFile of files) {
+      const filename = resolve(curFile, cwd);
+      const dstDir = dirname(filename);
+      if(!this.existsSync(dstDir)) {
+        this.mkdirBase(dstDir, MODE.DIR);
+      }
+
+      const srcFilePath = pathModule.join(dir, curFile);
+      const fileBuf = readFileModule(srcFilePath);
+      this.writeFileSync(filename, fileBuf);
+    }
+  }
+
+  private walkDir(dir: string): string[] {
+    const rs: string[] = [];
+    const data = readdirSync(dir, {withFileTypes: true});
+    data.forEach(item=>{
+      const fullPath = pathModule.join(dir, item.name);
+      if(item.isDirectory()) {
+        rs.push(...this.walkDir(fullPath));
+      } else {
+        rs.push(fullPath);
+      }
+    })
+    return rs;
   }
 
   fromNestedJSON(json: NestedDirectoryJSON, cwd?: string) {

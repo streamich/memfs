@@ -325,7 +325,7 @@ describe('volume', () => {
       it('import with empty directory support', () => {
         fsModule.mkdirSync('demo/empty', { recursive: true });
         const vol = Volume.fromDirectory('demo');
-        // fsModule.rmdirSync('demo/empty');
+        fsModule.rmdirSync('demo/empty');
         const files = vol.readdirSync('/');
         expect(files).toContain('empty');
         const jsonData = vol.toJSON();

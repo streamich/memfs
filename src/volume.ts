@@ -1,5 +1,5 @@
 import * as pathModule from 'path';
-import { PathLike, symlink, readdirSync, readFileSync as readFileModule } from 'fs';
+import { PathLike, symlink, readdirSync, statSync, readFileSync as readFileModule } from 'fs';
 import { Node, Link, File } from './node';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -950,35 +950,47 @@ export class Volume {
     }
   }
 
-  fromDirectory(dir: string, cwd:string = process.cwd()) {
+  fromDirectory(dir: string, cwd?: string) {
     const curDir = process.cwd();
     global.process.chdir(dir);
     const files = this.walkDir('.');
     global.process.chdir(curDir);
-    for(const curFile of files) {
+
+    if (!cwd) {
+      cwd = '/';
+    }
+    if (!this.existsSync(cwd)) {
+      this.mkdirSync(cwd, { recursive: true });
+    }
+    for (const curFile of files) {
       const filename = resolve(curFile, cwd);
       const dstDir = dirname(filename);
-      if(!this.existsSync(dstDir)) {
+      if (!this.existsSync(dstDir)) {
         this.mkdirBase(dstDir, MODE.DIR);
       }
 
       const srcFilePath = pathModule.join(dir, curFile);
-      const fileBuf = readFileModule(srcFilePath);
-      this.writeFileSync(filename, fileBuf);
+      if (statSync(srcFilePath).isDirectory() && !this.existsSync(srcFilePath)) {
+        this.mkdirBase(filename, MODE.DIR);
+      } else {
+        const fileBuf = readFileModule(srcFilePath);
+        this.writeFileSync(filename, fileBuf);
+      }
     }
   }
 
   private walkDir(dir: string): string[] {
     const rs: string[] = [];
-    const data = readdirSync(dir, {withFileTypes: true});
-    data.forEach(item=>{
+    const data = readdirSync(dir, { withFileTypes: true });
+    data.forEach(item => {
       const fullPath = pathModule.join(dir, item.name);
-      if(item.isDirectory()) {
+      if (item.isDirectory()) {
+        rs.push(fullPath);
         rs.push(...this.walkDir(fullPath));
       } else {
         rs.push(fullPath);
       }
-    })
+    });
     return rs;
   }
 

@@ -5,6 +5,7 @@ import Dirent from '../Dirent';
 import { Volume, filenameToSteps, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
 import { tryGetChild, tryGetChildNode } from './util';
+import * as fsModule from 'fs';
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
@@ -302,6 +303,34 @@ describe('volume', () => {
         vol2.fromNestedJSON(jsonNested);
 
         expect(vol1.toJSON()).toEqual(vol2.toJSON());
+      });
+    });
+
+    describe('.fromDirectory(dir[, cwd])', () => {
+      it("import from project's demo directory", () => {
+        const vol = Volume.fromDirectory('demo');
+        // empty cwd means root director: /
+        const files = vol.readdirSync('/');
+        expect(files).toContain('fromDirectory.ts');
+      });
+
+      it('import with relative path', () => {
+        const vol = Volume.fromDirectory('demo', '/app');
+        let files = vol.readdirSync('/');
+        expect(files).toContain('app');
+        files = vol.readdirSync('/app');
+        expect(files).toContain('fromDirectory.ts');
+      });
+
+      it('import with empty directory support', () => {
+        fsModule.mkdirSync('demo/empty', { recursive: true });
+        const vol = Volume.fromDirectory('demo');
+        // fsModule.rmdirSync('demo/empty');
+        const files = vol.readdirSync('/');
+        expect(files).toContain('empty');
+        const jsonData = vol.toJSON();
+        expect(jsonData).toHaveProperty('/empty');
+        expect(jsonData['/empty']).toBeNull();
       });
     });
 

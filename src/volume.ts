@@ -868,7 +868,7 @@ export class Volume {
     });
   }
 
-  private _toJSON(link = this.root, json = {}, path?: string): DirectoryJSON<string | null> {
+  private _toJSON(link = this.root, json = {}, path?: string, asBuffer?: boolean): DirectoryJSON<string | null> {
     let isEmpty = true;
 
     let children = link.children;
@@ -890,7 +890,7 @@ export class Volume {
       if (node.isFile()) {
         let filename = child.getPath();
         if (path) filename = relative(path, filename);
-        json[filename] = node.getString();
+        json[filename] = asBuffer ? node.getBuffer() : node.getString();
       } else if (node.isDirectory()) {
         this._toJSON(child, json, path);
       }
@@ -907,7 +907,7 @@ export class Volume {
     return json;
   }
 
-  toJSON(paths?: PathLike | PathLike[], json = {}, isRelative = false): DirectoryJSON<string | null> {
+  toJSON(paths?: PathLike | PathLike[], json = {}, isRelative = false, asBuffer = false): DirectoryJSON<string | null> {
     const links: Link[] = [];
 
     if (paths) {
@@ -923,7 +923,7 @@ export class Volume {
     }
 
     if (!links.length) return json;
-    for (const link of links) this._toJSON(link, json, isRelative ? link.getPath() : '');
+    for (const link of links) this._toJSON(link, json, isRelative ? link.getPath() : '', asBuffer);
     return json;
   }
 

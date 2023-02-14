@@ -37,11 +37,13 @@ const json = {
   './README.md': '1',
   './src/index.js': '2',
   './node_modules/debug/index.js': '3',
+  './src/index.node': Buffer.from('4', 'utf-8'),
 };
 vol.fromJSON(json, '/app');
 
 fs.readFileSync('/app/README.md', 'utf8'); // 1
 vol.readFileSync('/app/src/index.js', 'utf8'); // 2
+vol.readFileSync('/app/src/index.node', 'utf8'); // 4
 ```
 
 Export to JSON:

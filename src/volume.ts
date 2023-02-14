@@ -523,13 +523,13 @@ function validateGid(gid: number) {
 }
 
 // ---------------------------------------- Volume
-type DirectoryContent = string | null;
+type DirectoryContent = string | Buffer | null;
 
-export interface DirectoryJSON {
-  [key: string]: DirectoryContent;
+export interface DirectoryJSON<T extends DirectoryContent = DirectoryContent> {
+  [key: string]: T;
 }
-export interface NestedDirectoryJSON {
-  [key: string]: DirectoryContent | NestedDirectoryJSON;
+export interface NestedDirectoryJSON<T extends DirectoryContent = DirectoryContent> {
+  [key: string]: T | NestedDirectoryJSON;
 }
 
 function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {
@@ -541,7 +541,7 @@ function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {
 
       const joinedPath = join(pathPrefix, path);
 
-      if (typeof contentOrNode === 'string') {
+      if (typeof contentOrNode === 'string' || contentOrNode instanceof Buffer) {
         flatJSON[joinedPath] = contentOrNode;
       } else if (typeof contentOrNode === 'object' && contentOrNode !== null && Object.keys(contentOrNode).length > 0) {
         // empty directories need an explicit entry and therefore get handled in `else`, non-empty ones are implicitly considered
@@ -868,7 +868,7 @@ export class Volume {
     });
   }
 
-  private _toJSON(link = this.root, json = {}, path?: string): DirectoryJSON {
+  private _toJSON(link = this.root, json = {}, path?: string): DirectoryJSON<string | null> {
     let isEmpty = true;
 
     let children = link.children;
@@ -907,7 +907,7 @@ export class Volume {
     return json;
   }
 
-  toJSON(paths?: PathLike | PathLike[], json = {}, isRelative = false): DirectoryJSON {
+  toJSON(paths?: PathLike | PathLike[], json = {}, isRelative = false): DirectoryJSON<string | null> {
     const links: Link[] = [];
 
     if (paths) {
@@ -933,7 +933,7 @@ export class Volume {
 
       filename = resolve(filename, cwd);
 
-      if (typeof data === 'string') {
+      if (typeof data === 'string' || data instanceof Buffer) {
         const dir = dirname(filename);
         this.mkdirpBase(dir, MODE.DIR);
 

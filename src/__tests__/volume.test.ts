@@ -187,6 +187,14 @@ describe('volume', () => {
           '/empty': null,
         });
       });
+
+      it('Outputs files as buffers if the option is set', () => {
+        const buffer = Buffer.from('Hello');
+        const vol = new Volume();
+        vol.writeFileSync('/file', buffer);
+        const result = vol.toJSON('/', {}, false, true)['/file'];
+        expect(result).toStrictEqual(buffer);
+      });
     });
 
     describe('.fromJSON(json[, cwd])', () => {

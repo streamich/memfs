@@ -230,7 +230,7 @@ function optsGenerator<TOpts>(defaults: TOpts): (opts) => TOpts {
   return options => getOptions(defaults, options);
 }
 
-type AssertCallback<T> = T extends Function ? T : never;
+type AssertCallback<T> = T extends () => void ? T : never;
 
 function validateCallback<T>(callback: T): AssertCallback<T> {
   if (typeof callback !== 'function') throw TypeError(ERRSTR.CB);
@@ -2688,6 +2688,9 @@ export class FSWatcher extends EventEmitter {
 
   _timer; // Timer that keeps this task persistent.
 
+  // inode -> removers
+  private _listenerRemovers = new Map<number, Array<() => void>>();
+
   constructor(vol: Volume) {
     super();
     this._vol = vol;
@@ -2710,10 +2713,6 @@ export class FSWatcher extends EventEmitter {
   private _getName(): string {
     return this._steps[this._steps.length - 1];
   }
-
-  private _onNodeChange = () => {
-    this._emit('change');
-  };
 
   private _onParentChild = (link: Link) => {
     if (link.getName() === this._getName()) {
@@ -2751,10 +2750,79 @@ export class FSWatcher extends EventEmitter {
       throw error;
     }
 
-    this._link.getNode().on('change', this._onNodeChange);
+    const watchLinkNodeChanged = (link: Link) => {
+      const filepath = link.getPath();
+      const node = link.getNode();
+      const onNodeChange = () => this.emit('change', 'change', relative(this._filename, filepath));
+      node.on('change', onNodeChange);
 
-    this._link.on('child:add', this._onNodeChange);
-    this._link.on('child:delete', this._onNodeChange);
+      const removers = this._listenerRemovers.get(node.ino) ?? [];
+      removers.push(() => node.removeListener('change', onNodeChange));
+      this._listenerRemovers.set(node.ino, removers);
+    };
+
+    const watchLinkChildrenChanged = (link: Link) => {
+      const node = link.getNode();
+
+      // when a new link added
+      const onLinkChildAdd = (l: Link) => {
+        this.emit('change', 'rename', relative(this._filename, l.getPath()));
+
+        setTimeout(() => {
+          // 1. watch changes of the new link-node
+          watchLinkNodeChanged(l);
+          // 2. watch changes of the new link-node's children
+          watchLinkChildrenChanged(l);
+        });
+      };
+
+      // when a new link deleted
+      const onLinkChildDelete = (l: Link) => {
+        // remove the listeners of the children nodes
+        const removeLinkNodeListeners = (curLink: Link) => {
+          const ino = curLink.getNode().ino;
+          const removers = this._listenerRemovers.get(ino);
+          if (removers) {
+            removers.forEach(r => r());
+            this._listenerRemovers.delete(ino);
+          }
+          Object.values(curLink.children).forEach(childLink => {
+            if (childLink) {
+              removeLinkNodeListeners(childLink);
+            }
+          });
+        };
+        removeLinkNodeListeners(l);
+
+        this.emit('change', 'rename', relative(this._filename, l.getPath()));
+      };
+
+      // children nodes changed
+      Object.values(link.children).forEach(childLink => {
+        if (childLink) {
+          watchLinkNodeChanged(childLink);
+        }
+      });
+      // link children add/remove
+      link.on('child:add', onLinkChildAdd);
+      link.on('child:delete', onLinkChildDelete);
+
+      const removers = this._listenerRemovers.get(node.ino) ?? [];
+      removers.push(() => {
+        link.removeListener('child:add', onLinkChildAdd);
+        link.removeListener('child:delete', onLinkChildDelete);
+      });
+
+      if (recursive) {
+        Object.values(link.children).forEach(childLink => {
+          if (childLink) {
+            watchLinkChildrenChanged(childLink);
+          }
+        });
+      }
+    };
+    watchLinkNodeChanged(this._link);
+    watchLinkChildrenChanged(this._link);
 
     const parent = this._link.parent;
     if (parent) {
@@ -2769,7 +2837,10 @@ export class FSWatcher extends EventEmitter {
   close() {
     clearTimeout(this._timer);
 
-    this._link.getNode().removeListener('change', this._onNodeChange);
+    this._listenerRemovers.forEach(removers => {
+      removers.forEach(r => r());
+    });
+    this._listenerRemovers.clear();
 
     const parent = this._link.parent;
     if (parent) {

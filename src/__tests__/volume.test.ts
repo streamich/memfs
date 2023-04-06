@@ -1080,6 +1080,75 @@ describe('volume', () => {
         });
       });
     });
+    describe('.watch(path[, options], listener)', () => {
+      it('Calls listener on .watch when renaming with recursive=true', done => {
+        const vol = new Volume();
+        vol.mkdirSync('/test');
+        vol.writeFileSync('/test/lol.txt', 'foo');
+        setTimeout(() => {
+          const listener = jest.fn();
+          const watcher = vol.watch('/', { recursive: true }, listener);
+
+          vol.renameSync('/test/lol.txt', '/test/lol-2.txt');
+
+          setTimeout(() => {
+            watcher.close();
+            expect(listener).toBeCalledTimes(2);
+            expect(listener).nthCalledWith(1, 'rename', 'test/lol.txt');
+            expect(listener).nthCalledWith(2, 'rename', 'test/lol-2.txt');
+            done();
+          }, 10);
+        });
+      });
+      it('Calls listener on .watch with recursive=true', done => {
+        const vol = new Volume();
+        vol.writeFileSync('/lol.txt', '1');
+        vol.mkdirSync('/test');
+        setTimeout(() => {
+          const listener = jest.fn();
+          const watcher = vol.watch('/', { recursive: true }, listener);
+          vol.writeFileSync('/lol.txt', '2');
+          vol.writeFileSync('/test/lol.txt', '2');
+          vol.rmSync('/lol.txt');
+          vol.rmSync('/test/lol.txt');
+          vol.mkdirSync('/test/foo');
+
+          setTimeout(() => {
+            watcher.close();
+            expect(listener).toBeCalledTimes(6);
+            expect(listener).nthCalledWith(1, 'change', 'lol.txt');
+            expect(listener).nthCalledWith(2, 'change', 'lol.txt');
+            expect(listener).nthCalledWith(3, 'rename', 'test/lol.txt');
+            expect(listener).nthCalledWith(4, 'rename', 'lol.txt');
+            expect(listener).nthCalledWith(5, 'rename', 'test/lol.txt');
+            expect(listener).nthCalledWith(6, 'rename', 'test/foo');
+            done();
+          }, 10);
+        });
+      });
+      it('Calls listener on .watch with recursive=false', done => {
+        const vol = new Volume();
+        vol.writeFileSync('/lol.txt', '1');
+        vol.mkdirSync('/test');
+        setTimeout(() => {
+          const listener = jest.fn();
+          const watcher = vol.watch('/', { recursive: false }, listener);
+          vol.writeFileSync('/lol.txt', '2');
+          vol.rmSync('/lol.txt');
+          vol.writeFileSync('/test/lol.txt', '2');
+          vol.rmSync('/test/lol.txt');
+
+          setTimeout(() => {
+            watcher.close();
+            expect(listener).toBeCalledTimes(3);
+            expect(listener).nthCalledWith(1, 'change', 'lol.txt');
+            expect(listener).nthCalledWith(2, 'change', 'lol.txt');
+            expect(listener).nthCalledWith(3, 'rename', 'lol.txt');
+            done();
+          }, 10);
+        });
+      });
+    });
     describe('.watchFile(path[, options], listener)', () => {
       it('Calls listener on .writeFile', done => {
         const vol = new Volume();

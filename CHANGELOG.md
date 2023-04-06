@@ -1,3 +1,10 @@
+# [3.5.0](https://github.com/streamich/memfs/compare/v3.4.13...v3.5.0) (2023-04-06)
+
+
+### Features
+
+* support the `recursive` option for `fs.watch()` ([#902](https://github.com/streamich/memfs/issues/902)) ([c829803](https://github.com/streamich/memfs/commit/c8298036d945d872d667fcd05a74d7f5c61654d0))
+
 ## [3.4.13](https://github.com/streamich/memfs/compare/v3.4.12...v3.4.13) (2023-01-07)
 
 

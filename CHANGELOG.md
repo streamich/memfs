@@ -1,3 +1,10 @@
+## [3.5.1](https://github.com/streamich/memfs/compare/v3.5.0...v3.5.1) (2023-04-20)
+
+
+### Bug Fixes
+
+* ensure metadata is updated correctly so that `watchFile` is correctly triggered ([#891](https://github.com/streamich/memfs/issues/891)) ([8af880e](https://github.com/streamich/memfs/commit/8af880ed831493f38cedea827396a154a8fbce37))
+
 # [3.5.0](https://github.com/streamich/memfs/compare/v3.4.13...v3.5.0) (2023-04-06)
 
 

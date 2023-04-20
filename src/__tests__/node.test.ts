@@ -1,4 +1,4 @@
-import { Node } from '../node';
+import { Node, Link } from '../node';
 import { constants } from '../constants';
 
 describe('node.ts', () => {
@@ -60,6 +60,16 @@ describe('node.ts', () => {
         node.read(buf, 0, 1, 1);
         expect(buf.equals(Buffer.from([2]))).toBe(true);
       });
+      it('updates the atime and ctime', () => {
+        const node = new Node(1);
+        const oldAtime = node.atime;
+        const oldCtime = node.ctime;
+        node.read(Buffer.alloc(0));
+        const newAtime = node.atime;
+        const newCtime = node.ctime;
+        expect(newAtime).not.toBe(oldAtime);
+        expect(newCtime).not.toBe(oldCtime);
+      });
     });
     describe('.chmod(perm)', () => {
       const node = new Node(1);
@@ -68,6 +78,40 @@ describe('node.ts', () => {
       node.chmod(0o600);
       expect(node.perm).toBe(0o600);
       expect(node.isFile()).toBe(true);
+    });
+    describe.each(['uid', 'gid', 'atime', 'mtime', 'perm', 'nlink'])('when %s changes', field => {
+      it('updates the property and the ctime', () => {
+        const node = new Node(1);
+        const oldCtime = node.ctime;
+        node[field] = 1;
+        const newCtime = node.ctime;
+        expect(newCtime).not.toBe(oldCtime);
+        expect(node[field]).toBe(1);
+      });
+    });
+    describe('.getString(encoding?)', () => {
+      it('updates the atime and ctime', () => {
+        const node = new Node(1);
+        const oldAtime = node.atime;
+        const oldCtime = node.ctime;
+        node.getString();
+        const newAtime = node.atime;
+        const newCtime = node.ctime;
+        expect(newAtime).not.toBe(oldAtime);
+        expect(newCtime).not.toBe(oldCtime);
+      });
+    });
+    describe('.getBuffer()', () => {
+      it('updates the atime and ctime', () => {
+        const node = new Node(1);
+        const oldAtime = node.atime;
+        const oldCtime = node.ctime;
+        node.getBuffer();
+        const newAtime = node.atime;
+        const newCtime = node.ctime;
+        expect(newAtime).not.toBe(oldAtime);
+        expect(newCtime).not.toBe(oldCtime);
+      });
     });
   });
 });

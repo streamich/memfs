@@ -19,34 +19,97 @@ export class Node extends EventEmitter {
   ino: number;
 
   // User ID and group ID.
-  uid: number = getuid();
-  gid: number = getgid();
+  private _uid: number = getuid();
+  private _gid: number = getgid();
 
-  atime = new Date();
-  mtime = new Date();
-  ctime = new Date();
+  private _atime = new Date();
+  private _mtime = new Date();
+  private _ctime = new Date();
 
   // data: string = '';
   buf: Buffer;
 
-  perm = 0o666; // Permissions `chmod`, `fchmod`
+  private _perm = 0o666; // Permissions `chmod`, `fchmod`
 
   mode = S_IFREG; // S_IFDIR, S_IFREG, etc.. (file by default?)
 
   // Number of hard links pointing at this Node.
-  nlink = 1;
+  private _nlink = 1;
 
   // Steps to another node, if this node is a symlink.
   symlink: string[];
 
   constructor(ino: number, perm: number = 0o666) {
     super();
-    this.perm = perm;
+    this._perm = perm;
     this.mode |= perm;
     this.ino = ino;
   }
 
+  public set ctime(ctime: Date) {
+    this._ctime = ctime;
+  }
+
+  public get ctime(): Date {
+    return this._ctime;
+  }
+
+  public set uid(uid: number) {
+    this._uid = uid;
+    this.ctime = new Date();
+  }
+
+  public get uid(): number {
+    return this._uid;
+  }
+
+  public set gid(gid: number) {
+    this._gid = gid;
+    this.ctime = new Date();
+  }
+
+  public get gid(): number {
+    return this._gid;
+  }
+
+  public set atime(atime: Date) {
+    this._atime = atime;
+    this.ctime = new Date();
+  }
+
+  public get atime(): Date {
+    return this._atime;
+  }
+
+  public set mtime(mtime: Date) {
+    this._mtime = mtime;
+    this.ctime = new Date();
+  }
+
+  public get mtime(): Date {
+    return this._mtime;
+  }
+
+  public set perm(perm: number) {
+    this._perm = perm;
+    this.ctime = new Date();
+  }
+
+  public get perm(): number {
+    return this._perm;
+  }
+
+  public set nlink(nlink: number) {
+    this._nlink = nlink;
+    this.ctime = new Date();
+  }
+
+  public get nlink(): number {
+    return this._nlink;
+  }
+
   getString(encoding = 'utf8'): string {
+    this.atime = new Date();
     return this.getBuffer().toString(encoding);
   }
 
@@ -57,6 +120,7 @@ export class Node extends EventEmitter {
   }
 
   getBuffer(): Buffer {
+    this.atime = new Date();
     if (!this.buf) this.setBuffer(bufferAllocUnsafe(0));
     return bufferFrom(this.buf); // Return a copy.
   }
@@ -122,6 +186,7 @@ export class Node extends EventEmitter {
 
   // Returns the number of bytes read.
   read(buf: Buffer | Uint8Array, off: number = 0, len: number = buf.byteLength, pos: number = 0): number {
+    this.atime = new Date();
     if (!this.buf) this.buf = bufferAllocUnsafe(0);
 
     let actualLen = len;
@@ -262,8 +327,11 @@ export class Link extends EventEmitter {
   // Recursively sync children steps, e.g. in case of dir rename
   set steps(val) {
     this._steps = val;
-    for (const child of Object.values(this.children)) {
-      child?.syncSteps();
+    for (const [child, link] of Object.entries(this.children)) {
+      if (child === '.' || child === '..') {
+        continue;
+      }
+      link?.syncSteps();
     }
   }
 
@@ -289,10 +357,8 @@ export class Link extends EventEmitter {
     link.setNode(node);
 
     if (node.isDirectory()) {
-      // link.setChild('.', link);
-      // link.getNode().nlink++;
-      // link.setChild('..', this);
-      // this.getNode().nlink++;
+      link.children['.'] = link;
+      link.getNode().nlink++;
     }
 
     this.setChild(name, link);
@@ -305,19 +371,33 @@ export class Link extends EventEmitter {
     link.parent = this;
     this.length++;
 
+    const node = link.getNode();
+    if (node.isDirectory()) {
+      link.children['..'] = this;
+      this.getNode().nlink++;
+    }
+
+    this.getNode().mtime = new Date();
     this.emit('child:add', link, this);
 
     return link;
   }
 
   deleteChild(link: Link) {
+    const node = link.getNode();
+    if (node.isDirectory()) {
+      delete link.children['..'];
+      this.getNode().nlink--;
+    }
     delete this.children[link.getName()];
     this.length--;
 
+    this.getNode().mtime = new Date();
     this.emit('child:delete', link, this);
   }
 
   getChild(name: string): Link | undefined {
+    this.getNode().mtime = new Date();
     if (Object.hasOwnProperty.call(this.children, name)) {
       return this.children[name];
     }

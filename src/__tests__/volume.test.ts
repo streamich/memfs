@@ -332,10 +332,13 @@ describe('volume', () => {
     describe('.openSync(path, flags[, mode])', () => {
       const vol = new Volume();
       it('Create new file at root (/test.txt)', () => {
+        const oldMtime = vol.root.getNode().mtime;
         const fd = vol.openSync('/test.txt', 'w');
+        const newMtime = vol.root.getNode().mtime;
         expect(vol.root.getChild('test.txt')).toBeInstanceOf(Link);
         expect(typeof fd).toBe('number');
         expect(fd).toBeGreaterThan(0);
+        expect(oldMtime).not.toBe(newMtime);
       });
       it('Error on file not found', () => {
         try {
@@ -989,10 +992,16 @@ describe('volume', () => {
     describe('.mkdirSync(path[, options])', () => {
       it('Create dir at root', () => {
         const vol = new Volume();
+        const oldMtime = vol.root.getNode().mtime;
+        const oldNlink = vol.root.getNode().nlink;
         vol.mkdirSync('/test');
+        const newMtime = vol.root.getNode().mtime;
+        const newNlink = vol.root.getNode().nlink;
         const child = tryGetChild(vol.root, 'test');
         expect(child).toBeInstanceOf(Link);
         expect(child.getNode().isDirectory()).toBe(true);
+        expect(oldMtime).not.toBe(newMtime);
+        expect(newNlink).toBe(oldNlink + 1);
       });
       it('Create 2 levels deep folders', () => {
         const vol = new Volume();

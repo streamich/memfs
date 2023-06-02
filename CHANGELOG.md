@@ -1,3 +1,10 @@
+## [3.5.2](https://github.com/streamich/memfs/compare/v3.5.1...v3.5.2) (2023-06-02)
+
+
+### Bug Fixes
+
+* correctly output filename when watching files ([#907](https://github.com/streamich/memfs/issues/907)) ([fbde74f](https://github.com/streamich/memfs/commit/fbde74f2fd352ed1388029ffe8369f47a62eb05f))
+
 ## [3.5.1](https://github.com/streamich/memfs/compare/v3.5.0...v3.5.1) (2023-04-20)
 
 

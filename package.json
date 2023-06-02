@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "In-memory file-system with Node's fs API.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

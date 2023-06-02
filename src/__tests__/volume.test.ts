@@ -1090,6 +1090,42 @@ describe('volume', () => {
       });
     });
     describe('.watch(path[, options], listener)', () => {
+      it('should handle watching a file correctly', () => {
+        const vol = Volume.fromJSON({ '/tmp/foo.js': 'hello test' });
+        vol.writeFileSync('/tmp/foo.js', 'hello test');
+
+        const mockCallback = jest.fn();
+        const writtenContent = 'hello world';
+        const watcher = vol.watch('/tmp/foo.js', mockCallback as any);
+
+        try {
+          vol.writeFileSync('/tmp/foo.js', writtenContent);
+
+          expect(mockCallback).toBeCalledTimes(2);
+          expect(mockCallback).toBeCalledWith('change', 'foo.js');
+        } finally {
+          watcher.close();
+        }
+      });
+
+      it('should handle watching a directory correctly', () => {
+        const vol = Volume.fromJSON({ '/tmp/foo.js': 'hello test' });
+        vol.mkdirSync('/tmp/foo-dir');
+
+        const mockCallback = jest.fn();
+        const writtenContent = 'hello world';
+        const watcher = vol.watch('/tmp/foo-dir', mockCallback as any);
+
+        try {
+          vol.writeFileSync('/tmp/foo-dir/foo.js', writtenContent);
+
+          expect(mockCallback).toBeCalledTimes(1);
+          expect(mockCallback).toBeCalledWith('rename', 'foo.js');
+        } finally {
+          watcher.close();
+        }
+      });
+
       it('Calls listener on .watch when renaming with recursive=true', done => {
         const vol = new Volume();
         vol.mkdirSync('/test');

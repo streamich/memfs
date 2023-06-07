@@ -1,3 +1,10 @@
+## [3.5.3](https://github.com/streamich/memfs/compare/v3.5.2...v3.5.3) (2023-06-07)
+
+
+### Bug Fixes
+
+* bump fs-monkey minimum version for rm support ([#909](https://github.com/streamich/memfs/issues/909)) ([595a473](https://github.com/streamich/memfs/commit/595a473a9c3d0634ace4e431f984b1a34a559855))
+
 ## [3.5.2](https://github.com/streamich/memfs/compare/v3.5.1...v3.5.2) (2023-06-02)
 
 

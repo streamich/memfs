@@ -76,7 +76,7 @@
     }
   },
   "dependencies": {
-    "fs-monkey": "^1.0.3"
+    "fs-monkey": "^1.0.4"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.1",

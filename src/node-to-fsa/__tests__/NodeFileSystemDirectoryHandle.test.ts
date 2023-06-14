@@ -177,4 +177,14 @@ describe('.getDirectoryHandle()', () => {
     expect(subdir.name).toBe('subdir');
     expect(subdir).toBeInstanceOf(NodeFileSystemDirectoryHandle);
   });
+
+  test('can create a sub-directory', async () => {
+    const {dir, fs} = setup({});
+    expect(fs.existsSync('/subdir')).toBe(false);
+    const subdir = await dir.getDirectoryHandle('subdir', {create: true});
+    expect(fs.existsSync('/subdir')).toBe(true);
+    expect(subdir.kind).toBe('directory');
+    expect(subdir.name).toBe('subdir');
+    expect(subdir).toBeInstanceOf(NodeFileSystemDirectoryHandle);
+  });
 });

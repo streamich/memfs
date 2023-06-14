@@ -13,6 +13,7 @@ import {
   IRealpathOptions,
   IWriteFileOptions,
   IStatOptions,
+  IRmdirOptions,
   IRmOptions,
   IFStatOptions,
 } from './volume';
@@ -244,8 +245,8 @@ export default function createPromisesApi(vol: Volume): null | IPromisesAPI {
       return promisify(vol, 'rename')(oldPath, newPath);
     },
 
-    rmdir(path: PathLike): Promise<void> {
-      return promisify(vol, 'rmdir')(path);
+    rmdir(path: PathLike, options?: IRmdirOptions): Promise<void> {
+      return promisify(vol, 'rmdir')(path, options);
     },
 
     rm(path: PathLike, options?: IRmOptions): Promise<void> {

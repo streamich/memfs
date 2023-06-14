@@ -343,7 +343,10 @@ const getMkdirOptions = (options): IMkdirOptions => {
 
 // Options for `fs.rmdir` and `fs.rmdirSync`
 export interface IRmdirOptions {
+  /** @deprecated */
   recursive?: boolean;
+  maxRetries?: number;
+  retryDelay?: number;
 }
 const rmdirDefaults: IRmdirOptions = {
   recursive: false,

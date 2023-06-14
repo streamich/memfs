@@ -27,7 +27,7 @@ maybe('NodeFileSystemFileHandle', () => {
 
   describe('.createWritable()', () => {
     describe('.write(chunk)', () => {
-      test('can write to file', async () => {
+      test('overwrites the file when write is being executed', async () => {
         const { dir, fs } = setup({
           'file.txt': 'Hello, world!',
         });
@@ -36,6 +36,19 @@ maybe('NodeFileSystemFileHandle', () => {
         await writable.write('...');
         await writable.close();
         expect(fs.readFileSync('/file.txt', 'utf8')).toBe('...');
+      });
+
+      test('can seek and then write', async () => {
+        const { dir, fs } = setup({
+          'file.txt': '...',
+        });
+        const entry = await dir.getFileHandle('file.txt');
+        const writable = await entry.createWritable({keepExistingData: true});
+        writable.seek(1);
+        await writable.write('1');
+        await writable.write('2');
+        await writable.close();
+        expect(fs.readFileSync('/file.txt', 'utf8')).toBe('.12');
       });
     });
   });

@@ -51,8 +51,12 @@ export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemFileHandle/createWritable
    */
   public async createWritable(
-    { keepExistingData = false }: { keepExistingData?: boolean } = { keepExistingData: false },
+    { keepExistingData = false }: CreateWritableOptions = { keepExistingData: false },
   ): Promise<NodeFileSystemWritableFileStream> {
-    return new NodeFileSystemWritableFileStream(this.fs, this.__path);
+    return new NodeFileSystemWritableFileStream(this.fs, this.__path, keepExistingData);
   }
+}
+
+export interface CreateWritableOptions {
+  keepExistingData?: boolean;
 }

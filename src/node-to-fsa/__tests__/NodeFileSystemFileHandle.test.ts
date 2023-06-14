@@ -11,13 +11,17 @@ const setup = (json: DirectoryJSON = {}) => {
 maybe('NodeFileSystemFileHandle', () => {
   describe('.getFile()', () => {
     test('can read file contents', async () => {
-      console.log(+process.version.split('.')[0].slice(1))
-      const { dir } = setup({
+      const { dir, fs } = setup({
         'file.txt': 'Hello, world!',
       });
       const entry =  await dir.getFileHandle('file.txt');
       const file = await entry.getFile();
-      console.log(file);
+      const contents = await file.text();
+      expect(entry.name).toBe('file.txt');
+      expect(file).toBeInstanceOf(File);
+      expect(file.name).toBe('file.txt');
+      expect(file.lastModified).toBe(fs.statSync('/file.txt').mtime.getTime());
+      expect(contents).toBe('Hello, world!');
     });
   });
 });

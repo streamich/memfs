@@ -129,3 +129,52 @@ describe('.values()', () => {
     expect(handles.find(handle => handle.name === 'another')).toBeInstanceOf(NodeFileSystemDirectoryHandle);
   });
 });
+
+describe('.getDirectoryHandle()', () => {
+  test('throws "NotFoundError" DOMException if sub-directory not found', async () => {
+    const {dir} = setup({a: null});
+    try {
+      await dir.getDirectoryHandle('b');
+      throw new Error('Not this error.');
+    } catch (error) {
+      expect(error).toBeInstanceOf(DOMException);
+      expect(error.name).toBe('NotFoundError');
+      expect(error.message).toBe('A requested file or directory could not be found at the time an operation was processed.');
+    }
+  });
+
+  test('throws "TypeMismatchError" DOMException if entry is not a directory', async () => {
+    const {dir} = setup({file: 'contents'});
+    try {
+      await dir.getDirectoryHandle('file');
+      throw new Error('Not this error.');
+    } catch (error) {
+      expect(error).toBeInstanceOf(DOMException);
+      expect(error.name).toBe('TypeMismatchError');
+      expect(error.message).toBe('The path supplied exists, but was not an entry of requested type.');
+    }
+  });
+
+  const invalidNames = ['.', '..', '/', '/a', 'a/', 'a//b', 'a/.', 'a/..', 'a/b/.', 'a/b/..', '\\', '\\a', 'a\\', 'a\\\\b', 'a\\.'];
+
+  for (const invalidName of invalidNames) {
+    test(`throws on invalid file name: "${invalidName}"`, async () => {
+      const {dir} = setup({file: 'contents'});
+      try {
+        await dir.getDirectoryHandle(invalidName);
+        throw new Error('Not this error.');
+      } catch (error) {
+        expect(error).toBeInstanceOf(TypeError);
+        expect(error.message).toBe(`Failed to execute 'getDirectoryHandle' on 'FileSystemDirectoryHandle': Name is not allowed.`);
+      }
+    });
+  }
+
+  test('can retrieve a child directory', async () => {
+    const {dir} = setup({file: 'contents', subdir: null});
+    const subdir = await dir.getDirectoryHandle('subdir');
+    expect(subdir.kind).toBe('directory');
+    expect(subdir.name).toBe('subdir');
+    expect(subdir).toBeInstanceOf(NodeFileSystemDirectoryHandle);
+  });
+});

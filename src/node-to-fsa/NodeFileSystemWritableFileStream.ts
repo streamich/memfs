@@ -1,6 +1,11 @@
 import type { IFileHandle } from '../promises';
 import type { NodeFsaFs } from './types';
 
+interface Ref {
+  handle: IFileHandle | undefined;
+  offset: number;
+}
+
 /**
  * Is a WritableStream object with additional convenience methods, which
  * operates on a single file on disk. The interface is accessed through the
@@ -9,13 +14,13 @@ import type { NodeFsaFs } from './types';
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemWritableFileStream
  */
 export class NodeFileSystemWritableFileStream extends WritableStream {
-  protected handle: IFileHandle | undefined = undefined;
+  protected readonly ref: Ref;
 
-  constructor(protected readonly fs: NodeFsaFs, protected readonly path: string) {
-    const ref: { handle: IFileHandle | undefined } = { handle: undefined };
+  constructor(protected readonly fs: NodeFsaFs, protected readonly path: string, keepExistingData: boolean) {
+    const ref: Ref = { handle: undefined, offset: 0 };
     super({
       async start() {
-        ref.handle = await fs.promises.open(path, 'w');
+        ref.handle = await fs.promises.open(path, keepExistingData ? 'a+' : 'w');
       },
       async write(chunk: Data) {
         const handle = ref.handle;
@@ -23,7 +28,8 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
         const buffer = Buffer.from(
           typeof chunk === 'string' ? chunk : chunk instanceof Blob ? await chunk.arrayBuffer() : chunk,
         );
-        await handle.write(buffer);
+        const { bytesWritten } = await handle.write(buffer, 0, buffer.length, ref.offset);
+        ref.offset += bytesWritten;
       },
       async close() {
         if (ref.handle) await ref.handle.close();
@@ -32,6 +38,7 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
         if (ref.handle) await ref.handle.close();
       },
     });
+    this.ref = ref;
   }
 
   /**
@@ -40,7 +47,7 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
    *                 (beginning) of the file.
    */
   public async seek(position: number): Promise<void> {
-    throw new Error('Not implemented');
+    this.ref.offset = position;
   }
 
   /**

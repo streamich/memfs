@@ -1,4 +1,4 @@
-import {basename} from '../util';
+import { basename } from '../util';
 
 describe('basename()', () => {
   test('handles empty string', () => {

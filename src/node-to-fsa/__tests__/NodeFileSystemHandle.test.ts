@@ -1,25 +1,25 @@
-import {DirectoryJSON, memfs} from '../..';
-import {NodeFileSystemDirectoryHandle} from '../NodeFileSystemDirectoryHandle';
+import { DirectoryJSON, memfs } from '../..';
+import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/');
   const dir = new NodeFileSystemDirectoryHandle(fs as any, '/');
-  return {dir, fs};
+  return { dir, fs };
 };
 
 test('can instantiate', () => {
-  const {dir} = setup();
+  const { dir } = setup();
   expect(dir).toBeInstanceOf(NodeFileSystemDirectoryHandle);
 });
 
 describe('.isSameEntry()', () => {
   test('returns true for the same root entry', async () => {
-    const {dir} = setup();
+    const { dir } = setup();
     expect(dir.isSameEntry(dir)).toBe(true);
   });
 
   test('returns true for two different instances of the same entry', async () => {
-    const {dir} = setup({
+    const { dir } = setup({
       subdir: null,
     });
     const subdir = await dir.getDirectoryHandle('subdir');
@@ -30,7 +30,7 @@ describe('.isSameEntry()', () => {
   });
 
   test('returns false when comparing file with a directory', async () => {
-    const {dir} = setup({
+    const { dir } = setup({
       file: 'lala',
     });
     const file = await dir.getFileHandle('file');

@@ -1,10 +1,10 @@
-import {NodeFileSystemHandle} from "./NodeFileSystemHandle";
-import {NodeFileSystemSyncAccessHandle} from "./NodeFileSystemSyncAccessHandle";
-import {basename, ctx as createCtx} from "./util";
-import type {NodeFsaContext, NodeFsaFs} from "./types";
+import { NodeFileSystemHandle } from './NodeFileSystemHandle';
+import { NodeFileSystemSyncAccessHandle } from './NodeFileSystemSyncAccessHandle';
+import { basename, ctx as createCtx } from './util';
+import type { NodeFsaContext, NodeFsaFs } from './types';
 
 export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
-  constructor (
+  constructor(
     protected readonly fs: NodeFsaFs,
     public readonly __path: string,
     protected readonly ctx: Partial<NodeFsaContext> = createCtx(ctx),
@@ -29,7 +29,9 @@ export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemFileHandle/createWritable
    */
-  public async createWritable({keepExistingData = false}: {keepExistingData?: boolean} = {keepExistingData: false}): Promise<NodeFileSystemSyncAccessHandle> {
+  public async createWritable(
+    { keepExistingData = false }: { keepExistingData?: boolean } = { keepExistingData: false },
+  ): Promise<NodeFileSystemSyncAccessHandle> {
     throw new Error('Not implemented');
   }
 }

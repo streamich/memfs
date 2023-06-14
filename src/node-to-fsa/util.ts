@@ -1,4 +1,4 @@
-import type {NodeFsaContext} from "./types";
+import type { NodeFsaContext } from './types';
 
 /**
  * Creates a new {@link NodeFsaContext}.
@@ -23,10 +23,12 @@ export const assertName = (name: string, method: string, klass: string) => {
 };
 
 export const newNotFoundError = () =>
-  new DOMException('A requested file or directory could not be found at the time an operation was processed.', 'NotFoundError');
+  new DOMException(
+    'A requested file or directory could not be found at the time an operation was processed.',
+    'NotFoundError',
+  );
 
 export const newTypeMismatchError = () =>
   new DOMException('The path supplied exists, but was not an entry of requested type.', 'TypeMismatchError');
 
-export const newNotAllowedError = () =>
-  new DOMException('Permission not granted.', 'NotAllowedError');
+export const newNotAllowedError = () => new DOMException('Permission not granted.', 'NotAllowedError');

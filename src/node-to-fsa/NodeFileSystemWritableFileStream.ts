@@ -4,6 +4,7 @@ import type { NodeFsaFs } from './types';
 interface Ref {
   handle: IFileHandle | undefined;
   offset: number;
+  open?: Promise<void>;
 }
 
 /**
@@ -20,7 +21,9 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
     const ref: Ref = { handle: undefined, offset: 0 };
     super({
       async start() {
-        ref.handle = await fs.promises.open(path, keepExistingData ? 'a+' : 'w');
+        const open = fs.promises.open(path, keepExistingData ? 'a+' : 'w');
+        ref.open = open.then(() => undefined);
+        ref.handle = await open;
       },
       async write(chunk: Data) {
         const handle = ref.handle;
@@ -55,7 +58,11 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
    * @param size An `unsigned long` of the amount of bytes to resize the stream to.
    */
   public async truncate(size: number): Promise<void> {
-    throw new Error('Not implemented');
+    await this.ref.open;
+    const handle = this.ref.handle;
+    if (!handle) throw new Error('Invalid state');
+    await handle.truncate(size);
+    if (this.ref.offset > size) this.ref.offset = size;
   }
 
   protected async writeBase(chunk: Data): Promise<void> {
@@ -88,11 +95,19 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
           default: {
             if (ArrayBuffer.isView(params)) return this.writeBase(params);
             else {
-              switch (params.type) {
-                case 'write':
+              const options = params as FileSystemWritableFileStreamParams;
+              switch (options.type) {
+                case 'write': {
+                  if (typeof options.position === 'number')
+                    await this.seek(options.position);
                   return this.writeBase(params.data);
-                case 'truncate':
+                }
+                case 'truncate': {
+                  if (typeof params.size !== 'number')
+                    throw new TypeError('Missing required argument: size');
+                  if (this.ref.offset > params.size) this.ref.offset = params.size;
                   return this.truncate(params.size);
+                }
                 case 'seek':
                   return this.seek(params.position);
                 default:

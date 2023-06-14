@@ -1,10 +1,15 @@
-import {IFileHandle} from "../promises";
 import {NodeFileSystemHandle} from "./NodeFileSystemHandle";
 import {NodeFileSystemSyncAccessHandle} from "./NodeFileSystemSyncAccessHandle";
+import {basename, ctx as createCtx} from "./util";
+import type {NodeFsaContext, NodeFsaFs} from "./types";
 
 export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
-  constructor (name: string, protected readonly handle: IFileHandle) {
-    super('file', name);
+  constructor (
+    protected readonly fs: NodeFsaFs,
+    protected readonly path: string,
+    protected readonly ctx: Partial<NodeFsaContext> = createCtx(ctx),
+  ) {
+    super('directory', basename(path, ctx.separator!));
   }
 
   /**

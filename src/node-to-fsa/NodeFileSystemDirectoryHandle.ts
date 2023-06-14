@@ -16,11 +16,7 @@ import type Dirent from '../Dirent';
  */
 export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
   protected readonly ctx: Partial<NodeFsaContext>;
-  constructor(
-    protected readonly fs: NodeFsaFs,
-    public readonly __path: string,
-    ctx: Partial<NodeFsaContext> = {},
-  ) {
+  constructor(protected readonly fs: NodeFsaFs, public readonly __path: string, ctx: Partial<NodeFsaContext> = {}) {
     super('directory', basename(__path, ctx.separator || '/'));
     this.ctx = createCtx(ctx);
   }

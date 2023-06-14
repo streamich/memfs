@@ -2,7 +2,7 @@ import { DirectoryJSON, memfs } from '../..';
 import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
 import { NodeFileSystemFileHandle } from '../NodeFileSystemFileHandle';
 import { NodeFileSystemHandle } from '../NodeFileSystemHandle';
-import {maybe} from './util';
+import { maybe } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/');

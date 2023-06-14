@@ -1,21 +1,18 @@
-import type {IFileHandle} from "../promises";
-import type {NodeFsaFs} from "./types";
+import type { IFileHandle } from '../promises';
+import type { NodeFsaFs } from './types';
 
 /**
  * Is a WritableStream object with additional convenience methods, which
  * operates on a single file on disk. The interface is accessed through the
  * `FileSystemFileHandle.createWritable()` method.
- * 
+ *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemWritableFileStream
  */
 export class NodeFileSystemWritableFileStream extends WritableStream {
   protected handle: IFileHandle | undefined = undefined;
 
-  constructor(
-    protected readonly fs: NodeFsaFs,
-    protected readonly path: string,
-  ) {
-    const ref: {handle: IFileHandle | undefined} = {handle: undefined};
+  constructor(protected readonly fs: NodeFsaFs, protected readonly path: string) {
+    const ref: { handle: IFileHandle | undefined } = { handle: undefined };
     super({
       async start() {
         ref.handle = await fs.promises.open(path, 'w');
@@ -24,11 +21,8 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
         const handle = ref.handle;
         if (!handle) throw new Error('Invalid state');
         const buffer = Buffer.from(
-          typeof chunk === 'string'
-            ? chunk
-            : chunk instanceof Blob
-              ? await chunk.arrayBuffer()
-              : chunk);
+          typeof chunk === 'string' ? chunk : chunk instanceof Blob ? await chunk.arrayBuffer() : chunk,
+        );
         await handle.write(buffer);
       },
       async close() {
@@ -82,21 +76,27 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
         switch (constructor) {
           case ArrayBuffer:
           case Blob:
-          case DataView: return this.writeBase(params);
+          case DataView:
+            return this.writeBase(params);
           default: {
             if (ArrayBuffer.isView(params)) return this.writeBase(params);
             else {
               switch (params.type) {
-                case 'write': return this.writeBase(params.data);
-                case 'truncate': return this.truncate(params.size);
-                case 'seek': return this.seek(params.position);
-                default: throw new TypeError('Invalid argument: params');
+                case 'write':
+                  return this.writeBase(params.data);
+                case 'truncate':
+                  return this.truncate(params.size);
+                case 'seek':
+                  return this.seek(params.position);
+                default:
+                  throw new TypeError('Invalid argument: params');
               }
             }
           }
         }
       }
-      default: throw new TypeError('Invalid argument: params');
+      default:
+        throw new TypeError('Invalid argument: params');
     }
   }
 }
@@ -108,7 +108,7 @@ export interface FileSystemWritableFileStreamParams {
   size?: number;
 }
 
-export type Data = 
+export type Data =
   | ArrayBuffer
   | ArrayBufferView
   | Uint8Array

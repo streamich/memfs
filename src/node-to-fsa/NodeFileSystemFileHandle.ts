@@ -9,7 +9,7 @@ export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
     protected readonly path: string,
     protected readonly ctx: Partial<NodeFsaContext> = createCtx(ctx),
   ) {
-    super('directory', basename(path, ctx.separator!));
+    super('file', basename(path, ctx.separator!));
   }
 
   /**

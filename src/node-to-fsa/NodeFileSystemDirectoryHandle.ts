@@ -1,5 +1,6 @@
 import {NodeFileSystemHandle} from "./NodeFileSystemHandle";
 import {basename, ctx as createCtx} from "./util";
+import {NodeFileSystemFileHandle} from "./NodeFileSystemFileHandle";
 import type {NodeFsaContext, NodeFsaFs} from "./types";
 
 /**
@@ -15,24 +16,28 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
   }
 
   /**
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/entries
-   */
-  public entries(): AsyncIterableIterator<[string, NodeFileSystemHandle]> {
-    throw new Error('Not implemented');
-  }
-
-  /**
    * Returns a new array iterator containing the keys for each item in
    * {@link NodeFileSystemDirectoryHandle} object.
    * 
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/keys
    */
-  public keys(): AsyncIterableIterator<string> {
-    const {path, fs} = this;
-    return (async function*() {
-      const list = await fs.promises.readdir(path);
-      for (const name of list) yield name;
-    })();
+  public async * keys(): AsyncIterableIterator<string> {
+    const list = await this.fs.promises.readdir(this.path);
+    for (const name of list) yield name;
+  }
+
+  /**
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/entries
+   */
+  public async * entries(): AsyncIterableIterator<[string, NodeFileSystemHandle]> {
+    const {path, fs, ctx} = this;
+    const list = await fs.promises.readdir(path, {withFileTypes: true});
+    for (const dirent of list) {
+      const name = dirent.name;
+      const newPath = path + ctx.separator! + name;
+      if (dirent.isDirectory()) yield [name, new NodeFileSystemDirectoryHandle(fs, newPath, ctx)];
+      else if (dirent.isFile()) yield [name, new NodeFileSystemFileHandle(fs, name, ctx)];
+    }
   }
 
   /**
@@ -41,8 +46,8 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    * 
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/values
    */
-  public values(): AsyncIterableIterator<NodeFileSystemHandle> {
-    throw new Error('Not implemented');
+  public async * values(): AsyncIterableIterator<NodeFileSystemHandle> {
+    for await (const [, value] of this.entries()) yield value;
   }
 
   /**

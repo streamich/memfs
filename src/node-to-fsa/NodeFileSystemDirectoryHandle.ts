@@ -1,5 +1,5 @@
 import {NodeFileSystemHandle} from "./NodeFileSystemHandle";
-import {assertName, basename, ctx as createCtx} from "./util";
+import {assertName, basename, ctx as createCtx, newNotAllowedError, newNotFoundError, newTypeMismatchError} from "./util";
 import {NodeFileSystemFileHandle} from "./NodeFileSystemFileHandle";
 import type {NodeFsaContext, NodeFsaFs} from "./types";
 
@@ -51,6 +51,9 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
   }
 
   /**
+   * Returns a {@link NodeFileSystemDirectoryHandle} for a subdirectory with the specified
+   * name within the directory handle on which the method is called.
+   * 
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/getDirectoryHandle
    * @param name A string representing the {@link NodeFileSystemHandle} name of
    *        the subdirectory you wish to retrieve.
@@ -62,9 +65,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
     const filename = this.path + this.ctx.separator! + name;
     try {
       const stats = await this.fs.promises.stat(filename);
-      if (!stats.isDirectory()) {
-        throw new DOMException('The path supplied exists, but was not an entry of requested type.', 'TypeMismatchError');
-      }
+      if (!stats.isDirectory()) throw newTypeMismatchError();
       return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
     } catch (error) {
       if (error instanceof DOMException) throw error;
@@ -75,12 +76,11 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
               await this.fs.promises.mkdir(filename);
               return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
             }
-            throw new DOMException('A requested file or directory could not be found at the time an operation was processed.', 'NotFoundError');
+            throw newNotFoundError();
           }
           case 'EPERM':
-          case 'EACCES': {
-            throw new DOMException('Permission not granted.', 'NotAllowedError');
-          }
+          case 'EACCES':
+            throw newNotAllowedError();
         }
       }
       throw error;
@@ -88,13 +88,39 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
   }
 
   /**
+   * Returns a {@link FileSystemFileHandle} for a file with the specified name,
+   * within the directory the method is called.
+   * 
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/getFileHandle
    * @param name A string representing the {@link NodeFileSystemHandle} name of
    *        the file you wish to retrieve.
    * @param options An optional object containing options for the retrieved file.
    */
-  public getFileHandle(name: string, options?: GetFileHandleOptions): Promise<NodeFileSystemDirectoryHandle> {
-    throw new Error('Not implemented');
+  public async getFileHandle(name: string, options?: GetFileHandleOptions): Promise<NodeFileSystemFileHandle> {
+    assertName(name, 'getDirectoryHandle', 'FileSystemDirectoryHandle');
+    const filename = this.path + this.ctx.separator! + name;
+    try {
+      const stats = await this.fs.promises.stat(filename);
+      if (!stats.isFile()) throw newTypeMismatchError();
+      return new NodeFileSystemFileHandle(this.fs, filename, this.ctx);
+    } catch (error) {
+      if (error instanceof DOMException) throw error;
+      if (error && typeof error === 'object') {
+        switch (error.code) {
+          case 'ENOENT': {
+            if (options && options.create) {
+              await this.fs.promises.writeFile(filename, '');
+              return new NodeFileSystemFileHandle(this.fs, filename, this.ctx);
+            }
+            throw newNotFoundError();
+          }
+          case 'EPERM':
+          case 'EACCES':
+            throw newNotAllowedError();
+        }
+      }
+      throw error;
+    }
   }
 
   /**

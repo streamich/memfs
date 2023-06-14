@@ -1,0 +1,1 @@
+This adapter code converts an instance of [Node.js FS API](https://nodejs.org/api/fs.html) to a [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API) (FSA) instance.

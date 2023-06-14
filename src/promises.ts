@@ -59,7 +59,7 @@ export interface IFileHandle {
   truncate(len?: number): Promise<void>;
   utimes(atime: TTime, mtime: TTime): Promise<void>;
   write(
-    buffer: Buffer | Uint8Array,
+    buffer: Buffer | ArrayBufferView | DataView,
     offset?: number,
     length?: number,
     position?: number,

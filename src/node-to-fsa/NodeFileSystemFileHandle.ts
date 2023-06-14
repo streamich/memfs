@@ -2,6 +2,7 @@ import { NodeFileSystemHandle } from './NodeFileSystemHandle';
 import { NodeFileSystemSyncAccessHandle } from './NodeFileSystemSyncAccessHandle';
 import { basename, ctx as createCtx, newNotAllowedError } from './util';
 import type { NodeFsaContext, NodeFsaFs } from './types';
+import {NodeFileSystemWritableFileStream} from './NodeFileSystemWritableFileStream';
 
 export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
   constructor(
@@ -51,7 +52,7 @@ export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
    */
   public async createWritable(
     { keepExistingData = false }: { keepExistingData?: boolean } = { keepExistingData: false },
-  ): Promise<NodeFileSystemSyncAccessHandle> {
-    throw new Error('Not implemented');
+  ): Promise<NodeFileSystemWritableFileStream> {
+    return new NodeFileSystemWritableFileStream(this.fs, this.__path);
   }
 }

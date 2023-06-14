@@ -24,4 +24,19 @@ maybe('NodeFileSystemFileHandle', () => {
       expect(contents).toBe('Hello, world!');
     });
   });
+
+  describe('.createWritable()', () => {
+    describe('.write(chunk)', () => {
+      test('can write to file', async () => {
+        const { dir, fs } = setup({
+          'file.txt': 'Hello, world!',
+        });
+        const entry =  await dir.getFileHandle('file.txt');
+        const writable = await entry.createWritable();
+        await writable.write('...');
+        await writable.close();
+        expect(fs.readFileSync('/file.txt', 'utf8')).toBe('...');
+      });
+    });
+  });
 });

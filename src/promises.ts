@@ -19,7 +19,7 @@ import {
 import Stats from './Stats';
 import Dirent from './Dirent';
 import { TDataOut } from './encoding';
-import { PathLike, symlink } from 'fs';
+import type { PathLike, symlink } from 'fs';
 
 function promisify(
   vol: Volume,

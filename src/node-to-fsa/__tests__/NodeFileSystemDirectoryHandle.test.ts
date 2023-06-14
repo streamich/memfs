@@ -5,7 +5,7 @@ import {NodeFileSystemHandle} from '../NodeFileSystemHandle';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/');
-  const dir = new NodeFileSystemDirectoryHandle(fs, '/');
+  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/');
   return {dir, fs};
 };
 
@@ -225,7 +225,7 @@ describe('.getFileHandle()', () => {
         throw new Error('Not this error.');
       } catch (error) {
         expect(error).toBeInstanceOf(TypeError);
-        expect(error.message).toBe(`Failed to execute 'getDirectoryHandle' on 'FileSystemDirectoryHandle': Name is not allowed.`);
+        expect(error.message).toBe(`Failed to execute 'getFileHandle' on 'FileSystemDirectoryHandle': Name is not allowed.`);
       }
     });
   }
@@ -247,5 +247,77 @@ describe('.getFileHandle()', () => {
     expect(subdir.kind).toBe('file');
     expect(subdir.name).toBe('text.txt');
     expect(subdir).toBeInstanceOf(NodeFileSystemFileHandle);
+  });
+});
+
+describe('.removeEntry()', () => {
+  test('throws "NotFoundError" DOMException if file not found', async () => {
+    const {dir} = setup({a: null});
+    try {
+      await dir.removeEntry('b');
+      throw new Error('Not this error.');
+    } catch (error) {
+      expect(error).toBeInstanceOf(DOMException);
+      expect(error.name).toBe('NotFoundError');
+      expect(error.message).toBe('A requested file or directory could not be found at the time an operation was processed.');
+    }
+  });
+
+  const invalidNames = ['.', '..', '/', '/a', 'a/', 'a//b', 'a/.', 'a/..', 'a/b/.', 'a/b/..', '\\', '\\a', 'a\\', 'a\\\\b', 'a\\.'];
+
+  for (const invalidName of invalidNames) {
+    test(`throws on invalid file name: "${invalidName}"`, async () => {
+      const {dir} = setup({file: 'contents'});
+      try {
+        await dir.removeEntry(invalidName);
+        throw new Error('Not this error.');
+      } catch (error) {
+        expect(error).toBeInstanceOf(TypeError);
+        expect(error.message).toBe(`Failed to execute 'removeEntry' on 'FileSystemDirectoryHandle': Name is not allowed.`);
+      }
+    });
+  }
+
+  test('can delete a file', async () => {
+    const {dir, fs} = setup({file: 'contents', subdir: null});
+    expect(fs.statSync('/file').isFile()).toBe(true);
+    const res = await dir.removeEntry('file');
+    expect(fs.existsSync('/file')).toBe(false);
+    expect(res).toBe(undefined);
+  });
+
+  test('can delete a folder', async () => {
+    const {dir, fs} = setup({dir: null});
+    expect(fs.statSync('/dir').isDirectory()).toBe(true);
+    const res = await dir.removeEntry('dir');
+    expect(fs.existsSync('/dir')).toBe(false);
+    expect(res).toBe(undefined);
+  });
+
+  test('throws "InvalidModificationError" DOMException if directory has contents', async () => {
+    const {dir, fs} = setup({
+      'dir/file': 'contents',
+    });
+    expect(fs.statSync('/dir').isDirectory()).toBe(true);
+    let res: any;
+    try {
+      res = await dir.removeEntry('dir');
+      throw new Error('Not this error.');
+    } catch (error) {
+      expect(res).toBe(undefined);
+      expect(error).toBeInstanceOf(DOMException);
+      expect(error.name).toBe('InvalidModificationError');
+      expect(error.message).toBe('The object can not be modified in this way.');
+    }
+  });
+
+  test('can recursively delete a folder with "recursive" flag', async () => {
+    const {dir, fs} = setup({
+      'dir/file': 'contents',
+    });
+    expect(fs.statSync('/dir').isDirectory()).toBe(true);
+    const res = await dir.removeEntry('dir', {recursive: true});
+    expect(fs.existsSync('/dir')).toBe(false);
+    expect(res).toBe(undefined);
   });
 });

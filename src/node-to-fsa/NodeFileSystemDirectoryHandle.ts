@@ -2,6 +2,7 @@ import {NodeFileSystemHandle} from "./NodeFileSystemHandle";
 import {assertName, basename, ctx as createCtx, newNotAllowedError, newNotFoundError, newTypeMismatchError} from "./util";
 import {NodeFileSystemFileHandle} from "./NodeFileSystemFileHandle";
 import type {NodeFsaContext, NodeFsaFs} from "./types";
+import type Dirent from "../Dirent";
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle
@@ -23,7 +24,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    */
   public async * keys(): AsyncIterableIterator<string> {
     const list = await this.fs.promises.readdir(this.path);
-    for (const name of list) yield name;
+    for (const name of list) yield '' + name;
   }
 
   /**
@@ -32,8 +33,9 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
   public async * entries(): AsyncIterableIterator<[string, NodeFileSystemHandle]> {
     const {path, fs, ctx} = this;
     const list = await fs.promises.readdir(path, {withFileTypes: true});
-    for (const dirent of list) {
-      const name = dirent.name;
+    for (const d of list) {
+      const dirent = d as Dirent;
+      const name = dirent.name + '';
       const newPath = path + ctx.separator! + name;
       if (dirent.isDirectory()) yield [name, new NodeFileSystemDirectoryHandle(fs, newPath, ctx)];
       else if (dirent.isFile()) yield [name, new NodeFileSystemFileHandle(fs, name, ctx)];
@@ -97,7 +99,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    * @param options An optional object containing options for the retrieved file.
    */
   public async getFileHandle(name: string, options?: GetFileHandleOptions): Promise<NodeFileSystemFileHandle> {
-    assertName(name, 'getDirectoryHandle', 'FileSystemDirectoryHandle');
+    assertName(name, 'getFileHandle', 'FileSystemDirectoryHandle');
     const filename = this.path + this.ctx.separator! + name;
     try {
       const stats = await this.fs.promises.stat(filename);
@@ -124,13 +126,41 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
   }
 
   /**
+   * Attempts to remove an entry if the directory handle contains a file or
+   * directory called the name specified.
+   * 
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/removeEntry
    * @param name A string representing the {@link FileSystemHandle} name of the
    *        entry you wish to remove.
    * @param options An optional object containing options.
    */
-  public removeEntry(name: string, options?: RemoveEntryOptions): Promise<void> {
-    throw new Error('Not implemented');
+  public async removeEntry(name: string, {recursive = false}: RemoveEntryOptions = {}): Promise<void> {
+    assertName(name, 'removeEntry', 'FileSystemDirectoryHandle');
+    const filename = this.path + this.ctx.separator! + name;
+    const promises = this.fs.promises;
+    try {
+      const stats = await promises.stat(filename);
+      if (stats.isFile()) {
+        await promises.unlink(filename);
+      } else if (stats.isDirectory()) {
+        await promises.rmdir(filename, {recursive});
+      } else throw newTypeMismatchError();
+    } catch (error) {
+      if (error instanceof DOMException) throw error;
+      if (error && typeof error === 'object') {
+        switch (error.code) {
+          case 'ENOENT': {
+            throw newNotFoundError();
+          }
+          case 'EPERM':
+          case 'EACCES':
+            throw newNotAllowedError();
+          case 'ENOTEMPTY':
+            throw new DOMException('The object can not be modified in this way.', 'InvalidModificationError');
+        }
+      }
+      throw error;
+    }
   }
 
   /**

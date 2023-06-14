@@ -473,7 +473,7 @@ export class File {
    * A cursor/offset position in a file, where data will be written on write.
    * User can "seek" this position.
    */
-  position: number = 0;
+  position: number;
 
   // Flags used when opening the file.
   flags: number;
@@ -491,6 +491,8 @@ export class File {
     this.node = node;
     this.flags = flags;
     this.fd = fd;
+    this.position = 0;
+    if (this.flags & O_APPEND) this.position = this.getSize();
   }
 
   getString(encoding = 'utf8'): string {
@@ -527,7 +529,6 @@ export class File {
 
   write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number): number {
     if (typeof position !== 'number') position = this.position;
-    if (this.flags & O_APPEND) position = this.getSize();
     const bytes = this.node.write(buf, offset, length, position);
     this.position = position + bytes;
     return bytes;

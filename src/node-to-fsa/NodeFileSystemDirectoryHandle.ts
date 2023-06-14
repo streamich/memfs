@@ -10,10 +10,10 @@ import type Dirent from "../Dirent";
 export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
   constructor (
     protected readonly fs: NodeFsaFs,
-    protected readonly path: string,
+    public readonly __path: string,
     protected readonly ctx: Partial<NodeFsaContext> = createCtx(ctx),
   ) {
-    super('directory', basename(path, ctx.separator!));
+    super('directory', basename(__path, ctx.separator!));
   }
 
   /**
@@ -23,7 +23,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/keys
    */
   public async * keys(): AsyncIterableIterator<string> {
-    const list = await this.fs.promises.readdir(this.path);
+    const list = await this.fs.promises.readdir(this.__path);
     for (const name of list) yield '' + name;
   }
 
@@ -31,7 +31,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/entries
    */
   public async * entries(): AsyncIterableIterator<[string, NodeFileSystemHandle]> {
-    const {path, fs, ctx} = this;
+    const {__path: path, fs, ctx} = this;
     const list = await fs.promises.readdir(path, {withFileTypes: true});
     for (const d of list) {
       const dirent = d as Dirent;
@@ -64,7 +64,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    */
   public async getDirectoryHandle(name: string, options?: GetDirectoryHandleOptions): Promise<NodeFileSystemDirectoryHandle> {
     assertName(name, 'getDirectoryHandle', 'FileSystemDirectoryHandle');
-    const filename = this.path + this.ctx.separator! + name;
+    const filename = this.__path + this.ctx.separator! + name;
     try {
       const stats = await this.fs.promises.stat(filename);
       if (!stats.isDirectory()) throw newTypeMismatchError();
@@ -100,7 +100,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    */
   public async getFileHandle(name: string, options?: GetFileHandleOptions): Promise<NodeFileSystemFileHandle> {
     assertName(name, 'getFileHandle', 'FileSystemDirectoryHandle');
-    const filename = this.path + this.ctx.separator! + name;
+    const filename = this.__path + this.ctx.separator! + name;
     try {
       const stats = await this.fs.promises.stat(filename);
       if (!stats.isFile()) throw newTypeMismatchError();
@@ -136,7 +136,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    */
   public async removeEntry(name: string, {recursive = false}: RemoveEntryOptions = {}): Promise<void> {
     assertName(name, 'removeEntry', 'FileSystemDirectoryHandle');
-    const filename = this.path + this.ctx.separator! + name;
+    const filename = this.__path + this.ctx.separator! + name;
     const promises = this.fs.promises;
     try {
       const stats = await promises.stat(filename);
@@ -172,8 +172,18 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    * @param possibleDescendant The {@link NodeFileSystemFileHandle} from which
    *        to return the relative path.
    */
-  public resolve(possibleDescendant: NodeFileSystemHandle): Promise<string[] | null> {
-    throw new Error('Not implemented');
+  public async resolve(possibleDescendant: NodeFileSystemHandle): Promise<string[] | null> {
+    if (possibleDescendant instanceof NodeFileSystemDirectoryHandle || possibleDescendant instanceof NodeFileSystemFileHandle) {
+      const path = this.__path;
+      const childPath = possibleDescendant.__path;
+      if (!childPath.startsWith(path)) return null;
+      let relative = childPath.slice(path.length);
+      if (relative === '') return [];
+      const separator = this.ctx.separator!;
+      if (relative[0] === separator) relative = relative.slice(1);
+      return relative.split(separator);
+    }
+    return null;
   }
 }
 

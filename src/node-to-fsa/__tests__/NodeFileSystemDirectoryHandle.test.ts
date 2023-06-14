@@ -321,3 +321,41 @@ describe('.removeEntry()', () => {
     expect(res).toBe(undefined);
   });
 });
+
+describe('.resolve()', () => {
+  test('return empty array for itself', async () => {
+    const {dir} = setup({});
+    const res = await dir.resolve(dir);
+    expect(res).toEqual([]);
+  });
+
+  test('can resolve one level deep child', async () => {
+    const {dir} = setup({
+      file: 'contents',
+    });
+    const child = await dir.getFileHandle('file');
+    const res = await dir.resolve(child);
+    expect(res).toEqual(['file']);
+  });
+
+  test('can resolve two level deep child', async () => {
+    const {dir} = setup({
+      'dir/file': 'contents',
+    });
+    const child1 = await dir.getDirectoryHandle('dir');
+    const child2 = await child1.getFileHandle('file');
+    const res = await dir.resolve(child2);
+    expect(res).toEqual(['dir', 'file']);
+    const res2 = await child1.resolve(child2);
+    expect(res2).toEqual(['file']);
+  });
+
+  test('returns "null" if not a descendant', async () => {
+    const {dir} = setup({
+      'dir/file': 'contents',
+    });
+    const child1 = await dir.getDirectoryHandle('dir');
+    const res = await child1.resolve(dir);
+    expect(res).toBe(null);
+  });
+});

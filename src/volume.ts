@@ -1,5 +1,4 @@
 import * as pathModule from 'path';
-import { PathLike, symlink } from 'fs';
 import { Node, Link, File } from './node';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -14,6 +13,7 @@ import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UT
 import * as errors from './internal/errors';
 import util = require('util');
 import createPromisesApi from './promises';
+import type { PathLike, symlink } from 'fs';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -930,6 +930,7 @@ export class Volume {
     return json;
   }
 
+  // TODO: `cwd` should probably not invoke `process.cwd()`.
   fromJSON(json: DirectoryJSON, cwd: string = process.cwd()) {
     for (let filename in json) {
       const data = json[filename];

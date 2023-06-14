@@ -46,12 +46,29 @@ export function createFsFromVolume(vol: _Volume): IFs {
   fs.promises = vol.promises;
 
   fs._toUnixTimestamp = toUnixTimestamp;
+  (fs as any).__vol = vol;
 
   return fs;
 }
 
 export const fs: IFs = createFsFromVolume(vol);
+
+/**
+ * Creates a new file system instance.
+ * 
+ * @param json File system structure expressed as a JSON object.
+ *        Use `null` for empty directories and empty string for empty files.
+ * @param cwd Current working directory. The JSON structure will be created
+ *        relative to this path.
+ * @returns A `memfs` file system instance, which is a drop-in replacement for
+ *          the `fs` module.
+ */
+export const memfs = (json: DirectoryJSON = {}, cwd: string = '/') => {
+  const volume = Volume.fromJSON(json, cwd);
+  const fs = createFsFromVolume(volume);
+  return fs as IFs & typeof import('fs');
+};
+
 declare let module;
 module.exports = { ...module.exports, ...fs };
-
 module.exports.semantic = true;

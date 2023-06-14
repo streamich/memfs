@@ -59,8 +59,8 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    */
   public async getDirectoryHandle(name: string, options?: GetDirectoryHandleOptions): Promise<NodeFileSystemDirectoryHandle> {
     assertName(name, 'getDirectoryHandle', 'FileSystemDirectoryHandle');
+    const filename = this.path + this.ctx.separator! + name;
     try {
-      const filename = this.path + this.ctx.separator! + name;
       const stats = await this.fs.promises.stat(filename);
       if (!stats.isDirectory()) {
         throw new DOMException('The path supplied exists, but was not an entry of requested type.', 'TypeMismatchError');
@@ -71,6 +71,10 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
       if (error && typeof error === 'object') {
         switch (error.code) {
           case 'ENOENT': {
+            if (options && options.create) {
+              await this.fs.promises.mkdir(filename);
+              return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
+            }
             throw new DOMException('A requested file or directory could not be found at the time an operation was processed.', 'NotFoundError');
           }
           case 'EPERM':

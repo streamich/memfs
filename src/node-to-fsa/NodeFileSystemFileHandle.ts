@@ -6,10 +6,10 @@ import type {NodeFsaContext, NodeFsaFs} from "./types";
 export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
   constructor (
     protected readonly fs: NodeFsaFs,
-    protected readonly path: string,
+    public readonly __path: string,
     protected readonly ctx: Partial<NodeFsaContext> = createCtx(ctx),
   ) {
-    super('file', basename(path, ctx.separator!));
+    super('file', basename(__path, ctx.separator!));
   }
 
   /**

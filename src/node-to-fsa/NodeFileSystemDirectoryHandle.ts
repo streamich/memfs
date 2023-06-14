@@ -1,5 +1,5 @@
 import {NodeFileSystemHandle} from "./NodeFileSystemHandle";
-import {basename, ctx as createCtx} from "./util";
+import {assertName, basename, ctx as createCtx} from "./util";
 import {NodeFileSystemFileHandle} from "./NodeFileSystemFileHandle";
 import type {NodeFsaContext, NodeFsaFs} from "./types";
 
@@ -57,8 +57,30 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    * @param options An optional object containing options for the retrieved
    *        subdirectory.
    */
-  public getDirectoryHandle(name: string, options?: GetDirectoryHandleOptions): Promise<NodeFileSystemDirectoryHandle> {
-    throw new Error('Not implemented');
+  public async getDirectoryHandle(name: string, options?: GetDirectoryHandleOptions): Promise<NodeFileSystemDirectoryHandle> {
+    assertName(name, 'getDirectoryHandle', 'FileSystemDirectoryHandle');
+    try {
+      const filename = this.path + this.ctx.separator! + name;
+      const stats = await this.fs.promises.stat(filename);
+      if (!stats.isDirectory()) {
+        throw new DOMException('The path supplied exists, but was not an entry of requested type.', 'TypeMismatchError');
+      }
+      return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
+    } catch (error) {
+      if (error instanceof DOMException) throw error;
+      if (error && typeof error === 'object') {
+        switch (error.code) {
+          case 'ENOENT': {
+            throw new DOMException('A requested file or directory could not be found at the time an operation was processed.', 'NotFoundError');
+          }
+          case 'EPERM':
+          case 'EACCES': {
+            throw new DOMException('Permission not granted.', 'NotAllowedError');
+          }
+        }
+      }
+      throw error;
+    }
   }
 
   /**

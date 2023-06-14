@@ -88,7 +88,7 @@ export interface IPromisesAPI {
   readlink(path: PathLike, options?: IOptions): Promise<TDataOut>;
   realpath(path: PathLike, options?: IRealpathOptions | string): Promise<TDataOut>;
   rename(oldPath: PathLike, newPath: PathLike): Promise<void>;
-  rmdir(path: PathLike): Promise<void>;
+  rmdir(path: PathLike, options?: IRmdirOptions): Promise<void>;
   rm(path: PathLike, options?: IRmOptions): Promise<void>;
   stat(path: PathLike, options?: IStatOptions): Promise<Stats>;
   symlink(target: PathLike, path: PathLike, type?: symlink.Type): Promise<void>;

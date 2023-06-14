@@ -66,7 +66,7 @@ export const fs: IFs = createFsFromVolume(vol);
 export const memfs = (json: DirectoryJSON = {}, cwd: string = '/') => {
   const volume = Volume.fromJSON(json, cwd);
   const fs = createFsFromVolume(volume);
-  return fs as IFs & typeof import('fs');
+  return fs;
 };
 
 declare let module;

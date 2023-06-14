@@ -1,6 +1,6 @@
 import { DirectoryJSON, memfs } from '../..';
 import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
-import {maybe} from './util';
+import { maybe } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/');
@@ -14,7 +14,7 @@ maybe('NodeFileSystemFileHandle', () => {
       const { dir, fs } = setup({
         'file.txt': 'Hello, world!',
       });
-      const entry =  await dir.getFileHandle('file.txt');
+      const entry = await dir.getFileHandle('file.txt');
       const file = await entry.getFile();
       const contents = await file.text();
       expect(entry.name).toBe('file.txt');
@@ -31,7 +31,7 @@ maybe('NodeFileSystemFileHandle', () => {
         const { dir, fs } = setup({
           'file.txt': 'Hello, world!',
         });
-        const entry =  await dir.getFileHandle('file.txt');
+        const entry = await dir.getFileHandle('file.txt');
         const writable = await entry.createWritable();
         await writable.write('...');
         await writable.close();

@@ -55,7 +55,7 @@ export const fs: IFs = createFsFromVolume(vol);
 
 /**
  * Creates a new file system instance.
- * 
+ *
  * @param json File system structure expressed as a JSON object.
  *        Use `null` for empty directories and empty string for empty files.
  * @param cwd Current working directory. The JSON structure will be created

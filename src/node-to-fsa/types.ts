@@ -1,4 +1,4 @@
-import type {IFs} from "..";
+import type { IFs } from '..';
 
 /**
  * Required Node.js `fs` module functions for File System Access API.

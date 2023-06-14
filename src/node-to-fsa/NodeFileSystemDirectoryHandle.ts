@@ -1,16 +1,17 @@
 import {NodeFileSystemHandle} from "./NodeFileSystemHandle";
-import {basename} from "./util";
-import type {FsaNodeFs} from "./types";
+import {basename, ctx as createCtx} from "./util";
+import type {NodeFsaContext, NodeFsaFs} from "./types";
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle
  */
 export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
   constructor (
-    protected readonly fs: FsaNodeFs,
+    protected readonly fs: NodeFsaFs,
     protected readonly path: string,
+    protected readonly ctx: Partial<NodeFsaContext> = createCtx(ctx),
   ) {
-    super('directory', basename(path));
+    super('directory', basename(path, ctx.separator!));
   }
 
   /**

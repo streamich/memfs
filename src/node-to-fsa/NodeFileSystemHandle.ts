@@ -14,10 +14,12 @@ export abstract class NodeFileSystemHandle {
   ) {}
 
   /**
+   * Compares two handles to see if the associated entries (either a file or directory) match.
+   * 
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle/isSameEntry
    */
   public isSameEntry(fileSystemHandle: NodeFileSystemHandle): boolean {
-    throw new Error('Not implemented');
+    return this.constructor === fileSystemHandle.constructor && (this as any).__path === (fileSystemHandle as any).__path;
   }
 
   /**

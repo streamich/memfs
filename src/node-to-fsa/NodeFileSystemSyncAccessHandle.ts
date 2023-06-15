@@ -40,8 +40,20 @@ export class NodeFileSystemSyncAccessHandle {
    */
   public async read(buffer: ArrayBuffer | ArrayBufferView, options: FileSystemReadWriteOptions = {}): Promise<number> {
     const buf: Buffer | ArrayBufferView = buffer instanceof ArrayBuffer ? Buffer.from(buffer) : buffer;
-    const size = this.fs.readSync(this.fd, buf, 0, buffer.byteLength, options.at || 0);
-    return size;
+    try {
+      const size = this.fs.readSync(this.fd, buf, 0, buffer.byteLength, options.at || 0);
+      return size;
+    } catch (error) {
+      if (error instanceof DOMException) throw error;
+      if (error && typeof error === 'object') {
+        switch (error.code) {
+          case 'EBADF': {
+            throw new DOMException('File handle already closed.', 'InvalidStateError');
+          }
+        }
+      }
+      throw error;
+    }
   }
 }
 

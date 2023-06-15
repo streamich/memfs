@@ -2,7 +2,7 @@ import { DirectoryJSON, memfs } from '../..';
 import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
 import { NodeFileSystemFileHandle } from '../NodeFileSystemFileHandle';
 import { NodeFileSystemHandle } from '../NodeFileSystemHandle';
-import { maybe } from './util';
+import { onlyOnNode20 } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/');
@@ -10,7 +10,7 @@ const setup = (json: DirectoryJSON = {}) => {
   return { dir, fs };
 };
 
-maybe('NodeFileSystemDirectoryHandle', () => {
+onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
   test('can instantiate', () => {
     const { dir } = setup();
     expect(dir).toBeInstanceOf(NodeFileSystemDirectoryHandle);

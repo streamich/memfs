@@ -1,7 +1,7 @@
 import { DirectoryJSON, memfs } from '../..';
 import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
 import { NodeFileSystemSyncAccessHandle } from '../NodeFileSystemSyncAccessHandle';
-import { maybe } from './util';
+import { onlyOnNode20 } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/');
@@ -9,7 +9,7 @@ const setup = (json: DirectoryJSON = {}) => {
   return { dir, fs };
 };
 
-maybe('NodeFileSystemSyncAccessHandle', () => {
+onlyOnNode20('NodeFileSystemSyncAccessHandle', () => {
   describe('.close()', () => {
     test('can close the file', async () => {
       const { dir } = setup({

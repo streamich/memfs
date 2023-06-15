@@ -98,6 +98,7 @@ require('/index'); // hi world
 - [Relative paths](./docs/relative-paths.md)
 - [API status](./docs/api-status.md)
 - [Dependencies](./docs/dependencies.md)
+- [Web File System Access API](./docs/fsa.md)
 
 ## See also
 

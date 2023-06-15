@@ -1,6 +1,6 @@
 import { NodeFileSystemHandle } from './NodeFileSystemHandle';
 import { NodeFileSystemSyncAccessHandle } from './NodeFileSystemSyncAccessHandle';
-import { basename, ctx as createCtx, newNotAllowedError } from './util';
+import { assertCanWrite, basename, ctx as createCtx, newNotAllowedError } from './util';
 import { NodeFileSystemWritableFileStream } from './NodeFileSystemWritableFileStream';
 import type { NodeFsaContext, NodeFsaFs } from './types';
 import type {IFileSystemFileHandle, IFileSystemSyncAccessHandle} from '../fsa/types';
@@ -55,6 +55,7 @@ export class NodeFileSystemFileHandle extends NodeFileSystemHandle implements IF
   public async createWritable(
     { keepExistingData = false }: CreateWritableOptions = { keepExistingData: false },
   ): Promise<NodeFileSystemWritableFileStream> {
+    assertCanWrite(this.ctx.mode);
     return new NodeFileSystemWritableFileStream(this.fs, this.__path, keepExistingData);
   }
 }

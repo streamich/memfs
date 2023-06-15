@@ -5,7 +5,7 @@ import { maybe } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/');
-  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { syncHandleAllowed: true });
+  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { syncHandleAllowed: true, mode: 'readwrite' });
   return { dir, fs };
 };
 

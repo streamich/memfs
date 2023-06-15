@@ -31,14 +31,6 @@ jobs:
           YARN_ENABLE_SCRIPTS: false
         run: yarn --immutable
 
-  prettier:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: yarn prettier:diff
-
   typecheck:
     needs: prepare-yarn-cache
     runs-on: ubuntu-latest
@@ -52,6 +44,8 @@ jobs:
         run: yarn
       - name: run typecheck
         run: yarn typecheck
+      - name: run Prettier
+        run: yarn prettier:diff
 
   test-node:
     name:
@@ -103,7 +97,7 @@ jobs:
       # prettier-ignore
       ${{ github.event_name == 'push' && (github.event.ref == 'refs/heads/main' || github.event.ref == 'refs/heads/next') }}
     name: Release new version
-    needs: [prettier, typecheck, test-node, test-os]
+    needs: [typecheck, test-node, test-os]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

@@ -1,6 +1,6 @@
 import { DirectoryJSON, IFsWithVolume, memfs } from '../..';
 import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
-import { maybe } from './util';
+import { onlyOnNode20 } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/') as IFsWithVolume;
@@ -8,7 +8,7 @@ const setup = (json: DirectoryJSON = {}) => {
   return { dir, fs };
 };
 
-maybe('NodeFileSystemFileHandle', () => {
+onlyOnNode20('NodeFileSystemFileHandle', () => {
   describe('.getFile()', () => {
     test('can read file contents', async () => {
       const { dir, fs } = setup({

@@ -1,4 +1,4 @@
-import {nodeToFsa} from '..';
+import { nodeToFsa } from '..';
 import { IFsWithVolume, memfs } from '../..';
 import { maybe } from './util';
 
@@ -22,7 +22,7 @@ maybe('scenarios', () => {
     const logsFileHandle = await dir.getFileHandle('logs.csv', { create: true });
     const logsWritable = await logsFileHandle.createWritable();
     await logsWritable.write('timestamp,level,message\n');
-    await logsWritable.write({type: 'write', data: '2021-01-01T00:00:00Z,INFO,Hello World\n'});
+    await logsWritable.write({ type: 'write', data: '2021-01-01T00:00:00Z,INFO,Hello World\n' });
     await logsWritable.close();
     expect(fs.__vol.toJSON()).toEqual({
       '/tmp': null,
@@ -30,7 +30,7 @@ maybe('scenarios', () => {
       '/bin': null,
       '/Users/kasper/Documents/shopping-list.txt': 'Milk, Eggs, Bread',
       '/Users/kasper/Documents/backups/shopping-list.txt': 'Milk, Eggs, Bread',
-      '/Users/kasper/Documents/logs.csv': 'timestamp,level,message\n2021-01-01T00:00:00Z,INFO,Hello World\n'
+      '/Users/kasper/Documents/logs.csv': 'timestamp,level,message\n2021-01-01T00:00:00Z,INFO,Hello World\n',
     });
   });
 });

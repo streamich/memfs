@@ -3,7 +3,7 @@ import type { IFs } from '..';
 /**
  * Required Node.js `fs` module functions for File System Access API.
  */
-export type NodeFsaFs = Pick<IFs, 'promises' | 'openSync' | 'fsyncSync' | 'statSync' | 'closeSync' | 'readSync'>;
+export type NodeFsaFs = Pick<IFs, 'promises' | 'openSync' | 'fsyncSync' | 'statSync' | 'closeSync' | 'readSync' | 'truncateSync'>;
 
 export interface NodeFsaContext {
   separator: '/' | '\\';

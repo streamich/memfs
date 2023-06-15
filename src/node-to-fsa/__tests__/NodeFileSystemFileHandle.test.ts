@@ -1,9 +1,9 @@
-import { DirectoryJSON, memfs } from '../..';
+import { DirectoryJSON, IFsWithVolume, memfs } from '../..';
 import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
 import { maybe } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
-  const fs = memfs(json, '/');
+  const fs = memfs(json, '/') as IFsWithVolume;
   const dir = new NodeFileSystemDirectoryHandle(fs as any, '/');
   return { dir, fs };
 };
@@ -108,6 +108,35 @@ maybe('NodeFileSystemFileHandle', () => {
         expect(fs.readFileSync('/file.txt', 'utf8')).toBe('...');
         await writable.close();
         expect(fs.readFileSync('/file.txt', 'utf8')).toBe('.12');
+      });
+
+      test('does not commit changes before .close() is called', async () => {
+        const { dir, fs } = setup({
+          'file.txt': '...',
+        });
+        const entry = await dir.getFileHandle('file.txt');
+        const writable = await entry.createWritable();
+        await writable.write('1');
+        expect(fs.readFileSync('/file.txt', 'utf8')).toBe('...');
+        await writable.close();
+        expect(fs.readFileSync('/file.txt', 'utf8')).toBe('1');
+      });
+
+      test('does not commit changes if .abort() is called and removes the swap file', async () => {
+        const { dir, fs } = setup({
+          'file.txt': '...',
+        });
+        const entry = await dir.getFileHandle('file.txt');
+        const writable = await entry.createWritable();
+        await writable.write('1');
+        expect(fs.__vol.toJSON()).toEqual({
+          '/file.txt': '...',
+          '/file.txt.crswap': '1',
+        });
+        await writable.abort();
+        expect(fs.__vol.toJSON()).toEqual({
+          '/file.txt': '...',
+        });
       });
     });
 

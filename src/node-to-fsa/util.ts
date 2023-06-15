@@ -5,8 +5,9 @@ import type { NodeFsaContext } from './types';
  */
 export const ctx = (partial: Partial<NodeFsaContext> = {}): NodeFsaContext => {
   return {
-    ...partial,
     separator: '/',
+    syncHandleAllowed: false,
+    ...partial,
   };
 };
 

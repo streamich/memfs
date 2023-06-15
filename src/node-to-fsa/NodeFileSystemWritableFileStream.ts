@@ -98,13 +98,11 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
               const options = params as FileSystemWritableFileStreamParams;
               switch (options.type) {
                 case 'write': {
-                  if (typeof options.position === 'number')
-                    await this.seek(options.position);
+                  if (typeof options.position === 'number') await this.seek(options.position);
                   return this.writeBase(params.data);
                 }
                 case 'truncate': {
-                  if (typeof params.size !== 'number')
-                    throw new TypeError('Missing required argument: size');
+                  if (typeof params.size !== 'number') throw new TypeError('Missing required argument: size');
                   if (this.ref.offset > params.size) this.ref.offset = params.size;
                   return this.truncate(params.size);
                 }

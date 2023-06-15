@@ -1,11 +1,11 @@
 import { DirectoryJSON, memfs } from '../..';
 import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
-import {NodeFileSystemSyncAccessHandle} from '../NodeFileSystemSyncAccessHandle';
+import { NodeFileSystemSyncAccessHandle } from '../NodeFileSystemSyncAccessHandle';
 import { maybe } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/');
-  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {syncHandleAllowed: true});
+  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { syncHandleAllowed: true });
   return { dir, fs };
 };
 
@@ -78,7 +78,7 @@ maybe('NodeFileSystemSyncAccessHandle', () => {
       const entry = await dir.getFileHandle('file.txt');
       const sync = await entry.createSyncAccessHandle!();
       const buf = new Uint8Array(3);
-      const size = await sync.read(buf, {at: 3});
+      const size = await sync.read(buf, { at: 3 });
       expect(size).toBe(3);
       expect(Buffer.from(buf).toString()).toBe('345');
     });

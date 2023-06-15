@@ -1,7 +1,7 @@
 import { create } from '../util';
 import { memfs } from '../..';
 
-describe('.writeSync(fd, buffer, offset, length, position)', () => {;
+describe('.writeSync(fd, buffer, offset, length, position)', () => {
   it('Write binary data to file', () => {
     const vol = create({});
     const fd = vol.openSync('/data.bin', 'w+');
@@ -10,7 +10,7 @@ describe('.writeSync(fd, buffer, offset, length, position)', () => {;
     expect(bytes).toBe(3);
     expect(Buffer.from([1, 2, 3]).equals(vol.readFileSync('/data.bin') as Buffer)).toBe(true);
   });
-  
+
   it('Write string to file', () => {
     const vol = create({});
     const fd = vol.openSync('/foo', 'w');
@@ -19,7 +19,7 @@ describe('.writeSync(fd, buffer, offset, length, position)', () => {;
   });
 
   it('can write at offset', () => {
-    const fs = memfs({foo: '123'});
+    const fs = memfs({ foo: '123' });
     const fd = fs.openSync('/foo', 'a+');
     expect(fs.readFileSync('/foo', 'utf8')).toBe('123');
     fs.writeSync(fd, 'x', 1);

@@ -7,6 +7,7 @@ export const ctx = (partial: Partial<NodeFsaContext> = {}): NodeFsaContext => {
   return {
     separator: '/',
     syncHandleAllowed: false,
+    mode: 'read',
     ...partial,
   };
 };
@@ -21,6 +22,11 @@ const nameRegex = /^(\.{1,2})|(.*(\/|\\).*)$/;
 export const assertName = (name: string, method: string, klass: string) => {
   const isInvalid = nameRegex.test(name);
   if (isInvalid) throw new TypeError(`Failed to execute '${method}' on '${klass}': Name is not allowed.`);
+};
+
+export const assertCanWrite = (mode: 'read' | 'readwrite') => {
+  if (mode !== 'readwrite')
+    throw new DOMException('The request is not allowed by the user agent or the platform in the current context.', 'NotAllowedError');
 };
 
 export const newNotFoundError = () =>

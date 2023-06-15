@@ -6,7 +6,7 @@ import { maybe } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/');
-  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/');
+  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {mode: 'readwrite'});
   return { dir, fs };
 };
 
@@ -159,6 +159,19 @@ maybe('NodeFileSystemDirectoryHandle', () => {
       }
     });
 
+    test('throws if not in "readwrite" mode and attempting to create a directory', async () => {
+      const fs = memfs({}, '/');
+      const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {mode: 'read'});
+      try {
+        await dir.getDirectoryHandle('test', { create: true });
+        throw new Error('Not this error');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DOMException);
+        expect(error.name).toBe('NotAllowedError');
+        expect(error.message).toBe('The request is not allowed by the user agent or the platform in the current context.');
+      }
+    });
+
     const invalidNames = [
       '.',
       '..',
@@ -239,6 +252,19 @@ maybe('NodeFileSystemDirectoryHandle', () => {
       }
     });
 
+    test('throws if not in "readwrite" mode and attempting to create a file', async () => {
+      const fs = memfs({}, '/');
+      const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {mode: 'read'});
+      try {
+        await dir.getFileHandle('test', { create: true });
+        throw new Error('Not this error');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DOMException);
+        expect(error.name).toBe('NotAllowedError');
+        expect(error.message).toBe('The request is not allowed by the user agent or the platform in the current context.');
+      }
+    });
+
     const invalidNames = [
       '.',
       '..',
@@ -304,6 +330,32 @@ maybe('NodeFileSystemDirectoryHandle', () => {
         expect(error.message).toBe(
           'A requested file or directory could not be found at the time an operation was processed.',
         );
+      }
+    });
+
+    test('throws if not in "readwrite" mode and attempting to remove a file', async () => {
+      const fs = memfs({ a: 'b'}, '/');
+      const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {mode: 'read'});
+      try {
+        await dir.removeEntry('a');
+        throw new Error('Not this error');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DOMException);
+        expect(error.name).toBe('NotAllowedError');
+        expect(error.message).toBe('The request is not allowed by the user agent or the platform in the current context.');
+      }
+    });
+
+    test('throws if not in "readwrite" mode and attempting to remove a folder', async () => {
+      const fs = memfs({ a: null}, '/');
+      const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {mode: 'read'});
+      try {
+        await dir.removeEntry('a');
+        throw new Error('Not this error');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DOMException);
+        expect(error.name).toBe('NotAllowedError');
+        expect(error.message).toBe('The request is not allowed by the user agent or the platform in the current context.');
       }
     });
 

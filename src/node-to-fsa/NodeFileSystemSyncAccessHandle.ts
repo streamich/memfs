@@ -1,3 +1,4 @@
+import {assertCanWrite} from './util';
 import type {FileSystemReadWriteOptions, IFileSystemSyncAccessHandle} from '../fsa/types';
 import type { NodeFsaContext, NodeFsaFs } from './types';
 
@@ -19,6 +20,7 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle/close
    */
   public async close(): Promise<void> {
+    assertCanWrite(this.ctx.mode);
     this.fs.closeSync(this.fd);
   }
 
@@ -26,6 +28,7 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle/flush
    */
   public async flush(): Promise<void> {
+    assertCanWrite(this.ctx.mode);
     this.fs.fsyncSync(this.fd);
   }
 
@@ -62,6 +65,7 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
    * @param newSize The number of bytes to resize the file to.
    */
   public async truncate(newSize: number): Promise<void> {
+    assertCanWrite(this.ctx.mode);
     this.fs.truncateSync(this.fd, newSize);
   }
 
@@ -77,6 +81,7 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
     buffer: ArrayBuffer | ArrayBufferView | DataView,
     options: FileSystemReadWriteOptions = {},
   ): Promise<number> {
+    assertCanWrite(this.ctx.mode);
     const buf: Buffer | ArrayBufferView = buffer instanceof ArrayBuffer ? Buffer.from(buffer) : buffer;
     try {
       return this.fs.writeSync(this.fd, buf, 0, buffer.byteLength, options.at || 0);

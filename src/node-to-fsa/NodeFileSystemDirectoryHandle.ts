@@ -11,14 +11,24 @@ import {
 import { NodeFileSystemFileHandle } from './NodeFileSystemFileHandle';
 import type { NodeFsaContext, NodeFsaFs } from './types';
 import type Dirent from '../Dirent';
-import type {GetDirectoryHandleOptions, GetFileHandleOptions, IFileSystemDirectoryHandle, IFileSystemFileHandle, RemoveEntryOptions} from '../fsa/types';
+import type {
+  GetDirectoryHandleOptions,
+  GetFileHandleOptions,
+  IFileSystemDirectoryHandle,
+  IFileSystemFileHandle,
+  RemoveEntryOptions,
+} from '../fsa/types';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle
  */
 export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implements IFileSystemDirectoryHandle {
   protected readonly ctx: Partial<NodeFsaContext>;
-  public constructor(protected readonly fs: NodeFsaFs, public readonly __path: string, ctx: Partial<NodeFsaContext> = {}) {
+  public constructor(
+    protected readonly fs: NodeFsaFs,
+    public readonly __path: string,
+    ctx: Partial<NodeFsaContext> = {},
+  ) {
     super('directory', basename(__path, ctx.separator || '/'));
     this.ctx = createCtx(ctx);
   }

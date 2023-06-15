@@ -55,6 +55,14 @@ export class NodeFileSystemSyncAccessHandle {
       throw error;
     }
   }
+
+  /**
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle/truncate
+   * @param newSize The number of bytes to resize the file to.
+   */
+  public async truncate(newSize: number): Promise<void> {
+    this.fs.truncateSync(this.fd, newSize);
+  }
 }
 
 export interface FileSystemReadWriteOptions {

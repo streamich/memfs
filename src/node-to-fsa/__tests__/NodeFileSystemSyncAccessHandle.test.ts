@@ -112,4 +112,16 @@ maybe('NodeFileSystemSyncAccessHandle', () => {
       }
     });
   });
+
+  describe('.truncate()', () => {
+    test('can read from beginning', async () => {
+      const { dir } = setup({
+        'file.txt': '0123456789',
+      });
+      const entry = await dir.getFileHandle('file.txt');
+      const sync = await entry.createSyncAccessHandle!();
+      const res = await sync.truncate(5);
+      expect(res).toBe(undefined);
+    });
+  });
 });

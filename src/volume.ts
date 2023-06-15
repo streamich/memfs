@@ -43,7 +43,7 @@ export interface IError extends Error {
 }
 
 export type TFileId = PathLike | number; // Number is used as a file descriptor.
-export type TData = TDataOut | Uint8Array; // Data formats users can give us.
+export type TData = TDataOut | ArrayBufferView | DataView; // Data formats users can give us.
 export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
 export type TTime = number | string | Date;
@@ -1199,9 +1199,9 @@ export class Volume {
     return file.write(buf, offset, length, position);
   }
 
-  writeSync(fd: number, buffer: Buffer | Uint8Array, offset?: number, length?: number, position?: number): number;
+  writeSync(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset?: number, length?: number, position?: number): number;
   writeSync(fd: number, str: string, position?: number, encoding?: BufferEncoding): number;
-  writeSync(fd: number, a: string | Buffer | Uint8Array, b?: number, c?: number | BufferEncoding, d?: number): number {
+  writeSync(fd: number, a: string | Buffer | ArrayBufferView | DataView, b?: number, c?: number | BufferEncoding, d?: number): number {
     validateFd(fd);
 
     let encoding: BufferEncoding | undefined;
@@ -1233,12 +1233,12 @@ export class Volume {
     return this.writeBase(fd, buf, offset, length, position);
   }
 
-  write(fd: number, buffer: Buffer | Uint8Array, callback: (...args) => void);
-  write(fd: number, buffer: Buffer | Uint8Array, offset: number, callback: (...args) => void);
-  write(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, callback: (...args) => void);
+  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, callback: (...args) => void);
+  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset: number, callback: (...args) => void);
+  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset: number, length: number, callback: (...args) => void);
   write(
     fd: number,
-    buffer: Buffer | Uint8Array,
+    buffer: Buffer | ArrayBufferView | DataView,
     offset: number,
     length: number,
     position: number,

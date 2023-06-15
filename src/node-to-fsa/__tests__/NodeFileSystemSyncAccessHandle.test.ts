@@ -124,4 +124,60 @@ maybe('NodeFileSystemSyncAccessHandle', () => {
       expect(res).toBe(undefined);
     });
   });
+
+  describe('.write()', () => {
+    test('can write to the file', async () => {
+      const { dir, fs } = setup({
+        'file.txt': '0123456789',
+      });
+      const entry = await dir.getFileHandle('file.txt');
+      const sync = await entry.createSyncAccessHandle!();
+      const res = await sync.write(Buffer.from('Hello'));
+      expect(res).toBe(5);
+      expect(fs.readFileSync('/file.txt', 'utf8')).toBe('Hello56789');
+    });
+
+    test('can write at an offset', async () => {
+      const { dir, fs } = setup({
+        'file.txt': '0123456789',
+      });
+      const entry = await dir.getFileHandle('file.txt');
+      const sync = await entry.createSyncAccessHandle!();
+      const res = await sync.write(Buffer.from('Hello'), {at: 7});
+      expect(res).toBe(5);
+      expect(fs.readFileSync('/file.txt', 'utf8')).toBe('0123456Hello');
+    });
+
+    test('throws "InvalidStateError" DOMException if file descriptor is already closed', async () => {
+      const { dir, fs } = setup({
+        'file.txt': '0123456789',
+      });
+      const entry = await dir.getFileHandle('file.txt');
+      const sync = await entry.createSyncAccessHandle!();
+      await sync.write(Buffer.from('a'));
+      await sync.close();
+      try {
+        await sync.write(Buffer.from('b'));
+        throw new Error('No error was thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DOMException);
+        expect(error.name).toBe('InvalidStateError');
+      }
+    });
+
+    // TODO: Need to find out what is the correct behavior here.
+    xtest('writing at offset past file size', async () => {
+      const { dir, fs } = setup({
+        'file.txt': '0123456789',
+      });
+      const entry = await dir.getFileHandle('file.txt');
+      const sync = await entry.createSyncAccessHandle!();
+      try {
+        await sync.write(Buffer.from('a'), {at: 100});
+        // ?
+      } catch (error) {
+        // ?
+      }
+    });
+  });
 });

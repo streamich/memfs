@@ -1,5 +1,5 @@
 import { NodePermissionStatus } from './NodePermissionStatus';
-import type {IFileSystemHandle, NodeFileSystemHandlePermissionDescriptor} from '../fsa/types';
+import type { IFileSystemHandle, NodeFileSystemHandlePermissionDescriptor } from '../fsa/types';
 
 /**
  * Represents a File System Access API file handle `FileSystemHandle` object,

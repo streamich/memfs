@@ -11,7 +11,13 @@ import {
 import { NodeFileSystemFileHandle } from './NodeFileSystemFileHandle';
 import type { NodeFsaContext, NodeFsaFs } from './types';
 import type Dirent from '../Dirent';
-import type {GetDirectoryHandleOptions, GetFileHandleOptions, IFileSystemDirectoryHandle, IFileSystemFileHandle, RemoveEntryOptions} from '../fsa/types';
+import type {
+  GetDirectoryHandleOptions,
+  GetFileHandleOptions,
+  IFileSystemDirectoryHandle,
+  IFileSystemFileHandle,
+  RemoveEntryOptions,
+} from '../fsa/types';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle

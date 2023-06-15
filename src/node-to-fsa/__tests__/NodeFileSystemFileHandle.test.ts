@@ -4,7 +4,7 @@ import { maybe } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/') as IFsWithVolume;
-  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {mode: 'readwrite'});
+  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'readwrite' });
   return { dir, fs };
 };
 
@@ -28,7 +28,7 @@ maybe('NodeFileSystemFileHandle', () => {
   describe('.createWritable()', () => {
     test('throws if not in "readwrite" mode', async () => {
       const fs = memfs({ 'file.txt': 'abc' }, '/') as IFsWithVolume;
-      const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {mode: 'read'});
+      const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'read' });
       const entry = await dir.getFileHandle('file.txt');
       try {
         await entry.createWritable();
@@ -36,7 +36,9 @@ maybe('NodeFileSystemFileHandle', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(DOMException);
         expect(error.name).toBe('NotAllowedError');
-        expect(error.message).toBe('The request is not allowed by the user agent or the platform in the current context.');
+        expect(error.message).toBe(
+          'The request is not allowed by the user agent or the platform in the current context.',
+        );
       }
     });
 

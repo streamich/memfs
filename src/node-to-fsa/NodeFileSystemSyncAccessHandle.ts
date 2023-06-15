@@ -1,5 +1,5 @@
-import {assertCanWrite} from './util';
-import type {FileSystemReadWriteOptions, IFileSystemSyncAccessHandle} from '../fsa/types';
+import { assertCanWrite } from './util';
+import type { FileSystemReadWriteOptions, IFileSystemSyncAccessHandle } from '../fsa/types';
 import type { NodeFsaContext, NodeFsaFs } from './types';
 
 /**

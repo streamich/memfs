@@ -9,7 +9,7 @@ export interface IFileSystemHandle {
   isSameEntry(fileSystemHandle: IFileSystemHandle): boolean;
   queryPermission(fileSystemHandlePermissionDescriptor: NodeFileSystemHandlePermissionDescriptor): IPermissionStatus;
   remove(options?: { recursive?: boolean }): Promise<void>;
-  requestPermission( fileSystemHandlePermissionDescriptor: NodeFileSystemHandlePermissionDescriptor): IPermissionStatus;
+  requestPermission(fileSystemHandlePermissionDescriptor: NodeFileSystemHandlePermissionDescriptor): IPermissionStatus;
 }
 
 export interface NodeFileSystemHandlePermissionDescriptor {
@@ -66,10 +66,7 @@ export interface IFileSystemSyncAccessHandle {
   getSize(): Promise<number>;
   read(buffer: ArrayBuffer | ArrayBufferView, options?: FileSystemReadWriteOptions): Promise<number>;
   truncate(newSize: number): Promise<void>;
-  write(
-    buffer: ArrayBuffer | ArrayBufferView | DataView,
-    options?: FileSystemReadWriteOptions
-  ): Promise<number>;
+  write(buffer: ArrayBuffer | ArrayBufferView | DataView, options?: FileSystemReadWriteOptions): Promise<number>;
 }
 
 export interface FileSystemReadWriteOptions {

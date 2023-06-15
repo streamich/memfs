@@ -185,10 +185,9 @@ export class Node extends EventEmitter {
   }
 
   // Returns the number of bytes read.
-  read(buf: Buffer | Uint8Array, off: number = 0, len: number = buf.byteLength, pos: number = 0): number {
+  read(buf: Buffer | ArrayBufferView | DataView, off: number = 0, len: number = buf.byteLength, pos: number = 0): number {
     this.atime = new Date();
     if (!this.buf) this.buf = bufferAllocUnsafe(0);
-
     let actualLen = len;
     if (actualLen > buf.byteLength) {
       actualLen = buf.byteLength;
@@ -196,8 +195,8 @@ export class Node extends EventEmitter {
     if (actualLen + pos > this.buf.length) {
       actualLen = this.buf.length - pos;
     }
-
-    this.buf.copy(buf as Buffer, off, pos, pos + actualLen);
+    const buf2 = buf instanceof Buffer ? buf : Buffer.from(buf.buffer);
+    this.buf.copy(buf2, off, pos, pos + actualLen);
     return actualLen;
   }
 
@@ -534,7 +533,7 @@ export class File {
     return bytes;
   }
 
-  read(buf: Buffer | Uint8Array, offset: number = 0, length: number = buf.byteLength, position?: number): number {
+  read(buf: Buffer | ArrayBufferView | DataView, offset: number = 0, length: number = buf.byteLength, position?: number): number {
     if (typeof position !== 'number') position = this.position;
     const bytes = this.node.read(buf, offset, length, position);
     this.position = position + bytes;

@@ -5,7 +5,7 @@ import type { IFs } from '..';
  */
 export type NodeFsaFs = Pick<
   IFs,
-  'promises' | 'openSync' | 'fsyncSync' | 'statSync' | 'closeSync' | 'readSync' | 'truncateSync'
+  'promises' | 'openSync' | 'fsyncSync' | 'statSync' | 'closeSync' | 'readSync' | 'truncateSync' | 'writeSync'
 >;
 
 export interface NodeFsaContext {

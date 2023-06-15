@@ -21,7 +21,3 @@ export interface NodeFsaContext {
   /** Whether synchronous file handles are allowed. */
   syncHandleAllowed: boolean;
 }
-
-export interface NodeFileSystemHandlePermissionDescriptor {
-  mode: 'read' | 'readwrite';
-}

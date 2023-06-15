@@ -3,8 +3,9 @@ import { NodeFileSystemSyncAccessHandle } from './NodeFileSystemSyncAccessHandle
 import { basename, ctx as createCtx, newNotAllowedError } from './util';
 import { NodeFileSystemWritableFileStream } from './NodeFileSystemWritableFileStream';
 import type { NodeFsaContext, NodeFsaFs } from './types';
+import type {IFileSystemFileHandle, IFileSystemSyncAccessHandle} from '../fsa/types';
 
-export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
+export class NodeFileSystemFileHandle extends NodeFileSystemHandle implements IFileSystemFileHandle {
   protected readonly ctx: NodeFsaContext;
 
   constructor(protected readonly fs: NodeFsaFs, public readonly __path: string, ctx: Partial<NodeFsaContext> = {}) {
@@ -43,7 +44,7 @@ export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemFileHandle/createSyncAccessHandle
    */
-  public get createSyncAccessHandle(): undefined | (() => Promise<NodeFileSystemSyncAccessHandle>) {
+  public get createSyncAccessHandle(): undefined | (() => Promise<IFileSystemSyncAccessHandle>) {
     if (!this.ctx.syncHandleAllowed) return undefined;
     return async () => new NodeFileSystemSyncAccessHandle(this.fs, this.__path, this.ctx);
   }

@@ -1,3 +1,4 @@
+import type {Data, FileSystemWritableFileStreamParams, IFileSystemWritableFileStream} from '../fsa/types';
 import type { IFileHandle } from '../promises';
 import type { NodeFsaFs } from './types';
 
@@ -56,7 +57,7 @@ interface SwapFile {
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemWritableFileStream
  */
-export class NodeFileSystemWritableFileStream extends WritableStream {
+export class NodeFileSystemWritableFileStream extends WritableStream implements IFileSystemWritableFileStream {
   protected readonly swap: SwapFile;
 
   constructor(protected readonly fs: NodeFsaFs, protected readonly path: string, keepExistingData: boolean) {
@@ -174,28 +175,3 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
     }
   }
 }
-
-export interface FileSystemWritableFileStreamParams {
-  type: 'write' | 'truncate' | 'seek';
-  data?: Data;
-  position?: number;
-  size?: number;
-}
-
-export type Data =
-  | ArrayBuffer
-  | ArrayBufferView
-  | Uint8Array
-  | Uint8ClampedArray
-  | Int8Array
-  | Uint16Array
-  | Int16Array
-  | Uint32Array
-  | Int32Array
-  | Float32Array
-  | Float64Array
-  | BigUint64Array
-  | BigInt64Array
-  | DataView
-  | Blob
-  | string;

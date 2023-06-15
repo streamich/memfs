@@ -1,9 +1,10 @@
+import type {FileSystemReadWriteOptions, IFileSystemSyncAccessHandle} from '../fsa/types';
 import type { NodeFsaContext, NodeFsaFs } from './types';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle
  */
-export class NodeFileSystemSyncAccessHandle {
+export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHandle {
   protected readonly fd: number;
 
   constructor(
@@ -91,11 +92,4 @@ export class NodeFileSystemSyncAccessHandle {
       throw error;
     }
   }
-}
-
-export interface FileSystemReadWriteOptions {
-  /**
-   * A number representing the offset in bytes that the file should be read from.
-   */
-  at?: number;
 }

@@ -1199,9 +1199,21 @@ export class Volume {
     return file.write(buf, offset, length, position);
   }
 
-  writeSync(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset?: number, length?: number, position?: number): number;
+  writeSync(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset?: number,
+    length?: number,
+    position?: number,
+  ): number;
   writeSync(fd: number, str: string, position?: number, encoding?: BufferEncoding): number;
-  writeSync(fd: number, a: string | Buffer | ArrayBufferView | DataView, b?: number, c?: number | BufferEncoding, d?: number): number {
+  writeSync(
+    fd: number,
+    a: string | Buffer | ArrayBufferView | DataView,
+    b?: number,
+    c?: number | BufferEncoding,
+    d?: number,
+  ): number {
     validateFd(fd);
 
     let encoding: BufferEncoding | undefined;
@@ -1235,7 +1247,13 @@ export class Volume {
 
   write(fd: number, buffer: Buffer | ArrayBufferView | DataView, callback: (...args) => void);
   write(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset: number, callback: (...args) => void);
-  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset: number, length: number, callback: (...args) => void);
+  write(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    callback: (...args) => void,
+  );
   write(
     fd: number,
     buffer: Buffer | ArrayBufferView | DataView,

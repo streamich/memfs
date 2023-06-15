@@ -67,12 +67,15 @@ export class NodeFileSystemSyncAccessHandle {
   /**
    * Writes the content of a specified buffer to the file associated with the
    * handle, optionally at a given offset.
-   * 
+   *
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle/write
-   * @param buffer 
-   * @param options 
+   * @param buffer
+   * @param options
    */
-  public async write(buffer: ArrayBuffer | ArrayBufferView | DataView, options: FileSystemReadWriteOptions = {}): Promise<number> {
+  public async write(
+    buffer: ArrayBuffer | ArrayBufferView | DataView,
+    options: FileSystemReadWriteOptions = {},
+  ): Promise<number> {
     const buf: Buffer | ArrayBufferView = buffer instanceof ArrayBuffer ? Buffer.from(buffer) : buffer;
     try {
       return this.fs.writeSync(this.fd, buf, 0, buffer.byteLength, options.at || 0);

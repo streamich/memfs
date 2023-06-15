@@ -143,7 +143,7 @@ maybe('NodeFileSystemSyncAccessHandle', () => {
       });
       const entry = await dir.getFileHandle('file.txt');
       const sync = await entry.createSyncAccessHandle!();
-      const res = await sync.write(Buffer.from('Hello'), {at: 7});
+      const res = await sync.write(Buffer.from('Hello'), { at: 7 });
       expect(res).toBe(5);
       expect(fs.readFileSync('/file.txt', 'utf8')).toBe('0123456Hello');
     });
@@ -173,7 +173,7 @@ maybe('NodeFileSystemSyncAccessHandle', () => {
       const entry = await dir.getFileHandle('file.txt');
       const sync = await entry.createSyncAccessHandle!();
       try {
-        await sync.write(Buffer.from('a'), {at: 100});
+        await sync.write(Buffer.from('a'), { at: 100 });
         // ?
       } catch (error) {
         // ?

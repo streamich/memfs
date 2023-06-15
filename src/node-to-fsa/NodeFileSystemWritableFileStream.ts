@@ -6,18 +6,21 @@ import type { NodeFsaFs } from './types';
  * `.crswap` and then replaces the original file with the copy only when the
  * `close()` method is called. If the `abort()` method is called, the `.crswap`
  * file is deleted.
- * 
+ *
  * If a file name with with extension `.crswap` is already taken, it
  * creates a new swap file with extension `.1.crswap` and so on.
  */
-export const createSwapFile = async (fs: NodeFsaFs, path: string, keepExistingData: boolean): Promise<[handle: IFileHandle, path: string]> => {
+export const createSwapFile = async (
+  fs: NodeFsaFs,
+  path: string,
+  keepExistingData: boolean,
+): Promise<[handle: IFileHandle, path: string]> => {
   let handle: undefined | IFileHandle;
   let swapPath: string = path + '.crswap';
   try {
     handle = await fs.promises.open(swapPath, 'ax');
   } catch (error) {
-    if (!error || typeof error !== 'object' || error.code !== 'EEXIST')
-      throw error;
+    if (!error || typeof error !== 'object' || error.code !== 'EEXIST') throw error;
   }
   if (!handle) {
     for (let i = 1; i < 1000; i++) {
@@ -26,17 +29,14 @@ export const createSwapFile = async (fs: NodeFsaFs, path: string, keepExistingDa
         handle = await fs.promises.open(swapPath, 'ax');
         break;
       } catch (error) {
-        if (!error || typeof error !== 'object' || error.code !== 'EEXIST')
-          throw error;
+        if (!error || typeof error !== 'object' || error.code !== 'EEXIST') throw error;
       }
     }
   }
   if (!handle) throw new Error(`Could not create a swap file for "${path}".`);
-  if (keepExistingData)
-    await fs.promises.copyFile(path, swapPath, fs.constants.COPYFILE_FICLONE);
+  if (keepExistingData) await fs.promises.copyFile(path, swapPath, fs.constants.COPYFILE_FICLONE);
   return [handle, swapPath];
 };
-
 
 interface SwapFile {
   /** Swap file full path name. */
@@ -155,14 +155,12 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
                   return this.writeBase(params.data);
                 }
                 case 'truncate': {
-                  if (typeof params.size !== 'number')
-                    throw new TypeError('Missing required argument: size');
+                  if (typeof params.size !== 'number') throw new TypeError('Missing required argument: size');
                   if (this.swap.offset > params.size) this.swap.offset = params.size;
                   return this.truncate(params.size);
                 }
                 case 'seek':
-                  if (typeof params.position !== 'number')
-                    throw new TypeError('Missing required argument: position');
+                  if (typeof params.position !== 'number') throw new TypeError('Missing required argument: position');
                   return this.seek(params.position);
                 default:
                   throw new TypeError('Invalid argument: params');

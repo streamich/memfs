@@ -37,7 +37,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-      - run: npx prettier --check .
+      - run: yarn prettier:diff
 
   typecheck:
     needs: prepare-yarn-cache

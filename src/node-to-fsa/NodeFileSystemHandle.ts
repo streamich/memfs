@@ -1,5 +1,5 @@
 import { NodePermissionStatus } from './NodePermissionStatus';
-import type { NodeFileSystemHandlePermissionDescriptor } from './types';
+import type {IFileSystemHandle, NodeFileSystemHandlePermissionDescriptor} from '../fsa/types';
 
 /**
  * Represents a File System Access API file handle `FileSystemHandle` object,
@@ -7,7 +7,7 @@ import type { NodeFileSystemHandlePermissionDescriptor } from './types';
  *
  * @see [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle)
  */
-export abstract class NodeFileSystemHandle {
+export abstract class NodeFileSystemHandle implements IFileSystemHandle {
   constructor(public readonly kind: 'file' | 'directory', public readonly name: string) {}
 
   /**

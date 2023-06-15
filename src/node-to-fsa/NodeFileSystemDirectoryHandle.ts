@@ -10,11 +10,12 @@ import {
 import { NodeFileSystemFileHandle } from './NodeFileSystemFileHandle';
 import type { NodeFsaContext, NodeFsaFs } from './types';
 import type Dirent from '../Dirent';
+import type {GetDirectoryHandleOptions, GetFileHandleOptions, IFileSystemDirectoryHandle, IFileSystemFileHandle, RemoveEntryOptions} from '../fsa/types';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle
  */
-export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
+export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implements IFileSystemDirectoryHandle {
   protected readonly ctx: Partial<NodeFsaContext>;
   constructor(protected readonly fs: NodeFsaFs, public readonly __path: string, ctx: Partial<NodeFsaContext> = {}) {
     super('directory', basename(__path, ctx.separator || '/'));
@@ -70,7 +71,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
   public async getDirectoryHandle(
     name: string,
     options?: GetDirectoryHandleOptions,
-  ): Promise<NodeFileSystemDirectoryHandle> {
+  ): Promise<IFileSystemDirectoryHandle> {
     assertName(name, 'getDirectoryHandle', 'FileSystemDirectoryHandle');
     const filename = this.__path + this.ctx.separator! + name;
     try {
@@ -106,7 +107,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
    *        the file you wish to retrieve.
    * @param options An optional object containing options for the retrieved file.
    */
-  public async getFileHandle(name: string, options?: GetFileHandleOptions): Promise<NodeFileSystemFileHandle> {
+  public async getFileHandle(name: string, options?: GetFileHandleOptions): Promise<IFileSystemFileHandle> {
     assertName(name, 'getFileHandle', 'FileSystemDirectoryHandle');
     const filename = this.__path + this.ctx.separator! + name;
     try {
@@ -196,28 +197,4 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
     }
     return null;
   }
-}
-
-export interface GetDirectoryHandleOptions {
-  /**
-   * A boolean value, which defaults to `false`. When set to `true` if the directory
-   * is not found, one with the specified name will be created and returned.
-   */
-  create?: boolean;
-}
-
-export interface GetFileHandleOptions {
-  /**
-   * A Boolean. Default `false`. When set to `true` if the file is not found,
-   * one with the specified name will be created and returned.
-   */
-  create?: boolean;
-}
-
-export interface RemoveEntryOptions {
-  /**
-   * A boolean value, which defaults to `false`. When set to true entries will
-   * be removed recursively.
-   */
-  recursive?: boolean;
 }

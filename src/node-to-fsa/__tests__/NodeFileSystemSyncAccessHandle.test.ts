@@ -94,5 +94,22 @@ maybe('NodeFileSystemSyncAccessHandle', () => {
       expect(size).toBe(10);
       expect(Buffer.from(buf).slice(0, 10).toString()).toBe('0123456789');
     });
+
+    test('throws "InvalidStateError" DOMException if handle is closed', async () => {
+      const { dir } = setup({
+        'file.txt': '0123456789',
+      });
+      const entry = await dir.getFileHandle('file.txt');
+      const sync = await entry.createSyncAccessHandle!();
+      await sync.close();
+      const buf = new Uint8Array(25);
+      try {
+        const size = await sync.read(buf);
+        throw new Error('No error was thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(DOMException);
+        expect(error.name).toBe('InvalidStateError');
+      }
+    });
   });
 });

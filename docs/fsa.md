@@ -5,7 +5,6 @@ Native File System API) on top of Node's `fs`-like filesystem API.
 
 [fsa]: https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API
 
-
 ## Usage
 
 Crate a [`FileSystemDirectoryHandle`](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle) out

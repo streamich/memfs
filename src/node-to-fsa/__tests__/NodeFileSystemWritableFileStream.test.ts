@@ -13,7 +13,7 @@ describe('createSwapFile()', () => {
     const [handle, path] = await createSwapFile(fs, '/file.txt', false);
     expect(handle).toBeInstanceOf(FileHandle);
     expect(path).toBe('/file.txt.crswap');
-    expect(fs.__vol.toJSON()).toEqual({
+    expect(fs.__vol.toJSON()).toStrictEqual({
       '/file.txt': 'Hello, world!',
       '/file.txt.crswap': '',
     });
@@ -29,7 +29,7 @@ describe('createSwapFile()', () => {
     const [handle, path] = await createSwapFile(fs, '/foo/file.txt', false);
     expect(handle).toBeInstanceOf(FileHandle);
     expect(path).toBe('/foo/file.txt.crswap');
-    expect(fs.__vol.toJSON()).toEqual({
+    expect(fs.__vol.toJSON()).toStrictEqual({
       '/foo/file.txt': 'Hello, world!',
       '/foo/file.txt.crswap': '',
     });
@@ -46,7 +46,7 @@ describe('createSwapFile()', () => {
     const [handle, path] = await createSwapFile(fs, '/foo/file.txt', false);
     expect(handle).toBeInstanceOf(FileHandle);
     expect(path).toBe('/foo/file.txt.1.crswap');
-    expect(fs.__vol.toJSON()).toEqual({
+    expect(fs.__vol.toJSON()).toStrictEqual({
       '/foo/file.txt': 'Hello, world!',
       '/foo/file.txt.crswap': 'lala',
       '/foo/file.txt.1.crswap': '',
@@ -65,7 +65,7 @@ describe('createSwapFile()', () => {
     const [handle, path] = await createSwapFile(fs, '/foo/file.txt', false);
     expect(handle).toBeInstanceOf(FileHandle);
     expect(path).toBe('/foo/file.txt.2.crswap');
-    expect(fs.__vol.toJSON()).toEqual({
+    expect(fs.__vol.toJSON()).toStrictEqual({
       '/foo/file.txt': 'Hello, world!',
       '/foo/file.txt.crswap': 'lala',
       '/foo/file.txt.1.crswap': 'blah',
@@ -86,7 +86,7 @@ describe('createSwapFile()', () => {
     const [handle, path] = await createSwapFile(fs, '/foo/file.txt', false);
     expect(handle).toBeInstanceOf(FileHandle);
     expect(path).toBe('/foo/file.txt.3.crswap');
-    expect(fs.__vol.toJSON()).toEqual({
+    expect(fs.__vol.toJSON()).toStrictEqual({
       '/foo/file.txt': 'Hello, world!',
       '/foo/file.txt.crswap': 'lala',
       '/foo/file.txt.1.crswap': 'blah',
@@ -108,7 +108,7 @@ describe('createSwapFile()', () => {
     const [handle, path] = await createSwapFile(fs, '/foo/file.txt', true);
     expect(handle).toBeInstanceOf(FileHandle);
     expect(path).toBe('/foo/file.txt.3.crswap');
-    expect(fs.__vol.toJSON()).toEqual({
+    expect(fs.__vol.toJSON()).toStrictEqual({
       '/foo/file.txt': 'Hello, world!',
       '/foo/file.txt.crswap': 'lala',
       '/foo/file.txt.1.crswap': 'blah',

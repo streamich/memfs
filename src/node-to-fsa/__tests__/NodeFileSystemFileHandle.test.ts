@@ -145,12 +145,12 @@ maybe('NodeFileSystemFileHandle', () => {
         const entry = await dir.getFileHandle('file.txt');
         const writable = await entry.createWritable();
         await writable.write('1');
-        expect(fs.__vol.toJSON()).toEqual({
+        expect(fs.__vol.toJSON()).toStrictEqual({
           '/file.txt': '...',
           '/file.txt.crswap': '1',
         });
         await writable.abort();
-        expect(fs.__vol.toJSON()).toEqual({
+        expect(fs.__vol.toJSON()).toStrictEqual({
           '/file.txt': '...',
         });
       });

@@ -118,7 +118,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle {
       if (error && typeof error === 'object') {
         switch (error.code) {
           case 'ENOENT': {
-            if (options && options.create) {
+            if (options?.create) {
               await this.fs.promises.writeFile(filename, '');
               return new NodeFileSystemFileHandle(this.fs, filename, this.ctx);
             }

@@ -105,11 +105,9 @@ maybe('NodeFileSystemFileHandle', () => {
         writable.seek(1);
         await writable.write('1');
         await writable.write('2');
-        expect(fs.readFileSync('/file.txt', 'utf8')).toBe('.12');
-        writable.seek(0);
-        await writable.write('0');
+        expect(fs.readFileSync('/file.txt', 'utf8')).toBe('...');
         await writable.close();
-        expect(fs.readFileSync('/file.txt', 'utf8')).toBe('012');
+        expect(fs.readFileSync('/file.txt', 'utf8')).toBe('.12');
       });
     });
 
@@ -133,6 +131,19 @@ maybe('NodeFileSystemFileHandle', () => {
         const writable = await entry.createWritable({ keepExistingData: true });
         await writable.write({ type: 'seek', position: 1 });
         await writable.write({ type: 'write', data: Buffer.from('1') });
+        await writable.close();
+        expect(fs.readFileSync('/file.txt', 'utf8')).toBe('.1.');
+      });
+
+      test('can seek and then write', async () => {
+        const { dir, fs } = setup({
+          'file.txt': '...',
+        });
+        const entry = await dir.getFileHandle('file.txt');
+        const writable = await entry.createWritable({ keepExistingData: true });
+        await writable.write({ type: 'seek', position: 1 });
+        await writable.write({ type: 'write', data: Buffer.from('1') });
+        await writable.close();
         expect(fs.readFileSync('/file.txt', 'utf8')).toBe('.1.');
       });
     });

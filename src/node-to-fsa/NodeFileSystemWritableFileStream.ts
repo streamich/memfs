@@ -10,7 +10,7 @@ import type { NodeFsaFs } from './types';
  * If a file name with with extension `.crswap` is already taken, it
  * creates a new swap file with extension `.1.crswap` and so on.
  */
-export const createSwapFile = async (fs: NodeFsaFs, path: string, keepExistingData: boolean): Promise<IFileHandle> => {
+export const createSwapFile = async (fs: NodeFsaFs, path: string, keepExistingData: boolean): Promise<[handle: IFileHandle, path: string]> => {
   let handle: undefined | IFileHandle;
   let swapPath: string = path + '.crswap';
   try {
@@ -34,14 +34,19 @@ export const createSwapFile = async (fs: NodeFsaFs, path: string, keepExistingDa
   if (!handle) throw new Error(`Could not create a swap file for "${path}".`);
   if (keepExistingData)
     await fs.promises.copyFile(path, swapPath, fs.constants.COPYFILE_FICLONE);
-  return handle;
+  return [handle, swapPath];
 };
 
 
-interface Ref {
-  handle: IFileHandle | undefined;
+interface SwapFile {
+  /** Swap file full path name. */
+  path: string;
+  /** Seek offset in the file. */
   offset: number;
-  open?: Promise<void>;
+  /** Node.js open FileHandle. */
+  handle?: IFileHandle;
+  /** Resolves when swap file is ready for operations. */
+  ready?: Promise<void>;
 }
 
 /**
@@ -52,33 +57,44 @@ interface Ref {
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemWritableFileStream
  */
 export class NodeFileSystemWritableFileStream extends WritableStream {
-  protected readonly ref: Ref;
+  protected readonly swap: SwapFile;
 
   constructor(protected readonly fs: NodeFsaFs, protected readonly path: string, keepExistingData: boolean) {
-    const ref: Ref = { handle: undefined, offset: 0 };
+    const swap: SwapFile = { handle: undefined, path: '', offset: 0 };
     super({
       async start() {
-        const open = fs.promises.open(path, keepExistingData ? 'a+' : 'w');
-        ref.open = open.then(() => undefined);
-        ref.handle = await open;
+        const promise = createSwapFile(fs, path, keepExistingData);
+        swap.ready = promise.then(() => undefined);
+        const [handle, swapPath] = await promise;
+        swap.handle = handle;
+        swap.path = swapPath;
       },
       async write(chunk: Data) {
-        const handle = ref.handle;
+        await swap.ready;
+        const handle = swap.handle;
         if (!handle) throw new Error('Invalid state');
         const buffer = Buffer.from(
           typeof chunk === 'string' ? chunk : chunk instanceof Blob ? await chunk.arrayBuffer() : chunk,
         );
-        const { bytesWritten } = await handle.write(buffer, 0, buffer.length, ref.offset);
-        ref.offset += bytesWritten;
+        const { bytesWritten } = await handle.write(buffer, 0, buffer.length, swap.offset);
+        swap.offset += bytesWritten;
       },
       async close() {
-        if (ref.handle) await ref.handle.close();
+        await swap.ready;
+        const handle = swap.handle;
+        if (!handle) return;
+        await handle.close();
+        await fs.promises.rename(swap.path, path);
       },
       async abort() {
-        if (ref.handle) await ref.handle.close();
+        await swap.ready;
+        const handle = swap.handle;
+        if (!handle) return;
+        await handle.close();
+        await fs.promises.unlink(swap.path);
       },
     });
-    this.ref = ref;
+    this.swap = swap;
   }
 
   /**
@@ -87,7 +103,7 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
    *                 (beginning) of the file.
    */
   public async seek(position: number): Promise<void> {
-    this.ref.offset = position;
+    this.swap.offset = position;
   }
 
   /**
@@ -95,11 +111,11 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
    * @param size An `unsigned long` of the amount of bytes to resize the stream to.
    */
   public async truncate(size: number): Promise<void> {
-    await this.ref.open;
-    const handle = this.ref.handle;
+    await this.swap.ready;
+    const handle = this.swap.handle;
     if (!handle) throw new Error('Invalid state');
     await handle.truncate(size);
-    if (this.ref.offset > size) this.ref.offset = size;
+    if (this.swap.offset > size) this.swap.offset = size;
   }
 
   protected async writeBase(chunk: Data): Promise<void> {
@@ -139,11 +155,14 @@ export class NodeFileSystemWritableFileStream extends WritableStream {
                   return this.writeBase(params.data);
                 }
                 case 'truncate': {
-                  if (typeof params.size !== 'number') throw new TypeError('Missing required argument: size');
-                  if (this.ref.offset > params.size) this.ref.offset = params.size;
+                  if (typeof params.size !== 'number')
+                    throw new TypeError('Missing required argument: size');
+                  if (this.swap.offset > params.size) this.swap.offset = params.size;
                   return this.truncate(params.size);
                 }
                 case 'seek':
+                  if (typeof params.position !== 'number')
+                    throw new TypeError('Missing required argument: position');
                   return this.seek(params.position);
                 default:
                   throw new TypeError('Invalid argument: params');

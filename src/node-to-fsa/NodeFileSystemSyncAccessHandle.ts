@@ -78,7 +78,7 @@ export class NodeFileSystemSyncAccessHandle {
   ): Promise<number> {
     const buf: Buffer | ArrayBufferView = buffer instanceof ArrayBuffer ? Buffer.from(buffer) : buffer;
     try {
-      return this.fs.writeSync(this.fd, buf, 0, buffer.byteLength, options.at || 0);
+      return this.fs.writeSync(this.fd, buf, 0, buffer.byteLength, options.at ?? 0);
     } catch (error) {
       if (error instanceof DOMException) throw error;
       if (error && typeof error === 'object') {

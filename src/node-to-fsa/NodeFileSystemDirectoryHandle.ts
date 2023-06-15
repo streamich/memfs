@@ -1,5 +1,6 @@
 import { NodeFileSystemHandle } from './NodeFileSystemHandle';
 import {
+  assertCanWrite,
   assertName,
   basename,
   ctx as createCtx,
@@ -84,6 +85,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
         switch (error.code) {
           case 'ENOENT': {
             if (options?.create) {
+              assertCanWrite(this.ctx.mode!);
               await this.fs.promises.mkdir(filename);
               return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
             }
@@ -120,6 +122,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
         switch (error.code) {
           case 'ENOENT': {
             if (options?.create) {
+              assertCanWrite(this.ctx.mode!);
               await this.fs.promises.writeFile(filename, '');
               return new NodeFileSystemFileHandle(this.fs, filename, this.ctx);
             }
@@ -144,6 +147,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
    * @param options An optional object containing options.
    */
   public async removeEntry(name: string, { recursive = false }: RemoveEntryOptions = {}): Promise<void> {
+    assertCanWrite(this.ctx.mode!);
     assertName(name, 'removeEntry', 'FileSystemDirectoryHandle');
     const filename = this.__path + this.ctx.separator! + name;
     const promises = this.fs.promises;

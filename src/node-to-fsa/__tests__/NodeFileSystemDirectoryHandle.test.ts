@@ -20,14 +20,14 @@ maybe('NodeFileSystemDirectoryHandle', () => {
     test('returns an empty iterator for an empty directory', async () => {
       const { dir } = setup();
       const keys = dir.keys();
-      expect(await keys.next()).toEqual({ done: true, value: undefined });
+      expect(await keys.next()).toStrictEqual({ done: true, value: undefined });
     });
 
     test('returns a folder', async () => {
       const { dir } = setup({ folder: null });
       const list: string[] = [];
       for await (const key of dir.keys()) list.push(key);
-      expect(list).toEqual(['folder']);
+      expect(list).toStrictEqual(['folder']);
     });
 
     test('returns two folders', async () => {
@@ -46,7 +46,7 @@ maybe('NodeFileSystemDirectoryHandle', () => {
       });
       const list: string[] = [];
       for await (const key of dir.keys()) list.push(key);
-      expect(list).toEqual(['file.txt']);
+      expect(list).toStrictEqual(['file.txt']);
     });
   });
 
@@ -54,7 +54,7 @@ maybe('NodeFileSystemDirectoryHandle', () => {
     test('returns an empty iterator for an empty directory', async () => {
       const { dir } = setup();
       const keys = dir.entries();
-      expect(await keys.next()).toEqual({ done: true, value: undefined });
+      expect(await keys.next()).toStrictEqual({ done: true, value: undefined });
     });
 
     test('returns a folder', async () => {
@@ -96,7 +96,7 @@ maybe('NodeFileSystemDirectoryHandle', () => {
     test('returns an empty iterator for an empty directory', async () => {
       const { dir } = setup();
       const values = dir.values();
-      expect(await values.next()).toEqual({ done: true, value: undefined });
+      expect(await values.next()).toStrictEqual({ done: true, value: undefined });
     });
 
     test('returns a folder', async () => {
@@ -448,7 +448,7 @@ maybe('NodeFileSystemDirectoryHandle', () => {
     test('return empty array for itself', async () => {
       const { dir } = setup({});
       const res = await dir.resolve(dir);
-      expect(res).toEqual([]);
+      expect(res).toStrictEqual([]);
     });
 
     test('can resolve one level deep child', async () => {
@@ -457,7 +457,7 @@ maybe('NodeFileSystemDirectoryHandle', () => {
       });
       const child = await dir.getFileHandle('file');
       const res = await dir.resolve(child);
-      expect(res).toEqual(['file']);
+      expect(res).toStrictEqual(['file']);
     });
 
     test('can resolve two level deep child', async () => {
@@ -467,9 +467,9 @@ maybe('NodeFileSystemDirectoryHandle', () => {
       const child1 = await dir.getDirectoryHandle('dir');
       const child2 = await child1.getFileHandle('file');
       const res = await dir.resolve(child2);
-      expect(res).toEqual(['dir', 'file']);
+      expect(res).toStrictEqual(['dir', 'file']);
       const res2 = await child1.resolve(child2);
-      expect(res2).toEqual(['file']);
+      expect(res2).toStrictEqual(['file']);
     });
 
     test('returns "null" if not a descendant', async () => {

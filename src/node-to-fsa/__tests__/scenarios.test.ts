@@ -24,7 +24,7 @@ maybe('scenarios', () => {
     await logsWritable.write('timestamp,level,message\n');
     await logsWritable.write({ type: 'write', data: '2021-01-01T00:00:00Z,INFO,Hello World\n' });
     await logsWritable.close();
-    expect(fs.__vol.toJSON()).toEqual({
+    expect(fs.__vol.toJSON()).toStrictEqual({
       '/tmp': null,
       '/etc': null,
       '/bin': null,

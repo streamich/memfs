@@ -1099,12 +1099,24 @@ export class Volume {
     }
   }
 
-  private readBase(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset: number, length: number, position: number): number {
+  private readBase(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    position: number,
+  ): number {
     const file = this.getFileByFdOrThrow(fd);
     return file.read(buffer, Number(offset), Number(length), position);
   }
 
-  readSync(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset: number, length: number, position: number): number {
+  readSync(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    position: number,
+  ): number {
     validateFd(fd);
     return this.readBase(fd, buffer, offset, length, position);
   }

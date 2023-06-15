@@ -32,7 +32,7 @@ maybe('NodeFileSystemFileHandle', () => {
           'file.txt': '012345',
         });
         const entry = await dir.getFileHandle('file.txt');
-        const writable = await entry.createWritable({keepExistingData: true});
+        const writable = await entry.createWritable({ keepExistingData: true });
         await writable.truncate(3);
         await writable.close();
         expect(fs.readFileSync('/file.txt', 'utf8')).toBe('012');
@@ -43,8 +43,8 @@ maybe('NodeFileSystemFileHandle', () => {
           'file.txt': '012345',
         });
         const entry = await dir.getFileHandle('file.txt');
-        const writable = await entry.createWritable({keepExistingData: true});
-        await writable.write({type: 'truncate', size: 3})
+        const writable = await entry.createWritable({ keepExistingData: true });
+        await writable.write({ type: 'truncate', size: 3 });
         await writable.close();
         expect(fs.readFileSync('/file.txt', 'utf8')).toBe('012');
       });
@@ -54,8 +54,8 @@ maybe('NodeFileSystemFileHandle', () => {
           'file.txt': '012345',
         });
         const entry = await dir.getFileHandle('file.txt');
-        const writable = await entry.createWritable({keepExistingData: true});
-        await writable.write({type: 'truncate', size: 10})
+        const writable = await entry.createWritable({ keepExistingData: true });
+        await writable.write({ type: 'truncate', size: 10 });
         await writable.close();
         expect(fs.readFileSync('/file.txt').length).toBe(10);
         expect(fs.readFileSync('/file.txt')[8]).toBe(0);
@@ -66,8 +66,8 @@ maybe('NodeFileSystemFileHandle', () => {
           'file.txt': '012345',
         });
         const entry = await dir.getFileHandle('file.txt');
-        const writable = await entry.createWritable({keepExistingData: true});
-        await writable.write({type: 'truncate', size: 10})
+        const writable = await entry.createWritable({ keepExistingData: true });
+        await writable.write({ type: 'truncate', size: 10 });
         await writable.close();
         expect(fs.readFileSync('/file.txt')[8]).toBe(0);
       });
@@ -90,7 +90,7 @@ maybe('NodeFileSystemFileHandle', () => {
           'file.txt': '...',
         });
         const entry = await dir.getFileHandle('file.txt');
-        const writable = await entry.createWritable({keepExistingData: true});
+        const writable = await entry.createWritable({ keepExistingData: true });
         await writable.write('1');
         await writable.close();
         expect(fs.readFileSync('/file.txt', 'utf8')).toBe('1..');
@@ -101,7 +101,7 @@ maybe('NodeFileSystemFileHandle', () => {
           'file.txt': '...',
         });
         const entry = await dir.getFileHandle('file.txt');
-        const writable = await entry.createWritable({keepExistingData: true});
+        const writable = await entry.createWritable({ keepExistingData: true });
         writable.seek(1);
         await writable.write('1');
         await writable.write('2');
@@ -119,8 +119,8 @@ maybe('NodeFileSystemFileHandle', () => {
           'file.txt': '...',
         });
         const entry = await dir.getFileHandle('file.txt');
-        const writable = await entry.createWritable({keepExistingData: true});
-        await writable.write({type: 'write', position: 1, data: '1'});
+        const writable = await entry.createWritable({ keepExistingData: true });
+        await writable.write({ type: 'write', position: 1, data: '1' });
         await writable.close();
         expect(fs.readFileSync('/file.txt', 'utf8')).toBe('.1.');
       });
@@ -130,9 +130,9 @@ maybe('NodeFileSystemFileHandle', () => {
           'file.txt': '...',
         });
         const entry = await dir.getFileHandle('file.txt');
-        const writable = await entry.createWritable({keepExistingData: true});
-        await writable.write({type: 'seek', position: 1});
-        await writable.write({type: 'write', data: Buffer.from('1')});
+        const writable = await entry.createWritable({ keepExistingData: true });
+        await writable.write({ type: 'seek', position: 1 });
+        await writable.write({ type: 'write', data: Buffer.from('1') });
         expect(fs.readFileSync('/file.txt', 'utf8')).toBe('.1.');
       });
     });

@@ -1,4 +1,4 @@
-import type {NodeFsaContext, NodeFsaFs} from "./types";
+import type { NodeFsaContext, NodeFsaFs } from './types';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle

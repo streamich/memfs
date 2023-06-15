@@ -7,11 +7,7 @@ import type { NodeFsaContext, NodeFsaFs } from './types';
 export class NodeFileSystemFileHandle extends NodeFileSystemHandle {
   protected readonly ctx: NodeFsaContext;
 
-  constructor(
-    protected readonly fs: NodeFsaFs,
-    public readonly __path: string,
-    ctx: Partial<NodeFsaContext> = {},
-  ) {
+  constructor(protected readonly fs: NodeFsaFs, public readonly __path: string, ctx: Partial<NodeFsaContext> = {}) {
     ctx = createCtx(ctx);
     super('file', basename(__path, ctx.separator!));
     this.ctx = ctx as NodeFsaContext;

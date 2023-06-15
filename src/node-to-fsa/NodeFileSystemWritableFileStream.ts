@@ -1,4 +1,4 @@
-import type {Data, FileSystemWritableFileStreamParams, IFileSystemWritableFileStream} from '../fsa/types';
+import type { Data, FileSystemWritableFileStreamParams, IFileSystemWritableFileStream } from '../fsa/types';
 import type { IFileHandle } from '../promises';
 import type { NodeFsaFs } from './types';
 

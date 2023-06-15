@@ -26,7 +26,10 @@ export const assertName = (name: string, method: string, klass: string) => {
 
 export const assertCanWrite = (mode: 'read' | 'readwrite') => {
   if (mode !== 'readwrite')
-    throw new DOMException('The request is not allowed by the user agent or the platform in the current context.', 'NotAllowedError');
+    throw new DOMException(
+      'The request is not allowed by the user agent or the platform in the current context.',
+      'NotAllowedError',
+    );
 };
 
 export const newNotFoundError = () =>

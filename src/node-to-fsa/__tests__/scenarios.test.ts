@@ -10,7 +10,7 @@ maybe('scenarios', () => {
       '/bin': null,
       '/Users/kasper/Documents/shopping-list.txt': 'Milk, Eggs, Bread',
     }) as IFsWithVolume;
-    const dir = nodeToFsa(fs, '/Users/kasper/Documents', {mode: 'readwrite'});
+    const dir = nodeToFsa(fs, '/Users/kasper/Documents', { mode: 'readwrite' });
     const shoppingListFile = await dir.getFileHandle('shopping-list.txt');
     const shoppingList = await shoppingListFile.getFile();
     expect(await shoppingList.text()).toBe('Milk, Eggs, Bread');

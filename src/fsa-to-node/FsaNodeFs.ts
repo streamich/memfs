@@ -1,13 +1,14 @@
 import { createPromisesApi } from '../node/promises';
-import { getDefaultOptsAndCb, getMkdirOptions } from '../node/options';
-import { createError, genRndStr6, modeToNumber, nullCheck, pathToFilename, validateCallback } from '../node/util';
+import { getDefaultOptsAndCb, getMkdirOptions, getRmdirOptions } from '../node/options';
+import { createError, genRndStr6, nullCheck, pathToFilename, validateCallback } from '../node/util';
 import { pathToLocation } from './util';
+import { MODE } from '../node/constants';
+import { strToEncoding } from '../encoding';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
-import { MODE } from '../node/constants';
-import { strToEncoding } from '../encoding';
+import {FsaToNodeConstants} from './constants';
 
 const notImplemented: (...args: unknown[]) => unknown = () => {
   throw new Error('Not implemented');
@@ -208,10 +209,16 @@ export class FsaNodeFs implements FsCallbackApi {
    * @param path Path from root to the new folder.
    * @param create Whether to create the folders if they don't exist.
    */
-  private async getDir(path: string[], create: boolean): Promise<fsa.IFileSystemDirectoryHandle> {
+  private async getDir(path: string[], create: boolean, funcName?: string): Promise<fsa.IFileSystemDirectoryHandle> {
     let curr: fsa.IFileSystemDirectoryHandle = this.root;
     const options: fsa.GetDirectoryHandleOptions = { create };
-    for (const name of path) curr = await curr.getDirectoryHandle(name, options);
+    try {
+      for (const name of path) curr = await curr.getDirectoryHandle(name, options);
+    } catch (error) {
+      if (error && typeof error === 'object' && error.name === 'TypeMismatchError')
+        throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
+      throw error;
+    }
     return curr;
   }
 
@@ -238,11 +245,6 @@ export class FsaNodeFs implements FsCallbackApi {
                 callback(err);
                 return;
               }
-              case 'TypeMismatchError': {
-                const err = createError('ENOTDIR', 'mkdir', folder.join('/'));
-                callback(err);
-                return;
-              }
             }
           }
           callback(error);
@@ -265,11 +267,31 @@ export class FsaNodeFs implements FsCallbackApi {
     });
   };
 
-  rmdir(path: misc.PathLike, callback: misc.TCallback<void>);
-  rmdir(path: misc.PathLike, options: opts.IRmdirOptions, callback: misc.TCallback<void>);
-  rmdir(path: misc.PathLike, a: misc.TCallback<void> | opts.IRmdirOptions, b?: misc.TCallback<void>) {
-    throw new Error('Not implemented');
-  }
+  public readonly rmdir: FsCallbackApi['rmdir'] = (path: misc.PathLike, a: misc.TCallback<void> | opts.IRmdirOptions, b?: misc.TCallback<void>) => {
+    const options: opts.IRmdirOptions = getRmdirOptions(a);
+    const callback: misc.TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
+    const [folder, name] = pathToLocation(pathToFilename(path));
+    this.getDir(folder, false, 'rmdir')
+      .then(dir => dir.getDirectoryHandle(name).then(() => dir))
+      .then(dir => dir.removeEntry(name, {recursive: options.recursive ?? false}))
+      .then(() => callback(null), error => {
+        if (error && typeof error === 'object') {
+          switch (error.name) {
+            case 'NotFoundError': {
+              const err = createError('ENOENT', 'rmdir', folder.join('/'));
+              callback(err);
+              return;
+            }
+            case 'InvalidModificationError': {
+              const err = createError('ENOTEMPTY', 'rmdir', folder.join('/'));
+              callback(err);
+              return;
+            }
+          }
+        }
+        callback(error);
+      });
+  };
 
   rm(path: misc.PathLike, callback: misc.TCallback<void>): void;
   rm(path: misc.PathLike, options: opts.IRmOptions, callback: misc.TCallback<void>): void;

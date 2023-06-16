@@ -77,7 +77,7 @@ describe('.rmdir()', () => {
   test('can remove an empty folder', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
     await fs.promises.rmdir('/empty-folder');
-    expect(mfs.__vol.toJSON()).toStrictEqual({'/mountpoint/folder/file': 'test'});
+    expect(mfs.__vol.toJSON()).toStrictEqual({ '/mountpoint/folder/file': 'test' });
   });
 
   test('throws when attempts to remove non-empty folder', async () => {
@@ -95,8 +95,8 @@ describe('.rmdir()', () => {
   });
 
   test('can remove non-empty directory recursively', async () => {
-    const { fs, mfs } = setup({ folder: { subfolder: {file: 'test'} }, 'empty-folder': null });
-    await fs.promises.rmdir('/folder', {recursive: true});
+    const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+    await fs.promises.rmdir('/folder', { recursive: true });
     expect(mfs.__vol.toJSON()).toStrictEqual({
       '/mountpoint/empty-folder': null,
     });
@@ -107,7 +107,7 @@ describe('.rm()', () => {
   test('can remove an empty folder', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
     await fs.promises.rm('/empty-folder');
-    expect(mfs.__vol.toJSON()).toStrictEqual({'/mountpoint/folder/file': 'test'});
+    expect(mfs.__vol.toJSON()).toStrictEqual({ '/mountpoint/folder/file': 'test' });
   });
 
   test('throws when attempts to remove non-empty folder', async () => {
@@ -125,17 +125,17 @@ describe('.rm()', () => {
   });
 
   test('can remove non-empty directory recursively', async () => {
-    const { fs, mfs } = setup({ folder: { subfolder: {file: 'test'} }, 'empty-folder': null });
-    await fs.promises.rm('/folder', {recursive: true});
+    const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+    await fs.promises.rm('/folder', { recursive: true });
     expect(mfs.__vol.toJSON()).toStrictEqual({
       '/mountpoint/empty-folder': null,
     });
   });
 
   test('throws if path does not exist', async () => {
-    const { fs, mfs } = setup({ folder: { subfolder: {file: 'test'} }, 'empty-folder': null });
+    const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
     try {
-      await fs.promises.rm('/lala/lulu', {recursive: true});
+      await fs.promises.rm('/lala/lulu', { recursive: true });
       throw new Error('Expected error');
     } catch (error) {
       expect(error.code).toBe('ENOENT');
@@ -147,7 +147,7 @@ describe('.rm()', () => {
   });
 
   test('does not throw, if path does not exist, but "force" flag set', async () => {
-    const { fs } = setup({ folder: { subfolder: {file: 'test'} }, 'empty-folder': null });
-    await fs.promises.rm('/lala/lulu', {recursive: true, force: true});
+    const { fs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+    await fs.promises.rm('/lala/lulu', { recursive: true, force: true });
   });
 });

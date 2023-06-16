@@ -3,6 +3,8 @@ import * as errors from '../internal/errors';
 import type { FsCallbackApi } from './types';
 import type * as misc from './types/misc';
 
+export const isWin = process.platform === 'win32';
+
 export function promisify(
   fs: FsCallbackApi,
   fn: string,

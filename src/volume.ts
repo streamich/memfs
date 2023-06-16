@@ -38,6 +38,7 @@ import {
   flagsToNumber,
   validateFd,
   isFd,
+  isWin,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
 
@@ -58,8 +59,6 @@ const {
 } = constants;
 
 const { sep, relative, join, dirname } = pathModule.posix ? pathModule.posix : pathModule;
-
-const isWin = process.platform === 'win32';
 
 // ---------------------------------------- Types
 

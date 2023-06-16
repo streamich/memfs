@@ -1,11 +1,18 @@
-import type {PathLike, symlink} from 'fs';
-import type {constants} from '../../constants';
-import type {EventEmitter} from 'events';
-import type {TSetTimeout} from '../../setTimeoutUnref';
-import type {IAppendFileOptions, IReadFileOptions, IReadStreamOptions, IStatOptions, IWriteFileOptions, IWriteStreamOptions} from './options';
-import type {Readable, Writable} from 'stream';
+import type { PathLike, symlink } from 'fs';
+import type { constants } from '../../constants';
+import type { EventEmitter } from 'events';
+import type { TSetTimeout } from '../../setTimeoutUnref';
+import type {
+  IAppendFileOptions,
+  IReadFileOptions,
+  IReadStreamOptions,
+  IStatOptions,
+  IWriteFileOptions,
+  IWriteStreamOptions,
+} from './options';
+import type { Readable, Writable } from 'stream';
 
-export {PathLike, symlink};
+export { PathLike, symlink };
 
 export type TDataOut = string | Buffer; // Data formats we give back to users.
 export type TEncodingExtended = BufferEncoding | 'buffer';
@@ -93,12 +100,7 @@ export interface IWriteStream extends Writable {
 }
 
 export interface IFSWatcher extends EventEmitter {
-  start(
-    path: PathLike,
-    persistent?: boolean,
-    recursive?: boolean,
-    encoding?: BufferEncoding,
-  ): void;
+  start(path: PathLike, persistent?: boolean, recursive?: boolean, encoding?: BufferEncoding): void;
   close(): void;
 }
 

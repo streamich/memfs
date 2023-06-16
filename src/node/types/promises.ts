@@ -1,5 +1,5 @@
-import * as misc from "./misc";
-import * as opts from "./options";
+import * as misc from './misc';
+import * as opts from './options';
 
 export interface FsPromisesApi {
   FileHandle: new (...args: unknown[]) => misc.IFileHandle;

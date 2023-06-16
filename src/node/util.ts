@@ -1,4 +1,4 @@
-import type {FsCallbackApi} from "./types";
+import type { FsCallbackApi } from './types';
 
 export function promisify(
   fs: FsCallbackApi,
@@ -12,4 +12,4 @@ export function promisify(
         return resolve(getResult(result));
       });
     });
-};
+}

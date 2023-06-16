@@ -1,6 +1,6 @@
-import {NodeFileSystemDirectoryHandle, NodeFileSystemFileHandle} from "../node-to-fsa";
-import type {IFileSystemHandle} from "../fsa/types";
-import type {IDirent, TDataOut} from "../node/types/misc";
+import { NodeFileSystemDirectoryHandle, NodeFileSystemFileHandle } from '../node-to-fsa';
+import type { IFileSystemHandle } from '../fsa/types';
+import type { IDirent, TDataOut } from '../node/types/misc';
 
 export class FsaNodeDirent implements IDirent {
   public constructor(public readonly name: TDataOut, protected readonly handle: IFileSystemHandle) {}
@@ -8,7 +8,7 @@ export class FsaNodeDirent implements IDirent {
   isDirectory(): boolean {
     return this.handle instanceof NodeFileSystemDirectoryHandle;
   }
-  
+
   isFile(): boolean {
     return this.handle instanceof NodeFileSystemFileHandle;
   }

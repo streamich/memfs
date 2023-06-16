@@ -75,4 +75,6 @@ const readdirDefaults: opts.IReaddirOptions = {
   withFileTypes: false,
 };
 export const getReaddirOptions = optsGenerator<opts.IReaddirOptions>(readdirDefaults);
-export const getReaddirOptsAndCb = optsAndCbGenerator<opts.IReaddirOptions, misc.TDataOut[] | misc.IDirent[]>(getReaddirOptions);
+export const getReaddirOptsAndCb = optsAndCbGenerator<opts.IReaddirOptions, misc.TDataOut[] | misc.IDirent[]>(
+  getReaddirOptions,
+);

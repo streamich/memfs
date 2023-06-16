@@ -1,8 +1,9 @@
 import type * as opts from './types/options';
-import { MODE } from './constants';
+import { FLAGS, MODE } from './constants';
 import { assertEncoding } from '../encoding';
 import * as misc from './types/misc';
 import { validateCallback } from './util';
+import {IAppendFileOptions} from '../volume';
 
 const mkdirDefaults: opts.IMkdirOptions = {
   mode: MODE.DIR,
@@ -78,3 +79,11 @@ export const getReaddirOptions = optsGenerator<opts.IReaddirOptions>(readdirDefa
 export const getReaddirOptsAndCb = optsAndCbGenerator<opts.IReaddirOptions, misc.TDataOut[] | misc.IDirent[]>(
   getReaddirOptions,
 );
+
+const appendFileDefaults: opts.IAppendFileOptions = {
+  encoding: 'utf8',
+  mode: MODE.DEFAULT,
+  flag: FLAGS[FLAGS.a],
+};
+export const getAppendFileOpts = optsGenerator<IAppendFileOptions>(appendFileDefaults);
+export const getAppendFileOptsAndCb = optsAndCbGenerator<IAppendFileOptions, void>(getAppendFileOpts);

@@ -27,6 +27,8 @@ import {
   optsAndCbGenerator,
   optsDefaults,
   optsGenerator,
+  getAppendFileOptsAndCb,
+  getAppendFileOpts,
 } from './node/options';
 import {
   validateCallback,
@@ -39,6 +41,7 @@ import {
   validateFd,
   isFd,
   isWin,
+  dataToBuffer,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
 
@@ -121,13 +124,6 @@ const getWriteFileOptions = optsGenerator<IWriteFileOptions>(writeFileDefaults);
 
 // Options for `fs.appendFile` and `fs.appendFileSync`
 export interface IAppendFileOptions extends opts.IFileOptions {}
-const appendFileDefaults: IAppendFileOptions = {
-  encoding: 'utf8',
-  mode: MODE.DEFAULT,
-  flag: FLAGS[FLAGS.a],
-};
-const getAppendFileOpts = optsGenerator<IAppendFileOptions>(appendFileDefaults);
-const getAppendFileOptsAndCb = optsAndCbGenerator<IAppendFileOptions, void>(getAppendFileOpts);
 
 // Options for `fs.realpath` and `fs.realpathSync`
 export interface IRealpathOptions {
@@ -227,12 +223,6 @@ export function dataToStr(data: TData, encoding: string = ENCODING_UTF8): string
   if (Buffer.isBuffer(data)) return data.toString(encoding);
   else if (data instanceof Uint8Array) return bufferFrom(data).toString(encoding);
   else return String(data);
-}
-
-export function dataToBuffer(data: TData, encoding: string = ENCODING_UTF8): Buffer {
-  if (Buffer.isBuffer(data)) return data;
-  else if (data instanceof Uint8Array) return bufferFrom(data);
-  else return bufferFrom(String(data), encoding);
 }
 
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): TDataOut {
@@ -1475,7 +1465,7 @@ export class Volume {
     this.wrapAsync(this.accessBase, [filename, mode], callback);
   }
 
-  appendFileSync(id: TFileId, data: TData, options: IAppendFileOptions | string = appendFileDefaults) {
+  appendFileSync(id: TFileId, data: TData, options?: IAppendFileOptions | string) {
     const opts = getAppendFileOpts(options);
 
     // force append behavior when using a supplied file descriptor

@@ -10,9 +10,9 @@ import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 
-const notImplemented: (...args: unknown[]) => unknown = () => {
-  throw new Error('Not implemented');
-};
+// const notImplemented: (...args: unknown[]) => unknown = () => {
+//   throw new Error('Not implemented');
+// };
 
 /**
  * Constructs a Node.js `fs` API from a File System Access API
@@ -20,8 +20,32 @@ const notImplemented: (...args: unknown[]) => unknown = () => {
  */
 export class FsaNodeFs implements FsCallbackApi {
   public readonly promises: FsPromisesApi = createPromisesApi(this);
+  public readonly fs = new Map<number, fsa.IFileSystemFileHandle>();
 
   public constructor(protected readonly root: fsa.IFileSystemDirectoryHandle) {}
+
+  /**
+   * @param path Path from root to the new folder.
+   * @param create Whether to create the folders if they don't exist.
+   */
+  private async getDir(path: string[], create: boolean, funcName?: string): Promise<fsa.IFileSystemDirectoryHandle> {
+    let curr: fsa.IFileSystemDirectoryHandle = this.root;
+    const options: fsa.GetDirectoryHandleOptions = { create };
+    try {
+      for (const name of path) curr = await curr.getDirectoryHandle(name, options);
+    } catch (error) {
+      if (error && typeof error === 'object' && error.name === 'TypeMismatchError')
+        throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
+      throw error;
+    }
+    return curr;
+  }
+
+  // private async getFile(path: string[], name: string, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
+  //   const dir = await this.getDir(path, false, funcName);
+  //   const file = await dir.getFileHandle(name, { create: false });
+  //   return file;
+  // }
 
   public readonly open: FsCallbackApi['open'] = (
     path: misc.PathLike,
@@ -85,9 +109,30 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   }
 
-  unlink(path: misc.PathLike, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
-  }
+  public readonly unlink: FsCallbackApi['unlink'] = (path: misc.PathLike, callback: misc.TCallback<void>): void => {
+    const filename = pathToFilename(path);
+    const [folder, name] = pathToLocation(filename);
+    this.getDir(folder, false, 'unlink')
+      .then(dir => dir.removeEntry(name))
+      .then(
+        () => callback(null),
+        error => {
+          if (error && typeof error === 'object') {
+            switch (error.name) {
+              case 'NotFoundError': {
+                callback(createError('ENOENT', 'unlink', filename));
+                return;
+              }
+              case 'InvalidModificationError': {
+                callback(createError('EISDIR', 'unlink', filename));
+                return;
+              }
+            }
+          }
+          callback(error);
+        },
+      );
+  };
 
   symlink(target: misc.PathLike, path: misc.PathLike, callback: misc.TCallback<void>);
   symlink(target: misc.PathLike, path: misc.PathLike, type: misc.symlink.Type, callback: misc.TCallback<void>);
@@ -203,23 +248,6 @@ export class FsaNodeFs implements FsCallbackApi {
 
   utimes(path: misc.PathLike, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void {
     throw new Error('Not implemented');
-  }
-
-  /**
-   * @param path Path from root to the new folder.
-   * @param create Whether to create the folders if they don't exist.
-   */
-  private async getDir(path: string[], create: boolean, funcName?: string): Promise<fsa.IFileSystemDirectoryHandle> {
-    let curr: fsa.IFileSystemDirectoryHandle = this.root;
-    const options: fsa.GetDirectoryHandleOptions = { create };
-    try {
-      for (const name of path) curr = await curr.getDirectoryHandle(name, options);
-    } catch (error) {
-      if (error && typeof error === 'object' && error.name === 'TypeMismatchError')
-        throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
-      throw error;
-    }
-    return curr;
   }
 
   public readonly mkdir: FsCallbackApi['mkdir'] = (

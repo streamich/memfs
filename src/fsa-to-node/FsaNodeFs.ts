@@ -1,4 +1,8 @@
-import type {FsCallbackApi} from '../node/types';
+import { createPromisesApi } from '../node/promises';
+import { getMkdirOptions } from '../node/options';
+import {createError, modeToNumber, pathToFilename, validateCallback} from '../node/util';
+import {pathToLocation} from './util';
+import type {FsCallbackApi, FsPromisesApi} from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
@@ -12,6 +16,8 @@ const notImplemented: ((...args: unknown[]) => unknown) = () => {
  * [`FileSystemDirectoryHandle` object](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle).
  */
 export class FsaNodeFs implements FsCallbackApi {
+  public readonly promises: FsPromisesApi = createPromisesApi(this);
+
   public constructor (protected readonly root: fsa.IFileSystemDirectoryHandle) {}
 
   public readonly open: FsCallbackApi['open'] = (path: misc.PathLike, flags: misc.TFlags, a?: misc.TMode | misc.TCallback<number>, b?: misc.TCallback<number> | string) => {
@@ -169,17 +175,43 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   }
 
-  mkdir(path: misc.PathLike, callback: misc.TCallback<void>);
-  mkdir(
-    path: misc.PathLike,
-    mode: misc.TMode | (opts.IMkdirOptions & { recursive?: false }),
-    callback: misc.TCallback<void>,
-  );
-  mkdir(path: misc.PathLike, mode: opts.IMkdirOptions & { recursive: true }, callback: misc.TCallback<string>);
-  mkdir(path: misc.PathLike, mode: misc.TMode | opts.IMkdirOptions, callback: misc.TCallback<string>);
-  mkdir(path: misc.PathLike, a: misc.TCallback<void> | misc.TMode | opts.IMkdirOptions, b?: misc.TCallback<string> | misc.TCallback<void>) {
-    throw new Error('Not implemented');
+  /**
+   * @param path Path from root to the new folder.
+   * @param create Whether to create the folders if they don't exist.
+   */
+  private async getDir(path: string[], create: boolean): Promise<fsa.IFileSystemDirectoryHandle> {
+    let curr: fsa.IFileSystemDirectoryHandle = this.root;
+    const options: fsa.GetDirectoryHandleOptions = {create};
+    for (const name of path)
+      curr = await curr.getDirectoryHandle(name, options);
+    return curr;
   }
+
+  public readonly mkdir: FsCallbackApi['mkdir'] = (path: misc.PathLike, a: misc.TCallback<void> | misc.TMode | opts.IMkdirOptions, b?: misc.TCallback<string> | misc.TCallback<void>) => {
+    const opts: misc.TMode | opts.IMkdirOptions = getMkdirOptions(a);
+    const callback = validateCallback(typeof a === 'function' ? a : b!);
+    // const modeNum = modeToNumber(opts.mode, 0o777);
+    const filename = pathToFilename(path);
+    const [folder, name] = pathToLocation(filename);
+    // TODO: need to throw if directory already exists
+    this.getDir(folder, opts.recursive ?? false)
+      .then(dir => dir.getDirectoryHandle(name, {create: true}))
+      .then(() => callback(null), error => {
+        if (!error || typeof error !== 'object') {
+          callback(createError('', 'mkdir'));
+          return;
+        }
+        switch (error.name) {
+          case 'NotFoundError': {
+            const err = createError('ENOTDIR', 'mkdir', folder.join('/'));
+            callback(err);
+          }
+          default: {
+            callback(createError('', 'mkdir'));
+          }
+        }
+      });
+  };
 
   mkdirp(path: misc.PathLike, callback: misc.TCallback<string>);
   mkdirp(path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<string>);

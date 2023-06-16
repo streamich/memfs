@@ -1,4 +1,4 @@
-import {FsaToNodeConstants} from "./constants";
+import {FsaToNodeConstants} from "./constants";;
 import type {FsLocation} from "./types";
 
 export const pathToLocation = (path: string): FsLocation => {

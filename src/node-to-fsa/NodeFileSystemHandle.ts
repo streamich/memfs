@@ -1,5 +1,5 @@
 import { NodePermissionStatus } from './NodePermissionStatus';
-import type { IFileSystemHandle, NodeFileSystemHandlePermissionDescriptor } from '../fsa/types';
+import type { IFileSystemHandle, FileSystemHandlePermissionDescriptor } from '../fsa/types';
 
 /**
  * Represents a File System Access API file handle `FileSystemHandle` object,
@@ -25,7 +25,7 @@ export abstract class NodeFileSystemHandle implements IFileSystemHandle {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle/queryPermission
    */
   public queryPermission(
-    fileSystemHandlePermissionDescriptor: NodeFileSystemHandlePermissionDescriptor,
+    fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor,
   ): NodePermissionStatus {
     throw new Error('Not implemented');
   }
@@ -41,7 +41,7 @@ export abstract class NodeFileSystemHandle implements IFileSystemHandle {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle/requestPermission
    */
   public requestPermission(
-    fileSystemHandlePermissionDescriptor: NodeFileSystemHandlePermissionDescriptor,
+    fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor,
   ): NodePermissionStatus {
     throw new Error('Not implemented');
   }

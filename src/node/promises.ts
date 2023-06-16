@@ -4,10 +4,9 @@ import type * as opts from './types/options';
 import type * as misc from './types/misc';
 import type { FsCallbackApi, FsPromisesApi } from './types';
 
-export function createPromisesApi(vol: FsCallbackApi): null | FsPromisesApi {
-  if (typeof Promise === 'undefined') return null;
+export function createPromisesApi(vol: FsCallbackApi): FsPromisesApi {
   return {
-    FileHandle,
+    FileHandle: FileHandle as any,
 
     access(path: misc.PathLike, mode?: number): Promise<void> {
       return promisify(vol, 'access')(path, mode);

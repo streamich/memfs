@@ -5,6 +5,7 @@ import Dirent from '../Dirent';
 import { Volume, filenameToSteps, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
 import { tryGetChild, tryGetChildNode } from './util';
+import {genRndStr6} from '../node/util';
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
@@ -27,15 +28,14 @@ describe('volume', () => {
       expect(filenameToSteps('/dir/../file.txt')).toEqual(['file.txt']);
     });
   });
+  it('genRndStr6()', () => {
+    for (let i = 0; i < 100; i++) {
+      const str = genRndStr6();
+      expect(typeof str === 'string').toBe(true);
+      expect(str.length).toBe(6);
+    }
+  });
   describe('Volume', () => {
-    it('.genRndStr()', () => {
-      const vol = new Volume();
-      for (let i = 0; i < 100; i++) {
-        const str = vol.genRndStr();
-        expect(typeof str === 'string').toBe(true);
-        expect(str.length).toBe(6);
-      }
-    });
     describe('.getLink(steps)', () => {
       const vol = new Volume();
       it('[] - Get the root link', () => {

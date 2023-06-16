@@ -1,4 +1,4 @@
-import { ERRSTR } from './constants';
+import { ERRSTR, FLAGS } from './constants';
 import * as errors from '../internal/errors';
 import type { FsCallbackApi } from './types';
 import type * as misc from './types/misc';
@@ -145,4 +145,16 @@ export function genRndStr6(): string {
   const str = (Math.random() + 1).toString(36).substring(2, 8);
   if (str.length === 6) return str;
   else return genRndStr6();
+}
+
+export function flagsToNumber(flags: misc.TFlags | undefined): number {
+  if (typeof flags === 'number') return flags;
+
+  if (typeof flags === 'string') {
+    const flagsNum = FLAGS[flags];
+    if (typeof flagsNum !== 'undefined') return flagsNum;
+  }
+
+  // throw new TypeError(formatError(ERRSTR_FLAG(flags)));
+  throw new errors.TypeError('ERR_INVALID_OPT_VALUE', 'flags', flags);
 }

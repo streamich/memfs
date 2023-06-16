@@ -198,5 +198,12 @@ describe('.readFile()', () => {
     const data = await fs.promises.readFile('/folder/file');
     expect(data.toString()).toBe('test');
   });
+
+  test('can read file by file descriptor', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    const fd = await fs.promises.open('/folder/file');
+    const data = await fs.promises.readFile(fd);
+    expect(data.toString()).toBe('test');
+  });
 });
 

@@ -1,15 +1,16 @@
 import { createPromisesApi } from '../node/promises';
 import { getDefaultOptsAndCb, getMkdirOptions, getReadFileOptions, getRmOptsAndCb, getRmdirOptions, optsAndCbGenerator } from '../node/options';
-import { createError, flagsToNumber, genRndStr6, nullCheck, pathToFilename, validateCallback } from '../node/util';
+import { createError, flagsToNumber, genRndStr6, modeToNumber, nullCheck, pathToFilename, validateCallback } from '../node/util';
 import { pathToLocation } from './util';
 import { MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
 import { FsaToNodeConstants } from './constants';
+import {bufferToEncoding} from '../volume';
+import {FsaNodeFsOpenFile} from './FsaNodeFsOpenFile';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
-import {bufferToEncoding} from '../volume';
 
 // const notImplemented: (...args: unknown[]) => unknown = () => {
 //   throw new Error('Not implemented');
@@ -20,10 +21,23 @@ import {bufferToEncoding} from '../volume';
  * [`FileSystemDirectoryHandle` object](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle).
  */
 export class FsaNodeFs implements FsCallbackApi {
+  public static fd: number = 0x7fffffff;
+
   public readonly promises: FsPromisesApi = createPromisesApi(this);
-  public readonly fs = new Map<number, fsa.IFileSystemFileHandle>();
+  public readonly fds = new Map<number, FsaNodeFsOpenFile>();
 
   public constructor(protected readonly root: fsa.IFileSystemDirectoryHandle) {}
+
+  /**
+   * A list of reusable (opened and closed) file descriptors, that should be
+   * used first before creating a new file descriptor.
+   */
+  releasedFds: number[] = [];
+
+  private newFdNumber(): number {
+    const releasedFd = this.releasedFds.pop();
+    return typeof releasedFd === 'number' ? releasedFd : FsaNodeFs.fd--;
+  }
 
   /**
    * @param path Path from root to the new folder.
@@ -48,13 +62,42 @@ export class FsaNodeFs implements FsCallbackApi {
     return file;
   }
 
+  private async getFileById(id: misc.TFileId, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
+    if (typeof id === 'number') {
+      const file = this.fds.get(id);
+      if (!file) throw createError('EBADF', funcName);
+      return file.file;
+    }
+    const filename = pathToFilename(id);
+    const [folder, name] = pathToLocation(filename);
+    return await this.getFile(folder, name, funcName);
+  }
+
   public readonly open: FsCallbackApi['open'] = (
     path: misc.PathLike,
     flags: misc.TFlags,
     a?: misc.TMode | misc.TCallback<number>,
     b?: misc.TCallback<number> | string,
   ) => {
-    throw new Error('Not implemented');
+    let mode: misc.TMode = a as misc.TMode;
+    let callback: misc.TCallback<number> = b as misc.TCallback<number>;
+    if (typeof a === 'function') {
+      mode = MODE.DEFAULT;
+      callback = a;
+    }
+    mode = mode || MODE.DEFAULT;
+    const modeNum = modeToNumber(mode);
+    const filename = pathToFilename(path);
+    const flagsNum = flagsToNumber(flags);
+    const [folder, name] = pathToLocation(filename);
+    this.getFile(folder, name, 'open')
+      .then((file) => {
+        const fd = this.newFdNumber();
+        const openFile = new FsaNodeFsOpenFile(fd, modeNum, flagsNum, file);
+        this.fds.set(fd, openFile);
+        callback(null, fd);
+      })
+      .catch((error) => callback(error));
   };
 
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback<void>): void => {
@@ -79,10 +122,7 @@ export class FsaNodeFs implements FsCallbackApi {
   ) => {
     const [opts, callback] = optsAndCbGenerator<opts.IReadFileOptions, misc.TDataOut>(getReadFileOptions)(a, b);
     const flagsNum = flagsToNumber(opts.flag);
-    if (typeof id === 'number') throw new Error('Not implemented');
-    const filename = pathToFilename(id);
-    const [folder, name] = pathToLocation(filename);
-    return this.getFile(folder, name, 'readFile')
+    return this.getFileById(id, 'readFile')
       .then(file => file.getFile())
       .then(file => file.arrayBuffer())
       .then(data => {

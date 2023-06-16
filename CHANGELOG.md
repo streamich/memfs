@@ -1,3 +1,10 @@
+# [3.6.0](https://github.com/streamich/memfs/compare/v3.5.3...v3.6.0) (2023-06-16)
+
+
+### Features
+
+* 🎸 node fs and volume improvements ([5bc245b](https://github.com/streamich/memfs/commit/5bc245b814c8a36c01deae1cc0fa167c294a02c0))
+
 ## [3.5.3](https://github.com/streamich/memfs/compare/v3.5.2...v3.5.3) (2023-06-07)
 
 

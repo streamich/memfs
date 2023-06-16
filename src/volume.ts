@@ -20,6 +20,7 @@ import {
   getDefaultOptsAndCb,
   getMkdirOptions,
   getOptions,
+  getRmOptsAndCb,
   getRmdirOptions,
   optsAndCbGenerator,
   optsDefaults,
@@ -218,15 +219,6 @@ export interface IMkdirOptions {
   mode?: TMode;
   recursive?: boolean;
 }
-
-export interface IRmOptions {
-  force?: boolean;
-  maxRetries?: number;
-  recursive?: boolean;
-  retryDelay?: number;
-}
-const getRmOpts = optsGenerator<opts.IOptions>(optsDefaults);
-const getRmOptsAndCb = optsAndCbGenerator<IRmOptions, any>(getRmOpts);
 
 // Options for `fs.readdir` and `fs.readdirSync`
 export interface IReaddirOptions extends opts.IOptions {
@@ -1883,7 +1875,7 @@ export class Volume {
     this.wrapAsync(this.rmdirBase, [pathToFilename(path), opts], callback);
   }
 
-  private rmBase(filename: string, options: IRmOptions = {}): void {
+  private rmBase(filename: string, options: opts.IRmOptions = {}): void {
     const link = this.getResolvedLink(filename);
     if (!link) {
       // "stat" is used to match Node's native error message.
@@ -1898,13 +1890,13 @@ export class Volume {
     this.deleteLink(link);
   }
 
-  public rmSync(path: PathLike, options?: IRmOptions): void {
+  public rmSync(path: PathLike, options?: opts.IRmOptions): void {
     this.rmBase(pathToFilename(path), options);
   }
 
   public rm(path: PathLike, callback: TCallback<void>): void;
-  public rm(path: PathLike, options: IRmOptions, callback: TCallback<void>): void;
-  public rm(path: PathLike, a: TCallback<void> | IRmOptions, b?: TCallback<void>): void {
+  public rm(path: PathLike, options: opts.IRmOptions, callback: TCallback<void>): void;
+  public rm(path: PathLike, a: TCallback<void> | opts.IRmOptions, b?: TCallback<void>): void {
     const [opts, callback] = getRmOptsAndCb(a, b);
     this.wrapAsync(this.rmBase, [pathToFilename(path), opts], callback);
   }

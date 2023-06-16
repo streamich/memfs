@@ -56,7 +56,7 @@ export function createPromisesApi(vol: FsCallbackApi): FsPromisesApi {
       return promisify(vol, 'mkdtemp')(prefix, options);
     },
 
-    open(path: misc.PathLike, flags: misc.TFlags, mode?: misc.TMode) {
+    open(path: misc.PathLike, flags: misc.TFlags = 'r', mode?: misc.TMode) {
       return promisify(vol, 'open', fd => new FileHandle(vol, fd))(path, flags, mode);
     },
 

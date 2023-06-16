@@ -14,7 +14,7 @@ export interface FsPromisesApi {
   lstat(path: misc.PathLike, options?: opts.IStatOptions): Promise<misc.IStats>;
   mkdir(path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): Promise<void>;
   mkdtemp(prefix: string, options?: opts.IOptions): Promise<misc.TDataOut>;
-  open(path: misc.PathLike, flags: misc.TFlags, mode?: misc.TMode): Promise<misc.IFileHandle>;
+  open(path: misc.PathLike, flags?: misc.TFlags, mode?: misc.TMode): Promise<misc.IFileHandle>;
   readdir(path: misc.PathLike, options?: opts.IReaddirOptions | string): Promise<misc.TDataOut[] | misc.IDirent[]>;
   readFile(id: misc.TFileHandle, options?: opts.IReadFileOptions | string): Promise<misc.TDataOut>;
   readlink(path: misc.PathLike, options?: opts.IOptions): Promise<misc.TDataOut>;

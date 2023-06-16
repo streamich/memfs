@@ -15,7 +15,15 @@ import * as util from 'util';
 import * as opts from './node/types/options';
 import { createPromisesApi } from './node/promises';
 import { ERRSTR, MODE } from './node/constants';
-import { getDefaultOpts, getDefaultOptsAndCb, getMkdirOptions, getOptions, optsAndCbGenerator, optsDefaults, optsGenerator } from './node/options';
+import {
+  getDefaultOpts,
+  getDefaultOptsAndCb,
+  getMkdirOptions,
+  getOptions,
+  optsAndCbGenerator,
+  optsDefaults,
+  optsGenerator,
+} from './node/options';
 import { validateCallback, modeToNumber, pathToFilename, nullCheck, createError, genRndStr6 } from './node/util';
 import type { PathLike, symlink } from 'fs';
 

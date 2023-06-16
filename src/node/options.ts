@@ -1,8 +1,8 @@
 import type * as opts from './types/options';
 import { MODE } from './constants';
-import {assertEncoding} from '../encoding';
+import { assertEncoding } from '../encoding';
 import * as misc from './types/misc';
-import {validateCallback} from './util';
+import { validateCallback } from './util';
 
 const mkdirDefaults: opts.IMkdirOptions = {
   mode: MODE.DIR,

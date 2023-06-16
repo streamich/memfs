@@ -5,7 +5,7 @@ import Dirent from '../Dirent';
 import { Volume, filenameToSteps, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
 import { tryGetChild, tryGetChildNode } from './util';
-import {genRndStr6} from '../node/util';
+import { genRndStr6 } from '../node/util';
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {

@@ -302,7 +302,7 @@ describe('.appendFile()', () => {
   });
 
   test('can append to a file - 2', async () => {
-    const { fs, mfs } = setup({ file: '123'});
+    const { fs, mfs } = setup({ file: '123' });
     await fs.promises.appendFile('file', 'x');
     expect(mfs.readFileSync('/mountpoint/file', 'utf8')).toBe('123x');
   });

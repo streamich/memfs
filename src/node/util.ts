@@ -2,8 +2,8 @@ import { ERRSTR, FLAGS } from './constants';
 import * as errors from '../internal/errors';
 import type { FsCallbackApi } from './types';
 import type * as misc from './types/misc';
-import {ENCODING_UTF8} from '../encoding';
-import {bufferFrom} from '../internal/buffer';
+import { ENCODING_UTF8 } from '../encoding';
+import { bufferFrom } from '../internal/buffer';
 
 export const isWin = process.platform === 'win32';
 

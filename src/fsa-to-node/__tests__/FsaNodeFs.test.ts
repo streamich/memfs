@@ -262,3 +262,14 @@ describe('.ftruncate()', () => {
     expect(mfs.readFileSync('/mountpoint/folder/file', 'utf8')).toBe('tes');
   });
 });
+
+describe('.readdir()', () => {
+  test('can read directory contents as strings', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const res = await fs.promises.readdir('/') as string[];
+    expect(res.length).toBe(3);
+    expect(res.includes('folder')).toBe(true);
+    expect(res.includes('empty-folder')).toBe(true);
+    expect(res.includes('f.html')).toBe(true);
+  });
+});

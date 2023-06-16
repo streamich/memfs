@@ -214,7 +214,7 @@ describe('.readFile()', () => {
     });
     expect(typeof fd).toBe('number');
     const data = await new Promise<string>(resolve => {
-      fs.readFile(fd, {encoding: 'utf8'}, (err, data) => resolve(data as string));
+      fs.readFile(fd, { encoding: 'utf8' }, (err, data) => resolve(data as string));
     });
     expect(data).toBe('test');
   });
@@ -230,7 +230,7 @@ describe('.readFile()', () => {
     });
     try {
       await new Promise<string>((resolve, reject) => {
-        fs.readFile(fd, {encoding: 'utf8'}, (err, data) => reject(err));
+        fs.readFile(fd, { encoding: 'utf8' }, (err, data) => reject(err));
       });
       throw new Error('Expected error');
     } catch (error) {

@@ -49,6 +49,7 @@ export interface FsSynchronousApi {
   appendFileSync(id: misc.TFileId, data: misc.TData, options?: opts.IAppendFileOptions | string): void;
   readdirSync(path: misc.PathLike, options?: opts.IReaddirOptions | string): misc.TDataOut[] | misc.IDirent[];
   readlinkSync(path: misc.PathLike, options?: opts.IOptions): misc.TDataOut;
+  fsyncSync(fd: number): void;
   fdatasyncSync(fd: number): void;
   ftruncateSync(fd: number, len?: number): void;
   truncateSync(id: misc.TFileId, len?: number): void;

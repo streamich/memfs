@@ -4,7 +4,7 @@ import { FsaNodeFs } from '../FsaNodeFs';
 
 const setup = (json: NestedDirectoryJSON | null = null) => {
   const mfs = memfs({ mountpoint: json }) as IFsWithVolume;
-  const dir = nodeToFsa(mfs, '/mountpoint', { mode: 'readwrite' });
+  const dir = nodeToFsa(mfs, '/mountpoint', { mode: 'readwrite', syncHandleAllowed: true });
   const fs = new FsaNodeFs(dir);
   return { fs, mfs, dir };
 };

@@ -304,10 +304,6 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   }
 
-  fsyncSync(fd: number): void {
-    throw new Error('Not implemented');
-  }
-
   fsync(fd: number, callback: misc.TCallback<void>): void {
     throw new Error('Not implemented');
   }

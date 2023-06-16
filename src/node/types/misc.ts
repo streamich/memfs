@@ -136,3 +136,5 @@ export interface TFileHandleWriteResult {
   bytesWritten: number;
   buffer: Buffer | Uint8Array;
 }
+
+export type AssertCallback<T> = T extends () => void ? T : never;

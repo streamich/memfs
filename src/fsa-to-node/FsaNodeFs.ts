@@ -3,6 +3,7 @@ import {
   getDefaultOptsAndCb,
   getMkdirOptions,
   getReadFileOptions,
+  getReaddirOptsAndCb,
   getRmOptsAndCb,
   getRmdirOptions,
   optsAndCbGenerator,
@@ -288,29 +289,34 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   }
 
-  readdir(path: misc.PathLike, callback: misc.TCallback<misc.TDataOut[] | misc.IDirent[]>);
-  readdir(
-    path: misc.PathLike,
-    options: opts.IReaddirOptions | string,
-    callback: misc.TCallback<misc.TDataOut[] | misc.IDirent[]>,
-  );
-  readdir(path: misc.PathLike, a?, b?) {
-    throw new Error('Not implemented');
-  }
+  public readonly readdir: FsCallbackApi['readdir'] = (path: misc.PathLike, a?, b?) => {
+    const [options, callback] = getReaddirOptsAndCb(a, b);
+    const filename = pathToFilename(path);
+    const [folder, name] = pathToLocation(filename);
+    folder.push(name);
+    this.getDir(folder, false, 'readdir')
+      .then(dir => (async () => {
+        const list: string[] = [];
+        for await (const key of dir.keys()) list.push(key);
+        return list;
+      })())
+      .then(res => callback(null, res), err => callback(err));
+  };
 
-  readlink(path: misc.PathLike, callback: misc.TCallback<misc.TDataOut>);
-  readlink(path: misc.PathLike, options: opts.IOptions, callback: misc.TCallback<misc.TDataOut>);
-  readlink(path: misc.PathLike, a: misc.TCallback<misc.TDataOut> | opts.IOptions, b?: misc.TCallback<misc.TDataOut>) {
-    throw new Error('Not implemented');
-  }
+  public readonly readlink: FsCallbackApi['readlink'] = (path: misc.PathLike, a: misc.TCallback<misc.TDataOut> | opts.IOptions, b?: misc.TCallback<misc.TDataOut>) => {
+    const [opts, callback] = getDefaultOptsAndCb(a, b);
+    const filename = pathToFilename(path);
+    const buffer = Buffer.from(filename);
+    callback(null, bufferToEncoding(buffer, opts.encoding));
+  };
 
-  fsync(fd: number, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
-  }
+  public readonly fsync: FsCallbackApi['fsync'] = (fd: number, callback: misc.TCallback<void>): void => {
+    callback(null);
+  };
 
-  fdatasync(fd: number, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
-  }
+  public readonly fdatasync: FsCallbackApi['fdatasync'] = (fd: number, callback: misc.TCallback<void>): void => {
+    callback(null);
+  };
 
   public readonly ftruncate: FsCallbackApi['ftruncate'] = (fd: number, a: misc.TCallback<void> | number, b?: misc.TCallback<void>): void => {
     const len: number = typeof a === 'number' ? a : 0;

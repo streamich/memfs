@@ -20,6 +20,8 @@ import {
   getMkdirOptions,
   getOptions,
   getReadFileOptions,
+  getReaddirOptions,
+  getReaddirOptsAndCb,
   getRmOptsAndCb,
   getRmdirOptions,
   optsAndCbGenerator,
@@ -179,12 +181,6 @@ export interface IMkdirOptions {
 export interface IReaddirOptions extends opts.IOptions {
   withFileTypes?: boolean;
 }
-const readdirDefaults: IReaddirOptions = {
-  encoding: 'utf8',
-  withFileTypes: false,
-};
-const getReaddirOptions = optsGenerator<IReaddirOptions>(readdirDefaults);
-const getReaddirOptsAndCb = optsAndCbGenerator<IReaddirOptions, TDataOut[] | Dirent[]>(getReaddirOptions);
 
 // Options for `fs.lstat`, `fs.lstatSync`, `fs.stat`, and `fs.statSync`
 export interface IStatOptions {
@@ -468,10 +464,6 @@ export class Volume {
     if (isDirectory) node.setIsDirectory();
     this.inodes[node.ino] = node;
     return node;
-  }
-
-  private getNode(ino: number) {
-    return this.inodes[ino];
   }
 
   private deleteNode(node: Node) {

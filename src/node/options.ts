@@ -69,3 +69,10 @@ const readFileOptsDefaults: opts.IReadFileOptions = {
   flag: 'r',
 };
 export const getReadFileOptions = optsGenerator<opts.IReadFileOptions>(readFileOptsDefaults);
+
+const readdirDefaults: opts.IReaddirOptions = {
+  encoding: 'utf8',
+  withFileTypes: false,
+};
+export const getReaddirOptions = optsGenerator<opts.IReaddirOptions>(readdirDefaults);
+export const getReaddirOptsAndCb = optsAndCbGenerator<opts.IReaddirOptions, misc.TDataOut[] | misc.IDirent[]>(getReaddirOptions);

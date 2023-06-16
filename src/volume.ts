@@ -34,6 +34,8 @@ import {
   createError,
   genRndStr6,
   flagsToNumber,
+  validateFd,
+  isFd,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
 
@@ -241,14 +243,6 @@ export function dataToBuffer(data: TData, encoding: string = ENCODING_UTF8): Buf
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): TDataOut {
   if (!encoding || encoding === 'buffer') return buffer;
   else return buffer.toString(encoding);
-}
-
-function isFd(path): boolean {
-  return path >>> 0 === path;
-}
-
-function validateFd(fd) {
-  if (!isFd(fd)) throw TypeError(ERRSTR.FD);
 }
 
 // converts Date or number to a fractional UNIX timestamp

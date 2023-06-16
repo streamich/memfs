@@ -158,3 +158,11 @@ export function flagsToNumber(flags: misc.TFlags | undefined): number {
   // throw new TypeError(formatError(ERRSTR_FLAG(flags)));
   throw new errors.TypeError('ERR_INVALID_OPT_VALUE', 'flags', flags);
 }
+
+export function isFd(path): boolean {
+  return path >>> 0 === path;
+}
+
+export function validateFd(fd) {
+  if (!isFd(fd)) throw TypeError(ERRSTR.FD);
+}

@@ -7,9 +7,11 @@ import {
   getRmOptsAndCb,
   getRmdirOptions,
   optsAndCbGenerator,
+  getAppendFileOptsAndCb,
 } from '../node/options';
 import {
   createError,
+  dataToBuffer,
   flagsToNumber,
   genRndStr6,
   isFd,
@@ -94,6 +96,14 @@ export class FsaNodeFs implements FsCallbackApi {
     const filename = pathToFilename(id);
     const [folder, name] = pathToLocation(filename);
     return await this.getFile(folder, name, funcName);
+  }
+
+  private async getFileByIdOrCreate(id: misc.TFileId, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
+    if (typeof id === 'number') return (await this.getFileByFd(id, funcName)).file;
+    const filename = pathToFilename(id);
+    const [folder, name] = pathToLocation(filename);
+    const dir = await this.getDir(folder, false, funcName);
+    return await dir.getFileHandle(name, { create: true });
   }
 
   public readonly open: FsCallbackApi['open'] = (
@@ -280,16 +290,19 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   }
 
-  appendFile(id: misc.TFileId, data: misc.TData, callback: misc.TCallback<void>);
-  appendFile(
-    id: misc.TFileId,
-    data: misc.TData,
-    options: opts.IAppendFileOptions | string,
-    callback: misc.TCallback<void>,
-  );
-  appendFile(id: misc.TFileId, data: misc.TData, a, b?) {
-    throw new Error('Not implemented');
-  }
+  public readonly appendFile: FsCallbackApi['appendFile'] = (id: misc.TFileId, data: misc.TData, a, b?) => {
+    const [opts, callback] = getAppendFileOptsAndCb(a, b);
+    const buffer = dataToBuffer(data, opts.encoding);
+    this.getFileByIdOrCreate(id, 'appendFile')
+      .then(file => (async () => {
+        const blob = await file.getFile();
+        const writable = await file.createWritable({ keepExistingData: true });
+        await writable.seek(blob.size);
+        await writable.write(buffer);
+        await writable.close();
+      })())
+      .then(() => callback(null), error => callback(error));
+  };
 
   public readonly readdir: FsCallbackApi['readdir'] = (path: misc.PathLike, a?, b?) => {
     const [options, callback] = getReaddirOptsAndCb(a, b);

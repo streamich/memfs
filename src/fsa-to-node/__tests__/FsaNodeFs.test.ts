@@ -286,3 +286,24 @@ describe('.readdir()', () => {
     expect(list.find(item => item.name === 'f.html')?.isDirectory()).toBe(false);
   });
 });
+
+describe('.appendFile()', () => {
+  test('can create a file', async () => {
+    const { fs, mfs } = setup({});
+    await fs.promises.appendFile('/test.txt', 'a');
+    expect(mfs.readFileSync('/mountpoint/test.txt', 'utf8')).toBe('a');
+  });
+
+  test('can append to a file', async () => {
+    const { fs, mfs } = setup({});
+    await fs.promises.appendFile('/test.txt', 'a');
+    await fs.promises.appendFile('/test.txt', 'b');
+    expect(mfs.readFileSync('/mountpoint/test.txt', 'utf8')).toBe('ab');
+  });
+
+  test('can append to a file - 2', async () => {
+    const { fs, mfs } = setup({ file: '123'});
+    await fs.promises.appendFile('file', 'x');
+    expect(mfs.readFileSync('/mountpoint/file', 'utf8')).toBe('123x');
+  });
+});

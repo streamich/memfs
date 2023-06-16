@@ -1,11 +1,13 @@
 import { createPromisesApi } from '../node/promises';
-import { getMkdirOptions } from '../node/options';
-import { createError, modeToNumber, pathToFilename, validateCallback } from '../node/util';
+import { getDefaultOptsAndCb, getMkdirOptions } from '../node/options';
+import { createError, genRndStr6, modeToNumber, nullCheck, pathToFilename, validateCallback } from '../node/util';
 import { pathToLocation } from './util';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
+import {MODE} from '../node/constants';
+import {strToEncoding} from '../encoding';
 
 const notImplemented: (...args: unknown[]) => unknown = () => {
   throw new Error('Not implemented');
@@ -248,11 +250,16 @@ export class FsaNodeFs implements FsCallbackApi {
       );
   };
 
-  mkdtemp(prefix: string, callback: misc.TCallback<void>): void;
-  mkdtemp(prefix: string, options: opts.IOptions, callback: misc.TCallback<void>);
-  mkdtemp(prefix: string, a: misc.TCallback<void> | opts.IOptions, b?: misc.TCallback<void>) {
-    throw new Error('Not implemented');
-  }
+  public readonly mkdtemp: FsCallbackApi['mkdtemp'] = (prefix: string, a: misc.TCallback<string> | opts.IOptions, b?: misc.TCallback<string>) => {
+    const [{ encoding }, callback] = getDefaultOptsAndCb(a, b);
+    if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
+    if (!nullCheck(prefix)) return;
+    const filename = prefix + genRndStr6();
+    this.mkdir(filename, MODE.DIR, (err) => {
+      if (err) callback(err);
+      else callback(null, strToEncoding(filename, encoding));
+    });
+  };
 
   rmdir(path: misc.PathLike, callback: misc.TCallback<void>);
   rmdir(path: misc.PathLike, options: opts.IRmdirOptions, callback: misc.TCallback<void>);

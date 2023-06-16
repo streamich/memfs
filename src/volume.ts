@@ -9,13 +9,14 @@ import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
 import { Readable, Writable } from 'stream';
 import { constants } from './constants';
 import { EventEmitter } from 'events';
-import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
+import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as errors from './internal/errors';
 import * as util from 'util';
+import * as opts from './node/types/options';
 import { createPromisesApi } from './node/promises';
 import { ERRSTR, MODE } from './node/constants';
-import { getMkdirOptions } from './node/options';
-import { validateCallback, modeToNumber, pathToFilename, nullCheck, createError } from './node/util';
+import { getDefaultOpts, getDefaultOptsAndCb, getMkdirOptions, getOptions, optsAndCbGenerator, optsDefaults, optsGenerator } from './node/options';
+import { validateCallback, modeToNumber, pathToFilename, nullCheck, createError, genRndStr6 } from './node/util';
 import type { PathLike, symlink } from 'fs';
 
 const resolveCrossPlatform = pathModule.resolve;
@@ -61,9 +62,6 @@ const kMinPoolSpace = 128;
 
 // ---------------------------------------- Error messages
 
-// TODO: Use `internal/errors.js` in the future.
-
-const ERRSTR_OPTS = tipeof => `Expected options to be either an object or a string, but got ${tipeof} instead`;
 // const ERRSTR_FLAG = flag => `Unknown file open flag: ${flag}`;
 
 const ENOENT = 'ENOENT';
@@ -135,55 +133,10 @@ export function flagsToNumber(flags: TFlags | undefined): number {
 
 // ---------------------------------------- Options
 
-function getOptions<T extends IOptions>(defaults: T, options?: T | string): T {
-  let opts: T;
-  if (!options) return defaults;
-  else {
-    const tipeof = typeof options;
-    switch (tipeof) {
-      case 'string':
-        opts = Object.assign({}, defaults, { encoding: options as string });
-        break;
-      case 'object':
-        opts = Object.assign({}, defaults, options);
-        break;
-      default:
-        throw TypeError(ERRSTR_OPTS(tipeof));
-    }
-  }
-
-  if (opts.encoding !== 'buffer') assertEncoding(opts.encoding);
-
-  return opts;
-}
-
-function optsGenerator<TOpts>(defaults: TOpts): (opts) => TOpts {
-  return options => getOptions(defaults, options);
-}
-
-function optsAndCbGenerator<TOpts, TResult>(getOpts): (options, callback?) => [TOpts, TCallback<TResult>] {
-  return (options, callback?) =>
-    typeof options === 'function' ? [getOpts(), options] : [getOpts(options), validateCallback(callback)];
-}
-
 // General options with optional `encoding` property that most commands accept.
-export interface IOptions {
-  encoding?: BufferEncoding | TEncodingExtended;
-}
-
-export interface IFileOptions extends IOptions {
-  mode?: TMode;
-  flag?: TFlags;
-}
-
-const optsDefaults: IOptions = {
-  encoding: 'utf8',
-};
-const getDefaultOpts = optsGenerator<IOptions>(optsDefaults);
-const getDefaultOptsAndCb = optsAndCbGenerator<IOptions, any>(getDefaultOpts);
 
 // Options for `fs.readFile` and `fs.readFileSync`.
-export interface IReadFileOptions extends IOptions {
+export interface IReadFileOptions extends opts.IOptions {
   flag?: string;
 }
 const readFileOptsDefaults: IReadFileOptions = {
@@ -192,7 +145,7 @@ const readFileOptsDefaults: IReadFileOptions = {
 const getReadFileOptions = optsGenerator<IReadFileOptions>(readFileOptsDefaults);
 
 // Options for `fs.writeFile` and `fs.writeFileSync`
-export interface IWriteFileOptions extends IFileOptions {}
+export interface IWriteFileOptions extends opts.IFileOptions {}
 const writeFileDefaults: IWriteFileOptions = {
   encoding: 'utf8',
   mode: MODE.DEFAULT,
@@ -201,7 +154,7 @@ const writeFileDefaults: IWriteFileOptions = {
 const getWriteFileOptions = optsGenerator<IWriteFileOptions>(writeFileDefaults);
 
 // Options for `fs.appendFile` and `fs.appendFileSync`
-export interface IAppendFileOptions extends IFileOptions {}
+export interface IAppendFileOptions extends opts.IFileOptions {}
 const appendFileDefaults: IAppendFileOptions = {
   encoding: 'utf8',
   mode: MODE.DEFAULT,
@@ -246,7 +199,7 @@ export interface IWriteStreamOptions {
 }
 
 // Options for `fs.watch`
-export interface IWatchOptions extends IOptions {
+export interface IWatchOptions extends opts.IOptions {
   persistent?: boolean;
   recursive?: boolean;
 }
@@ -277,11 +230,11 @@ export interface IRmOptions {
   recursive?: boolean;
   retryDelay?: number;
 }
-const getRmOpts = optsGenerator<IOptions>(optsDefaults);
+const getRmOpts = optsGenerator<opts.IOptions>(optsDefaults);
 const getRmOptsAndCb = optsAndCbGenerator<IRmOptions, any>(getRmOpts);
 
 // Options for `fs.readdir` and `fs.readdirSync`
-export interface IReaddirOptions extends IOptions {
+export interface IReaddirOptions extends opts.IOptions {
   withFileTypes?: boolean;
 }
 const readdirDefaults: IReaddirOptions = {
@@ -591,13 +544,6 @@ export class Volume {
     node.del();
     delete this.inodes[node.ino];
     this.releasedInos.push(node.ino);
-  }
-
-  // Generates 6 character long random string, used by `mkdtemp`.
-  genRndStr() {
-    const str = (Math.random() + 1).toString(36).substring(2, 8);
-    if (str.length === 6) return str;
-    else return this.genRndStr();
   }
 
   // Returns a `Link` (hard link) referenced by path "split" into steps.
@@ -1689,15 +1635,15 @@ export class Volume {
     return strToEncoding(str, encoding);
   }
 
-  readlinkSync(path: PathLike, options?: IOptions): TDataOut {
+  readlinkSync(path: PathLike, options?: opts.IOptions): TDataOut {
     const opts = getDefaultOpts(options);
     const filename = pathToFilename(path);
     return this.readlinkBase(filename, opts.encoding);
   }
 
   readlink(path: PathLike, callback: TCallback<TDataOut>);
-  readlink(path: PathLike, options: IOptions, callback: TCallback<TDataOut>);
-  readlink(path: PathLike, a: TCallback<TDataOut> | IOptions, b?: TCallback<TDataOut>) {
+  readlink(path: PathLike, options: opts.IOptions, callback: TCallback<TDataOut>);
+  readlink(path: PathLike, a: TCallback<TDataOut> | opts.IOptions, b?: TCallback<TDataOut>) {
     const [opts, callback] = getDefaultOptsAndCb(a, b);
     const filename = pathToFilename(path);
     this.wrapAsync(this.readlinkBase, [filename, opts.encoding], callback);
@@ -1886,7 +1832,7 @@ export class Volume {
   }
 
   private mkdtempBase(prefix: string, encoding?: TEncodingExtended, retry: number = 5): TDataOut {
-    const filename = prefix + this.genRndStr();
+    const filename = prefix + genRndStr6();
     try {
       this.mkdirBase(filename, MODE.DIR);
       return strToEncoding(filename, encoding);
@@ -1898,7 +1844,7 @@ export class Volume {
     }
   }
 
-  mkdtempSync(prefix: string, options?: IOptions): TDataOut {
+  mkdtempSync(prefix: string, options?: opts.IOptions): TDataOut {
     const { encoding } = getDefaultOpts(options);
 
     if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
@@ -1908,9 +1854,9 @@ export class Volume {
     return this.mkdtempBase(prefix, encoding);
   }
 
-  mkdtemp(prefix: string, callback: TCallback<void>);
-  mkdtemp(prefix: string, options: IOptions, callback: TCallback<void>);
-  mkdtemp(prefix: string, a: TCallback<void> | IOptions, b?: TCallback<void>) {
+  mkdtemp(prefix: string, callback: TCallback<string>);
+  mkdtemp(prefix: string, options: opts.IOptions, callback: TCallback<string>);
+  mkdtemp(prefix: string, a: TCallback<string> | opts.IOptions, b?: TCallback<string>) {
     const [{ encoding }, callback] = getDefaultOptsAndCb(a, b);
 
     if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');

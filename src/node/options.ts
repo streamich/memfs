@@ -61,3 +61,6 @@ const rmdirDefaults: opts.IRmdirOptions = {
 export const getRmdirOptions = (options): opts.IRmdirOptions => {
   return Object.assign({}, rmdirDefaults, options);
 };
+
+const getRmOpts = optsGenerator<opts.IOptions>(optsDefaults);
+export const getRmOptsAndCb = optsAndCbGenerator<opts.IRmOptions, any>(getRmOpts);

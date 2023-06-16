@@ -1,14 +1,14 @@
 import { createPromisesApi } from '../node/promises';
-import { getDefaultOptsAndCb, getMkdirOptions, getRmdirOptions } from '../node/options';
+import { getDefaultOptsAndCb, getMkdirOptions, getRmOptsAndCb, getRmdirOptions } from '../node/options';
 import { createError, genRndStr6, nullCheck, pathToFilename, validateCallback } from '../node/util';
 import { pathToLocation } from './util';
 import { MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
+import {FsaToNodeConstants} from './constants';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
-import {FsaToNodeConstants} from './constants';
 
 const notImplemented: (...args: unknown[]) => unknown = () => {
   throw new Error('Not implemented');
@@ -293,11 +293,34 @@ export class FsaNodeFs implements FsCallbackApi {
       });
   };
 
-  rm(path: misc.PathLike, callback: misc.TCallback<void>): void;
-  rm(path: misc.PathLike, options: opts.IRmOptions, callback: misc.TCallback<void>): void;
-  rm(path: misc.PathLike, a: misc.TCallback<void> | opts.IRmOptions, b?: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
-  }
+  public readonly rm: FsCallbackApi['rm'] = (path: misc.PathLike, a: misc.TCallback<void> | opts.IRmOptions, b?: misc.TCallback<void>): void => {
+    const [options, callback] = getRmOptsAndCb(a, b);
+    const [folder, name] = pathToLocation(pathToFilename(path));
+    this.getDir(folder, false, 'rmdir')
+      .then(dir => dir.getDirectoryHandle(name).then(() => dir))
+      .then(dir => dir.removeEntry(name, {recursive: options.recursive ?? false}))
+      .then(() => callback(null), error => {
+        if (options.force) {
+          callback(null);
+          return;
+        }
+        if (error && typeof error === 'object') {
+          switch (error.name) {
+            case 'NotFoundError': {
+              const err = createError('ENOENT', 'rmdir', folder.join('/'));
+              callback(err);
+              return;
+            }
+            case 'InvalidModificationError': {
+              const err = createError('ENOTEMPTY', 'rmdir', folder.join('/'));
+              callback(err);
+              return;
+            }
+          }
+        }
+        callback(error);
+      });
+  };
 
   fchmod(fd: number, mode: misc.TMode, callback: misc.TCallback<void>): void {
     throw new Error('Not implemented');

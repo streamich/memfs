@@ -9,9 +9,9 @@ import {
   IWriteStream,
   DirectoryJSON,
 } from './volume';
-import { IPromisesAPI } from './promises';
 const { fsSyncMethods, fsAsyncMethods } = require('fs-monkey/lib/util/lists');
 import { constants } from './constants';
+import type {FsPromisesApi} from './node/types';
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
 export { DirectoryJSON };
@@ -28,7 +28,7 @@ export interface IFs extends _Volume {
   FSWatcher: new () => FSWatcher;
   ReadStream: new (...args) => IReadStream;
   WriteStream: new (...args) => IWriteStream;
-  promises: IPromisesAPI;
+  promises: FsPromisesApi;
   _toUnixTimestamp;
 }
 

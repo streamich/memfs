@@ -12,7 +12,7 @@ import { EventEmitter } from 'events';
 import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as errors from './internal/errors';
 import util = require('util');
-import createPromisesApi from './promises';
+import { createPromisesApi } from './node/promises';
 import type { PathLike, symlink } from 'fs';
 
 const resolveCrossPlatform = pathModule.resolve;

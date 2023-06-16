@@ -1,6 +1,6 @@
 import { IFsWithVolume, NestedDirectoryJSON, memfs } from '../..';
 import { nodeToFsa } from '../../node-to-fsa';
-import {IDirent} from '../../node/types/misc';
+import { IDirent } from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
 
 const setup = (json: NestedDirectoryJSON | null = null) => {
@@ -245,7 +245,7 @@ describe('.truncate()', () => {
   test('can truncate a file', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
     const res = await new Promise<unknown>((resolve, reject) => {
-      fs.truncate('/folder/file', 2, (err, res) => err ? reject(err) : resolve(res));
+      fs.truncate('/folder/file', 2, (err, res) => (err ? reject(err) : resolve(res)));
     });
     expect(res).toBe(undefined);
     expect(mfs.readFileSync('/mountpoint/folder/file', 'utf8')).toBe('te');
@@ -257,7 +257,7 @@ describe('.ftruncate()', () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
     const handle = await fs.promises.open('/folder/file');
     const res = await new Promise<unknown>((resolve, reject) => {
-      fs.ftruncate(handle.fd, 3, (err, res) => err ? reject(err) : resolve(res));
+      fs.ftruncate(handle.fd, 3, (err, res) => (err ? reject(err) : resolve(res)));
     });
     expect(res).toBe(undefined);
     expect(mfs.readFileSync('/mountpoint/folder/file', 'utf8')).toBe('tes');
@@ -267,7 +267,7 @@ describe('.ftruncate()', () => {
 describe('.readdir()', () => {
   test('can read directory contents as strings', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
-    const res = await fs.promises.readdir('/') as string[];
+    const res = (await fs.promises.readdir('/')) as string[];
     expect(res.length).toBe(3);
     expect(res.includes('folder')).toBe(true);
     expect(res.includes('empty-folder')).toBe(true);
@@ -276,9 +276,9 @@ describe('.readdir()', () => {
 
   test('can read directory contents with "withFileTypes" flag set', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
-    const list = await fs.promises.readdir('/', {withFileTypes: true}) as IDirent[];
+    const list = (await fs.promises.readdir('/', { withFileTypes: true })) as IDirent[];
     expect(list.length).toBe(3);
-    const names = list.map((item) => item.name);
+    const names = list.map(item => item.name);
     expect(names).toStrictEqual(['empty-folder', 'f.html', 'folder']);
     expect(list.find(item => item.name === 'folder')?.isDirectory()).toBe(true);
     expect(list.find(item => item.name === 'empty-folder')?.isDirectory()).toBe(true);

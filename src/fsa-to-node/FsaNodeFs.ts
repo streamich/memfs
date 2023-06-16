@@ -26,7 +26,7 @@ import { strToEncoding } from '../encoding';
 import { FsaToNodeConstants } from './constants';
 import { bufferToEncoding } from '../volume';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
-import {FsaNodeDirent} from './FsaNodeDirent';
+import { FsaNodeDirent } from './FsaNodeDirent';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -297,31 +297,40 @@ export class FsaNodeFs implements FsCallbackApi {
     const [folder, name] = pathToLocation(filename);
     folder.push(name);
     this.getDir(folder, false, 'readdir')
-      .then(dir => (async () => {
-        if (options.withFileTypes) {
-          const list: misc.IDirent[] = [];
-          for await (const [name, handle] of dir.entries()) {
-            const dirent = new FsaNodeDirent(name, handle);
-            list.push(dirent);
+      .then(dir =>
+        (async () => {
+          if (options.withFileTypes) {
+            const list: misc.IDirent[] = [];
+            for await (const [name, handle] of dir.entries()) {
+              const dirent = new FsaNodeDirent(name, handle);
+              list.push(dirent);
+            }
+            if (!isWin && options.encoding !== 'buffer')
+              list.sort((a, b) => {
+                if (a.name < b.name) return -1;
+                if (a.name > b.name) return 1;
+                return 0;
+              });
+            return list;
+          } else {
+            const list: string[] = [];
+            for await (const key of dir.keys()) list.push(key);
+            if (!isWin && options.encoding !== 'buffer') list.sort();
+            return list;
           }
-          if (!isWin && options.encoding !== 'buffer')
-            list.sort((a, b) => {
-              if (a.name < b.name) return -1;
-              if (a.name > b.name) return 1;
-              return 0;
-            });
-          return list;
-        } else { 
-          const list: string[] = [];
-          for await (const key of dir.keys()) list.push(key);
-          if (!isWin && options.encoding !== 'buffer') list.sort();
-          return list;
-        }
-      })())
-      .then(res => callback(null, res), err => callback(err));
+        })(),
+      )
+      .then(
+        res => callback(null, res),
+        err => callback(err),
+      );
   };
 
-  public readonly readlink: FsCallbackApi['readlink'] = (path: misc.PathLike, a: misc.TCallback<misc.TDataOut> | opts.IOptions, b?: misc.TCallback<misc.TDataOut>) => {
+  public readonly readlink: FsCallbackApi['readlink'] = (
+    path: misc.PathLike,
+    a: misc.TCallback<misc.TDataOut> | opts.IOptions,
+    b?: misc.TCallback<misc.TDataOut>,
+  ) => {
     const [opts, callback] = getDefaultOptsAndCb(a, b);
     const filename = pathToFilename(path);
     const buffer = Buffer.from(filename);
@@ -336,16 +345,27 @@ export class FsaNodeFs implements FsCallbackApi {
     callback(null);
   };
 
-  public readonly ftruncate: FsCallbackApi['ftruncate'] = (fd: number, a: misc.TCallback<void> | number, b?: misc.TCallback<void>): void => {
+  public readonly ftruncate: FsCallbackApi['ftruncate'] = (
+    fd: number,
+    a: misc.TCallback<void> | number,
+    b?: misc.TCallback<void>,
+  ): void => {
     const len: number = typeof a === 'number' ? a : 0;
     const callback: misc.TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
     this.getFileByFd(fd)
-      .then(file => file.file.createWritable({keepExistingData: true}))
+      .then(file => file.file.createWritable({ keepExistingData: true }))
       .then(writable => writable.truncate(len).then(() => writable.close()))
-      .then(() => callback(null), error => callback(error));
+      .then(
+        () => callback(null),
+        error => callback(error),
+      );
   };
 
-  public readonly truncate: FsCallbackApi['truncate'] = (path: misc.PathLike, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) => {
+  public readonly truncate: FsCallbackApi['truncate'] = (
+    path: misc.PathLike,
+    a: misc.TCallback<void> | number,
+    b?: misc.TCallback<void>,
+  ) => {
     const len: number = typeof a === 'number' ? a : 0;
     const callback: misc.TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
     this.open(path, 'r+', (error, fd) => {
@@ -359,11 +379,21 @@ export class FsaNodeFs implements FsCallbackApi {
     });
   };
 
-  public readonly futimes: FsCallbackApi['futimes'] = (fd: number, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void => {
+  public readonly futimes: FsCallbackApi['futimes'] = (
+    fd: number,
+    atime: misc.TTime,
+    mtime: misc.TTime,
+    callback: misc.TCallback<void>,
+  ): void => {
     callback(null);
   };
 
-  public readonly utimes: FsCallbackApi['utimes'] = (path: misc.PathLike, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void => {
+  public readonly utimes: FsCallbackApi['utimes'] = (
+    path: misc.PathLike,
+    atime: misc.TTime,
+    mtime: misc.TTime,
+    callback: misc.TCallback<void>,
+  ): void => {
     callback(null);
   };
 

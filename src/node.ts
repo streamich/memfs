@@ -185,10 +185,14 @@ export class Node extends EventEmitter {
   }
 
   // Returns the number of bytes read.
-  read(buf: Buffer | Uint8Array, off: number = 0, len: number = buf.byteLength, pos: number = 0): number {
+  read(
+    buf: Buffer | ArrayBufferView | DataView,
+    off: number = 0,
+    len: number = buf.byteLength,
+    pos: number = 0,
+  ): number {
     this.atime = new Date();
     if (!this.buf) this.buf = bufferAllocUnsafe(0);
-
     let actualLen = len;
     if (actualLen > buf.byteLength) {
       actualLen = buf.byteLength;
@@ -196,8 +200,8 @@ export class Node extends EventEmitter {
     if (actualLen + pos > this.buf.length) {
       actualLen = this.buf.length - pos;
     }
-
-    this.buf.copy(buf as Buffer, off, pos, pos + actualLen);
+    const buf2 = buf instanceof Buffer ? buf : Buffer.from(buf.buffer);
+    this.buf.copy(buf2, off, pos, pos + actualLen);
     return actualLen;
   }
 
@@ -473,7 +477,7 @@ export class File {
    * A cursor/offset position in a file, where data will be written on write.
    * User can "seek" this position.
    */
-  position: number = 0;
+  position: number;
 
   // Flags used when opening the file.
   flags: number;
@@ -491,6 +495,8 @@ export class File {
     this.node = node;
     this.flags = flags;
     this.fd = fd;
+    this.position = 0;
+    if (this.flags & O_APPEND) this.position = this.getSize();
   }
 
   getString(encoding = 'utf8'): string {
@@ -527,13 +533,17 @@ export class File {
 
   write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number): number {
     if (typeof position !== 'number') position = this.position;
-    if (this.flags & O_APPEND) position = this.getSize();
     const bytes = this.node.write(buf, offset, length, position);
     this.position = position + bytes;
     return bytes;
   }
 
-  read(buf: Buffer | Uint8Array, offset: number = 0, length: number = buf.byteLength, position?: number): number {
+  read(
+    buf: Buffer | ArrayBufferView | DataView,
+    offset: number = 0,
+    length: number = buf.byteLength,
+    position?: number,
+  ): number {
     if (typeof position !== 'number') position = this.position;
     const bytes = this.node.read(buf, offset, length, position);
     this.position = position + bytes;

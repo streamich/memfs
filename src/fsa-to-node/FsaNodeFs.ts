@@ -13,6 +13,7 @@ import {
   flagsToNumber,
   genRndStr6,
   isFd,
+  isWin,
   modeToNumber,
   nullCheck,
   pathToFilename,
@@ -25,6 +26,7 @@ import { strToEncoding } from '../encoding';
 import { FsaToNodeConstants } from './constants';
 import { bufferToEncoding } from '../volume';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
+import {FsaNodeDirent} from './FsaNodeDirent';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -296,9 +298,25 @@ export class FsaNodeFs implements FsCallbackApi {
     folder.push(name);
     this.getDir(folder, false, 'readdir')
       .then(dir => (async () => {
-        const list: string[] = [];
-        for await (const key of dir.keys()) list.push(key);
-        return list;
+        if (options.withFileTypes) {
+          const list: misc.IDirent[] = [];
+          for await (const [name, handle] of dir.entries()) {
+            const dirent = new FsaNodeDirent(name, handle);
+            list.push(dirent);
+          }
+          if (!isWin && options.encoding !== 'buffer')
+            list.sort((a, b) => {
+              if (a.name < b.name) return -1;
+              if (a.name > b.name) return 1;
+              return 0;
+            });
+          return list;
+        } else { 
+          const list: string[] = [];
+          for await (const key of dir.keys()) list.push(key);
+          if (!isWin && options.encoding !== 'buffer') list.sort();
+          return list;
+        }
       })())
       .then(res => callback(null, res), err => callback(err));
   };

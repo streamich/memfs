@@ -1,5 +1,6 @@
 import { IFsWithVolume, NestedDirectoryJSON, memfs } from '../..';
 import { nodeToFsa } from '../../node-to-fsa';
+import {IDirent} from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
 
 const setup = (json: NestedDirectoryJSON | null = null) => {
@@ -271,5 +272,17 @@ describe('.readdir()', () => {
     expect(res.includes('folder')).toBe(true);
     expect(res.includes('empty-folder')).toBe(true);
     expect(res.includes('f.html')).toBe(true);
+  });
+
+  test('can read directory contents with "withFileTypes" flag set', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const list = await fs.promises.readdir('/', {withFileTypes: true}) as IDirent[];
+    expect(list.length).toBe(3);
+    const names = list.map((item) => item.name);
+    expect(names).toStrictEqual(['empty-folder', 'f.html', 'folder']);
+    expect(list.find(item => item.name === 'folder')?.isDirectory()).toBe(true);
+    expect(list.find(item => item.name === 'empty-folder')?.isDirectory()).toBe(true);
+    expect(list.find(item => item.name === 'f.html')?.isFile()).toBe(true);
+    expect(list.find(item => item.name === 'f.html')?.isDirectory()).toBe(false);
   });
 });

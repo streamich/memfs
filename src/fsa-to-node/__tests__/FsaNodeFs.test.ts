@@ -191,3 +191,12 @@ describe('.unlink()', () => {
     }
   });
 });
+
+describe('.readFile()', () => {
+  test('can read file contents', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    const data = await fs.promises.readFile('/folder/file');
+    expect(data.toString()).toBe('test');
+  });
+});
+

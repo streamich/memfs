@@ -10,23 +10,23 @@ import { Readable, Writable } from 'stream';
 import { constants } from './constants';
 import { EventEmitter } from 'events';
 import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from './encoding';
-import * as errors from './internal/errors';
 import * as util from 'util';
 import * as opts from './node/types/options';
 import { createPromisesApi } from './node/promises';
-import { ERRSTR, MODE } from './node/constants';
+import { ERRSTR, FLAGS, MODE } from './node/constants';
 import {
   getDefaultOpts,
   getDefaultOptsAndCb,
   getMkdirOptions,
   getOptions,
+  getReadFileOptions,
   getRmOptsAndCb,
   getRmdirOptions,
   optsAndCbGenerator,
   optsDefaults,
   optsGenerator,
 } from './node/options';
-import { validateCallback, modeToNumber, pathToFilename, nullCheck, createError, genRndStr6 } from './node/util';
+import { validateCallback, modeToNumber, pathToFilename, nullCheck, createError, genRndStr6, flagsToNumber } from './node/util';
 import type { PathLike, symlink } from 'fs';
 
 const resolveCrossPlatform = pathModule.resolve;
@@ -90,69 +90,14 @@ const ERR_FS_EISDIR = 'ERR_FS_EISDIR';
 
 // ---------------------------------------- Flags
 
-// List of file `flags` as defined by Node.
-export enum FLAGS {
-  // Open file for reading. An exception occurs if the file does not exist.
-  r = O_RDONLY,
-  // Open file for reading and writing. An exception occurs if the file does not exist.
-  'r+' = O_RDWR,
-  // Open file for reading in synchronous mode. Instructs the operating system to bypass the local file system cache.
-  rs = O_RDONLY | O_SYNC,
-  sr = FLAGS.rs,
-  // Open file for reading and writing, telling the OS to open it synchronously. See notes for 'rs' about using this with caution.
-  'rs+' = O_RDWR | O_SYNC,
-  'sr+' = FLAGS['rs+'],
-  // Open file for writing. The file is created (if it does not exist) or truncated (if it exists).
-  w = O_WRONLY | O_CREAT | O_TRUNC,
-  // Like 'w' but fails if path exists.
-  wx = O_WRONLY | O_CREAT | O_TRUNC | O_EXCL,
-  xw = FLAGS.wx,
-  // Open file for reading and writing. The file is created (if it does not exist) or truncated (if it exists).
-  'w+' = O_RDWR | O_CREAT | O_TRUNC,
-  // Like 'w+' but fails if path exists.
-  'wx+' = O_RDWR | O_CREAT | O_TRUNC | O_EXCL,
-  'xw+' = FLAGS['wx+'],
-  // Open file for appending. The file is created if it does not exist.
-  a = O_WRONLY | O_APPEND | O_CREAT,
-  // Like 'a' but fails if path exists.
-  ax = O_WRONLY | O_APPEND | O_CREAT | O_EXCL,
-  xa = FLAGS.ax,
-  // Open file for reading and appending. The file is created if it does not exist.
-  'a+' = O_RDWR | O_APPEND | O_CREAT,
-  // Like 'a+' but fails if path exists.
-  'ax+' = O_RDWR | O_APPEND | O_CREAT | O_EXCL,
-  'xa+' = FLAGS['ax+'],
-}
-
 export type TFlagsCopy =
   | typeof constants.COPYFILE_EXCL
   | typeof constants.COPYFILE_FICLONE
   | typeof constants.COPYFILE_FICLONE_FORCE;
 
-export function flagsToNumber(flags: TFlags | undefined): number {
-  if (typeof flags === 'number') return flags;
-
-  if (typeof flags === 'string') {
-    const flagsNum = FLAGS[flags];
-    if (typeof flagsNum !== 'undefined') return flagsNum;
-  }
-
-  // throw new TypeError(formatError(ERRSTR_FLAG(flags)));
-  throw new errors.TypeError('ERR_INVALID_OPT_VALUE', 'flags', flags);
-}
-
 // ---------------------------------------- Options
 
 // General options with optional `encoding` property that most commands accept.
-
-// Options for `fs.readFile` and `fs.readFileSync`.
-export interface IReadFileOptions extends opts.IOptions {
-  flag?: string;
-}
-const readFileOptsDefaults: IReadFileOptions = {
-  flag: 'r',
-};
-const getReadFileOptions = optsGenerator<IReadFileOptions>(readFileOptsDefaults);
 
 // Options for `fs.writeFile` and `fs.writeFileSync`
 export interface IWriteFileOptions extends opts.IFileOptions {}
@@ -177,7 +122,7 @@ const getAppendFileOptsAndCb = optsAndCbGenerator<IAppendFileOptions, void>(getA
 export interface IRealpathOptions {
   encoding?: TEncodingExtended;
 }
-const realpathDefaults: IReadFileOptions = optsDefaults;
+const realpathDefaults: opts.IReadFileOptions = optsDefaults;
 const getRealpathOptions = optsGenerator<IRealpathOptions>(realpathDefaults);
 const getRealpathOptsAndCb = optsAndCbGenerator<IRealpathOptions, TDataOut>(getRealpathOptions);
 
@@ -972,16 +917,16 @@ export class Volume {
     return result;
   }
 
-  readFileSync(file: TFileId, options?: IReadFileOptions | string): TDataOut {
+  readFileSync(file: TFileId, options?: opts.IReadFileOptions | string): TDataOut {
     const opts = getReadFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     return this.readFileBase(file, flagsNum, opts.encoding as BufferEncoding);
   }
 
   readFile(id: TFileId, callback: TCallback<TDataOut>);
-  readFile(id: TFileId, options: IReadFileOptions | string, callback: TCallback<TDataOut>);
-  readFile(id: TFileId, a: TCallback<TDataOut> | IReadFileOptions | string, b?: TCallback<TDataOut>) {
-    const [opts, callback] = optsAndCbGenerator<IReadFileOptions, TCallback<TDataOut>>(getReadFileOptions)(a, b);
+  readFile(id: TFileId, options: opts.IReadFileOptions | string, callback: TCallback<TDataOut>);
+  readFile(id: TFileId, a: TCallback<TDataOut> | opts.IReadFileOptions | string, b?: TCallback<TDataOut>) {
+    const [opts, callback] = optsAndCbGenerator<opts.IReadFileOptions, TCallback<TDataOut>>(getReadFileOptions)(a, b);
     const flagsNum = flagsToNumber(opts.flag);
     this.wrapAsync(this.readFileBase, [id, flagsNum, opts.encoding], callback);
   }

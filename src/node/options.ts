@@ -64,3 +64,8 @@ export const getRmdirOptions = (options): opts.IRmdirOptions => {
 
 const getRmOpts = optsGenerator<opts.IOptions>(optsDefaults);
 export const getRmOptsAndCb = optsAndCbGenerator<opts.IRmOptions, any>(getRmOpts);
+
+const readFileOptsDefaults: opts.IReadFileOptions = {
+  flag: 'r',
+};
+export const getReadFileOptions = optsGenerator<opts.IReadFileOptions>(readFileOptsDefaults);

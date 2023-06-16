@@ -1,6 +1,6 @@
 import { createPromisesApi } from '../node/promises';
-import { getDefaultOptsAndCb, getMkdirOptions, getRmOptsAndCb, getRmdirOptions } from '../node/options';
-import { createError, genRndStr6, nullCheck, pathToFilename, validateCallback } from '../node/util';
+import { getDefaultOptsAndCb, getMkdirOptions, getReadFileOptions, getRmOptsAndCb, getRmdirOptions, optsAndCbGenerator } from '../node/options';
+import { createError, flagsToNumber, genRndStr6, nullCheck, pathToFilename, validateCallback } from '../node/util';
 import { pathToLocation } from './util';
 import { MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
@@ -9,6 +9,7 @@ import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
+import {bufferToEncoding} from '../volume';
 
 // const notImplemented: (...args: unknown[]) => unknown = () => {
 //   throw new Error('Not implemented');
@@ -41,11 +42,11 @@ export class FsaNodeFs implements FsCallbackApi {
     return curr;
   }
 
-  // private async getFile(path: string[], name: string, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
-  //   const dir = await this.getDir(path, false, funcName);
-  //   const file = await dir.getFileHandle(name, { create: false });
-  //   return file;
-  // }
+  private async getFile(path: string[], name: string, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
+    const dir = await this.getDir(path, false, funcName);
+    const file = await dir.getFileHandle(name, { create: false });
+    return file;
+  }
 
   public readonly open: FsCallbackApi['open'] = (
     path: misc.PathLike,
@@ -76,7 +77,21 @@ export class FsaNodeFs implements FsCallbackApi {
     a?: opts.IReadFileOptions | string | misc.TCallback<misc.TDataOut>,
     b?: misc.TCallback<misc.TDataOut>,
   ) => {
-    throw new Error('Not implemented');
+    const [opts, callback] = optsAndCbGenerator<opts.IReadFileOptions, misc.TDataOut>(getReadFileOptions)(a, b);
+    const flagsNum = flagsToNumber(opts.flag);
+    if (typeof id === 'number') throw new Error('Not implemented');
+    const filename = pathToFilename(id);
+    const [folder, name] = pathToLocation(filename);
+    return this.getFile(folder, name, 'readFile')
+      .then(file => file.getFile())
+      .then(file => file.arrayBuffer())
+      .then(data => {
+        const buffer = Buffer.from(data);
+        callback(null, bufferToEncoding(buffer, opts.encoding));
+      })
+      .catch(error => {
+        callback(error);
+      });
   };
 
   public readonly write: FsCallbackApi['write'] = (fd: number, a?, b?, c?, d?, e?) => {

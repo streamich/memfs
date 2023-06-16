@@ -1,5 +1,4 @@
 import * as pathModule from 'path';
-import { PathLike, symlink } from 'fs';
 import { Node, Link, File } from './node';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -13,7 +12,8 @@ import { EventEmitter } from 'events';
 import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as errors from './internal/errors';
 import util = require('util');
-import createPromisesApi from './promises';
+import { createPromisesApi } from './node/promises';
+import type { PathLike, symlink } from 'fs';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -43,7 +43,7 @@ export interface IError extends Error {
 }
 
 export type TFileId = PathLike | number; // Number is used as a file descriptor.
-export type TData = TDataOut | Uint8Array; // Data formats users can give us.
+export type TData = TDataOut | ArrayBufferView | DataView; // Data formats users can give us.
 export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
 export type TTime = number | string | Date;
@@ -343,7 +343,10 @@ const getMkdirOptions = (options): IMkdirOptions => {
 
 // Options for `fs.rmdir` and `fs.rmdirSync`
 export interface IRmdirOptions {
+  /** @deprecated */
   recursive?: boolean;
+  maxRetries?: number;
+  retryDelay?: number;
 }
 const rmdirDefaults: IRmdirOptions = {
   recursive: false,
@@ -930,6 +933,7 @@ export class Volume {
     return json;
   }
 
+  // TODO: `cwd` should probably not invoke `process.cwd()`.
   fromJSON(json: DirectoryJSON, cwd: string = process.cwd()) {
     for (let filename in json) {
       const data = json[filename];
@@ -1095,23 +1099,35 @@ export class Volume {
     }
   }
 
-  private readBase(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number): number {
+  private readBase(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    position: number,
+  ): number {
     const file = this.getFileByFdOrThrow(fd);
     return file.read(buffer, Number(offset), Number(length), position);
   }
 
-  readSync(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number): number {
+  readSync(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    position: number,
+  ): number {
     validateFd(fd);
     return this.readBase(fd, buffer, offset, length, position);
   }
 
   read(
     fd: number,
-    buffer: Buffer | Uint8Array,
+    buffer: Buffer | ArrayBufferView | DataView,
     offset: number,
     length: number,
     position: number,
-    callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | Uint8Array) => void,
+    callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | ArrayBufferView | DataView) => void,
   ) {
     validateCallback(callback);
 
@@ -1183,9 +1199,21 @@ export class Volume {
     return file.write(buf, offset, length, position);
   }
 
-  writeSync(fd: number, buffer: Buffer | Uint8Array, offset?: number, length?: number, position?: number): number;
+  writeSync(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset?: number,
+    length?: number,
+    position?: number,
+  ): number;
   writeSync(fd: number, str: string, position?: number, encoding?: BufferEncoding): number;
-  writeSync(fd: number, a: string | Buffer | Uint8Array, b?: number, c?: number | BufferEncoding, d?: number): number {
+  writeSync(
+    fd: number,
+    a: string | Buffer | ArrayBufferView | DataView,
+    b?: number,
+    c?: number | BufferEncoding,
+    d?: number,
+  ): number {
     validateFd(fd);
 
     let encoding: BufferEncoding | undefined;
@@ -1217,12 +1245,18 @@ export class Volume {
     return this.writeBase(fd, buf, offset, length, position);
   }
 
-  write(fd: number, buffer: Buffer | Uint8Array, callback: (...args) => void);
-  write(fd: number, buffer: Buffer | Uint8Array, offset: number, callback: (...args) => void);
-  write(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, callback: (...args) => void);
+  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, callback: (...args) => void);
+  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset: number, callback: (...args) => void);
   write(
     fd: number,
-    buffer: Buffer | Uint8Array,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    callback: (...args) => void,
+  );
+  write(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
     offset: number,
     length: number,
     position: number,

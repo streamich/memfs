@@ -294,14 +294,19 @@ export class FsaNodeFs implements FsCallbackApi {
     const [opts, callback] = getAppendFileOptsAndCb(a, b);
     const buffer = dataToBuffer(data, opts.encoding);
     this.getFileByIdOrCreate(id, 'appendFile')
-      .then(file => (async () => {
-        const blob = await file.getFile();
-        const writable = await file.createWritable({ keepExistingData: true });
-        await writable.seek(blob.size);
-        await writable.write(buffer);
-        await writable.close();
-      })())
-      .then(() => callback(null), error => callback(error));
+      .then(file =>
+        (async () => {
+          const blob = await file.getFile();
+          const writable = await file.createWritable({ keepExistingData: true });
+          await writable.seek(blob.size);
+          await writable.write(buffer);
+          await writable.close();
+        })(),
+      )
+      .then(
+        () => callback(null),
+        error => callback(error),
+      );
   };
 
   public readonly readdir: FsCallbackApi['readdir'] = (path: misc.PathLike, a?, b?) => {

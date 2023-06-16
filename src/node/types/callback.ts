@@ -75,7 +75,6 @@ export interface FsCallbackApi {
   );
   readlink(path: misc.PathLike, callback: misc.TCallback<misc.TDataOut>);
   readlink(path: misc.PathLike, options: opts.IOptions, callback: misc.TCallback<misc.TDataOut>);
-  fsyncSync(fd: number): void;
   fsync(fd: number, callback: misc.TCallback<void>): void;
   fdatasync(fd: number, callback: misc.TCallback<void>): void;
   ftruncate(fd: number, callback: misc.TCallback<void>);

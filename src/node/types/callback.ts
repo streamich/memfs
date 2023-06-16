@@ -92,8 +92,6 @@ export interface FsCallbackApi {
   );
   mkdir(path: misc.PathLike, mode: opts.IMkdirOptions & { recursive: true }, callback: misc.TCallback<string>);
   mkdir(path: misc.PathLike, mode: misc.TMode | opts.IMkdirOptions, callback: misc.TCallback<string>);
-  mkdirp(path: misc.PathLike, callback: misc.TCallback<string>);
-  mkdirp(path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<string>);
   mkdtemp(prefix: string, callback: misc.TCallback<void>): void;
   mkdtemp(prefix: string, options: opts.IOptions, callback: misc.TCallback<void>);
   rmdir(path: misc.PathLike, callback: misc.TCallback<void>);

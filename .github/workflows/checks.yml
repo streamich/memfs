@@ -49,7 +49,6 @@ jobs:
 
   test-node:
     name:
-      # prettier-ignore
       Test on Node.js v${{ matrix.node-version }}
     needs: prepare-yarn-cache
     strategy:
@@ -94,8 +93,7 @@ jobs:
           CI: true
   release:
     if:
-      # prettier-ignore
-      ${{ github.event_name == 'push' && (github.event.ref == 'refs/heads/main' || github.event.ref == 'refs/heads/next') }}
+      ${{ github.event_name == 'push' && (github.event.ref == 'refs/heads/master' || github.event.ref == 'refs/heads/next') }}
     name: Release new version
     needs: [typecheck, test-node, test-os]
     runs-on: ubuntu-latest

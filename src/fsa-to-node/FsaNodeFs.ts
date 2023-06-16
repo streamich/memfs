@@ -124,12 +124,15 @@ export class FsaNodeFs implements FsCallbackApi {
     validateFd(fd);
     this.getFileByFd(fd, 'close')
       .then(file => file.close())
-      .then(() => {
-        this.fds.delete(fd);
-        callback(null);
-      }, error => {
-        callback(error);
-      });
+      .then(
+        () => {
+          this.fds.delete(fd);
+          callback(null);
+        },
+        error => {
+          callback(error);
+        },
+      );
   };
 
   public readonly read: FsCallbackApi['read'] = (

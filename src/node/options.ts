@@ -1,4 +1,4 @@
-import type * as opts from "./types/options";
+import type * as opts from './types/options';
 import { MODE } from './constants';
 
 const mkdirDefaults: opts.IMkdirOptions = {

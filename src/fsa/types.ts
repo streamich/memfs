@@ -7,12 +7,12 @@ export interface IFileSystemHandle {
   kind: 'file' | 'directory';
   name: string;
   isSameEntry(fileSystemHandle: IFileSystemHandle): boolean;
-  queryPermission(fileSystemHandlePermissionDescriptor: NodeFileSystemHandlePermissionDescriptor): IPermissionStatus;
+  queryPermission(fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor): IPermissionStatus;
   remove(options?: { recursive?: boolean }): Promise<void>;
-  requestPermission(fileSystemHandlePermissionDescriptor: NodeFileSystemHandlePermissionDescriptor): IPermissionStatus;
+  requestPermission(fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor): IPermissionStatus;
 }
 
-export interface NodeFileSystemHandlePermissionDescriptor {
+export interface FileSystemHandlePermissionDescriptor {
   mode: 'read' | 'readwrite';
 }
 

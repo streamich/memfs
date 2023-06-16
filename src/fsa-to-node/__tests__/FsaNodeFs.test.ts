@@ -206,4 +206,3 @@ describe('.readFile()', () => {
     expect(data.toString()).toBe('test');
   });
 });
-

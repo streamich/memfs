@@ -26,7 +26,15 @@ import {
   optsDefaults,
   optsGenerator,
 } from './node/options';
-import { validateCallback, modeToNumber, pathToFilename, nullCheck, createError, genRndStr6, flagsToNumber } from './node/util';
+import {
+  validateCallback,
+  modeToNumber,
+  pathToFilename,
+  nullCheck,
+  createError,
+  genRndStr6,
+  flagsToNumber,
+} from './node/util';
 import type { PathLike, symlink } from 'fs';
 
 const resolveCrossPlatform = pathModule.resolve;

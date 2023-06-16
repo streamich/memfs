@@ -1,12 +1,27 @@
 import { createPromisesApi } from '../node/promises';
-import { getDefaultOptsAndCb, getMkdirOptions, getReadFileOptions, getRmOptsAndCb, getRmdirOptions, optsAndCbGenerator } from '../node/options';
-import { createError, flagsToNumber, genRndStr6, modeToNumber, nullCheck, pathToFilename, validateCallback } from '../node/util';
+import {
+  getDefaultOptsAndCb,
+  getMkdirOptions,
+  getReadFileOptions,
+  getRmOptsAndCb,
+  getRmdirOptions,
+  optsAndCbGenerator,
+} from '../node/options';
+import {
+  createError,
+  flagsToNumber,
+  genRndStr6,
+  modeToNumber,
+  nullCheck,
+  pathToFilename,
+  validateCallback,
+} from '../node/util';
 import { pathToLocation } from './util';
 import { MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
 import { FsaToNodeConstants } from './constants';
-import {bufferToEncoding} from '../volume';
-import {FsaNodeFsOpenFile} from './FsaNodeFsOpenFile';
+import { bufferToEncoding } from '../volume';
+import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -91,13 +106,13 @@ export class FsaNodeFs implements FsCallbackApi {
     const flagsNum = flagsToNumber(flags);
     const [folder, name] = pathToLocation(filename);
     this.getFile(folder, name, 'open')
-      .then((file) => {
+      .then(file => {
         const fd = this.newFdNumber();
         const openFile = new FsaNodeFsOpenFile(fd, modeNum, flagsNum, file);
         this.fds.set(fd, openFile);
         callback(null, fd);
       })
-      .catch((error) => callback(error));
+      .catch(error => callback(error));
   };
 
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback<void>): void => {

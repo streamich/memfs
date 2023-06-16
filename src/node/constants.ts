@@ -1,4 +1,4 @@
-import {constants} from "../constants";
+import { constants } from '../constants';
 
 // Default modes for opening files.
 export const enum MODE {

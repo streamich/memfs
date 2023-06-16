@@ -1,5 +1,5 @@
-import {FsaToNodeConstants} from "./constants";;
-import type {FsLocation} from "./types";
+import { FsaToNodeConstants } from './constants';
+import type { FsLocation } from './types';
 
 export const pathToLocation = (path: string): FsLocation => {
   if (path[0] === FsaToNodeConstants.Separator) path = path.slice(1);

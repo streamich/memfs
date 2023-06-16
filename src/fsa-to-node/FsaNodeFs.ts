@@ -1,13 +1,13 @@
 import { createPromisesApi } from '../node/promises';
 import { getMkdirOptions } from '../node/options';
-import {createError, modeToNumber, pathToFilename, validateCallback} from '../node/util';
-import {pathToLocation} from './util';
-import type {FsCallbackApi, FsPromisesApi} from '../node/types';
+import { createError, modeToNumber, pathToFilename, validateCallback } from '../node/util';
+import { pathToLocation } from './util';
+import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 
-const notImplemented: ((...args: unknown[]) => unknown) = () => {
+const notImplemented: (...args: unknown[]) => unknown = () => {
   throw new Error('Not implemented');
 };
 
@@ -18,9 +18,14 @@ const notImplemented: ((...args: unknown[]) => unknown) = () => {
 export class FsaNodeFs implements FsCallbackApi {
   public readonly promises: FsPromisesApi = createPromisesApi(this);
 
-  public constructor (protected readonly root: fsa.IFileSystemDirectoryHandle) {}
+  public constructor(protected readonly root: fsa.IFileSystemDirectoryHandle) {}
 
-  public readonly open: FsCallbackApi['open'] = (path: misc.PathLike, flags: misc.TFlags, a?: misc.TMode | misc.TCallback<number>, b?: misc.TCallback<number> | string) => {
+  public readonly open: FsCallbackApi['open'] = (
+    path: misc.PathLike,
+    flags: misc.TFlags,
+    a?: misc.TMode | misc.TCallback<number>,
+    b?: misc.TCallback<number> | string,
+  ) => {
     throw new Error('Not implemented');
   };
 
@@ -39,7 +44,11 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   };
 
-  public readonly readFile: FsCallbackApi['readFile'] = (id: misc.TFileId, a?: opts.IReadFileOptions | string | misc.TCallback<misc.TDataOut>, b?: misc.TCallback<misc.TDataOut>) => {
+  public readonly readFile: FsCallbackApi['readFile'] = (
+    id: misc.TFileId,
+    a?: opts.IReadFileOptions | string | misc.TCallback<misc.TDataOut>,
+    b?: misc.TCallback<misc.TDataOut>,
+  ) => {
     throw new Error('Not implemented');
   };
 
@@ -54,7 +63,12 @@ export class FsaNodeFs implements FsCallbackApi {
     options: opts.IWriteFileOptions | string,
     callback: misc.TCallback<void>,
   );
-  writeFile(id: misc.TFileId, data: misc.TData, a: misc.TCallback<void> | opts.IWriteFileOptions | string, b?: misc.TCallback<void>) {
+  writeFile(
+    id: misc.TFileId,
+    data: misc.TData,
+    a: misc.TCallback<void> | opts.IWriteFileOptions | string,
+    b?: misc.TCallback<void>,
+  ) {
     throw new Error('Not implemented');
   }
 
@@ -74,19 +88,32 @@ export class FsaNodeFs implements FsCallbackApi {
 
   symlink(target: misc.PathLike, path: misc.PathLike, callback: misc.TCallback<void>);
   symlink(target: misc.PathLike, path: misc.PathLike, type: misc.symlink.Type, callback: misc.TCallback<void>);
-  symlink(target: misc.PathLike, path: misc.PathLike, a: misc.symlink.Type | misc.TCallback<void>, b?: misc.TCallback<void>) {
+  symlink(
+    target: misc.PathLike,
+    path: misc.PathLike,
+    a: misc.symlink.Type | misc.TCallback<void>,
+    b?: misc.TCallback<void>,
+  ) {
     throw new Error('Not implemented');
   }
 
   realpath(path: misc.PathLike, callback: misc.TCallback<misc.TDataOut>);
   realpath(path: misc.PathLike, options: opts.IRealpathOptions | string, callback: misc.TCallback<misc.TDataOut>);
-  realpath(path: misc.PathLike, a: misc.TCallback<misc.TDataOut> | opts.IRealpathOptions | string, b?: misc.TCallback<misc.TDataOut>) {
+  realpath(
+    path: misc.PathLike,
+    a: misc.TCallback<misc.TDataOut> | opts.IRealpathOptions | string,
+    b?: misc.TCallback<misc.TDataOut>,
+  ) {
     throw new Error('Not implemented');
   }
 
   lstat(path: misc.PathLike, callback: misc.TCallback<misc.IStats>): void;
   lstat(path: misc.PathLike, options: opts.IStatOptions, callback: misc.TCallback<misc.IStats>): void;
-  lstat(path: misc.PathLike, a: misc.TCallback<misc.IStats> | opts.IStatOptions, b?: misc.TCallback<misc.IStats>): void {
+  lstat(
+    path: misc.PathLike,
+    a: misc.TCallback<misc.IStats> | opts.IStatOptions,
+    b?: misc.TCallback<misc.IStats>,
+  ): void {
     throw new Error('Not implemented');
   }
 
@@ -160,7 +187,7 @@ export class FsaNodeFs implements FsCallbackApi {
   ftruncate(fd: number, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) {
     throw new Error('Not implemented');
   }
-  
+
   truncate(id: misc.TFileId, callback: misc.TCallback<void>);
   truncate(id: misc.TFileId, len: number, callback: misc.TCallback<void>);
   truncate(id: misc.TFileId, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) {
@@ -181,13 +208,16 @@ export class FsaNodeFs implements FsCallbackApi {
    */
   private async getDir(path: string[], create: boolean): Promise<fsa.IFileSystemDirectoryHandle> {
     let curr: fsa.IFileSystemDirectoryHandle = this.root;
-    const options: fsa.GetDirectoryHandleOptions = {create};
-    for (const name of path)
-      curr = await curr.getDirectoryHandle(name, options);
+    const options: fsa.GetDirectoryHandleOptions = { create };
+    for (const name of path) curr = await curr.getDirectoryHandle(name, options);
     return curr;
   }
 
-  public readonly mkdir: FsCallbackApi['mkdir'] = (path: misc.PathLike, a: misc.TCallback<void> | misc.TMode | opts.IMkdirOptions, b?: misc.TCallback<string> | misc.TCallback<void>) => {
+  public readonly mkdir: FsCallbackApi['mkdir'] = (
+    path: misc.PathLike,
+    a: misc.TCallback<void> | misc.TMode | opts.IMkdirOptions,
+    b?: misc.TCallback<string> | misc.TCallback<void>,
+  ) => {
     const opts: misc.TMode | opts.IMkdirOptions = getMkdirOptions(a);
     const callback = validateCallback(typeof a === 'function' ? a : b!);
     // const modeNum = modeToNumber(opts.mode, 0o777);
@@ -195,22 +225,25 @@ export class FsaNodeFs implements FsCallbackApi {
     const [folder, name] = pathToLocation(filename);
     // TODO: need to throw if directory already exists
     this.getDir(folder, opts.recursive ?? false)
-      .then(dir => dir.getDirectoryHandle(name, {create: true}))
-      .then(() => callback(null), error => {
-        if (!error || typeof error !== 'object') {
-          callback(createError('', 'mkdir'));
-          return;
-        }
-        switch (error.name) {
-          case 'NotFoundError': {
-            const err = createError('ENOTDIR', 'mkdir', folder.join('/'));
-            callback(err);
-          }
-          default: {
+      .then(dir => dir.getDirectoryHandle(name, { create: true }))
+      .then(
+        () => callback(null),
+        error => {
+          if (!error || typeof error !== 'object') {
             callback(createError('', 'mkdir'));
+            return;
           }
-        }
-      });
+          switch (error.name) {
+            case 'NotFoundError': {
+              const err = createError('ENOTDIR', 'mkdir', folder.join('/'));
+              callback(err);
+            }
+            default: {
+              callback(createError('', 'mkdir'));
+            }
+          }
+        },
+      );
   };
 
   mkdirp(path: misc.PathLike, callback: misc.TCallback<string>);

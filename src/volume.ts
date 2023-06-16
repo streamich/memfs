@@ -15,7 +15,7 @@ import * as util from 'util';
 import { createPromisesApi } from './node/promises';
 import { ERRSTR, MODE } from './node/constants';
 import { getMkdirOptions } from './node/options';
-import {validateCallback, modeToNumber, pathToFilename, nullCheck, createError} from './node/util';
+import { validateCallback, modeToNumber, pathToFilename, nullCheck, createError } from './node/util';
 import type { PathLike, symlink } from 'fs';
 
 const resolveCrossPlatform = pathModule.resolve;

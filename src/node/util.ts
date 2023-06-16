@@ -1,7 +1,7 @@
-import {ERRSTR} from './constants';
+import { ERRSTR } from './constants';
 import * as errors from '../internal/errors';
 import type { FsCallbackApi } from './types';
-import type * as misc from "./types/misc";
+import type * as misc from './types/misc';
 
 export function promisify(
   fs: FsCallbackApi,

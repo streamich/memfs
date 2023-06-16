@@ -1,9 +1,9 @@
-import { IFsWithVolume, memfs } from '../..';
+import { IFsWithVolume, NestedDirectoryJSON, memfs } from '../..';
 import { nodeToFsa } from '../../node-to-fsa';
 import { FsaNodeFs } from '../FsaNodeFs';
 
-const setup = () => {
-  const mfs = memfs({ mountpoint: null }) as IFsWithVolume;
+const setup = (json: NestedDirectoryJSON | null = null) => {
+  const mfs = memfs({ mountpoint: json }) as IFsWithVolume;
   const dir = nodeToFsa(mfs, '/mountpoint', { mode: 'readwrite' });
   const fs = new FsaNodeFs(dir);
   return { fs, mfs, dir };
@@ -32,7 +32,7 @@ describe('.mkdir()', () => {
       );
       throw new Error('Expected error');
     } catch (error) {
-      expect(error.code).toBe('ENOTDIR');
+      expect(error.code).toBe('ENOENT');
     }
   });
 
@@ -51,5 +51,15 @@ describe('.mkdir()', () => {
     const { fs, mfs } = setup();
     await fs.promises.mkdir('/test/subtest', { recursive: true });
     expect(mfs.statSync('/mountpoint/test/subtest').isDirectory()).toBe(true);
+  });
+
+  test('cannot create a folder over a file', async () => {
+    const { fs } = setup({file: 'test'});
+    try {
+      await fs.promises.mkdir('/file/folder', { recursive: true });
+      throw new Error('Expected error');
+    } catch (error) {
+      expect(error.code).toBe('ENOTDIR');
+    }
   });
 });

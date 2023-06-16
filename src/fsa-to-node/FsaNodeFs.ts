@@ -229,28 +229,24 @@ export class FsaNodeFs implements FsCallbackApi {
       .then(
         () => callback(null),
         error => {
-          if (!error || typeof error !== 'object') {
-            callback(createError('', 'mkdir'));
-            return;
-          }
-          switch (error.name) {
-            case 'NotFoundError': {
-              const err = createError('ENOTDIR', 'mkdir', folder.join('/'));
-              callback(err);
+          if (error && typeof error === 'object') {
+            switch (error.name) {
+              case 'NotFoundError': {
+                const err = createError('ENOENT', 'mkdir', folder.join('/'));
+                callback(err);
+                return;
+              }
+              case 'TypeMismatchError': {
+                const err = createError('ENOTDIR', 'mkdir', folder.join('/'));
+                callback(err);
+                return;
+              }
             }
-            default: {
-              callback(createError('', 'mkdir'));
-            }
           }
+          callback(error);
         },
       );
   };
-
-  mkdirp(path: misc.PathLike, callback: misc.TCallback<string>);
-  mkdirp(path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<string>);
-  mkdirp(path: misc.PathLike, a: misc.TCallback<string> | misc.TMode, b?: misc.TCallback<string>) {
-    throw new Error('Not implemented');
-  }
 
   mkdtemp(prefix: string, callback: misc.TCallback<void>): void;
   mkdtemp(prefix: string, options: opts.IOptions, callback: misc.TCallback<void>);

@@ -1,5 +1,5 @@
 import { IFsWithVolume, memfs } from '../..';
-import { FileHandle } from '../../promises';
+import { FileHandle } from '../../node/FileHandle';
 import { createSwapFile } from '../NodeFileSystemWritableFileStream';
 
 describe('createSwapFile()', () => {

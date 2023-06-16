@@ -2,6 +2,7 @@ import * as misc from "./misc";
 import * as opts from "./options";
 
 export interface FsPromisesApi {
+  FileHandle: new (...args: unknown[]) => misc.IFileHandle;
   access(path: misc.PathLike, mode?: number): Promise<void>;
   appendFile(path: misc.TFileHandle, data: misc.TData, options?: opts.IAppendFileOptions | string): Promise<void>;
   chmod(path: misc.PathLike, mode: misc.TMode): Promise<void>;

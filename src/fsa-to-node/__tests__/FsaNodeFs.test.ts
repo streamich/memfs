@@ -151,3 +151,43 @@ describe('.rm()', () => {
     await fs.promises.rm('/lala/lulu', { recursive: true, force: true });
   });
 });
+
+describe('.unlink()', () => {
+  test('can remove a file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    const res = await fs.promises.unlink('/folder/file');
+    expect(res).toBe(undefined);
+    expect(mfs.__vol.toJSON()).toStrictEqual({
+      '/mountpoint/folder': null,
+      '/mountpoint/empty-folder': null,
+    });
+  });
+
+  test('cannot delete a folder', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    try {
+      await fs.promises.unlink('/folder');
+      throw new Error('Expected error');
+    } catch (error) {
+      expect(error.code).toBe('EISDIR');
+      expect(mfs.__vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/empty-folder': null,
+      });
+    }
+  });
+
+  test('throws when deleting non-existing file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    try {
+      await fs.promises.unlink('/folder/not-a-file');
+      throw new Error('Expected error');
+    } catch (error) {
+      expect(error.code).toBe('ENOENT');
+      expect(mfs.__vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/empty-folder': null,
+      });
+    }
+  });
+});

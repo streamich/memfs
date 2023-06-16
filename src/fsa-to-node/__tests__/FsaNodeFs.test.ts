@@ -239,3 +239,26 @@ describe('.readFile()', () => {
     }
   });
 });
+
+describe('.truncate()', () => {
+  test('can truncate a file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    const res = await new Promise<unknown>((resolve, reject) => {
+      fs.truncate('/folder/file', 2, (err, res) => err ? reject(err) : resolve(res));
+    });
+    expect(res).toBe(undefined);
+    expect(mfs.readFileSync('/mountpoint/folder/file', 'utf8')).toBe('te');
+  });
+});
+
+describe('.ftruncate()', () => {
+  test('can truncate a file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    const handle = await fs.promises.open('/folder/file');
+    const res = await new Promise<unknown>((resolve, reject) => {
+      fs.ftruncate(handle.fd, 3, (err, res) => err ? reject(err) : resolve(res));
+    });
+    expect(res).toBe(undefined);
+    expect(mfs.readFileSync('/mountpoint/folder/file', 'utf8')).toBe('tes');
+  });
+});

@@ -103,9 +103,14 @@ jobs:
         with:
           node-version: lts/*
           cache: yarn
-      - name: install
+      - name: Install
         run: yarn
-      - run: yarn semantic-release
+      - name: Test
+        run: yarn test
+      - name: Build
+        run: yarn build
+      - name: Release
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

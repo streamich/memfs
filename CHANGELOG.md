@@ -1,3 +1,15 @@
+# [4.0.0](https://github.com/streamich/memfs/compare/v3.6.0...v4.0.0) (2023-06-16)
+
+
+### Features
+
+* 🎸 add File System Access API TypeScript types ([3ea8641](https://github.com/streamich/memfs/commit/3ea86417c4349cf5d0f9f4f9d91f57c9a9d67d42))
+
+
+### BREAKING CHANGES
+
+* 🧨 no breaking changes in this commit, but bumping to get this to v4 in NPM
+
 # [3.6.0](https://github.com/streamich/memfs/compare/v3.5.3...v3.6.0) (2023-06-16)
 
 

@@ -37,7 +37,12 @@ export interface FsCallbackApi {
   write(fd: number, str: string, position: number, callback: (...args) => void);
   write(fd: number, str: string, position: number, encoding: BufferEncoding, callback: (...args) => void);
   writeFile(id: misc.TFileId, data: misc.TData, callback: misc.TCallback<void>);
-  writeFile(id: misc.TFileId, data: misc.TData, options: opts.IWriteFileOptions | string, callback: misc.TCallback<void>);
+  writeFile(
+    id: misc.TFileId,
+    data: misc.TData,
+    options: opts.IWriteFileOptions | string,
+    callback: misc.TCallback<void>,
+  );
   copyFile(src: PathLike, dest: PathLike, callback: misc.TCallback<void>);
   copyFile(src: PathLike, dest: PathLike, flags: misc.TFlagsCopy, callback: misc.TCallback<void>);
   link(existingPath: PathLike, newPath: PathLike, callback: misc.TCallback<void>): void;
@@ -57,9 +62,18 @@ export interface FsCallbackApi {
   access(path: PathLike, callback: misc.TCallback<void>);
   access(path: PathLike, mode: number, callback: misc.TCallback<void>);
   appendFile(id: misc.TFileId, data: misc.TData, callback: misc.TCallback<void>);
-  appendFile(id: misc.TFileId, data: misc.TData, options: opts.IAppendFileOptions | string, callback: misc.TCallback<void>);
+  appendFile(
+    id: misc.TFileId,
+    data: misc.TData,
+    options: opts.IAppendFileOptions | string,
+    callback: misc.TCallback<void>,
+  );
   readdir(path: PathLike, callback: misc.TCallback<misc.TDataOut[] | misc.IDirent[]>);
-  readdir(path: PathLike, options: opts.IReaddirOptions | string, callback: misc.TCallback<misc.TDataOut[] | misc.IDirent[]>);
+  readdir(
+    path: PathLike,
+    options: opts.IReaddirOptions | string,
+    callback: misc.TCallback<misc.TDataOut[] | misc.IDirent[]>,
+  );
   readlink(path: PathLike, callback: misc.TCallback<misc.TDataOut>);
   readlink(path: PathLike, options: opts.IOptions, callback: misc.TCallback<misc.TDataOut>);
   fsyncSync(fd: number): void;
@@ -72,7 +86,11 @@ export interface FsCallbackApi {
   futimes(fd: number, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void;
   utimes(path: PathLike, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void;
   mkdir(path: PathLike, callback: misc.TCallback<void>);
-  mkdir(path: PathLike, mode: misc.TMode | (opts.IMkdirOptions & { recursive?: false }), callback: misc.TCallback<void>);
+  mkdir(
+    path: PathLike,
+    mode: misc.TMode | (opts.IMkdirOptions & { recursive?: false }),
+    callback: misc.TCallback<void>,
+  );
   mkdir(path: PathLike, mode: opts.IMkdirOptions & { recursive: true }, callback: misc.TCallback<string>);
   mkdir(path: PathLike, mode: misc.TMode | opts.IMkdirOptions, callback: misc.TCallback<string>);
   mkdirp(path: PathLike, callback: misc.TCallback<string>);
@@ -90,7 +108,11 @@ export interface FsCallbackApi {
   chown(path: PathLike, uid: number, gid: number, callback: misc.TCallback<void>): void;
   lchown(path: PathLike, uid: number, gid: number, callback: misc.TCallback<void>): void;
   watchFile(path: PathLike, listener: (curr: misc.IStats, prev: misc.IStats) => void): misc.IStatWatcher;
-  watchFile(path: PathLike, options: opts.IWatchFileOptions, listener: (curr: misc.IStats, prev: misc.IStats) => void): misc.IStatWatcher;
+  watchFile(
+    path: PathLike,
+    options: opts.IWatchFileOptions,
+    listener: (curr: misc.IStats, prev: misc.IStats) => void,
+  ): misc.IStatWatcher;
   unwatchFile(path: PathLike, listener?: (curr: misc.IStats, prev: misc.IStats) => void): void;
   createReadStream(path: PathLike, options?: opts.IReadStreamOptions | string): misc.IReadStream;
   createWriteStream(path: PathLike, options?: opts.IWriteStreamOptions | string): misc.IWriteStream;

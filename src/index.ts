@@ -11,7 +11,7 @@ import {
 } from './volume';
 const { fsSyncMethods, fsAsyncMethods } = require('fs-monkey/lib/util/lists');
 import { constants } from './constants';
-import type {FsPromisesApi} from './node/types';
+import type { FsPromisesApi } from './node/types';
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
 export { DirectoryJSON };

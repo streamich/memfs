@@ -1,7 +1,7 @@
-import {promisify} from './util';
+import { promisify } from './util';
 import type * as opts from './types/options';
-import type {IFileHandle, IStats, TData, TDataOut, TMode, TTime} from './types/misc';
-import type {FsCallbackApi} from './types';
+import type { IFileHandle, IStats, TData, TDataOut, TMode, TTime } from './types/misc';
+import type { FsCallbackApi } from './types';
 
 export class FileHandle implements IFileHandle {
   private fs: FsCallbackApi;

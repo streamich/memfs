@@ -1,8 +1,8 @@
-import {FileHandle} from './FileHandle';
-import {promisify} from './util';
+import { FileHandle } from './FileHandle';
+import { promisify } from './util';
 import type * as opts from './types/options';
 import type * as misc from './types/misc';
-import type {FsCallbackApi, FsPromisesApi} from './types';
+import type { FsCallbackApi, FsPromisesApi } from './types';
 
 export function createPromisesApi(vol: FsCallbackApi): null | FsPromisesApi {
   if (typeof Promise === 'undefined') return null;
@@ -14,7 +14,11 @@ export function createPromisesApi(vol: FsCallbackApi): null | FsPromisesApi {
     },
 
     appendFile(path: misc.TFileHandle, data: misc.TData, options?: opts.IAppendFileOptions | string): Promise<void> {
-      return promisify(vol, 'appendFile')(path instanceof FileHandle ? path.fd : (path as misc.PathLike), data, options);
+      return promisify(vol, 'appendFile')(
+        path instanceof FileHandle ? path.fd : (path as misc.PathLike),
+        data,
+        options,
+      );
     },
 
     chmod(path: misc.PathLike, mode: misc.TMode): Promise<void> {

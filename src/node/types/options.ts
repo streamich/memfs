@@ -1,4 +1,4 @@
-import type {TEncodingExtended, TFlags, TMode} from "./misc";
+import type { TEncodingExtended, TFlags, TMode } from './misc';
 
 export interface IOptions {
   encoding?: BufferEncoding | TEncodingExtended;

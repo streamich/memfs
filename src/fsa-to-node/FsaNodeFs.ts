@@ -4,7 +4,7 @@ import { createError, genRndStr6, nullCheck, pathToFilename, validateCallback } 
 import { pathToLocation } from './util';
 import { MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
-import {FsaToNodeConstants} from './constants';
+import { FsaToNodeConstants } from './constants';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -267,59 +267,73 @@ export class FsaNodeFs implements FsCallbackApi {
     });
   };
 
-  public readonly rmdir: FsCallbackApi['rmdir'] = (path: misc.PathLike, a: misc.TCallback<void> | opts.IRmdirOptions, b?: misc.TCallback<void>) => {
+  public readonly rmdir: FsCallbackApi['rmdir'] = (
+    path: misc.PathLike,
+    a: misc.TCallback<void> | opts.IRmdirOptions,
+    b?: misc.TCallback<void>,
+  ) => {
     const options: opts.IRmdirOptions = getRmdirOptions(a);
     const callback: misc.TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
     const [folder, name] = pathToLocation(pathToFilename(path));
     this.getDir(folder, false, 'rmdir')
       .then(dir => dir.getDirectoryHandle(name).then(() => dir))
-      .then(dir => dir.removeEntry(name, {recursive: options.recursive ?? false}))
-      .then(() => callback(null), error => {
-        if (error && typeof error === 'object') {
-          switch (error.name) {
-            case 'NotFoundError': {
-              const err = createError('ENOENT', 'rmdir', folder.join('/'));
-              callback(err);
-              return;
-            }
-            case 'InvalidModificationError': {
-              const err = createError('ENOTEMPTY', 'rmdir', folder.join('/'));
-              callback(err);
-              return;
+      .then(dir => dir.removeEntry(name, { recursive: options.recursive ?? false }))
+      .then(
+        () => callback(null),
+        error => {
+          if (error && typeof error === 'object') {
+            switch (error.name) {
+              case 'NotFoundError': {
+                const err = createError('ENOENT', 'rmdir', folder.join('/'));
+                callback(err);
+                return;
+              }
+              case 'InvalidModificationError': {
+                const err = createError('ENOTEMPTY', 'rmdir', folder.join('/'));
+                callback(err);
+                return;
+              }
             }
           }
-        }
-        callback(error);
-      });
+          callback(error);
+        },
+      );
   };
 
-  public readonly rm: FsCallbackApi['rm'] = (path: misc.PathLike, a: misc.TCallback<void> | opts.IRmOptions, b?: misc.TCallback<void>): void => {
+  public readonly rm: FsCallbackApi['rm'] = (
+    path: misc.PathLike,
+    a: misc.TCallback<void> | opts.IRmOptions,
+    b?: misc.TCallback<void>,
+  ): void => {
     const [options, callback] = getRmOptsAndCb(a, b);
     const [folder, name] = pathToLocation(pathToFilename(path));
     this.getDir(folder, false, 'rmdir')
       .then(dir => dir.getDirectoryHandle(name).then(() => dir))
-      .then(dir => dir.removeEntry(name, {recursive: options.recursive ?? false}))
-      .then(() => callback(null), error => {
-        if (options.force) {
-          callback(null);
-          return;
-        }
-        if (error && typeof error === 'object') {
-          switch (error.name) {
-            case 'NotFoundError': {
-              const err = createError('ENOENT', 'rmdir', folder.join('/'));
-              callback(err);
-              return;
-            }
-            case 'InvalidModificationError': {
-              const err = createError('ENOTEMPTY', 'rmdir', folder.join('/'));
-              callback(err);
-              return;
+      .then(dir => dir.removeEntry(name, { recursive: options.recursive ?? false }))
+      .then(
+        () => callback(null),
+        error => {
+          if (options.force) {
+            callback(null);
+            return;
+          }
+          if (error && typeof error === 'object') {
+            switch (error.name) {
+              case 'NotFoundError': {
+                const err = createError('ENOENT', 'rmdir', folder.join('/'));
+                callback(err);
+                return;
+              }
+              case 'InvalidModificationError': {
+                const err = createError('ENOTEMPTY', 'rmdir', folder.join('/'));
+                callback(err);
+                return;
+              }
             }
           }
-        }
-        callback(error);
-      });
+          callback(error);
+        },
+      );
   };
 
   fchmod(fd: number, mode: misc.TMode, callback: misc.TCallback<void>): void {

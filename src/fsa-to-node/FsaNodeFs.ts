@@ -29,9 +29,9 @@ import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 
-// const notImplemented: (...args: unknown[]) => unknown = () => {
-//   throw new Error('Not implemented');
-// };
+const notImplemented: (...args: any[]) => any = () => {
+  throw new Error('Not implemented');
+};
 
 /**
  * Constructs a Node.js `fs` API from a File System Access API
@@ -316,25 +316,36 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   }
 
-  ftruncate(fd: number, callback: misc.TCallback<void>);
-  ftruncate(fd: number, len: number, callback: misc.TCallback<void>);
-  ftruncate(fd: number, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) {
-    throw new Error('Not implemented');
-  }
+  public readonly ftruncate: FsCallbackApi['ftruncate'] = (fd: number, a: misc.TCallback<void> | number, b?: misc.TCallback<void>): void => {
+    const len: number = typeof a === 'number' ? a : 0;
+    const callback: misc.TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
+    this.getFileByFd(fd)
+      .then(file => file.file.createWritable({keepExistingData: true}))
+      .then(writable => writable.truncate(len).then(() => writable.close()))
+      .then(() => callback(null), error => callback(error));
+  };
 
-  truncate(id: misc.TFileId, callback: misc.TCallback<void>);
-  truncate(id: misc.TFileId, len: number, callback: misc.TCallback<void>);
-  truncate(id: misc.TFileId, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) {
-    throw new Error('Not implemented');
-  }
+  public readonly truncate: FsCallbackApi['truncate'] = (path: misc.PathLike, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) => {
+    const len: number = typeof a === 'number' ? a : 0;
+    const callback: misc.TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
+    this.open(path, 'r+', (error, fd) => {
+      if (error) callback(error);
+      else {
+        this.ftruncate(fd!, len, error => {
+          if (error) this.close(fd!, () => callback(error));
+          else this.close(fd!, callback);
+        });
+      }
+    });
+  };
 
-  futimes(fd: number, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
-  }
+  public readonly futimes: FsCallbackApi['futimes'] = (fd: number, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void => {
+    callback(null);
+  };
 
-  utimes(path: misc.PathLike, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
-  }
+  public readonly utimes: FsCallbackApi['utimes'] = (path: misc.PathLike, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void => {
+    callback(null);
+  };
 
   public readonly mkdir: FsCallbackApi['mkdir'] = (
     path: misc.PathLike,
@@ -451,56 +462,32 @@ export class FsaNodeFs implements FsCallbackApi {
   };
 
   fchmod(fd: number, mode: misc.TMode, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
+    callback(null);
   }
 
   chmod(path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
+    callback(null);
   }
 
   lchmod(path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
+    callback(null);
   }
 
   fchown(fd: number, uid: number, gid: number, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
+    callback(null);
   }
 
   chown(path: misc.PathLike, uid: number, gid: number, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
+    callback(null);
   }
 
   lchown(path: misc.PathLike, uid: number, gid: number, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
+    callback(null);
   }
 
-  watchFile(path: misc.PathLike, listener: (curr: misc.IStats, prev: misc.IStats) => void): misc.IStatWatcher;
-  watchFile(
-    path: misc.PathLike,
-    options: opts.IWatchFileOptions,
-    listener: (curr: misc.IStats, prev: misc.IStats) => void,
-  ): misc.IStatWatcher;
-  watchFile(path: misc.PathLike, a, b?): misc.IStatWatcher {
-    throw new Error('Not implemented');
-  }
-
-  unwatchFile(path: misc.PathLike, listener?: (curr: misc.IStats, prev: misc.IStats) => void): void {
-    throw new Error('Not implemented');
-  }
-
-  createReadStream(path: misc.PathLike, options?: opts.IReadStreamOptions | string): misc.IReadStream {
-    throw new Error('Not implemented');
-  }
-
-  createWriteStream(path: misc.PathLike, options?: opts.IWriteStreamOptions | string): misc.IWriteStream {
-    throw new Error('Not implemented');
-  }
-
-  watch(
-    path: misc.PathLike,
-    options?: opts.IWatchOptions | string,
-    listener?: (eventType: string, filename: string) => void,
-  ): misc.IFSWatcher {
-    throw new Error('Not implemented');
-  }
+  public readonly watchFile: FsCallbackApi['watchFile'] = notImplemented;
+  public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notImplemented;
+  public readonly createReadStream: FsCallbackApi['createReadStream'] = notImplemented;
+  public readonly createWriteStream: FsCallbackApi['createWriteStream'] = notImplemented;
+  public readonly watch: FsCallbackApi['watch'] = notImplemented;
 }

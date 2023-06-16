@@ -1634,6 +1634,10 @@ export class Volume {
     }
   }
 
+  /**
+   * `id` should be a file descriptor or a path. `id` as file descriptor will
+   * not be supported soon.
+   */
   truncateSync(id: TFileId, len?: number) {
     if (isFd(id)) return this.ftruncateSync(id as number, len);
 

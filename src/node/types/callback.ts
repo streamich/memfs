@@ -80,8 +80,8 @@ export interface FsCallbackApi {
   fdatasync(fd: number, callback: misc.TCallback<void>): void;
   ftruncate(fd: number, callback: misc.TCallback<void>);
   ftruncate(fd: number, len: number, callback: misc.TCallback<void>);
-  truncate(id: misc.TFileId, callback: misc.TCallback<void>);
-  truncate(id: misc.TFileId, len: number, callback: misc.TCallback<void>);
+  truncate(id: misc.PathLike, callback: misc.TCallback<void>);
+  truncate(id: misc.PathLike, len: number, callback: misc.TCallback<void>);
   futimes(fd: number, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void;
   utimes(path: misc.PathLike, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>): void;
   mkdir(path: misc.PathLike, callback: misc.TCallback<void>);

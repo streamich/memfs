@@ -53,3 +53,11 @@ export const optsDefaults: opts.IOptions = {
 
 export const getDefaultOpts = optsGenerator<opts.IOptions>(optsDefaults);
 export const getDefaultOptsAndCb = optsAndCbGenerator<opts.IOptions, any>(getDefaultOpts);
+
+const rmdirDefaults: opts.IRmdirOptions = {
+  recursive: false,
+};
+
+export const getRmdirOptions = (options): opts.IRmdirOptions => {
+  return Object.assign({}, rmdirDefaults, options);
+};

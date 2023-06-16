@@ -20,6 +20,7 @@ import {
   getDefaultOptsAndCb,
   getMkdirOptions,
   getOptions,
+  getRmdirOptions,
   optsAndCbGenerator,
   optsDefaults,
   optsGenerator,
@@ -217,20 +218,6 @@ export interface IMkdirOptions {
   mode?: TMode;
   recursive?: boolean;
 }
-
-// Options for `fs.rmdir` and `fs.rmdirSync`
-export interface IRmdirOptions {
-  /** @deprecated */
-  recursive?: boolean;
-  maxRetries?: number;
-  retryDelay?: number;
-}
-const rmdirDefaults: IRmdirOptions = {
-  recursive: false,
-};
-const getRmdirOptions = (options): IRmdirOptions => {
-  return Object.assign({}, rmdirDefaults, options);
-};
 
 export interface IRmOptions {
   force?: boolean;
@@ -1874,7 +1861,7 @@ export class Volume {
     this.wrapAsync(this.mkdtempBase, [prefix, encoding], callback);
   }
 
-  private rmdirBase(filename: string, options?: IRmdirOptions) {
+  private rmdirBase(filename: string, options?: opts.IRmdirOptions) {
     const opts = getRmdirOptions(options);
     const link = this.getLinkAsDirOrThrow(filename, 'rmdir');
 
@@ -1884,14 +1871,14 @@ export class Volume {
     this.deleteLink(link);
   }
 
-  rmdirSync(path: PathLike, options?: IRmdirOptions) {
+  rmdirSync(path: PathLike, options?: opts.IRmdirOptions) {
     this.rmdirBase(pathToFilename(path), options);
   }
 
   rmdir(path: PathLike, callback: TCallback<void>);
-  rmdir(path: PathLike, options: IRmdirOptions, callback: TCallback<void>);
-  rmdir(path: PathLike, a: TCallback<void> | IRmdirOptions, b?: TCallback<void>) {
-    const opts: IRmdirOptions = getRmdirOptions(a);
+  rmdir(path: PathLike, options: opts.IRmdirOptions, callback: TCallback<void>);
+  rmdir(path: PathLike, a: TCallback<void> | opts.IRmdirOptions, b?: TCallback<void>) {
+    const opts: opts.IRmdirOptions = getRmdirOptions(a);
     const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
     this.wrapAsync(this.rmdirBase, [pathToFilename(path), opts], callback);
   }

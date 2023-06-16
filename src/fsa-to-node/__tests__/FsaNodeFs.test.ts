@@ -72,3 +72,33 @@ describe('.mkdtemp()', () => {
     expect(mfs.statSync('/mountpoint/' + dirname).isDirectory()).toBe(true);
   });
 });
+
+describe('.rmdir()', () => {
+  test('can remove an empty folder', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    await fs.promises.rmdir('/empty-folder');
+    expect(mfs.__vol.toJSON()).toStrictEqual({'/mountpoint/folder/file': 'test'});
+  });
+
+  test('throws when attempts to remove non-empty folder', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    try {
+      await fs.promises.rmdir('/folder');
+      throw new Error('Expected error');
+    } catch (error) {
+      expect(error.code).toBe('ENOTEMPTY');
+      expect(mfs.__vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/empty-folder': null,
+      });
+    }
+  });
+
+  test('can remove non-empty directory recursively', async () => {
+    const { fs, mfs } = setup({ folder: { subfolder: {file: 'test'} }, 'empty-folder': null });
+    await fs.promises.rmdir('/folder', {recursive: true});
+    expect(mfs.__vol.toJSON()).toStrictEqual({
+      '/mountpoint/empty-folder': null,
+    });
+  });
+});

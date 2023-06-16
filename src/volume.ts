@@ -11,8 +11,11 @@ import { constants } from './constants';
 import { EventEmitter } from 'events';
 import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as errors from './internal/errors';
-import util = require('util');
+import * as util from 'util';
 import { createPromisesApi } from './node/promises';
+import { ERRSTR, MODE } from './node/constants';
+import { getMkdirOptions } from './node/options';
+import {validateCallback, modeToNumber, pathToFilename, nullCheck, createError} from './node/util';
 import type { PathLike, symlink } from 'fs';
 
 const resolveCrossPlatform = pathModule.resolve;
@@ -53,13 +56,6 @@ export type TCallback<TData> = (error?: IError | null, data?: TData) => void;
 
 // ---------------------------------------- Constants
 
-// Default modes for opening files.
-const enum MODE {
-  FILE = 0o666,
-  DIR = 0o777,
-  DEFAULT = MODE.FILE,
-}
-
 const kMinPoolSpace = 128;
 // const kMaxLength = require('buffer').kMaxLength;
 
@@ -67,23 +63,6 @@ const kMinPoolSpace = 128;
 
 // TODO: Use `internal/errors.js` in the future.
 
-const ERRSTR = {
-  PATH_STR: 'path must be a string or Buffer',
-  // FD:             'file descriptor must be a unsigned 32-bit integer',
-  FD: 'fd must be a file descriptor',
-  MODE_INT: 'mode must be an int',
-  CB: 'callback must be a function',
-  UID: 'uid must be an unsigned int',
-  GID: 'gid must be an unsigned int',
-  LEN: 'len must be an integer',
-  ATIME: 'atime must be an integer',
-  MTIME: 'mtime must be an integer',
-  PREFIX: 'filename prefix is required',
-  BUFFER: 'buffer must be an instance of Buffer or StaticBuffer',
-  OFFSET: 'offset must be an integer',
-  LENGTH: 'length must be an integer',
-  POSITION: 'position must be an integer',
-};
 const ERRSTR_OPTS = tipeof => `Expected options to be either an object or a string, but got ${tipeof} instead`;
 // const ERRSTR_FLAG = flag => `Unknown file open flag: ${flag}`;
 
@@ -100,54 +79,6 @@ const EISDIR = 'EISDIR';
 const ENOTEMPTY = 'ENOTEMPTY';
 const ENOSYS = 'ENOSYS';
 const ERR_FS_EISDIR = 'ERR_FS_EISDIR';
-
-function formatError(errorCode: string, func = '', path = '', path2 = '') {
-  let pathFormatted = '';
-  if (path) pathFormatted = ` '${path}'`;
-  if (path2) pathFormatted += ` -> '${path2}'`;
-
-  switch (errorCode) {
-    case ENOENT:
-      return `ENOENT: no such file or directory, ${func}${pathFormatted}`;
-    case EBADF:
-      return `EBADF: bad file descriptor, ${func}${pathFormatted}`;
-    case EINVAL:
-      return `EINVAL: invalid argument, ${func}${pathFormatted}`;
-    case EPERM:
-      return `EPERM: operation not permitted, ${func}${pathFormatted}`;
-    case EPROTO:
-      return `EPROTO: protocol error, ${func}${pathFormatted}`;
-    case EEXIST:
-      return `EEXIST: file already exists, ${func}${pathFormatted}`;
-    case ENOTDIR:
-      return `ENOTDIR: not a directory, ${func}${pathFormatted}`;
-    case EISDIR:
-      return `EISDIR: illegal operation on a directory, ${func}${pathFormatted}`;
-    case EACCES:
-      return `EACCES: permission denied, ${func}${pathFormatted}`;
-    case ENOTEMPTY:
-      return `ENOTEMPTY: directory not empty, ${func}${pathFormatted}`;
-    case EMFILE:
-      return `EMFILE: too many open files, ${func}${pathFormatted}`;
-    case ENOSYS:
-      return `ENOSYS: function not implemented, ${func}${pathFormatted}`;
-    case ERR_FS_EISDIR:
-      return `[ERR_FS_EISDIR]: Path is a directory: ${func} returned EISDIR (is a directory) ${path}`;
-    default:
-      return `${errorCode}: error occurred, ${func}${pathFormatted}`;
-  }
-}
-
-function createError(errorCode: string, func = '', path = '', path2 = '', Constructor = Error) {
-  const error = new Constructor(formatError(errorCode, func, path, path2));
-  (error as any).code = errorCode;
-
-  if (path) {
-    (error as any).path = path;
-  }
-
-  return error;
-}
 
 // ---------------------------------------- Flags
 
@@ -228,13 +159,6 @@ function getOptions<T extends IOptions>(defaults: T, options?: T | string): T {
 
 function optsGenerator<TOpts>(defaults: TOpts): (opts) => TOpts {
   return options => getOptions(defaults, options);
-}
-
-type AssertCallback<T> = T extends () => void ? T : never;
-
-function validateCallback<T>(callback: T): AssertCallback<T> {
-  if (typeof callback !== 'function') throw TypeError(ERRSTR.CB);
-  return callback as AssertCallback<T>;
 }
 
 function optsAndCbGenerator<TOpts, TResult>(getOpts): (options, callback?) => [TOpts, TCallback<TResult>] {
@@ -332,14 +256,6 @@ export interface IMkdirOptions {
   mode?: TMode;
   recursive?: boolean;
 }
-const mkdirDefaults: IMkdirOptions = {
-  mode: MODE.DIR,
-  recursive: false,
-};
-const getMkdirOptions = (options): IMkdirOptions => {
-  if (typeof options === 'number') return Object.assign({}, mkdirDefaults, { mode: options });
-  return Object.assign({}, mkdirDefaults, options);
-};
 
 // Options for `fs.rmdir` and `fs.rmdirSync`
 export interface IRmdirOptions {
@@ -398,39 +314,6 @@ const getStatOptsAndCb: (options: any, callback?: TCallback<Stats>) => [IStatOpt
 
 // ---------------------------------------- Utility functions
 
-function getPathFromURLPosix(url): string {
-  if (url.hostname !== '') {
-    throw new errors.TypeError('ERR_INVALID_FILE_URL_HOST', process.platform);
-  }
-  const pathname = url.pathname;
-  for (let n = 0; n < pathname.length; n++) {
-    if (pathname[n] === '%') {
-      const third = pathname.codePointAt(n + 2) | 0x20;
-      if (pathname[n + 1] === '2' && third === 102) {
-        throw new errors.TypeError('ERR_INVALID_FILE_URL_PATH', 'must not include encoded / characters');
-      }
-    }
-  }
-  return decodeURIComponent(pathname);
-}
-
-export function pathToFilename(path: PathLike): string {
-  if (typeof path !== 'string' && !Buffer.isBuffer(path)) {
-    try {
-      if (!(path instanceof require('url').URL)) throw new TypeError(ERRSTR.PATH_STR);
-    } catch (err) {
-      throw new TypeError(ERRSTR.PATH_STR);
-    }
-
-    path = getPathFromURLPosix(path);
-  }
-
-  const pathString = String(path);
-  nullCheck(pathString);
-  // return slash(pathString);
-  return pathString;
-}
-
 type TResolve = (filename: string, base?: string) => string;
 let resolve: TResolve = (filename, base = process.cwd()) => resolveCrossPlatform(base, filename);
 if (isWin) {
@@ -465,30 +348,6 @@ export function dataToBuffer(data: TData, encoding: string = ENCODING_UTF8): Buf
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): TDataOut {
   if (!encoding || encoding === 'buffer') return buffer;
   else return buffer.toString(encoding);
-}
-
-function nullCheck(path, callback?) {
-  if (('' + path).indexOf('\u0000') !== -1) {
-    const er = new Error('Path must be a string without null bytes');
-    (er as any).code = ENOENT;
-    if (typeof callback !== 'function') throw er;
-    process.nextTick(callback, er);
-    return false;
-  }
-  return true;
-}
-
-function _modeToNumber(mode: TMode | undefined, def?): number | undefined {
-  if (typeof mode === 'number') return mode;
-  if (typeof mode === 'string') return parseInt(mode, 8);
-  if (def) return modeToNumber(def);
-  return undefined;
-}
-
-function modeToNumber(mode: TMode | undefined, def?): number {
-  const result = _modeToNumber(mode, def);
-  if (typeof result !== 'number' || isNaN(result)) throw new TypeError(ERRSTR.MODE_INT);
-  return result;
 }
 
 function isFd(path): boolean {

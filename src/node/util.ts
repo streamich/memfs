@@ -145,4 +145,4 @@ export function genRndStr6(): string {
   const str = (Math.random() + 1).toString(36).substring(2, 8);
   if (str.length === 6) return str;
   else return genRndStr6();
-};
+}

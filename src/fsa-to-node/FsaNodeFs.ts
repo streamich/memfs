@@ -6,8 +6,8 @@ import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
-import {MODE} from '../node/constants';
-import {strToEncoding} from '../encoding';
+import { MODE } from '../node/constants';
+import { strToEncoding } from '../encoding';
 
 const notImplemented: (...args: unknown[]) => unknown = () => {
   throw new Error('Not implemented');
@@ -250,12 +250,16 @@ export class FsaNodeFs implements FsCallbackApi {
       );
   };
 
-  public readonly mkdtemp: FsCallbackApi['mkdtemp'] = (prefix: string, a: misc.TCallback<string> | opts.IOptions, b?: misc.TCallback<string>) => {
+  public readonly mkdtemp: FsCallbackApi['mkdtemp'] = (
+    prefix: string,
+    a: misc.TCallback<string> | opts.IOptions,
+    b?: misc.TCallback<string>,
+  ) => {
     const [{ encoding }, callback] = getDefaultOptsAndCb(a, b);
     if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
     if (!nullCheck(prefix)) return;
     const filename = prefix + genRndStr6();
-    this.mkdir(filename, MODE.DIR, (err) => {
+    this.mkdir(filename, MODE.DIR, err => {
       if (err) callback(err);
       else callback(null, strToEncoding(filename, encoding));
     });

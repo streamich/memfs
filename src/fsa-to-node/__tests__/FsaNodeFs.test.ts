@@ -67,7 +67,7 @@ describe('.mkdir()', () => {
 describe('.mkdtemp()', () => {
   test('can create a temporary folder', async () => {
     const { fs, mfs } = setup();
-    const dirname = await fs.promises.mkdtemp('prefix--') as string;
+    const dirname = (await fs.promises.mkdtemp('prefix--')) as string;
     expect(dirname.startsWith('prefix--')).toBe(true);
     expect(mfs.statSync('/mountpoint/' + dirname).isDirectory()).toBe(true);
   });

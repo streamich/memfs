@@ -11,13 +11,15 @@ import {
   createError,
   flagsToNumber,
   genRndStr6,
+  isFd,
   modeToNumber,
   nullCheck,
   pathToFilename,
   validateCallback,
+  validateFd,
 } from '../node/util';
 import { pathToLocation } from './util';
-import { MODE } from '../node/constants';
+import { ERRSTR, MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
 import { FsaToNodeConstants } from './constants';
 import { bufferToEncoding } from '../volume';
@@ -77,12 +79,15 @@ export class FsaNodeFs implements FsCallbackApi {
     return file;
   }
 
+  private async getFileByFd(fd: number, funcName?: string): Promise<FsaNodeFsOpenFile> {
+    if (!isFd(fd)) throw TypeError(ERRSTR.FD);
+    const file = this.fds.get(fd);
+    if (!file) throw createError('EBADF', funcName);
+    return file;
+  }
+
   private async getFileById(id: misc.TFileId, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
-    if (typeof id === 'number') {
-      const file = this.fds.get(id);
-      if (!file) throw createError('EBADF', funcName);
-      return file.file;
-    }
+    if (typeof id === 'number') return (await this.getFileByFd(id, funcName)).file;
     const filename = pathToFilename(id);
     const [folder, name] = pathToLocation(filename);
     return await this.getFile(folder, name, funcName);
@@ -116,7 +121,15 @@ export class FsaNodeFs implements FsCallbackApi {
   };
 
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback<void>): void => {
-    throw new Error('Not implemented');
+    validateFd(fd);
+    this.getFileByFd(fd, 'close')
+      .then(file => file.close())
+      .then(() => {
+        this.fds.delete(fd);
+        callback(null);
+      }, error => {
+        callback(error);
+      });
   };
 
   public readonly read: FsCallbackApi['read'] = (

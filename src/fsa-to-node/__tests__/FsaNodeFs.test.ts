@@ -199,10 +199,43 @@ describe('.readFile()', () => {
     expect(data.toString()).toBe('test');
   });
 
+  test('can read file by file handle', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    const handle = await fs.promises.open('/folder/file');
+    expect(typeof handle).toBe('object');
+    const data = await fs.promises.readFile(handle);
+    expect(data.toString()).toBe('test');
+  });
+
   test('can read file by file descriptor', async () => {
     const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
-    const fd = await fs.promises.open('/folder/file');
-    const data = await fs.promises.readFile(fd);
-    expect(data.toString()).toBe('test');
+    const fd = await new Promise<number>(resolve => {
+      fs.open('/folder/file', 'r', (err, fd) => resolve(fd!));
+    });
+    expect(typeof fd).toBe('number');
+    const data = await new Promise<string>(resolve => {
+      fs.readFile(fd, {encoding: 'utf8'}, (err, data) => resolve(data as string));
+    });
+    expect(data).toBe('test');
+  });
+
+  test('cannot read from closed file descriptor', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+    const fd = await new Promise<number>(resolve => {
+      fs.open('/folder/file', 'r', (err, fd) => resolve(fd!));
+    });
+    expect(typeof fd).toBe('number');
+    await new Promise<void>(resolve => {
+      fs.close(fd, () => resolve());
+    });
+    try {
+      await new Promise<string>((resolve, reject) => {
+        fs.readFile(fd, {encoding: 'utf8'}, (err, data) => reject(err));
+      });
+      throw new Error('Expected error');
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      expect(error.code).toBe('EBADF');
+    }
   });
 });

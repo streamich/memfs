@@ -8,4 +8,6 @@ export class FsaNodeFsOpenFile {
     public readonly flags: number,
     public readonly file: fsa.IFileSystemFileHandle,
   ) {}
+
+  public async close(): Promise<void> {}
 }

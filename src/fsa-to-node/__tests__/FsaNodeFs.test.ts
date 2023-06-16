@@ -54,7 +54,7 @@ describe('.mkdir()', () => {
   });
 
   test('cannot create a folder over a file', async () => {
-    const { fs } = setup({file: 'test'});
+    const { fs } = setup({ file: 'test' });
     try {
       await fs.promises.mkdir('/file/folder', { recursive: true });
       throw new Error('Expected error');

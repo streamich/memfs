@@ -320,6 +320,19 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
   public readonly rename: FsCallbackApi['rename'] = (oldPath: misc.PathLike, newPath: misc.PathLike, callback: misc.TCallback<void>): void => {
     const oldPathFilename = pathToFilename(oldPath);
     const newPathFilename = pathToFilename(newPath);
+    const [oldFolder, oldName] = pathToLocation(oldPathFilename);
+    const [newFolder, newName] = pathToLocation(newPathFilename);
+    (async () => {
+      const oldFile = await this.getFile(oldFolder, oldName, 'rename');
+      const newDir = await this.getDir(newFolder, false, 'rename');
+      const newFile = await newDir.getFileHandle(newName, { create: true });
+      const writable = await newFile.createWritable({ keepExistingData: false });
+      const oldData = await oldFile.getFile();
+      await writable.write(await oldData.arrayBuffer());
+      await writable.close();
+      const oldDir = await this.getDir(oldFolder, false, 'rename');
+      await oldDir.removeEntry(oldName);
+    })().then(() => callback(null), error => callback(error));
   };
 
   public readonly exists: FsCallbackApi['exists'] = (

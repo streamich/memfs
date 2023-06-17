@@ -122,4 +122,4 @@ require('/index'); // hi world
 
 ## License
 
-[Unlicense](./LICENSE) - public domain.
+Apache 2.0

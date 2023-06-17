@@ -22,7 +22,7 @@
     "type": "git",
     "url": "https://github.com/streamich/memfs.git"
   },
-  "license": "Unlicense",
+  "license": "Apache-2.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [

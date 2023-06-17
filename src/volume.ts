@@ -50,7 +50,7 @@ import {
   bufferToEncoding,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
-import {WritevCallback} from './node/types/callback';
+import { WritevCallback } from './node/types/callback';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {

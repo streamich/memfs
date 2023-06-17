@@ -270,6 +270,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
     });
 
     const invalidNames = [
+      '',
       '.',
       '..',
       '/',
@@ -368,6 +369,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
     });
 
     const invalidNames = [
+      '',
       '.',
       '..',
       '/',

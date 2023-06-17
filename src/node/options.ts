@@ -91,9 +91,10 @@ export const getAppendFileOptsAndCb = optsAndCbGenerator<IAppendFileOptions, voi
 const statDefaults: opts.IStatOptions = {
   bigint: false,
 };
-export const getStatOptions: (options?: any) => opts.IStatOptions = (options = {}) => Object.assign({}, statDefaults, options);
-export const getStatOptsAndCb: (options: any, callback?: misc.TCallback<misc.IStats>) => [opts.IStatOptions, misc.TCallback<misc.IStats>] = (
-  options,
-  callback?,
-) =>
+export const getStatOptions: (options?: any) => opts.IStatOptions = (options = {}) =>
+  Object.assign({}, statDefaults, options);
+export const getStatOptsAndCb: (
+  options: any,
+  callback?: misc.TCallback<misc.IStats>,
+) => [opts.IStatOptions, misc.TCallback<misc.IStats>] = (options, callback?) =>
   typeof options === 'function' ? [getStatOptions(), options] : [getStatOptions(options), validateCallback(callback)];

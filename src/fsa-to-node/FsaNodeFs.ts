@@ -33,13 +33,13 @@ import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FsaNodeDirent } from './FsaNodeDirent';
 import { FLAG } from '../consts/FLAG';
 import { AMODE } from '../consts/AMODE';
-import {constants} from '../constants';
+import { constants } from '../constants';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
-import type {FsCommonObjects} from '../node/types/FsCommonObjects';
-import {FsaNodeStats} from './FsaNodeStats';
+import type { FsCommonObjects } from '../node/types/FsCommonObjects';
+import { FsaNodeStats } from './FsaNodeStats';
 
 const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
@@ -132,7 +132,6 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     const dir = await this.getDir(folder, false, funcName);
     return await dir.getFileHandle(name, { create: true });
   }
-
 
   // ------------------------------------------------------------ FsCallbackApi
 
@@ -307,7 +306,11 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     throw new Error('Not implemented');
   }
 
-  public readonly stat: FsCallbackApi['stat'] = (path: misc.PathLike, a: misc.TCallback<misc.IStats> | opts.IStatOptions, b?: misc.TCallback<misc.IStats>): void => {
+  public readonly stat: FsCallbackApi['stat'] = (
+    path: misc.PathLike,
+    a: misc.TCallback<misc.IStats> | opts.IStatOptions,
+    b?: misc.TCallback<misc.IStats>,
+  ): void => {
     const [{ bigint = false, throwIfNoEntry = true }, callback] = getStatOptsAndCb(a, b);
     const filename = pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
@@ -315,7 +318,10 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
       const handle = await this.getFileOrDir(folder, name, 'stat');
       const stats = new FsaNodeStats(bigint, handle);
       return stats;
-    })().then(stats => callback(null, stats), error => callback(error));
+    })().then(
+      stats => callback(null, stats),
+      error => callback(error),
+    );
   };
 
   fstat(fd: number, callback: misc.TCallback<misc.IStats>): void;
@@ -324,7 +330,11 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     throw new Error('Not implemented');
   }
 
-  public readonly rename: FsCallbackApi['rename'] = (oldPath: misc.PathLike, newPath: misc.PathLike, callback: misc.TCallback<void>): void => {
+  public readonly rename: FsCallbackApi['rename'] = (
+    oldPath: misc.PathLike,
+    newPath: misc.PathLike,
+    callback: misc.TCallback<void>,
+  ): void => {
     const oldPathFilename = pathToFilename(oldPath);
     const newPathFilename = pathToFilename(newPath);
     const [oldFolder, oldName] = pathToLocation(oldPathFilename);
@@ -339,7 +349,10 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
       await writable.close();
       const oldDir = await this.getDir(oldFolder, false, 'rename');
       await oldDir.removeEntry(oldName);
-    })().then(() => callback(null), error => callback(error));
+    })().then(
+      () => callback(null),
+      error => callback(error),
+    );
   };
 
   public readonly exists: FsCallbackApi['exists'] = (
@@ -675,11 +688,9 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
   public readonly createWriteStream: FsCallbackApi['createWriteStream'] = notSupported;
   public readonly watch: FsCallbackApi['watch'] = notSupported;
 
-
   // ------------------------------------------------------------ FsPromisesApi
 
   public readonly promises: FsPromisesApi = createPromisesApi(this);
-
 
   // ---------------------------------------------------------- FsCommonObjects
 

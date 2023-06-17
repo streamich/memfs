@@ -3,7 +3,7 @@ import type { IFileSystemHandle } from '../fsa/types';
 import type * as misc from '../node/types/misc';
 
 const time: number = 0;
-const timex: bigint = typeof BigInt === 'function' ? BigInt(time) : time as any as bigint;
+const timex: bigint = typeof BigInt === 'function' ? BigInt(time) : (time as any as bigint);
 const date = new Date(time);
 
 export class FsaNodeStats<T = misc.TStatNumber> implements misc.IStats<T> {

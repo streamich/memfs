@@ -1,5 +1,5 @@
-import type {constants} from "../../constants";
-import type * as misc from "./misc";
+import type { constants } from '../../constants';
+import type * as misc from './misc';
 
 export interface FsCommonObjects {
   F_OK: number;
@@ -8,7 +8,7 @@ export interface FsCommonObjects {
   X_OK: number;
   constants: typeof constants;
   Stats: new (...args: unknown[]) => misc.IStats;
-  StatFs: unknown,
+  StatFs: unknown;
   Dir: unknown;
   Dirent: new (...args: unknown[]) => misc.IDirent;
   StatsWatcher: new (...args: unknown[]) => misc.IStatWatcher;

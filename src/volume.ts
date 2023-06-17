@@ -50,6 +50,7 @@ import {
   bufferToEncoding,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
+import {WritevCallback} from './node/types/callback';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -971,6 +972,12 @@ export class Volume {
         cb(err);
       }
     });
+  }
+
+  writev(fd: number, buffers: ArrayBufferView[], callback: WritevCallback): void;
+  writev(fd: number, buffers: ArrayBufferView[], position: number | null, callback: WritevCallback): void;
+  writev(fd: number, buffers: ArrayBufferView[], a, b?): void {
+    throw new Error('not implemented');
   }
 
   private writeFileBase(id: TFileId, buf: Buffer, flagsNum: number, modeNum: number) {
@@ -2198,6 +2205,7 @@ function closeOnOpen(fd) {
 export interface IWriteStream extends Writable {
   bytesWritten: number;
   path: string;
+  pending: boolean;
   new (path: PathLike, options: IWriteStreamOptions);
   open();
   close();
@@ -2222,6 +2230,7 @@ function FsWriteStream(vol, path, options) {
   this.autoClose = options.autoClose === undefined ? true : !!options.autoClose;
   this.pos = undefined;
   this.bytesWritten = 0;
+  this.pending = true;
 
   if (this.start !== undefined) {
     if (typeof this.start !== 'number') {
@@ -2261,6 +2270,7 @@ FsWriteStream.prototype.open = function () {
       }
 
       this.fd = fd;
+      this.pending = false;
       this.emit('open', fd);
     }.bind(this),
   );

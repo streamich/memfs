@@ -31,6 +31,8 @@ import {
   getAppendFileOpts,
   getStatOptsAndCb,
   getStatOptions,
+  getRealpathOptsAndCb,
+  getRealpathOptions,
 } from './node/options';
 import {
   validateCallback,
@@ -127,14 +129,6 @@ const getWriteFileOptions = optsGenerator<IWriteFileOptions>(writeFileDefaults);
 
 // Options for `fs.appendFile` and `fs.appendFileSync`
 export interface IAppendFileOptions extends opts.IFileOptions {}
-
-// Options for `fs.realpath` and `fs.realpathSync`
-export interface IRealpathOptions {
-  encoding?: TEncodingExtended;
-}
-const realpathDefaults: opts.IReadFileOptions = optsDefaults;
-const getRealpathOptions = optsGenerator<IRealpathOptions>(realpathDefaults);
-const getRealpathOptsAndCb = optsAndCbGenerator<IRealpathOptions, TDataOut>(getRealpathOptions);
 
 // Options for `fs.watchFile`
 export interface IWatchFileOptions {
@@ -1201,13 +1195,13 @@ export class Volume {
     return strToEncoding(realLink.getPath() || '/', encoding);
   }
 
-  realpathSync(path: PathLike, options?: IRealpathOptions | string): TDataOut {
+  realpathSync(path: PathLike, options?: opts.IRealpathOptions | string): TDataOut {
     return this.realpathBase(pathToFilename(path), getRealpathOptions(options).encoding);
   }
 
   realpath(path: PathLike, callback: TCallback<TDataOut>);
-  realpath(path: PathLike, options: IRealpathOptions | string, callback: TCallback<TDataOut>);
-  realpath(path: PathLike, a: TCallback<TDataOut> | IRealpathOptions | string, b?: TCallback<TDataOut>) {
+  realpath(path: PathLike, options: opts.IRealpathOptions | string, callback: TCallback<TDataOut>);
+  realpath(path: PathLike, a: TCallback<TDataOut> | opts.IRealpathOptions | string, b?: TCallback<TDataOut>) {
     const [opts, callback] = getRealpathOptsAndCb(a, b);
     const pathFilename = pathToFilename(path);
     this.wrapAsync(this.realpathBase, [pathFilename, opts.encoding], callback);

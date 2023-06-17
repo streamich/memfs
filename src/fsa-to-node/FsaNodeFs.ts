@@ -23,7 +23,7 @@ import {
   validateCallback,
   validateFd,
 } from '../node/util';
-import { pathToLocation } from './util';
+import { pathToLocation, testDirectoryIsWritable } from './util';
 import { ERRSTR, MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
 import { FsaToNodeConstants } from './constants';
@@ -31,6 +31,7 @@ import { bufferToEncoding } from '../volume';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FsaNodeDirent } from './FsaNodeDirent';
 import {FLAG} from '../consts/FLAG';
+import {AMODE} from '../consts/AMODE';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -86,6 +87,18 @@ export class FsaNodeFs implements FsCallbackApi {
     return file;
   }
 
+  private async getFileOrDir(path: string[], name: string, funcName?: string, create?: boolean): Promise<fsa.IFileSystemFileHandle | fsa.IFileSystemDirectoryHandle> {
+    const dir = await this.getDir(path, false, funcName);
+    try {
+      const file = await dir.getFileHandle(name);
+      return file;
+    } catch (error) {
+      if (error && typeof error === 'object' && error.name === 'TypeMismatchError')
+        return await dir.getDirectoryHandle(name);
+      throw error;
+    }
+  }
+
   private async getFileByFd(fd: number, funcName?: string): Promise<FsaNodeFsOpenFile> {
     if (!isFd(fd)) throw TypeError(ERRSTR.FD);
     const file = this.fds.get(fd);
@@ -107,6 +120,9 @@ export class FsaNodeFs implements FsCallbackApi {
     const dir = await this.getDir(folder, false, funcName);
     return await dir.getFileHandle(name, { create: true });
   }
+
+
+  // ------------------------------------------------------------ FsCallbackApi
 
   public readonly open: FsCallbackApi['open'] = (
     path: misc.PathLike,
@@ -289,15 +305,58 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   }
 
-  exists(path: misc.PathLike, callback: (exists: boolean) => void): void {
-    throw new Error('Not implemented');
-  }
+  public readonly exists: FsCallbackApi['exists'] = (path: misc.PathLike, callback: (exists: boolean) => void): void => {
+    const filename = pathToFilename(path);
+    if (typeof callback !== 'function') throw Error(ERRSTR.CB);
+    const [folder, name] = pathToLocation(filename);
+    (async () => {
+      // const stats = await new Promise();
+    })().then(() => callback(true), () => callback(false));
+  };
 
-  access(path: misc.PathLike, callback: misc.TCallback<void>);
-  access(path: misc.PathLike, mode: number, callback: misc.TCallback<void>);
-  access(path: misc.PathLike, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) {
-    throw new Error('Not implemented');
-  }
+  public readonly access: FsCallbackApi['access'] = (path: misc.PathLike, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) => {
+    let mode: number = AMODE.F_OK;
+    let callback: misc.TCallback<void>;
+    if (typeof a !== 'function') {
+      mode = a | 0; // cast to number
+      callback = validateCallback(b);
+    } else {
+      callback = a;
+    }
+    const filename = pathToFilename(path);
+    const [folder, name] = pathToLocation(filename);
+    (async () => {
+      const node = await this.getFileOrDir(folder, name, 'access');
+      const checkIfCanExecute = mode & AMODE.X_OK;
+      if (checkIfCanExecute) throw createError('EACCESS', 'access', filename);
+      const checkIfCanWrite = mode & AMODE.W_OK;
+      switch (node.kind) {
+        case 'file': {
+          if (checkIfCanWrite) {
+            try {
+              const file = node as fsa.IFileSystemFileHandle;
+              const writable = await file.createWritable();
+              await writable.close();
+            } catch {
+              throw createError('EACCESS', 'access', filename);
+            }
+          }
+          break;
+        }
+        case 'directory': {
+          if (checkIfCanWrite) {
+            const dir = node as fsa.IFileSystemDirectoryHandle;
+            const canWrite = await testDirectoryIsWritable(dir);
+            if (!canWrite) throw createError('EACCESS', 'access', filename);
+          }
+          break;
+        }
+        default: {
+          throw createError('EACCESS', 'access', filename);
+        }
+      }
+    })().then(() => callback(null), error => callback(error));
+  };
 
   public readonly appendFile: FsCallbackApi['appendFile'] = (id: misc.TFileId, data: misc.TData, a, b?) => {
     const [opts, callback] = getAppendFileOptsAndCb(a, b);
@@ -307,8 +366,11 @@ export class FsaNodeFs implements FsCallbackApi {
         (async () => {
           const blob = await file.getFile();
           const writable = await file.createWritable({ keepExistingData: true });
-          await writable.seek(blob.size);
-          await writable.write(buffer);
+          await writable.write({
+            type: 'write',
+            data: buffer,
+            position: blob.size,
+          });
           await writable.close();
         })(),
       )

@@ -84,7 +84,8 @@
     }
   },
   "dependencies": {
-    "fs-monkey": "^1.0.4"
+    "fs-monkey": "^1.0.4",
+    "thingies": "^1.11.1"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.1",

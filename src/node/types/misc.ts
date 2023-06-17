@@ -94,8 +94,7 @@ export interface IReadStream extends Readable {
 export interface IWriteStream extends Writable {
   bytesWritten: number;
   path: string;
-  new (path: PathLike, options: IWriteStreamOptions);
-  open();
+  pending: boolean;
   close();
 }
 

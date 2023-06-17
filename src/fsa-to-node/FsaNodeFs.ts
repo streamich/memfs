@@ -40,6 +40,7 @@ import { constants } from '../constants';
 import { FsaNodeStats } from './FsaNodeStats';
 import process from '../process';
 import { FsSynchronousApi } from '../node/types/FsSynchronousApi';
+import {FsaNodeWriteStream} from './FsaNodeWriteStream';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -732,36 +733,45 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
       );
   };
 
-  fchmod(fd: number, mode: misc.TMode, callback: misc.TCallback<void>): void {
+  public readonly fchmod: FsCallbackApi['fchmod'] = (fd: number, mode: misc.TMode, callback: misc.TCallback<void>): void => {
     callback(null);
-  }
+  };
 
-  chmod(path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<void>): void {
+  public readonly chmod: FsCallbackApi['chmod'] = (path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<void>): void => {
     callback(null);
-  }
+  };
 
-  lchmod(path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<void>): void {
+  public readonly lchmod: FsCallbackApi['lchmod'] = (path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<void>): void => {
     callback(null);
-  }
+  };
 
-  fchown(fd: number, uid: number, gid: number, callback: misc.TCallback<void>): void {
+  public readonly fchown: FsCallbackApi['fchown'] = (fd: number, uid: number, gid: number, callback: misc.TCallback<void>): void => {
     callback(null);
-  }
+  };
 
-  chown(path: misc.PathLike, uid: number, gid: number, callback: misc.TCallback<void>): void {
+  public readonly chown: FsCallbackApi['chown'] = (path: misc.PathLike, uid: number, gid: number, callback: misc.TCallback<void>): void => {
     callback(null);
-  }
+  };
 
-  lchown(path: misc.PathLike, uid: number, gid: number, callback: misc.TCallback<void>): void {
+  public readonly lchown: FsCallbackApi['lchown'] = (path: misc.PathLike, uid: number, gid: number, callback: misc.TCallback<void>): void => {
     callback(null);
-  }
+  };
+
+  public readonly createWriteStream: FsCallbackApi['createWriteStream'] = (path: misc.PathLike, options?: opts.IWriteStreamOptions | string): FsaNodeWriteStream => {
+    const optionsObj: opts.IWriteStreamOptions = !options ? {} : typeof options === 'object' ? options : { encoding: options } as opts.IWriteStreamOptions;
+    const filename = pathToFilename(path);
+    const location = pathToLocation(filename);
+    const flags = flagsToNumber(optionsObj.flags);
+    const createIfMissing = !!(flags & FLAG.O_CREAT);
+    const handle = this.getFile(location[0], location[1], 'createWriteStream', createIfMissing);
+    return new FsaNodeWriteStream(handle, filename, optionsObj);
+  };
 
   public readonly symlink: FsCallbackApi['symlink'] = notSupported;
   public readonly link: FsCallbackApi['link'] = notSupported;
   public readonly watchFile: FsCallbackApi['watchFile'] = notSupported;
   public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notSupported;
   public readonly createReadStream: FsCallbackApi['createReadStream'] = notSupported;
-  public readonly createWriteStream: FsCallbackApi['createWriteStream'] = notSupported;
   public readonly watch: FsCallbackApi['watch'] = notSupported;
 
   // --------------------------------------------------------- FsSynchronousApi
@@ -817,10 +827,10 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
   public readonly constants = constants;
   public readonly Dirent = FsaNodeDirent;
   public readonly Stats = FsaNodeStats<any>;
+  public readonly WriteStream = FsaNodeWriteStream;
   public readonly StatFs = 0 as any;
   public readonly Dir = 0 as any;
   public readonly StatsWatcher = 0 as any;
   public readonly FSWatcher = 0 as any;
   public readonly ReadStream = 0 as any;
-  public readonly WriteStream = 0 as any;
 }

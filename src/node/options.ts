@@ -98,3 +98,7 @@ export const getStatOptsAndCb: (
   callback?: misc.TCallback<misc.IStats>,
 ) => [opts.IStatOptions, misc.TCallback<misc.IStats>] = (options, callback?) =>
   typeof options === 'function' ? [getStatOptions(), options] : [getStatOptions(options), validateCallback(callback)];
+
+const realpathDefaults: opts.IReadFileOptions = optsDefaults;
+export const getRealpathOptions = optsGenerator<opts.IRealpathOptions>(realpathDefaults);
+export const getRealpathOptsAndCb = optsAndCbGenerator<opts.IRealpathOptions, misc.TDataOut>(getRealpathOptions);

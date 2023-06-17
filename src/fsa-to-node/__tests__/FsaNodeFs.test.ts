@@ -539,3 +539,11 @@ describe('.fstat()', () => {
     expect(stats.isFile()).toBe(true);
   });
 });
+
+describe('.realpath()', () => {
+  test('returns file path', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const path = await fs.promises.realpath('folder/file');
+    expect(path).toBe('/folder/file');
+  });
+});

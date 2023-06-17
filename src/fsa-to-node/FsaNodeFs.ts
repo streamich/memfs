@@ -9,6 +9,7 @@ import {
   optsAndCbGenerator,
   getAppendFileOptsAndCb,
   getStatOptsAndCb,
+  getRealpathOptsAndCb,
 } from '../node/options';
 import {
   createError,
@@ -279,26 +280,17 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
       );
   };
 
-  symlink(target: misc.PathLike, path: misc.PathLike, callback: misc.TCallback<void>);
-  symlink(target: misc.PathLike, path: misc.PathLike, type: misc.symlink.Type, callback: misc.TCallback<void>);
-  symlink(
-    target: misc.PathLike,
-    path: misc.PathLike,
-    a: misc.symlink.Type | misc.TCallback<void>,
-    b?: misc.TCallback<void>,
-  ) {
-    throw new Error('Not implemented');
-  }
-
-  realpath(path: misc.PathLike, callback: misc.TCallback<misc.TDataOut>);
-  realpath(path: misc.PathLike, options: opts.IRealpathOptions | string, callback: misc.TCallback<misc.TDataOut>);
-  realpath(
+  public readonly realpath: FsCallbackApi['realpath'] = (
     path: misc.PathLike,
     a: misc.TCallback<misc.TDataOut> | opts.IRealpathOptions | string,
     b?: misc.TCallback<misc.TDataOut>,
-  ) {
-    throw new Error('Not implemented');
-  }
+  ): void => {
+    const [opts, callback] = getRealpathOptsAndCb(a, b);
+    let pathFilename = pathToFilename(path);
+    if (pathFilename[0] !== FsaToNodeConstants.Separator)
+      pathFilename = FsaToNodeConstants.Separator + pathFilename;
+    callback(null, strToEncoding(pathFilename, opts.encoding));
+  };
 
   public readonly lstat: FsCallbackApi['lstat'] = (
     path: misc.PathLike,
@@ -702,6 +694,7 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     callback(null);
   }
 
+  public readonly symlink: FsCallbackApi['symlink'] = notSupported;
   public readonly link: FsCallbackApi['link'] = notSupported;
   public readonly watchFile: FsCallbackApi['watchFile'] = notSupported;
   public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notSupported;

@@ -32,24 +32,24 @@ import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FsaNodeDirent } from './FsaNodeDirent';
 import { FLAG } from '../consts/FLAG';
 import { AMODE } from '../consts/AMODE';
+import {constants} from '../constants';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
+import type {FsCommonObjects} from '../node/types/FsCommonObjects';
 
-const notImplemented: (...args: any[]) => any = () => {
-  throw new Error('Not implemented');
+const notSupported: (...args: any[]) => any = () => {
+  throw new Error('Method not supported by the File System Access API.');
 };
 
 /**
  * Constructs a Node.js `fs` API from a File System Access API
  * [`FileSystemDirectoryHandle` object](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle).
  */
-export class FsaNodeFs implements FsCallbackApi {
-  public static fd: number = 0x7fffffff;
-
-  public readonly promises: FsPromisesApi = createPromisesApi(this);
-  public readonly fds = new Map<number, FsaNodeFsOpenFile>();
+export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
+  protected static fd: number = 0x7fffffff;
+  protected readonly fds = new Map<number, FsaNodeFsOpenFile>();
 
   public constructor(protected readonly root: fsa.IFileSystemDirectoryHandle) {}
 
@@ -130,6 +130,7 @@ export class FsaNodeFs implements FsCallbackApi {
     const dir = await this.getDir(folder, false, funcName);
     return await dir.getFileHandle(name, { create: true });
   }
+
 
   // ------------------------------------------------------------ FsCallbackApi
 
@@ -248,10 +249,6 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   }
 
-  link(existingPath: misc.PathLike, newPath: misc.PathLike, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
-  }
-
   public readonly unlink: FsCallbackApi['unlink'] = (path: misc.PathLike, callback: misc.TCallback<void>): void => {
     const filename = pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
@@ -320,9 +317,10 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   }
 
-  rename(oldPath: misc.PathLike, newPath: misc.PathLike, callback: misc.TCallback<void>): void {
-    throw new Error('Not implemented');
-  }
+  public readonly rename: FsCallbackApi['rename'] = (oldPath: misc.PathLike, newPath: misc.PathLike, callback: misc.TCallback<void>): void => {
+    const oldPathFilename = pathToFilename(oldPath);
+    const newPathFilename = pathToFilename(newPath);
+  };
 
   public readonly exists: FsCallbackApi['exists'] = (
     path: misc.PathLike,
@@ -650,9 +648,32 @@ export class FsaNodeFs implements FsCallbackApi {
     callback(null);
   }
 
-  public readonly watchFile: FsCallbackApi['watchFile'] = notImplemented;
-  public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notImplemented;
-  public readonly createReadStream: FsCallbackApi['createReadStream'] = notImplemented;
-  public readonly createWriteStream: FsCallbackApi['createWriteStream'] = notImplemented;
-  public readonly watch: FsCallbackApi['watch'] = notImplemented;
+  public readonly link: FsCallbackApi['link'] = notSupported;
+  public readonly watchFile: FsCallbackApi['watchFile'] = notSupported;
+  public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notSupported;
+  public readonly createReadStream: FsCallbackApi['createReadStream'] = notSupported;
+  public readonly createWriteStream: FsCallbackApi['createWriteStream'] = notSupported;
+  public readonly watch: FsCallbackApi['watch'] = notSupported;
+
+
+  // ------------------------------------------------------------ FsPromisesApi
+
+  public readonly promises: FsPromisesApi = createPromisesApi(this);
+
+
+  // ---------------------------------------------------------- FsCommonObjects
+
+  public readonly F_OK = constants.F_OK;
+  public readonly R_OK = constants.R_OK;
+  public readonly W_OK = constants.W_OK;
+  public readonly X_OK = constants.X_OK;
+  public readonly constants = constants;
+  public readonly Dirent = FsaNodeDirent;
+  public readonly Stats = 0 as any;
+  public readonly StatFs = 0 as any;
+  public readonly Dir = 0 as any;
+  public readonly StatsWatcher = 0 as any;
+  public readonly FSWatcher = 0 as any;
+  public readonly ReadStream = 0 as any;
+  public readonly WriteStream = 0 as any;
 }

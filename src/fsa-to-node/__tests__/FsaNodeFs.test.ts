@@ -470,4 +470,27 @@ describe('.stat()', () => {
     const stats = await fs.promises.stat('/folder/file');
     expect(stats.isFile()).toBe(true);
   });
+
+  test('can retrieve file size', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const stats = await fs.promises.stat('/folder/file');
+    expect(stats.size).toBe(4);
+  });
+
+  test('can stat a folder', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const stats = await fs.promises.stat('/folder');
+    expect(stats.isFile()).toBe(false);
+    expect(stats.isDirectory()).toBe(true);
+  });
+
+  test('throws on non-existing path', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    try {
+      const stats = await fs.promises.stat('/folder/abc');
+      throw new Error('should not be here');
+    } catch (error) {
+      expect(error.code).toBe('ENOENT');
+    }
+  });
 });

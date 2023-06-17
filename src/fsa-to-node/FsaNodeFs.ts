@@ -34,12 +34,12 @@ import { FsaNodeDirent } from './FsaNodeDirent';
 import { FLAG } from '../consts/FLAG';
 import { AMODE } from '../consts/AMODE';
 import { constants } from '../constants';
+import { FsaNodeStats } from './FsaNodeStats';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 import type { FsCommonObjects } from '../node/types/FsCommonObjects';
-import { FsaNodeStats } from './FsaNodeStats';
 
 const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
@@ -105,8 +105,12 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
       const file = await dir.getFileHandle(name);
       return file;
     } catch (error) {
-      if (error && typeof error === 'object' && error.name === 'TypeMismatchError')
-        return await dir.getDirectoryHandle(name);
+      if (error && typeof error === 'object') {
+        switch (error.name) {
+          case 'TypeMismatchError': return await dir.getDirectoryHandle(name);
+          case 'NotFoundError': throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
+        }
+      }
       throw error;
     }
   }
@@ -316,7 +320,13 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     const [folder, name] = pathToLocation(filename);
     (async () => {
       const handle = await this.getFileOrDir(folder, name, 'stat');
-      const stats = new FsaNodeStats(bigint, handle);
+      let size: number = 0;
+      if (handle.kind === 'file') {
+        const file = <fsa.IFileSystemFileHandle>handle;
+        const fileData = await file.getFile();
+        size = fileData.size;
+      }
+      const stats = new FsaNodeStats(bigint, bigint ? BigInt(size) : size, handle);
       return stats;
     })().then(
       stats => callback(null, stats),
@@ -700,7 +710,7 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
   public readonly X_OK = constants.X_OK;
   public readonly constants = constants;
   public readonly Dirent = FsaNodeDirent;
-  public readonly Stats = FsaNodeStats;
+  public readonly Stats = FsaNodeStats<any>;
   public readonly StatFs = 0 as any;
   public readonly Dir = 0 as any;
   public readonly StatsWatcher = 0 as any;

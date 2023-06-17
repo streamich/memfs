@@ -579,3 +579,34 @@ describe('.writeFile()', () => {
     });
   });
 });
+
+describe('.read()', () => {
+  test('can read from a file at offset into Buffer', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const handle = await fs.promises.open('/folder/file', 'r');
+    const [buffer, length] = await new Promise<[Buffer, number]>((resolve, reject) => {
+      const buffer = Buffer.alloc(4);
+      fs.read(handle.fd, buffer, 0, 2, 1, (error, bytesRead, buffer) => {
+        if (error) reject(error);
+        else resolve([buffer as Buffer, bytesRead!]);
+      });
+    });
+    expect(length).toBe(2);
+    expect(buffer.slice(0, 2).toString()).toBe('es');
+  });
+
+  test('can read from a file at offset into Uint8Array', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const handle = await fs.promises.open('/folder/file', 'r');
+    const [buffer, length] = await new Promise<[Buffer, number]>((resolve, reject) => {
+      const buffer = new Uint8Array(4);
+      fs.read(handle.fd, buffer, 0, 2, 1, (error, bytesRead, buffer) => {
+        if (error) reject(error);
+        else resolve([buffer as Buffer, bytesRead!]);
+      });
+    });
+    expect(length).toBe(2);
+    expect(buffer[0]).toBe(101);
+    expect(buffer[1]).toBe(115);
+  });
+});

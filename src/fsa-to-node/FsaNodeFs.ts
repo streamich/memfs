@@ -195,7 +195,22 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     position: number,
     callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | ArrayBufferView | DataView) => void,
   ): void => {
-    throw new Error('Not implemented');
+    validateCallback(callback);
+    // This `if` branch is from Node.js
+    if (length === 0) {
+      return process.nextTick(() => {
+        if (callback) callback(null, 0, buffer);
+      });
+    }
+    (async () => {
+      const openFile = await this.getFileByFd(fd, 'read');
+      const file = await openFile.file.getFile();
+      const src = await file.arrayBuffer();
+      const slice = new Uint8Array(src, Number(position), Number(length));
+      const dest = new Uint8Array(buffer.buffer, buffer.byteOffset + offset, slice.length);
+      dest.set(slice, 0);
+      return slice.length;
+    })().then((bytesWritten) => callback(null, bytesWritten, buffer), error => callback(error));
   };
 
   public readonly readFile: FsCallbackApi['readFile'] = (

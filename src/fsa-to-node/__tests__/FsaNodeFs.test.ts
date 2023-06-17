@@ -451,3 +451,15 @@ describe('.access()', () => {
     });
   });
 });
+
+describe('.rename()', () => {
+  test('can rename a file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    await fs.promises.rename('/folder/file', '/folder/file2');
+    expect(mfs.__vol.toJSON()).toStrictEqual({
+      '/mountpoint/folder/file2': 'test',
+      '/mountpoint/empty-folder': null,
+      '/mountpoint/f.html': 'test',
+    });
+  });
+});

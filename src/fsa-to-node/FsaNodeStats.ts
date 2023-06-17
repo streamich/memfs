@@ -26,14 +26,14 @@ export class FsaNodeStats<T = misc.TStatNumber> implements misc.IStats<T> {
   public readonly mode: T;
   public readonly nlink: T;
 
-  public constructor(isBigInt: boolean, protected readonly handle: IFileSystemHandle) {
+  public constructor(isBigInt: boolean, size: T, protected readonly handle: IFileSystemHandle) {
     const dummy = (isBigInt ? timex : time) as any as T;
     this.uid = dummy;
     this.gid = dummy;
     this.rdev = dummy;
     this.blksize = dummy;
     this.ino = dummy;
-    this.size = dummy;
+    this.size = size;
     this.blocks = dummy;
     this.atime = date;
     this.mtime = date;

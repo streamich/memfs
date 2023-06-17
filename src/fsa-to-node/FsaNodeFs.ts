@@ -8,6 +8,7 @@ import {
   getRmdirOptions,
   optsAndCbGenerator,
   getAppendFileOptsAndCb,
+  getStatOptsAndCb,
 } from '../node/options';
 import {
   createError,
@@ -38,6 +39,7 @@ import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 import type {FsCommonObjects} from '../node/types/FsCommonObjects';
+import {FsaNodeStats} from './FsaNodeStats';
 
 const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
@@ -305,11 +307,16 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     throw new Error('Not implemented');
   }
 
-  stat(path: misc.PathLike, callback: misc.TCallback<misc.IStats>): void;
-  stat(path: misc.PathLike, options: opts.IStatOptions, callback: misc.TCallback<misc.IStats>): void;
-  stat(path: misc.PathLike, a: misc.TCallback<misc.IStats> | opts.IStatOptions, b?: misc.TCallback<misc.IStats>): void {
-    throw new Error('Not implemented');
-  }
+  public readonly stat: FsCallbackApi['stat'] = (path: misc.PathLike, a: misc.TCallback<misc.IStats> | opts.IStatOptions, b?: misc.TCallback<misc.IStats>): void => {
+    const [{ bigint = false, throwIfNoEntry = true }, callback] = getStatOptsAndCb(a, b);
+    const filename = pathToFilename(path);
+    const [folder, name] = pathToLocation(filename);
+    (async () => {
+      const handle = await this.getFileOrDir(folder, name, 'stat');
+      const stats = new FsaNodeStats(bigint, handle);
+      return stats;
+    })().then(stats => callback(null, stats), error => callback(error));
+  };
 
   fstat(fd: number, callback: misc.TCallback<misc.IStats>): void;
   fstat(fd: number, options: opts.IFStatOptions, callback: misc.TCallback<misc.IStats>): void;
@@ -682,7 +689,7 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
   public readonly X_OK = constants.X_OK;
   public readonly constants = constants;
   public readonly Dirent = FsaNodeDirent;
-  public readonly Stats = 0 as any;
+  public readonly Stats = FsaNodeStats;
   public readonly StatFs = 0 as any;
   public readonly Dir = 0 as any;
   public readonly StatsWatcher = 0 as any;

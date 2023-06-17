@@ -463,3 +463,11 @@ describe('.rename()', () => {
     });
   });
 });
+
+describe('.stat()', () => {
+  test('can stat a file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const stats = await fs.promises.stat('/folder/file');
+    expect(stats.isFile()).toBe(true);
+  });
+});

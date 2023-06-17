@@ -5,23 +5,23 @@ import type { IDirent, TDataOut } from '../node/types/misc';
 export class FsaNodeDirent implements IDirent {
   public constructor(public readonly name: TDataOut, protected readonly handle: IFileSystemHandle) {}
 
-  isDirectory(): boolean {
+  public isDirectory(): boolean {
     return this.handle instanceof NodeFileSystemDirectoryHandle;
   }
 
-  isFile(): boolean {
+  public isFile(): boolean {
     return this.handle instanceof NodeFileSystemFileHandle;
   }
 
-  isBlockDevice(): boolean {
+  public isBlockDevice(): boolean {
     return false;
   }
 
-  isCharacterDevice(): boolean {
+  public isCharacterDevice(): boolean {
     return false;
   }
 
-  isSymbolicLink(): boolean {
+  public isSymbolicLink(): boolean {
     return false;
   }
 

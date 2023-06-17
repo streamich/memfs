@@ -30,8 +30,8 @@ import { FsaToNodeConstants } from './constants';
 import { bufferToEncoding } from '../volume';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FsaNodeDirent } from './FsaNodeDirent';
-import {FLAG} from '../consts/FLAG';
-import {AMODE} from '../consts/AMODE';
+import { FLAG } from '../consts/FLAG';
+import { AMODE } from '../consts/AMODE';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -81,13 +81,23 @@ export class FsaNodeFs implements FsCallbackApi {
     return curr;
   }
 
-  private async getFile(path: string[], name: string, funcName?: string, create?: boolean): Promise<fsa.IFileSystemFileHandle> {
+  private async getFile(
+    path: string[],
+    name: string,
+    funcName?: string,
+    create?: boolean,
+  ): Promise<fsa.IFileSystemFileHandle> {
     const dir = await this.getDir(path, false, funcName);
     const file = await dir.getFileHandle(name, { create });
     return file;
   }
 
-  private async getFileOrDir(path: string[], name: string, funcName?: string, create?: boolean): Promise<fsa.IFileSystemFileHandle | fsa.IFileSystemDirectoryHandle> {
+  private async getFileOrDir(
+    path: string[],
+    name: string,
+    funcName?: string,
+    create?: boolean,
+  ): Promise<fsa.IFileSystemFileHandle | fsa.IFileSystemDirectoryHandle> {
     const dir = await this.getDir(path, false, funcName);
     try {
       const file = await dir.getFileHandle(name);
@@ -120,7 +130,6 @@ export class FsaNodeFs implements FsCallbackApi {
     const dir = await this.getDir(folder, false, funcName);
     return await dir.getFileHandle(name, { create: true });
   }
-
 
   // ------------------------------------------------------------ FsCallbackApi
 
@@ -197,14 +206,24 @@ export class FsaNodeFs implements FsCallbackApi {
       });
   };
 
-  public readonly write: FsCallbackApi['write'] = (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown) => {
+  public readonly write: FsCallbackApi['write'] = (
+    fd: number,
+    a?: unknown,
+    b?: unknown,
+    c?: unknown,
+    d?: unknown,
+    e?: unknown,
+  ) => {
     const [, asStr, buf, offset, length, position, cb] = getWriteArgs(fd, a, b, c, d, e);
     (async () => {
       const openFile = await this.getFileByFd(fd, 'write');
       const data = buf.subarray(offset, offset + length);
       await openFile.write(data, position);
       return length;
-    })().then((bytesWritten) => cb(null, bytesWritten, asStr ? a : buf), (error) => cb(error));
+    })().then(
+      bytesWritten => cb(null, bytesWritten, asStr ? a : buf),
+      error => cb(error),
+    );
   };
 
   writeFile(id: misc.TFileId, data: misc.TData, callback: misc.TCallback<void>);
@@ -305,13 +324,20 @@ export class FsaNodeFs implements FsCallbackApi {
     throw new Error('Not implemented');
   }
 
-  public readonly exists: FsCallbackApi['exists'] = (path: misc.PathLike, callback: (exists: boolean) => void): void => {
+  public readonly exists: FsCallbackApi['exists'] = (
+    path: misc.PathLike,
+    callback: (exists: boolean) => void,
+  ): void => {
     const filename = pathToFilename(path);
     if (typeof callback !== 'function') throw Error(ERRSTR.CB);
-    this.access(path, AMODE.F_OK, (error) => callback(!error));
+    this.access(path, AMODE.F_OK, error => callback(!error));
   };
 
-  public readonly access: FsCallbackApi['access'] = (path: misc.PathLike, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) => {
+  public readonly access: FsCallbackApi['access'] = (
+    path: misc.PathLike,
+    a: misc.TCallback<void> | number,
+    b?: misc.TCallback<void>,
+  ) => {
     let mode: number = AMODE.F_OK;
     let callback: misc.TCallback<void>;
     if (typeof a !== 'function') {
@@ -352,7 +378,10 @@ export class FsaNodeFs implements FsCallbackApi {
           throw createError('EACCESS', 'access', filename);
         }
       }
-    })().then(() => callback(null), error => callback(error));
+    })().then(
+      () => callback(null),
+      error => callback(error),
+    );
   };
 
   public readonly appendFile: FsCallbackApi['appendFile'] = (id: misc.TFileId, data: misc.TData, a, b?) => {

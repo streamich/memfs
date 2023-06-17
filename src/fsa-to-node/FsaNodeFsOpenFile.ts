@@ -1,4 +1,4 @@
-import {FLAG} from '../consts/FLAG';
+import { FLAG } from '../consts/FLAG';
 import type * as fsa from '../fsa/types';
 import type * as misc from '../node/types/misc';
 
@@ -30,7 +30,7 @@ export class FsaNodeFsOpenFile {
 
   public async write(data: Uint8Array, seek: number | null): Promise<void> {
     if (typeof seek !== 'number') seek = this.seek;
-    const writer = await this.file.createWritable({keepExistingData: this.keepExistingData});
+    const writer = await this.file.createWritable({ keepExistingData: this.keepExistingData });
     await writer.write({
       type: 'write',
       data,

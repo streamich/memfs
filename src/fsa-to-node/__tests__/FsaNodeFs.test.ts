@@ -1,5 +1,5 @@
 import { IFsWithVolume, NestedDirectoryJSON, memfs } from '../..';
-import {AMODE} from '../../consts/AMODE';
+import { AMODE } from '../../consts/AMODE';
 import { nodeToFsa } from '../../node-to-fsa';
 import { IDirent } from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
@@ -312,10 +312,12 @@ describe('.appendFile()', () => {
 describe('.write()', () => {
   test('can write to a file', async () => {
     const { fs, mfs } = setup({});
-    const fd = await new Promise<number>((resolve, reject) => fs.open('/test.txt', 'w', (err, fd) => {
-      if (err) reject(err);
-      else resolve(fd!);
-    }));
+    const fd = await new Promise<number>((resolve, reject) =>
+      fs.open('/test.txt', 'w', (err, fd) => {
+        if (err) reject(err);
+        else resolve(fd!);
+      }),
+    );
     const [bytesWritten, data] = await new Promise<[number, any]>((resolve, reject) => {
       fs.write(fd, 'a', (err, bytesWritten, data) => {
         if (err) reject(err);
@@ -329,10 +331,12 @@ describe('.write()', () => {
 
   test('can write to a file twice sequentially', async () => {
     const { fs, mfs } = setup({});
-    const fd = await new Promise<number>((resolve, reject) => fs.open('/test.txt', 'w', (err, fd) => {
-      if (err) reject(err);
-      else resolve(fd!);
-    }));
+    const fd = await new Promise<number>((resolve, reject) =>
+      fs.open('/test.txt', 'w', (err, fd) => {
+        if (err) reject(err);
+        else resolve(fd!);
+      }),
+    );
     const res1 = await new Promise<[number, any]>((resolve, reject) => {
       fs.write(fd, 'a', (err, bytesWritten, data) => {
         if (err) reject(err);
@@ -357,8 +361,8 @@ describe('.exists()', () => {
   test('can works for folders and files', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
     const exists = async (path: string): Promise<boolean> => {
-      return new Promise((resolve) => {
-        fs.exists(path, (exists) => resolve(exists));
+      return new Promise(resolve => {
+        fs.exists(path, exists => resolve(exists));
       });
     };
     expect(await exists('/folder')).toBe(true);
@@ -393,7 +397,7 @@ describe('.access()', () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' }, 'read');
       try {
         await fs.promises.access('/folder/file', AMODE.W_OK);
-        throw new Error('should not be here')
+        throw new Error('should not be here');
       } catch (error) {
         expect(error.code).toBe('EACCESS');
       }
@@ -403,7 +407,7 @@ describe('.access()', () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       try {
         await fs.promises.access('/folder/file', AMODE.X_OK);
-        throw new Error('should not be here')
+        throw new Error('should not be here');
       } catch (error) {
         expect(error.code).toBe('EACCESS');
       }
@@ -430,7 +434,7 @@ describe('.access()', () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' }, 'read');
       try {
         await fs.promises.access('/folder', AMODE.W_OK);
-        throw new Error('should not be here')
+        throw new Error('should not be here');
       } catch (error) {
         expect(error.code).toBe('EACCESS');
       }
@@ -440,7 +444,7 @@ describe('.access()', () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       try {
         await fs.promises.access('/folder', AMODE.X_OK);
-        throw new Error('should not be here')
+        throw new Error('should not be here');
       } catch (error) {
         expect(error.code).toBe('EACCESS');
       }

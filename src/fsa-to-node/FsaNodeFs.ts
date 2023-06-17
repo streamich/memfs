@@ -308,10 +308,7 @@ export class FsaNodeFs implements FsCallbackApi {
   public readonly exists: FsCallbackApi['exists'] = (path: misc.PathLike, callback: (exists: boolean) => void): void => {
     const filename = pathToFilename(path);
     if (typeof callback !== 'function') throw Error(ERRSTR.CB);
-    const [folder, name] = pathToLocation(filename);
-    (async () => {
-      // const stats = await new Promise();
-    })().then(() => callback(true), () => callback(false));
+    this.access(path, AMODE.F_OK, (error) => callback(!error));
   };
 
   public readonly access: FsCallbackApi['access'] = (path: misc.PathLike, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) => {

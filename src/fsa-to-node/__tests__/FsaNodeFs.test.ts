@@ -355,14 +355,20 @@ describe('.write()', () => {
 
 describe('.exists()', () => {
   test('can works for folders and files', async () => {
-    // const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
-    // const exists = async (path: string): Promise<boolean> => {
-    //   return new Promise((resolve) => {
-    //     fs.exists(path, (exists) => resolve(exists));
-    //   });
-    // };
-    // expect(await exists('/folder')).toBe(true);
-    
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const exists = async (path: string): Promise<boolean> => {
+      return new Promise((resolve) => {
+        fs.exists(path, (exists) => resolve(exists));
+      });
+    };
+    expect(await exists('/folder')).toBe(true);
+    expect(await exists('/folder/file')).toBe(true);
+    expect(await exists('/folder/not-a-file')).toBe(false);
+    expect(await exists('/f.html')).toBe(true);
+    expect(await exists('/empty-folder')).toBe(true);
+    expect(await exists('/')).toBe(true);
+    expect(await exists('/asdf')).toBe(false);
+    expect(await exists('asdf')).toBe(false);
   });
 });
 

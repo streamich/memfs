@@ -47,6 +47,7 @@ import {
   isWin,
   dataToBuffer,
   getWriteArgs,
+  bufferToEncoding,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
 
@@ -199,11 +200,6 @@ export function dataToStr(data: TData, encoding: string = ENCODING_UTF8): string
   if (Buffer.isBuffer(data)) return data.toString(encoding);
   else if (data instanceof Uint8Array) return bufferFrom(data).toString(encoding);
   else return String(data);
-}
-
-export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): TDataOut {
-  if (!encoding || encoding === 'buffer') return buffer;
-  else return buffer.toString(encoding);
 }
 
 // converts Date or number to a fractional UNIX timestamp

@@ -14,6 +14,7 @@ import {
   getWriteFileOptions,
 } from '../node/options';
 import {
+  bufferToEncoding,
   createError,
   dataToBuffer,
   flagsToNumber,
@@ -31,19 +32,19 @@ import { pathToLocation, testDirectoryIsWritable } from './util';
 import { ERRSTR, MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
 import { FsaToNodeConstants } from './constants';
-import { bufferToEncoding } from '../volume';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FsaNodeDirent } from './FsaNodeDirent';
 import { FLAG } from '../consts/FLAG';
 import { AMODE } from '../consts/AMODE';
 import { constants } from '../constants';
 import { FsaNodeStats } from './FsaNodeStats';
+import process from '../process';
+import { FsSynchronousApi } from '../node/types/FsSynchronousApi';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 import type { FsCommonObjects } from '../node/types/FsCommonObjects';
-import { FsSynchronousApi } from '../node/types/FsSynchronousApi';
 
 const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
@@ -78,9 +79,13 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
    */
   private async getDir(path: string[], create: boolean, funcName?: string): Promise<fsa.IFileSystemDirectoryHandle> {
     let curr: fsa.IFileSystemDirectoryHandle = this.root;
+
     const options: fsa.GetDirectoryHandleOptions = { create };
+
     try {
-      for (const name of path) curr = await curr.getDirectoryHandle(name, options);
+      for (const name of path) {
+        curr = await curr.getDirectoryHandle(name, options);
+      }
     } catch (error) {
       if (error && typeof error === 'object' && error.name === 'TypeMismatchError')
         throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
@@ -447,7 +452,7 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
     const filename = pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
     (async () => {
-      const node = await this.getFileOrDir(folder, name, 'access');
+      const node = folder.length || name ? await this.getFileOrDir(folder, name, 'access') : this.root;
       const checkIfCanExecute = mode & AMODE.X_OK;
       if (checkIfCanExecute) throw createError('EACCESS', 'access', filename);
       const checkIfCanWrite = mode & AMODE.W_OK;
@@ -508,7 +513,7 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
     const [options, callback] = getReaddirOptsAndCb(a, b);
     const filename = pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
-    folder.push(name);
+    if (name) folder.push(name);
     this.getDir(folder, false, 'readdir')
       .then(dir =>
         (async () => {
@@ -527,8 +532,11 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
             return list;
           } else {
             const list: string[] = [];
+
             for await (const key of dir.keys()) list.push(key);
+
             if (!isWin && options.encoding !== 'buffer') list.sort();
+
             return list;
           }
         })(),

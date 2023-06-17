@@ -2,7 +2,7 @@ import { ERRSTR, FLAGS } from './constants';
 import * as errors from '../internal/errors';
 import type { FsCallbackApi } from './types';
 import type * as misc from './types/misc';
-import { ENCODING_UTF8 } from '../encoding';
+import { ENCODING_UTF8, TEncodingExtended } from '../encoding';
 import { bufferFrom } from '../internal/buffer';
 
 export const isWin = process.platform === 'win32';
@@ -241,3 +241,8 @@ export const getWriteArgs = (
   const cb = validateCallback(callback);
   return [fd, tipa === 'string', buf, offset, length!, position, cb];
 };
+
+export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): misc.TDataOut {
+  if (!encoding || encoding === 'buffer') return buffer;
+  else return buffer.toString(encoding);
+}

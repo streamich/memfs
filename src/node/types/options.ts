@@ -1,4 +1,4 @@
-import type { TEncodingExtended, TFlags, TMode } from './misc';
+import type { IFileHandle, TEncodingExtended, TFlags, TMode } from './misc';
 
 export interface IOptions {
   encoding?: BufferEncoding | TEncodingExtended;
@@ -72,10 +72,11 @@ export interface IReadStreamOptions {
 
 export interface IWriteStreamOptions {
   flags?: TFlags;
-  defaultEncoding?: BufferEncoding;
-  fd?: number;
+  encoding?: BufferEncoding;
+  fd?: number | IFileHandle;
   mode?: TMode;
   autoClose?: boolean;
+  emitClose?: boolean;
   start?: number;
 }
 

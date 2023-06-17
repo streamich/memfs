@@ -560,3 +560,22 @@ describe('.copyFile()', () => {
     });
   });
 });
+
+describe('.writeFile()', () => {
+  test('can create a new file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const res = await new Promise<void>((resolve, reject) => {
+      fs.writeFile('/folder/foo', 'bar', (error) => {
+        if (error) reject(error);
+        else resolve();
+      });
+    });
+    expect(res).toBe(undefined);
+    expect(mfs.__vol.toJSON()).toStrictEqual({
+      '/mountpoint/folder/file': 'test',
+      '/mountpoint/folder/foo': 'bar',
+      '/mountpoint/empty-folder': null,
+      '/mountpoint/f.html': 'test',
+    });
+  });
+});

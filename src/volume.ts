@@ -25,14 +25,14 @@ import {
   getRmOptsAndCb,
   getRmdirOptions,
   optsAndCbGenerator,
-  optsDefaults,
-  optsGenerator,
   getAppendFileOptsAndCb,
   getAppendFileOpts,
   getStatOptsAndCb,
   getStatOptions,
   getRealpathOptsAndCb,
   getRealpathOptions,
+  getWriteFileOptions,
+  writeFileDefaults,
 } from './node/options';
 import {
   validateCallback,
@@ -115,17 +115,6 @@ export type TFlagsCopy =
   | typeof constants.COPYFILE_FICLONE_FORCE;
 
 // ---------------------------------------- Options
-
-// General options with optional `encoding` property that most commands accept.
-
-// Options for `fs.writeFile` and `fs.writeFileSync`
-export interface IWriteFileOptions extends opts.IFileOptions {}
-const writeFileDefaults: IWriteFileOptions = {
-  encoding: 'utf8',
-  mode: MODE.DEFAULT,
-  flag: FLAGS[FLAGS.w],
-};
-const getWriteFileOptions = optsGenerator<IWriteFileOptions>(writeFileDefaults);
 
 // Options for `fs.appendFile` and `fs.appendFileSync`
 export interface IAppendFileOptions extends opts.IFileOptions {}
@@ -1017,7 +1006,7 @@ export class Volume {
     }
   }
 
-  writeFileSync(id: TFileId, data: TData, options?: IWriteFileOptions) {
+  writeFileSync(id: TFileId, data: TData, options?: opts.IWriteFileOptions) {
     const opts = getWriteFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     const modeNum = modeToNumber(opts.mode);
@@ -1026,18 +1015,15 @@ export class Volume {
   }
 
   writeFile(id: TFileId, data: TData, callback: TCallback<void>);
-  writeFile(id: TFileId, data: TData, options: IWriteFileOptions | string, callback: TCallback<void>);
-  writeFile(id: TFileId, data: TData, a: TCallback<void> | IWriteFileOptions | string, b?: TCallback<void>) {
-    let options: IWriteFileOptions | string = a as IWriteFileOptions;
+  writeFile(id: TFileId, data: TData, options: opts.IWriteFileOptions | string, callback: TCallback<void>);
+  writeFile(id: TFileId, data: TData, a: TCallback<void> | opts.IWriteFileOptions | string, b?: TCallback<void>) {
+    let options: opts.IWriteFileOptions | string = a as opts.IWriteFileOptions;
     let callback: TCallback<void> | undefined = b;
-
     if (typeof a === 'function') {
       options = writeFileDefaults;
       callback = a;
     }
-
     const cb = validateCallback(callback);
-
     const opts = getWriteFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     const modeNum = modeToNumber(opts.mode);

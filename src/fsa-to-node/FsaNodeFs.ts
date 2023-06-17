@@ -300,15 +300,13 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     throw new Error('Not implemented');
   }
 
-  lstat(path: misc.PathLike, callback: misc.TCallback<misc.IStats>): void;
-  lstat(path: misc.PathLike, options: opts.IStatOptions, callback: misc.TCallback<misc.IStats>): void;
-  lstat(
+  public readonly lstat: FsCallbackApi['lstat'] = (
     path: misc.PathLike,
     a: misc.TCallback<misc.IStats> | opts.IStatOptions,
     b?: misc.TCallback<misc.IStats>,
-  ): void {
-    throw new Error('Not implemented');
-  }
+  ): void => {
+    this.stat(path, <any>a, <any>b);
+  };
 
   public readonly stat: FsCallbackApi['stat'] = (
     path: misc.PathLike,
@@ -320,24 +318,37 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     const [folder, name] = pathToLocation(filename);
     (async () => {
       const handle = await this.getFileOrDir(folder, name, 'stat');
-      let size: number = 0;
-      if (handle.kind === 'file') {
-        const file = <fsa.IFileSystemFileHandle>handle;
-        const fileData = await file.getFile();
-        size = fileData.size;
-      }
-      const stats = new FsaNodeStats(bigint, bigint ? BigInt(size) : size, handle);
-      return stats;
+      return await this.getHandleStats(bigint, handle);
     })().then(
       stats => callback(null, stats),
       error => callback(error),
     );
   };
 
-  fstat(fd: number, callback: misc.TCallback<misc.IStats>): void;
-  fstat(fd: number, options: opts.IFStatOptions, callback: misc.TCallback<misc.IStats>): void;
-  fstat(fd: number, a: misc.TCallback<misc.IStats> | opts.IFStatOptions, b?: misc.TCallback<misc.IStats>): void {
-    throw new Error('Not implemented');
+  public readonly fstat: FsCallbackApi['fstat'] = (
+    fd: number,
+    a: misc.TCallback<misc.IStats> | opts.IStatOptions,
+    b?: misc.TCallback<misc.IStats>,
+  ): void => {
+    const [{ bigint = false, throwIfNoEntry = true }, callback] = getStatOptsAndCb(a, b);
+    (async () => {
+      const openFile = await this.getFileByFd(fd, 'fstat');
+      return await this.getHandleStats(bigint, openFile.file);
+    })().then(
+      stats => callback(null, stats),
+      error => callback(error),
+    );
+  };
+
+  private async getHandleStats(bigint: boolean, handle: fsa.IFileSystemHandle): Promise<misc.IStats> {
+    let size: number = 0;
+    if (handle.kind === 'file') {
+      const file = <fsa.IFileSystemFileHandle>handle;
+      const fileData = await file.getFile();
+      size = fileData.size;
+    }
+    const stats = new FsaNodeStats(bigint, bigint ? BigInt(size) : size, handle);
+    return stats;    
   }
 
   public readonly rename: FsCallbackApi['rename'] = (

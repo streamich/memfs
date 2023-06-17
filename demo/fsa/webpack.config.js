@@ -23,6 +23,15 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    fallback: {
+      assert: require.resolve('assert'),
+      buffer: require.resolve('buffer'),
+      path: require.resolve('path-browserify'),
+      process: require.resolve('process/browser'),
+      stream: require.resolve('streamx'),
+      url: require.resolve('url'),
+      util: require.resolve('util'),
+    },
   },
   output: {
     filename: 'bundle.js',

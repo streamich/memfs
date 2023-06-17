@@ -565,7 +565,7 @@ describe('.writeFile()', () => {
   test('can create a new file', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
     const res = await new Promise<void>((resolve, reject) => {
-      fs.writeFile('/folder/foo', 'bar', (error) => {
+      fs.writeFile('/folder/foo', 'bar', error => {
         if (error) reject(error);
         else resolve();
       });

@@ -260,8 +260,11 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
       const writable = await file.createWritable({ keepExistingData: false });
       await writable.write(buf);
       await writable.close();
-    })().then(() => cb(null), error => cb(error));
-  }
+    })().then(
+      () => cb(null),
+      error => cb(error),
+    );
+  };
 
   public readonly copyFile: FsCallbackApi['copyFile'] = (src: misc.PathLike, dest: misc.PathLike, a, b?): void => {
     const srcFilename = pathToFilename(src);

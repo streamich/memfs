@@ -43,16 +43,19 @@ import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 import type { FsCommonObjects } from '../node/types/FsCommonObjects';
+import { FsSynchronousApi } from '../node/types/FsSynchronousApi';
 
 const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
 };
 
+const noop: (...args: any[]) => any = () => {};
+
 /**
  * Constructs a Node.js `fs` API from a File System Access API
  * [`FileSystemDirectoryHandle` object](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle).
  */
-export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
+export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjects {
   protected static fd: number = 0x7fffffff;
   protected readonly fds = new Map<number, FsaNodeFsOpenFile>();
 
@@ -210,7 +213,10 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
       const dest = new Uint8Array(buffer.buffer, buffer.byteOffset + offset, slice.length);
       dest.set(slice, 0);
       return slice.length;
-    })().then((bytesWritten) => callback(null, bytesWritten, buffer), error => callback(error));
+    })().then(
+      bytesWritten => callback(null, bytesWritten, buffer),
+      error => callback(error),
+    );
   };
 
   public readonly readFile: FsCallbackApi['readFile'] = (
@@ -749,6 +755,46 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
   public readonly createReadStream: FsCallbackApi['createReadStream'] = notSupported;
   public readonly createWriteStream: FsCallbackApi['createWriteStream'] = notSupported;
   public readonly watch: FsCallbackApi['watch'] = notSupported;
+
+  // --------------------------------------------------------- FsSynchronousApi
+
+  public readonly accessSync: FsSynchronousApi['accessSync'] = noop;
+  public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = notSupported;
+  public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
+  public readonly chownSync: FsSynchronousApi['chownSync'] = noop;
+  public readonly closeSync: FsSynchronousApi['closeSync'] = notSupported;
+  public readonly copyFileSync: FsSynchronousApi['copyFileSync'] = notSupported;
+  public readonly existsSync: FsSynchronousApi['existsSync'] = notSupported;
+  public readonly fchmodSync: FsSynchronousApi['fchmodSync'] = noop;
+  public readonly fchownSync: FsSynchronousApi['fchownSync'] = noop;
+  public readonly fdatasyncSync: FsSynchronousApi['fdatasyncSync'] = noop;
+  public readonly fstatSync: FsSynchronousApi['fstatSync'] = notSupported;
+  public readonly fsyncSync: FsSynchronousApi['fsyncSync'] = noop;
+  public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
+  public readonly futimesSync: FsSynchronousApi['futimesSync'] = noop;
+  public readonly lchmodSync: FsSynchronousApi['lchmodSync'] = noop;
+  public readonly lchownSync: FsSynchronousApi['lchownSync'] = noop;
+  public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
+  public readonly lstatSync: FsSynchronousApi['lstatSync'] = notSupported;
+  public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = notSupported;
+  public readonly mkdirpSync: FsSynchronousApi['mkdirpSync'] = notSupported;
+  public readonly mkdtempSync: FsSynchronousApi['mkdtempSync'] = notSupported;
+  public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
+  public readonly readdirSync: FsSynchronousApi['readdirSync'] = notSupported;
+  public readonly readFileSync: FsSynchronousApi['readFileSync'] = notSupported;
+  public readonly readlinkSync: FsSynchronousApi['readlinkSync'] = notSupported;
+  public readonly readSync: FsSynchronousApi['readSync'] = notSupported;
+  public readonly realpathSync: FsSynchronousApi['realpathSync'] = notSupported;
+  public readonly renameSync: FsSynchronousApi['renameSync'] = notSupported;
+  public readonly rmdirSync: FsSynchronousApi['rmdirSync'] = notSupported;
+  public readonly rmSync: FsSynchronousApi['rmSync'] = notSupported;
+  public readonly statSync: FsSynchronousApi['statSync'] = notSupported;
+  public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
+  public readonly truncateSync: FsSynchronousApi['truncateSync'] = notSupported;
+  public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = notSupported;
+  public readonly utimesSync: FsSynchronousApi['utimesSync'] = noop;
+  public readonly writeFileSync: FsSynchronousApi['writeFileSync'] = notSupported;
+  public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
 
   // ------------------------------------------------------------ FsPromisesApi
 

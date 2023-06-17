@@ -1,4 +1,4 @@
-import type { FsSynchronousApi } from './sync';
+import type { FsSynchronousApi } from './FsSynchronousApi';
 import type { FsCallbackApi } from './callback';
 import type { FsPromisesApi } from './promises';
 

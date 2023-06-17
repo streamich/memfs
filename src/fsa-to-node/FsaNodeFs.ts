@@ -251,11 +251,34 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     throw new Error('Not implemented');
   }
 
-  copyFile(src: misc.PathLike, dest: misc.PathLike, callback: misc.TCallback<void>);
-  copyFile(src: misc.PathLike, dest: misc.PathLike, flags: misc.TFlagsCopy, callback: misc.TCallback<void>);
-  copyFile(src: misc.PathLike, dest: misc.PathLike, a, b?) {
-    throw new Error('Not implemented');
-  }
+  public readonly copyFile: FsCallbackApi['copyFile'] = (src: misc.PathLike, dest: misc.PathLike, a, b?): void => {
+    const srcFilename = pathToFilename(src);
+    const destFilename = pathToFilename(dest);
+    let flags: misc.TFlagsCopy;
+    let callback: misc.TCallback<void>;
+    if (typeof a === 'function') {
+      flags = 0;
+      callback = a;
+    } else {
+      flags = a;
+      callback = b;
+    }
+    validateCallback(callback);
+    const [oldFolder, oldName] = pathToLocation(srcFilename);
+    const [newFolder, newName] = pathToLocation(destFilename);
+    (async () => {
+      const oldFile = await this.getFile(oldFolder, oldName, 'copyFile');
+      const newDir = await this.getDir(newFolder, false, 'copyFile');
+      const newFile = await newDir.getFileHandle(newName, { create: true });
+      const writable = await newFile.createWritable({ keepExistingData: false });
+      const oldData = await oldFile.getFile();
+      await writable.write(await oldData.arrayBuffer());
+      await writable.close();
+    })().then(
+      () => callback(null),
+      error => callback(error),
+    );
+  };
 
   public readonly unlink: FsCallbackApi['unlink'] = (path: misc.PathLike, callback: misc.TCallback<void>): void => {
     const filename = pathToFilename(path);

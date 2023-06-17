@@ -1,7 +1,7 @@
 import { IFsWithVolume, NestedDirectoryJSON, memfs } from '../..';
 import { AMODE } from '../../consts/AMODE';
 import { nodeToFsa } from '../../node-to-fsa';
-import { IDirent } from '../../node/types/misc';
+import { IDirent, IStats } from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
 
 const setup = (json: NestedDirectoryJSON | null = null, mode: 'read' | 'readwrite' = 'readwrite') => {
@@ -492,5 +492,50 @@ describe('.stat()', () => {
     } catch (error) {
       expect(error.code).toBe('ENOENT');
     }
+  });
+});
+
+describe('.lstat()', () => {
+  test('can stat a file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const stats = await fs.promises.lstat('/folder/file');
+    expect(stats.isFile()).toBe(true);
+  });
+
+  test('can retrieve file size', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const stats = await fs.promises.lstat('/folder/file');
+    expect(stats.size).toBe(4);
+  });
+
+  test('can stat a folder', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const stats = await fs.promises.lstat('/folder');
+    expect(stats.isFile()).toBe(false);
+    expect(stats.isDirectory()).toBe(true);
+  });
+
+  test('throws on non-existing path', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    try {
+      await fs.promises.lstat('/folder/abc');
+      throw new Error('should not be here');
+    } catch (error) {
+      expect(error.code).toBe('ENOENT');
+    }
+  });
+});
+
+describe('.fstat()', () => {
+  test('can stat a file', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const handle = await fs.promises.open('/folder/file', 'r');
+    const stats = await new Promise<IStats>((resolve, reject) => {
+      fs.fstat(handle.fd, (error, stats) => {
+        if (error) reject(error);
+        else resolve(stats!);
+      });
+    });
+    expect(stats.isFile()).toBe(true);
   });
 });

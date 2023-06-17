@@ -1,4 +1,4 @@
-import {IFileSystemDirectoryHandle} from '../fsa/types';
+import { IFileSystemDirectoryHandle } from '../fsa/types';
 import { FsaToNodeConstants } from './constants';
 import type { FsLocation } from './types';
 
@@ -13,7 +13,7 @@ export const pathToLocation = (path: string): FsLocation => {
 
 export const testDirectoryIsWritable = async (dir: IFileSystemDirectoryHandle): Promise<boolean> => {
   const testFileName = '__memfs_writable_test_file_' + Math.random().toString(36).slice(2) + Date.now();
-  try {  
+  try {
     await dir.getFileHandle(testFileName, { create: true });
     return true;
   } catch {

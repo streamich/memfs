@@ -1,8 +1,12 @@
 import { pathToLocation } from '../util';
 
 describe('pathToLocation()', () => {
-  test('handles empty string', () => {
+  test('handles an empty string', () => {
     expect(pathToLocation('')).toStrictEqual([[], '']);
+  });
+
+  test('handles a single slash', () => {
+    expect(pathToLocation('/')).toStrictEqual([[], '']);
   });
 
   test('no path, just filename', () => {

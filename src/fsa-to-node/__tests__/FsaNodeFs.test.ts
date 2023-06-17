@@ -357,6 +357,30 @@ describe('.write()', () => {
   });
 });
 
+describe('.writev()', () => {
+  test('can write to a file two buffers', async () => {
+    const { fs, mfs } = setup({});
+    const fd = await new Promise<number>((resolve, reject) =>
+      fs.open('/test.txt', 'w', (err, fd) => {
+        if (err) reject(err);
+        else resolve(fd!);
+      }),
+    );
+    const [bytesWritten, data] = await new Promise<[number, any]>((resolve, reject) => {
+      const buffers = [
+        Buffer.from('a'),
+        Buffer.from('b'),
+      ];
+      fs.writev(fd, buffers, (err, bytesWritten, data) => {
+        if (err) reject(err);
+        else resolve([bytesWritten!, data]);
+      });
+    });
+    expect(bytesWritten).toBe(2);
+    expect(mfs.readFileSync('/mountpoint/test.txt', 'utf8')).toBe('ab');
+  });
+});
+
 describe('.exists()', () => {
   test('can works for folders and files', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });

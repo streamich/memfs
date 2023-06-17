@@ -8,7 +8,6 @@ import type {
   IReadStreamOptions,
   IStatOptions,
   IWriteFileOptions,
-  IWriteStreamOptions,
 } from './options';
 import type { Readable, Writable } from 'stream';
 

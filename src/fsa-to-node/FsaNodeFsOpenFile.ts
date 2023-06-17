@@ -28,7 +28,7 @@ export class FsaNodeFsOpenFile {
 
   public async close(): Promise<void> {}
 
-  public async write(data: Uint8Array, seek: number | null): Promise<void> {
+  public async write(data: ArrayBufferView, seek: number | null): Promise<void> {
     if (typeof seek !== 'number') seek = this.seek;
     const writer = await this.file.createWritable({ keepExistingData: this.keepExistingData });
     await writer.write({
@@ -38,6 +38,6 @@ export class FsaNodeFsOpenFile {
     });
     await writer.close();
     this.keepExistingData = true;
-    this.seek += data.length;
+    this.seek += data.byteLength;
   }
 }

@@ -46,6 +46,7 @@ import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 import type { FsCommonObjects } from '../node/types/FsCommonObjects';
+import type {WritevCallback} from '../node/types/callback';
 
 const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
@@ -261,6 +262,39 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
     })().then(
       bytesWritten => cb(null, bytesWritten, asStr ? a : buf),
       error => cb(error),
+    );
+  };
+
+  public readonly writev: FsCallbackApi['writev'] = (
+    fd: number,
+    buffers: ArrayBufferView[],
+    a: number | null | WritevCallback,
+    b?: WritevCallback
+  ): void => {
+    validateFd(fd);
+    let position: number | null = null;
+    let callback: WritevCallback;
+    if (typeof a === 'function') {
+      callback = a;
+    } else {
+      position = Number(a);
+      callback = <WritevCallback>b;
+    }
+    validateCallback(callback);
+    (async () => {
+      const openFile = await this.getFileByFd(fd, 'writev');
+      const length = buffers.length;
+      let bytesWritten = 0;
+      for (let i = 0; i < length; i++) {
+        const data = buffers[i];
+        await openFile.write(data, position);
+        bytesWritten += data.byteLength;
+        position = null;
+      }
+      return bytesWritten;
+    })().then(
+      bytesWritten => callback(null, bytesWritten, buffers),
+      error => callback(error),
     );
   };
 

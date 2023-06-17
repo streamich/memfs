@@ -15,33 +15,6 @@ export interface FsCallbackApi {
   ): void;
   readFile(id: misc.TFileId, callback: misc.TCallback<misc.TDataOut>);
   readFile(id: misc.TFileId, options: opts.IReadFileOptions | string, callback: misc.TCallback<misc.TDataOut>);
-  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, callback: (...args) => void);
-  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset: number, callback: (...args) => void);
-  write(
-    fd: number,
-    buffer: Buffer | ArrayBufferView | DataView,
-    offset: number,
-    length: number,
-    callback: (...args) => void,
-  );
-  write(
-    fd: number,
-    buffer: Buffer | ArrayBufferView | DataView,
-    offset: number,
-    length: number,
-    position: number,
-    callback: (...args) => void,
-  );
-  write(fd: number, str: string, callback: (...args) => void);
-  write(fd: number, str: string, position: number, callback: (...args) => void);
-  write(fd: number, str: string, position: number, encoding: BufferEncoding, callback: (...args) => void);
-  writeFile(id: misc.TFileId, data: misc.TData, callback: misc.TCallback<void>);
-  writeFile(
-    id: misc.TFileId,
-    data: misc.TData,
-    options: opts.IWriteFileOptions | string,
-    callback: misc.TCallback<void>,
-  );
   copyFile(src: misc.PathLike, dest: misc.PathLike, callback: misc.TCallback<void>);
   copyFile(src: misc.PathLike, dest: misc.PathLike, flags: misc.TFlagsCopy, callback: misc.TCallback<void>);
   link(existingPath: misc.PathLike, newPath: misc.PathLike, callback: misc.TCallback<void>): void;
@@ -117,4 +90,35 @@ export interface FsCallbackApi {
     options?: opts.IWatchOptions | string,
     listener?: (eventType: string, filename: string) => void,
   ): misc.IFSWatcher;
+  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, callback: (...args) => void);
+  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset: number, callback: (...args) => void);
+  write(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    callback: (...args) => void,
+  );
+  write(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    position: number,
+    callback: (...args) => void,
+  );
+  write(fd: number, str: string, callback: (...args) => void);
+  write(fd: number, str: string, position: number, callback: (...args) => void);
+  write(fd: number, str: string, position: number, encoding: BufferEncoding, callback: (...args) => void);
+  writeFile(id: misc.TFileId, data: misc.TData, callback: misc.TCallback<void>);
+  writeFile(
+    id: misc.TFileId,
+    data: misc.TData,
+    options: opts.IWriteFileOptions | string,
+    callback: misc.TCallback<void>,
+  );
+  writev(fd: number, buffers: ArrayBufferView[], callback: WritevCallback): void;
+  writev(fd: number, buffers: ArrayBufferView[], position: number | null, callback: WritevCallback): void;
 }
+
+export type WritevCallback = (err: Error | null, bytesWritten?: number, buffers?: ArrayBufferView[]) => void;

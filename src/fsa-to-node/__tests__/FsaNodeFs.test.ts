@@ -307,3 +307,47 @@ describe('.appendFile()', () => {
     expect(mfs.readFileSync('/mountpoint/file', 'utf8')).toBe('123x');
   });
 });
+
+describe('.write()', () => {
+  test('can write to a file', async () => {
+    const { fs, mfs } = setup({});
+    const fd = await new Promise<number>((resolve, reject) => fs.open('/test.txt', 'w', (err, fd) => {
+      if (err) reject(err);
+      else resolve(fd!);
+    }));
+    const [bytesWritten, data] = await new Promise<[number, any]>((resolve, reject) => {
+      fs.write(fd, 'a', (err, bytesWritten, data) => {
+        if (err) reject(err);
+        else resolve([bytesWritten, data]);
+      });
+    });
+    expect(bytesWritten).toBe(1);
+    expect(data).toBe('a');
+    expect(mfs.readFileSync('/mountpoint/test.txt', 'utf8')).toBe('a');
+  });
+
+  test('can write to a file twice sequentially', async () => {
+    const { fs, mfs } = setup({});
+    const fd = await new Promise<number>((resolve, reject) => fs.open('/test.txt', 'w', (err, fd) => {
+      if (err) reject(err);
+      else resolve(fd!);
+    }));
+    const res1 = await new Promise<[number, any]>((resolve, reject) => {
+      fs.write(fd, 'a', (err, bytesWritten, data) => {
+        if (err) reject(err);
+        else resolve([bytesWritten, data]);
+      });
+    });
+    expect(res1[0]).toBe(1);
+    expect(res1[1]).toBe('a');
+    const res2 = await new Promise<[number, any]>((resolve, reject) => {
+      fs.write(fd, 'bc', (err, bytesWritten, data) => {
+        if (err) reject(err);
+        else resolve([bytesWritten, data]);
+      });
+    });
+    expect(res2[0]).toBe(2);
+    expect(res2[1]).toBe('bc');
+    expect(mfs.readFileSync('/mountpoint/test.txt', 'utf8')).toBe('abc');
+  });
+});

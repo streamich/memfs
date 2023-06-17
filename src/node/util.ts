@@ -176,3 +176,55 @@ export function dataToBuffer(data: misc.TData, encoding: string = ENCODING_UTF8)
   else if (data instanceof Uint8Array) return bufferFrom(data);
   else return bufferFrom(String(data), encoding);
 }
+
+export const getWriteArgs =
+  (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown):
+    [fd: number, dataAsStr: boolean, buf: Buffer, offset: number, length: number, position: number | null, callback: (...args) => void] => {
+  validateFd(fd);
+  let offset: number = 0;
+  let length: number | undefined;
+  let position: number | null = null;
+  let encoding: BufferEncoding | undefined;
+  let callback: ((...args) => void) | undefined;
+  const tipa = typeof a;
+  const tipb = typeof b;
+  const tipc = typeof c;
+  const tipd = typeof d;
+  if (tipa !== 'string') {
+    if (tipb === 'function') {
+      callback = <(...args) => void>b;
+    } else if (tipc === 'function') {
+      offset = <number>b | 0;
+      callback = <(...args) => void>c;
+    } else if (tipd === 'function') {
+      offset = <number>b | 0;
+      length = <number>c;
+      callback = <(...args) => void>d;
+    } else {
+      offset = <number>b | 0;
+      length = <number>c;
+      position = <number | null>d;
+      callback = <(...args) => void>e;
+    }
+  } else {
+    if (tipb === 'function') {
+      callback = <(...args) => void>b;
+    } else if (tipc === 'function') {
+      position = <number | null>b;
+      callback = <(...args) => void>c;
+    } else if (tipd === 'function') {
+      position = <number | null>b;
+      encoding = <BufferEncoding>c;
+      callback = <(...args) => void>d;
+    }
+  }
+  const buf: Buffer = dataToBuffer(<string | Buffer>a, encoding);
+  if (tipa !== 'string') {
+    if (typeof length === 'undefined') length = buf.length;
+  } else {
+    offset = 0;
+    length = buf.length;
+  }
+  const cb = validateCallback(callback);
+  return [fd, tipa === 'string', buf, offset, length!, position, cb];
+};

@@ -14,6 +14,7 @@ import {
   dataToBuffer,
   flagsToNumber,
   genRndStr6,
+  getWriteArgs,
   isFd,
   isWin,
   modeToNumber,
@@ -29,6 +30,7 @@ import { FsaToNodeConstants } from './constants';
 import { bufferToEncoding } from '../volume';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FsaNodeDirent } from './FsaNodeDirent';
+import {FLAG} from '../consts/FLAG';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -78,9 +80,9 @@ export class FsaNodeFs implements FsCallbackApi {
     return curr;
   }
 
-  private async getFile(path: string[], name: string, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
+  private async getFile(path: string[], name: string, funcName?: string, create?: boolean): Promise<fsa.IFileSystemFileHandle> {
     const dir = await this.getDir(path, false, funcName);
-    const file = await dir.getFileHandle(name, { create: false });
+    const file = await dir.getFileHandle(name, { create });
     return file;
   }
 
@@ -123,7 +125,8 @@ export class FsaNodeFs implements FsCallbackApi {
     const filename = pathToFilename(path);
     const flagsNum = flagsToNumber(flags);
     const [folder, name] = pathToLocation(filename);
-    this.getFile(folder, name, 'open')
+    const createIfMissing = !!(flagsNum & FLAG.O_CREAT);
+    this.getFile(folder, name, 'open', createIfMissing)
       .then(file => {
         const fd = this.newFdNumber();
         const openFile = new FsaNodeFsOpenFile(fd, modeNum, flagsNum, file);
@@ -178,8 +181,14 @@ export class FsaNodeFs implements FsCallbackApi {
       });
   };
 
-  public readonly write: FsCallbackApi['write'] = (fd: number, a?, b?, c?, d?, e?) => {
-    throw new Error('Not implemented');
+  public readonly write: FsCallbackApi['write'] = (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown) => {
+    const [, asStr, buf, offset, length, position, cb] = getWriteArgs(fd, a, b, c, d, e);
+    (async () => {
+      const openFile = await this.getFileByFd(fd, 'write');
+      const data = buf.subarray(offset, offset + length);
+      await openFile.write(data, position);
+      return length;
+    })().then((bytesWritten) => cb(null, bytesWritten, asStr ? a : buf), (error) => cb(error));
   };
 
   writeFile(id: misc.TFileId, data: misc.TData, callback: misc.TCallback<void>);

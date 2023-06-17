@@ -102,3 +102,10 @@ export const getStatOptsAndCb: (
 const realpathDefaults: opts.IReadFileOptions = optsDefaults;
 export const getRealpathOptions = optsGenerator<opts.IRealpathOptions>(realpathDefaults);
 export const getRealpathOptsAndCb = optsAndCbGenerator<opts.IRealpathOptions, misc.TDataOut>(getRealpathOptions);
+
+export const writeFileDefaults: opts.IWriteFileOptions = {
+  encoding: 'utf8',
+  mode: MODE.DEFAULT,
+  flag: FLAGS[FLAGS.w],
+};
+export const getWriteFileOptions = optsGenerator<opts.IWriteFileOptions>(writeFileDefaults);

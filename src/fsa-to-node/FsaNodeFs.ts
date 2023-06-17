@@ -10,6 +10,8 @@ import {
   getAppendFileOptsAndCb,
   getStatOptsAndCb,
   getRealpathOptsAndCb,
+  writeFileDefaults,
+  getWriteFileOptions,
 } from '../node/options';
 import {
   createError,
@@ -125,11 +127,11 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     return file;
   }
 
-  private async getFileById(id: misc.TFileId, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
+  private async getFileById(id: misc.TFileId, funcName?: string, create?: boolean): Promise<fsa.IFileSystemFileHandle> {
     if (typeof id === 'number') return (await this.getFileByFd(id, funcName)).file;
     const filename = pathToFilename(id);
     const [folder, name] = pathToLocation(filename);
-    return await this.getFile(folder, name, funcName);
+    return await this.getFile(folder, name, funcName, create);
   }
 
   private async getFileByIdOrCreate(id: misc.TFileId, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
@@ -235,20 +237,30 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     );
   };
 
-  writeFile(id: misc.TFileId, data: misc.TData, callback: misc.TCallback<void>);
-  writeFile(
-    id: misc.TFileId,
-    data: misc.TData,
-    options: opts.IWriteFileOptions | string,
-    callback: misc.TCallback<void>,
-  );
-  writeFile(
+  public readonly writeFile: FsCallbackApi['writeFile'] = (
     id: misc.TFileId,
     data: misc.TData,
     a: misc.TCallback<void> | opts.IWriteFileOptions | string,
     b?: misc.TCallback<void>,
-  ) {
-    throw new Error('Not implemented');
+  ): void => {
+    let options: opts.IWriteFileOptions | string = a as opts.IWriteFileOptions;
+    let callback: misc.TCallback<void> | undefined = b;
+    if (typeof a === 'function') {
+      options = writeFileDefaults;
+      callback = a;
+    }
+    const cb = validateCallback(callback);
+    const opts = getWriteFileOptions(options);
+    const flagsNum = flagsToNumber(opts.flag);
+    const modeNum = modeToNumber(opts.mode);
+    const buf = dataToBuffer(data, opts.encoding);
+    (async () => {
+      const createIfMissing = !!(flagsNum & FLAG.O_CREAT);
+      const file = await this.getFileById(id, 'writeFile', createIfMissing);
+      const writable = await file.createWritable({ keepExistingData: false });
+      await writable.write(buf);
+      await writable.close();
+    })().then(() => cb(null), error => cb(error));
   }
 
   public readonly copyFile: FsCallbackApi['copyFile'] = (src: misc.PathLike, dest: misc.PathLike, a, b?): void => {
@@ -316,14 +328,6 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     callback(null, strToEncoding(pathFilename, opts.encoding));
   };
 
-  public readonly lstat: FsCallbackApi['lstat'] = (
-    path: misc.PathLike,
-    a: misc.TCallback<misc.IStats> | opts.IStatOptions,
-    b?: misc.TCallback<misc.IStats>,
-  ): void => {
-    this.stat(path, <any>a, <any>b);
-  };
-
   public readonly stat: FsCallbackApi['stat'] = (
     path: misc.PathLike,
     a: misc.TCallback<misc.IStats> | opts.IStatOptions,
@@ -340,6 +344,8 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
       error => callback(error),
     );
   };
+
+  public readonly lstat: FsCallbackApi['lstat'] = this.stat;
 
   public readonly fstat: FsCallbackApi['fstat'] = (
     fd: number,

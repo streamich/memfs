@@ -29,6 +29,8 @@ import {
   optsGenerator,
   getAppendFileOptsAndCb,
   getAppendFileOpts,
+  getStatOptsAndCb,
+  getStatOptions,
 } from './node/options';
 import {
   validateCallback,
@@ -188,16 +190,6 @@ export interface IStatOptions {
 export interface IFStatOptions {
   bigint?: boolean;
 }
-
-const statDefaults: IStatOptions = {
-  bigint: false,
-};
-const getStatOptions: (options?: any) => IStatOptions = (options = {}) => Object.assign({}, statDefaults, options);
-const getStatOptsAndCb: (options: any, callback?: TCallback<Stats>) => [IStatOptions, TCallback<Stats>] = (
-  options,
-  callback?,
-) =>
-  typeof options === 'function' ? [getStatOptions(), options] : [getStatOptions(options), validateCallback(callback)];
 
 // ---------------------------------------- Utility functions
 

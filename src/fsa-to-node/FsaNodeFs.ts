@@ -108,8 +108,10 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
     } catch (error) {
       if (error && typeof error === 'object') {
         switch (error.name) {
-          case 'TypeMismatchError': return await dir.getDirectoryHandle(name);
-          case 'NotFoundError': throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
+          case 'TypeMismatchError':
+            return await dir.getDirectoryHandle(name);
+          case 'NotFoundError':
+            throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
         }
       }
       throw error;
@@ -287,8 +289,7 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
   ): void => {
     const [opts, callback] = getRealpathOptsAndCb(a, b);
     let pathFilename = pathToFilename(path);
-    if (pathFilename[0] !== FsaToNodeConstants.Separator)
-      pathFilename = FsaToNodeConstants.Separator + pathFilename;
+    if (pathFilename[0] !== FsaToNodeConstants.Separator) pathFilename = FsaToNodeConstants.Separator + pathFilename;
     callback(null, strToEncoding(pathFilename, opts.encoding));
   };
 
@@ -340,7 +341,7 @@ export class FsaNodeFs implements FsCallbackApi, FsCommonObjects {
       size = fileData.size;
     }
     const stats = new FsaNodeStats(bigint, bigint ? BigInt(size) : size, handle);
-    return stats;    
+    return stats;
   }
 
   public readonly rename: FsCallbackApi['rename'] = (

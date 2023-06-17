@@ -1,11 +1,12 @@
 import { IFsWithVolume, NestedDirectoryJSON, memfs } from '../..';
+import {AMODE} from '../../consts/AMODE';
 import { nodeToFsa } from '../../node-to-fsa';
 import { IDirent } from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
 
-const setup = (json: NestedDirectoryJSON | null = null) => {
+const setup = (json: NestedDirectoryJSON | null = null, mode: 'read' | 'readwrite' = 'readwrite') => {
   const mfs = memfs({ mountpoint: json }) as IFsWithVolume;
-  const dir = nodeToFsa(mfs, '/mountpoint', { mode: 'readwrite', syncHandleAllowed: true });
+  const dir = nodeToFsa(mfs, '/mountpoint', { mode, syncHandleAllowed: true });
   const fs = new FsaNodeFs(dir);
   return { fs, mfs, dir };
 };
@@ -349,5 +350,94 @@ describe('.write()', () => {
     expect(res2[0]).toBe(2);
     expect(res2[1]).toBe('bc');
     expect(mfs.readFileSync('/mountpoint/test.txt', 'utf8')).toBe('abc');
+  });
+});
+
+describe('.exists()', () => {
+  test('can works for folders and files', async () => {
+    // const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    // const exists = async (path: string): Promise<boolean> => {
+    //   return new Promise((resolve) => {
+    //     fs.exists(path, (exists) => resolve(exists));
+    //   });
+    // };
+    // expect(await exists('/folder')).toBe(true);
+    
+  });
+});
+
+describe('.access()', () => {
+  describe('files', () => {
+    test('succeeds on file existence check', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      await fs.promises.access('/folder/file', AMODE.F_OK);
+    });
+
+    test('succeeds on file "read" check', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      await fs.promises.access('/folder/file', AMODE.R_OK);
+    });
+
+    test('succeeds on file "write" check, on writable file system', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      await fs.promises.access('/folder/file', AMODE.W_OK);
+    });
+
+    test('fails on file "write" check, on read-only file system', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' }, 'read');
+      try {
+        await fs.promises.access('/folder/file', AMODE.W_OK);
+        throw new Error('should not be here')
+      } catch (error) {
+        expect(error.code).toBe('EACCESS');
+      }
+    });
+
+    test('fails on file "execute" check', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      try {
+        await fs.promises.access('/folder/file', AMODE.X_OK);
+        throw new Error('should not be here')
+      } catch (error) {
+        expect(error.code).toBe('EACCESS');
+      }
+    });
+  });
+
+  describe('directories', () => {
+    test('succeeds on folder existence check', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      await fs.promises.access('/folder', AMODE.F_OK);
+    });
+
+    test('succeeds on folder "read" check', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      await fs.promises.access('/folder', AMODE.R_OK);
+    });
+
+    test('succeeds on folder "write" check, on writable file system', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      await fs.promises.access('/folder', AMODE.W_OK);
+    });
+
+    test('fails on folder "write" check, on read-only file system', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' }, 'read');
+      try {
+        await fs.promises.access('/folder', AMODE.W_OK);
+        throw new Error('should not be here')
+      } catch (error) {
+        expect(error.code).toBe('EACCESS');
+      }
+    });
+
+    test('fails on folder "execute" check', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      try {
+        await fs.promises.access('/folder', AMODE.X_OK);
+        throw new Error('should not be here')
+      } catch (error) {
+        expect(error.code).toBe('EACCESS');
+      }
+    });
   });
 });

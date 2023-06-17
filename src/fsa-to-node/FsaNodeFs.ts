@@ -40,13 +40,13 @@ import { constants } from '../constants';
 import { FsaNodeStats } from './FsaNodeStats';
 import process from '../process';
 import { FsSynchronousApi } from '../node/types/FsSynchronousApi';
-import {FsaNodeWriteStream} from './FsaNodeWriteStream';
+import { FsaNodeWriteStream } from './FsaNodeWriteStream';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 import type { FsCommonObjects } from '../node/types/FsCommonObjects';
-import type {WritevCallback} from '../node/types/callback';
+import type { WritevCallback } from '../node/types/callback';
 
 const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
@@ -269,7 +269,7 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
     fd: number,
     buffers: ArrayBufferView[],
     a: number | null | WritevCallback,
-    b?: WritevCallback
+    b?: WritevCallback,
   ): void => {
     validateFd(fd);
     let position: number | null = null;
@@ -767,32 +767,66 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
       );
   };
 
-  public readonly fchmod: FsCallbackApi['fchmod'] = (fd: number, mode: misc.TMode, callback: misc.TCallback<void>): void => {
+  public readonly fchmod: FsCallbackApi['fchmod'] = (
+    fd: number,
+    mode: misc.TMode,
+    callback: misc.TCallback<void>,
+  ): void => {
     callback(null);
   };
 
-  public readonly chmod: FsCallbackApi['chmod'] = (path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<void>): void => {
+  public readonly chmod: FsCallbackApi['chmod'] = (
+    path: misc.PathLike,
+    mode: misc.TMode,
+    callback: misc.TCallback<void>,
+  ): void => {
     callback(null);
   };
 
-  public readonly lchmod: FsCallbackApi['lchmod'] = (path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<void>): void => {
+  public readonly lchmod: FsCallbackApi['lchmod'] = (
+    path: misc.PathLike,
+    mode: misc.TMode,
+    callback: misc.TCallback<void>,
+  ): void => {
     callback(null);
   };
 
-  public readonly fchown: FsCallbackApi['fchown'] = (fd: number, uid: number, gid: number, callback: misc.TCallback<void>): void => {
+  public readonly fchown: FsCallbackApi['fchown'] = (
+    fd: number,
+    uid: number,
+    gid: number,
+    callback: misc.TCallback<void>,
+  ): void => {
     callback(null);
   };
 
-  public readonly chown: FsCallbackApi['chown'] = (path: misc.PathLike, uid: number, gid: number, callback: misc.TCallback<void>): void => {
+  public readonly chown: FsCallbackApi['chown'] = (
+    path: misc.PathLike,
+    uid: number,
+    gid: number,
+    callback: misc.TCallback<void>,
+  ): void => {
     callback(null);
   };
 
-  public readonly lchown: FsCallbackApi['lchown'] = (path: misc.PathLike, uid: number, gid: number, callback: misc.TCallback<void>): void => {
+  public readonly lchown: FsCallbackApi['lchown'] = (
+    path: misc.PathLike,
+    uid: number,
+    gid: number,
+    callback: misc.TCallback<void>,
+  ): void => {
     callback(null);
   };
 
-  public readonly createWriteStream: FsCallbackApi['createWriteStream'] = (path: misc.PathLike, options?: opts.IWriteStreamOptions | string): FsaNodeWriteStream => {
-    const optionsObj: opts.IWriteStreamOptions = !options ? {} : typeof options === 'object' ? options : { encoding: options } as opts.IWriteStreamOptions;
+  public readonly createWriteStream: FsCallbackApi['createWriteStream'] = (
+    path: misc.PathLike,
+    options?: opts.IWriteStreamOptions | string,
+  ): FsaNodeWriteStream => {
+    const optionsObj: opts.IWriteStreamOptions = !options
+      ? {}
+      : typeof options === 'object'
+      ? options
+      : ({ encoding: options } as opts.IWriteStreamOptions);
     const filename = pathToFilename(path);
     const location = pathToLocation(filename);
     const flags = flagsToNumber(optionsObj.flags);

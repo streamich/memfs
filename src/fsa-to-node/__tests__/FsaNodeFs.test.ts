@@ -367,10 +367,7 @@ describe('.writev()', () => {
       }),
     );
     const [bytesWritten, data] = await new Promise<[number, any]>((resolve, reject) => {
-      const buffers = [
-        Buffer.from('a'),
-        Buffer.from('b'),
-      ];
+      const buffers = [Buffer.from('a'), Buffer.from('b')];
       fs.writev(fd, buffers, (err, bytesWritten, data) => {
         if (err) reject(err);
         else resolve([bytesWritten!, data]);

@@ -42,6 +42,7 @@ import {
   isFd,
   isWin,
   dataToBuffer,
+  getWriteArgs,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
 
@@ -914,7 +915,7 @@ export class Volume {
     this.wrapAsync(this.readFileBase, [id, flagsNum, opts.encoding], callback);
   }
 
-  private writeBase(fd: number, buf: Buffer, offset?: number, length?: number, position?: number): number {
+  private writeBase(fd: number, buf: Buffer, offset?: number, length?: number, position?: number | null): number {
     const file = this.getFileByFdOrThrow(fd, 'write');
     return file.write(buf, offset, length, position);
   }
@@ -986,63 +987,11 @@ export class Volume {
   write(fd: number, str: string, position: number, callback: (...args) => void);
   write(fd: number, str: string, position: number, encoding: BufferEncoding, callback: (...args) => void);
   write(fd: number, a?, b?, c?, d?, e?) {
-    validateFd(fd);
-
-    let offset: number;
-    let length: number | undefined;
-    let position: number;
-    let encoding: BufferEncoding | undefined;
-    let callback: ((...args) => void) | undefined;
-
-    const tipa = typeof a;
-    const tipb = typeof b;
-    const tipc = typeof c;
-    const tipd = typeof d;
-
-    if (tipa !== 'string') {
-      if (tipb === 'function') {
-        callback = b;
-      } else if (tipc === 'function') {
-        offset = b | 0;
-        callback = c;
-      } else if (tipd === 'function') {
-        offset = b | 0;
-        length = c;
-        callback = d;
-      } else {
-        offset = b | 0;
-        length = c;
-        position = d;
-        callback = e;
-      }
-    } else {
-      if (tipb === 'function') {
-        callback = b;
-      } else if (tipc === 'function') {
-        position = b;
-        callback = c;
-      } else if (tipd === 'function') {
-        position = b;
-        encoding = c;
-        callback = d;
-      }
-    }
-
-    const buf: Buffer = dataToBuffer(a, encoding);
-
-    if (tipa !== 'string') {
-      if (typeof length === 'undefined') length = buf.length;
-    } else {
-      offset = 0;
-      length = buf.length;
-    }
-
-    const cb = validateCallback(callback);
-
+    const [, asStr, buf, offset, length, position, cb] = getWriteArgs(fd, a, b, c, d, e);
     setImmediate(() => {
       try {
         const bytes = this.writeBase(fd, buf, offset, length, position);
-        if (tipa !== 'string') {
+        if (!asStr) {
           cb(null, bytes, buf);
         } else {
           cb(null, bytes, a);

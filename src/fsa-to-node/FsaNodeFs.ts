@@ -87,11 +87,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback<void>): void => {
     validateFd(fd);
-    this.getFileByFd(fd, 'close')
+    this.getFileByFdAsync(fd, 'close')
       .then(file => file.close())
       .then(
         () => {
           this.fds.delete(fd);
+          this.releasedFds.push(fd);
           callback(null);
         },
         error => {
@@ -511,7 +512,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   ): void => {
     const len: number = typeof a === 'number' ? a : 0;
     const callback: misc.TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
-    this.getFileByFd(fd)
+    this.getFileByFdAsync(fd)
       .then(file => file.file.createWritable({ keepExistingData: true }))
       .then(writable => writable.truncate(len).then(() => writable.close()))
       .then(
@@ -735,7 +736,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const filename = pathToFilename(path);
     const flags = flagsToNumber(optionsObj.flags ?? 'w');
     const fd: number = optionsObj.fd ? (typeof optionsObj.fd === 'number' ? optionsObj.fd : optionsObj.fd.fd) : 0;
-    const handle = fd ? this.getFileByFd(fd) : this.__open(filename, flags, 0);
+    const handle = fd ? this.getFileByFdAsync(fd) : this.__open(filename, flags, 0);
     const stream = new FsaNodeWriteStream(handle, filename, optionsObj);
     if (optionsObj.autoClose) {
       stream.once('finish', () => {
@@ -799,21 +800,19 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     adapter.call('writeFile', {filename, data: bufToUint8(buf), opts});
   };
 
+  public readonly closeSync: FsSynchronousApi['closeSync'] = (fd: number) => {
+    validateFd(fd);
+    const file = this.getFileByFd(fd, 'close');
+    file.close().catch(() => {});
+    this.fds.delete(fd);
+    this.releasedFds.push(fd);
+  };
+
   public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = notSupported;
-  public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
-  public readonly chownSync: FsSynchronousApi['chownSync'] = noop;
-  public readonly closeSync: FsSynchronousApi['closeSync'] = notSupported;
   public readonly copyFileSync: FsSynchronousApi['copyFileSync'] = notSupported;
   public readonly existsSync: FsSynchronousApi['existsSync'] = notSupported;
-  public readonly fchmodSync: FsSynchronousApi['fchmodSync'] = noop;
-  public readonly fchownSync: FsSynchronousApi['fchownSync'] = noop;
-  public readonly fdatasyncSync: FsSynchronousApi['fdatasyncSync'] = noop;
   public readonly fstatSync: FsSynchronousApi['fstatSync'] = notSupported;
-  public readonly fsyncSync: FsSynchronousApi['fsyncSync'] = noop;
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
-  public readonly futimesSync: FsSynchronousApi['futimesSync'] = noop;
-  public readonly lchmodSync: FsSynchronousApi['lchmodSync'] = noop;
-  public readonly lchownSync: FsSynchronousApi['lchownSync'] = noop;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
   public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = notSupported;
   public readonly mkdirpSync: FsSynchronousApi['mkdirpSync'] = notSupported;
@@ -829,8 +828,18 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = notSupported;
   public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = notSupported;
-  public readonly utimesSync: FsSynchronousApi['utimesSync'] = noop;
   public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
+  
+  public readonly fsyncSync: FsSynchronousApi['fsyncSync'] = noop;
+  public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
+  public readonly chownSync: FsSynchronousApi['chownSync'] = noop;
+  public readonly fchmodSync: FsSynchronousApi['fchmodSync'] = noop;
+  public readonly fchownSync: FsSynchronousApi['fchownSync'] = noop;
+  public readonly fdatasyncSync: FsSynchronousApi['fdatasyncSync'] = noop;
+  public readonly futimesSync: FsSynchronousApi['futimesSync'] = noop;
+  public readonly lchmodSync: FsSynchronousApi['lchmodSync'] = noop;
+  public readonly lchownSync: FsSynchronousApi['lchownSync'] = noop;
+  public readonly utimesSync: FsSynchronousApi['utimesSync'] = noop;
 
   // ------------------------------------------------------------ FsPromisesApi
 

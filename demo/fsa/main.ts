@@ -66,6 +66,11 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   await fs.promises.mkdir('/tmp');
   const tmpDirName = fs.mkdtempSync('/tmp/temporary-');
   strictEqual(fs.statSync(tmpDirName).isDirectory(), true);
+
+  console.log('truncateSync() - can truncate a file');
+  await fs.promises.writeFile('/truncated.txt', 'truncate here: abcdefghijklmnopqrstuvwxyz');
+  fs.truncateSync('/truncated.txt', 14);
+  strictEqual(fs.readFileSync('/truncated.txt', 'utf8'), 'truncate here:');
 };
 
 const main = async () => {

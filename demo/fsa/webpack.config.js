@@ -28,9 +28,11 @@ module.exports = {
       buffer: require.resolve('buffer'),
       path: require.resolve('path-browserify'),
       process: require.resolve('process/browser'),
-      stream: require.resolve('streamx'),
+      // stream: require.resolve('streamx'),
+      stream: require.resolve('readable-stream'),
       url: require.resolve('url'),
       util: require.resolve('util'),
+      // fs: path.resolve(__dirname, '../../src/index.ts'),
     },
   },
   output: {

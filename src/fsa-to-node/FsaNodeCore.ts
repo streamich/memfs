@@ -89,11 +89,15 @@ export class FsaNodeCore {
     }
   }
 
-  protected async getFileByFd(fd: number, funcName?: string): Promise<FsaNodeFsOpenFile> {
+  protected getFileByFd(fd: number, funcName?: string): FsaNodeFsOpenFile {
     if (!isFd(fd)) throw TypeError(ERRSTR.FD);
     const file = this.fds.get(fd);
     if (!file) throw createError('EBADF', funcName);
     return file;
+  }
+
+  protected async getFileByFdAsync(fd: number, funcName?: string): Promise<FsaNodeFsOpenFile> {
+    return this.getFileByFd(fd, funcName);
   }
 
   protected async getFileById(

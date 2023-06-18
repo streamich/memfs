@@ -1,7 +1,10 @@
 import { Writable } from 'stream';
 import { Defer } from 'thingies/es6/Defer';
 import { concurrency } from 'thingies/es6/concurrency';
-import type { IFileSystemFileHandle, IFileSystemWritableFileStream } from '../fsa/types';
+import {flagsToNumber} from '../node/util';
+import {FLAG} from '../consts/FLAG';
+import {FsaNodeFsOpenFile} from './FsaNodeFsOpenFile';
+import type { IFileSystemWritableFileStream } from '../fsa/types';
 import type { IWriteStream } from '../node/types/misc';
 import type { IWriteStreamOptions } from '../node/types/options';
 
@@ -20,6 +23,9 @@ import type { IWriteStreamOptions } from '../node/types/options';
  * file only once the stream is closed. The downside is that the written data
  * is not immediately visible to other processes (because it is written to the
  * swap file), but that is the trade-off we have to make.
+ * 
+ * @todo Could make this flush the data to the original file periodically, so that
+ *       the data is visible to other processes.
  */
 export class FsaNodeWriteStream extends Writable implements IWriteStream {
   protected __pending__: boolean = true;
@@ -29,16 +35,32 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
   protected readonly __mutex__ = concurrency(1);
 
   public constructor(
-    handle: Promise<IFileSystemFileHandle>,
+    handle: Promise<FsaNodeFsOpenFile>,
     public readonly path: string,
-    protected readonly options?: IWriteStreamOptions,
+    protected readonly options: IWriteStreamOptions,
   ) {
     super();
+    if (options.start !== undefined) {
+      if (typeof options.start !== 'number') {
+        throw new TypeError('"start" option must be a Number');
+      }
+      if (options.start < 0) {
+        throw new TypeError('"start" must be >= zero');
+      }
+    }
     const stream = new Defer<IFileSystemWritableFileStream>();
     this.__stream__ = stream.promise;
     (async () => {
       const fsaHandle = await handle;
-      const writable = await fsaHandle.createWritable({keepExistingData: true});
+      const fileWasOpened = !options.fd;
+      if (fileWasOpened) this.emit('open', fsaHandle.fd);
+      const flags = flagsToNumber(options.flags ?? 'w');
+      const keepExistingData = flags & FLAG.O_APPEND ? true : false;
+      const writable = await fsaHandle.file.createWritable({keepExistingData});
+      if (keepExistingData) {
+        const start = Number(options.start ?? 0);
+        if (start) await writable.seek(start);
+      }
       this.__pending__ = false;
       stream.resolve(writable);
     })().catch(error => {
@@ -59,8 +81,9 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
   }
 
   private async __close__(): Promise<void> {
+    const emitClose = this.options.emitClose;
     await this.__mutex__(async () => {
-      if (this.__closed__) {
+      if (this.__closed__ && emitClose) {
         process.nextTick(() => this.emit('close'));
         return;
       }
@@ -68,10 +91,10 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
         const writable = await this.__stream__;
         this.__closed__ = true;
         await writable.close();
-        this.emit('close');
+        if (emitClose) this.emit('close');
       } catch (error) {
         this.emit('error', error);
-        this.emit('close', error);
+        if (emitClose) this.emit('close', error);
       }
     });
   }

@@ -686,10 +686,13 @@ describe('.createWriteStream()', () => {
     const handle = await fs.promises.open('/folder/file', 'a');
     const stream = fs.createWriteStream('', { fd: handle.fd, start: 1, flags: 'a' });
     stream.write(Buffer.from('BC'));
-    const stat = async () => await new Promise((resolve, reject) => fs.fstat(handle.fd, (err, stats) => {
-      if (err) reject(err);
-      else resolve(stats);
-    }));
+    const stat = async () =>
+      await new Promise((resolve, reject) =>
+        fs.fstat(handle.fd, (err, stats) => {
+          if (err) reject(err);
+          else resolve(stats);
+        }),
+      );
     await stat();
     stream.end();
     await until(async () => {
@@ -705,10 +708,13 @@ describe('.createWriteStream()', () => {
     const handle = await fs.promises.open('/folder/file', 'a');
     const stream = fs.createWriteStream('', { fd: handle.fd, start: 1, flags: 'a', autoClose: false });
     stream.write(Buffer.from('BC'));
-    const stat = async () => await new Promise((resolve, reject) => fs.fstat(handle.fd, (err, stats) => {
-      if (err) reject(err);
-      else resolve(stats);
-    }));
+    const stat = async () =>
+      await new Promise((resolve, reject) =>
+        fs.fstat(handle.fd, (err, stats) => {
+          if (err) reject(err);
+          else resolve(stats);
+        }),
+      );
     await stat();
     stream.end();
     await tick(200);
@@ -717,7 +723,7 @@ describe('.createWriteStream()', () => {
 
   test('can use stream to add to existing file', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
-    const stream = fs.createWriteStream('/folder/file', {flags: 'a'});
+    const stream = fs.createWriteStream('/folder/file', { flags: 'a' });
     stream.write(Buffer.from('A'));
     stream.write(Buffer.from('BC'));
     stream.end();
@@ -732,7 +738,7 @@ describe('.createWriteStream()', () => {
 
   test('can use stream to add to existing file at specified offset', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
-    const stream = fs.createWriteStream('/folder/file', {flags: 'a', start: 1});
+    const stream = fs.createWriteStream('/folder/file', { flags: 'a', start: 1 });
     stream.write(Buffer.from('A'));
     stream.write(Buffer.from('B'));
     stream.end();
@@ -748,7 +754,7 @@ describe('.createWriteStream()', () => {
   test('throws if "start" option is not a number', async () => {
     const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
     try {
-      fs.createWriteStream('/folder/file', {flags: 'a', start: '1' as any});
+      fs.createWriteStream('/folder/file', { flags: 'a', start: '1' as any });
       throw new Error('should have thrown');
     } catch (error) {
       expect(error).toBeInstanceOf(TypeError);
@@ -759,7 +765,7 @@ describe('.createWriteStream()', () => {
   test('throws if "start" option is negative', async () => {
     const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
     try {
-      fs.createWriteStream('/folder/file', {flags: 'a', start: -1});
+      fs.createWriteStream('/folder/file', { flags: 'a', start: -1 });
       throw new Error('should have thrown');
     } catch (error) {
       expect(error).toBeInstanceOf(TypeError);

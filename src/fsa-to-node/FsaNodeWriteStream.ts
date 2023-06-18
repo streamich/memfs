@@ -1,9 +1,9 @@
 import { Writable } from 'stream';
 import { Defer } from 'thingies/es6/Defer';
 import { concurrency } from 'thingies/es6/concurrency';
-import {flagsToNumber} from '../node/util';
-import {FLAG} from '../consts/FLAG';
-import {FsaNodeFsOpenFile} from './FsaNodeFsOpenFile';
+import { flagsToNumber } from '../node/util';
+import { FLAG } from '../consts/FLAG';
+import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import type { IFileSystemWritableFileStream } from '../fsa/types';
 import type { IWriteStream } from '../node/types/misc';
 import type { IWriteStreamOptions } from '../node/types/options';
@@ -23,7 +23,7 @@ import type { IWriteStreamOptions } from '../node/types/options';
  * file only once the stream is closed. The downside is that the written data
  * is not immediately visible to other processes (because it is written to the
  * swap file), but that is the trade-off we have to make.
- * 
+ *
  * @todo Could make this flush the data to the original file periodically, so that
  *       the data is visible to other processes.
  */
@@ -56,7 +56,7 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
       if (fileWasOpened) this.emit('open', fsaHandle.fd);
       const flags = flagsToNumber(options.flags ?? 'w');
       const keepExistingData = flags & FLAG.O_APPEND ? true : false;
-      const writable = await fsaHandle.file.createWritable({keepExistingData});
+      const writable = await fsaHandle.file.createWritable({ keepExistingData });
       if (keepExistingData) {
         const start = Number(options.start ?? 0);
         if (start) await writable.seek(start);
@@ -123,13 +123,15 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
   }
 
   _writev(chunks: Array<{ chunk: any; encoding: string }>, callback: (error?: Error | null) => void): void {
-    const buffers = chunks.map(({chunk}) => chunk);
+    const buffers = chunks.map(({ chunk }) => chunk);
     this.___write___(buffers)
       .then(() => callback(null))
       .catch(error => callback(error));
   }
 
   _final(callback: (error?: Error | null) => void): void {
-    this.__close__().then(() => callback(null)).catch(error => callback(error));
+    this.__close__()
+      .then(() => callback(null))
+      .catch(error => callback(error));
   }
 }

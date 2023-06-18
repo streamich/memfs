@@ -149,8 +149,7 @@ export class NodeFileSystemWritableFileStream extends WritableStream implements 
           default: {
             if (ArrayBuffer.isView(params)) {
               return this.writeBase(params);
-            }
-            else {
+            } else {
               const options = params as FileSystemWritableFileStreamParams;
               switch (options.type) {
                 case 'write': {

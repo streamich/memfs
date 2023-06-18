@@ -773,31 +773,46 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
   public readonly lstatSync: FsSynchronousApi['lstatSync'] = this.statSync;
 
-  public readonly accessSync: FsSynchronousApi['accessSync'] = (path: misc.PathLike, mode: number = AMODE.F_OK): void => {
+  public readonly fstatSync: FsSynchronousApi['fstatSync'] = (fd: number, options?: opts.IFStatOptions) => {
+    const filename = this.getFileName(fd);
+    return this.statSync(filename, options as any) as any;
+  };
+
+  public readonly accessSync: FsSynchronousApi['accessSync'] = (
+    path: misc.PathLike,
+    mode: number = AMODE.F_OK,
+  ): void => {
     const filename = pathToFilename(path);
     mode = mode | 0;
     const adapter = this.getSyncAdapter();
-    adapter.call('access', {filename, mode});
+    adapter.call('access', { filename, mode });
   };
 
-  public readonly readFileSync: FsSynchronousApi['readFileSync'] = (id: misc.TFileId, options?: opts.IReadFileOptions | string): misc.TDataOut => {
+  public readonly readFileSync: FsSynchronousApi['readFileSync'] = (
+    id: misc.TFileId,
+    options?: opts.IReadFileOptions | string,
+  ): misc.TDataOut => {
     const opts = getReadFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     const filename = this.getFileName(id);
     const adapter = this.getSyncAdapter();
-    const uint8 = adapter.call('readFile', {filename, opts});
+    const uint8 = adapter.call('readFile', { filename, opts });
     const buffer = Buffer.from(uint8.buffer, uint8.byteOffset, uint8.byteLength);
     return bufferToEncoding(buffer, opts.encoding);
   };
 
-  public readonly writeFileSync: FsSynchronousApi['writeFileSync'] = (id: misc.TFileId, data: misc.TData, options?: opts.IWriteFileOptions): void => {
+  public readonly writeFileSync: FsSynchronousApi['writeFileSync'] = (
+    id: misc.TFileId,
+    data: misc.TData,
+    options?: opts.IWriteFileOptions,
+  ): void => {
     const opts = getWriteFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     const modeNum = modeToNumber(opts.mode);
     const buf = dataToBuffer(data, opts.encoding);
     const filename = this.getFileName(id);
     const adapter = this.getSyncAdapter();
-    adapter.call('writeFile', {filename, data: bufToUint8(buf), opts});
+    adapter.call('writeFile', { filename, data: bufToUint8(buf), opts });
   };
 
   public readonly closeSync: FsSynchronousApi['closeSync'] = (fd: number) => {
@@ -811,7 +826,6 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = notSupported;
   public readonly copyFileSync: FsSynchronousApi['copyFileSync'] = notSupported;
   public readonly existsSync: FsSynchronousApi['existsSync'] = notSupported;
-  public readonly fstatSync: FsSynchronousApi['fstatSync'] = notSupported;
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
   public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = notSupported;
@@ -829,13 +843,13 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = notSupported;
   public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = notSupported;
   public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
-  
-  public readonly fsyncSync: FsSynchronousApi['fsyncSync'] = noop;
+
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
   public readonly chownSync: FsSynchronousApi['chownSync'] = noop;
   public readonly fchmodSync: FsSynchronousApi['fchmodSync'] = noop;
   public readonly fchownSync: FsSynchronousApi['fchownSync'] = noop;
   public readonly fdatasyncSync: FsSynchronousApi['fdatasyncSync'] = noop;
+  public readonly fsyncSync: FsSynchronousApi['fsyncSync'] = noop;
   public readonly futimesSync: FsSynchronousApi['futimesSync'] = noop;
   public readonly lchmodSync: FsSynchronousApi['lchmodSync'] = noop;
   public readonly lchownSync: FsSynchronousApi['lchownSync'] = noop;

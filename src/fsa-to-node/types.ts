@@ -7,9 +7,9 @@ export type FsLocation = [folder: string[], file: string];
  */
 export interface FsaNodeSyncAdapterApi {
   stat(location: FsLocation): FsaNodeSyncAdapterStats;
-  access(req: {filename: string, mode: number}): void;
-  readFile(req: {filename: string, opts?: opts.IReadFileOptions}): Uint8Array;
-  writeFile(req: {filename: string, data: Uint8Array, opts?: opts.IWriteFileOptions}): void;
+  access(req: { filename: string; mode: number }): void;
+  readFile(req: { filename: string; opts?: opts.IReadFileOptions }): Uint8Array;
+  writeFile(req: { filename: string; data: Uint8Array; opts?: opts.IWriteFileOptions }): void;
 }
 
 export interface FsaNodeSyncAdapter {

@@ -120,15 +120,10 @@ export class NodeFileSystemWritableFileStream extends WritableStream implements 
   }
 
   protected async writeBase(chunk: Data): Promise<void> {
-    console.log('base')
     const writer = this.getWriter();
-    console.log('writer')
     try {
-      console.log('write', chunk)
-      await writer.write(new Uint8Array([123]));
-      console.log('done')
+      await writer.write(chunk);
     } finally {
-      console.log('finally');
       writer.releaseLock();
     }
   }
@@ -153,8 +148,6 @@ export class NodeFileSystemWritableFileStream extends WritableStream implements 
             return this.writeBase(params);
           default: {
             if (ArrayBuffer.isView(params)) {
-
-              console.log('ERIT', params)
               return this.writeBase(params);
             }
             else {

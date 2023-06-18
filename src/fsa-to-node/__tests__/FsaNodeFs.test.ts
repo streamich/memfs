@@ -633,15 +633,19 @@ describe('.read()', () => {
 });
 
 describe('.createWriteStream()', () => {
-  test.only('can use stream to write to a file', async () => {
+  test('can use stream to write to a new file', async () => {
     const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
-    const stream = fs.createWriteStream('/folder/file');
-    stream.write('a');
-    const onClose = new Promise(resolve => stream.on('close', (err) => {
-      resolve(err);
-    }));
-    stream.close();
-    await onClose;
-    console.log(mfs.__vol.toJSON());
+    const stream = fs.createWriteStream('/folder/file2');
+    stream.write(Buffer.from('A'));
+    stream.write(Buffer.from('BC'));
+    stream.write(Buffer.from('DEF'));
+    stream.end();
+    await new Promise(resolve => stream.once('close', resolve));
+    expect(mfs.__vol.toJSON()).toStrictEqual({
+      '/mountpoint/folder/file': 'test',
+      '/mountpoint/folder/file2': 'ABCDEF',
+      '/mountpoint/empty-folder': null,
+      '/mountpoint/f.html': 'test',
+    });
   });
 });

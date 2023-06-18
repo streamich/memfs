@@ -883,18 +883,23 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const result = this.getSyncAdapter().call('mkdtemp', [prefix, options]);
     return strToEncoding(result, encoding);
   };
+  
+  public readonly readlinkSync: FsSynchronousApi['readlinkSync'] = (path: misc.PathLike, options?: opts.IOptions): misc.TDataOut => {
+    const opts = getDefaultOpts(options);
+    const filename = pathToFilename(path);
+    const buffer = Buffer.from(filename);
+    return bufferToEncoding(buffer, opts.encoding);
+  };
 
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
-  public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
   public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
   public readonly readdirSync: FsSynchronousApi['readdirSync'] = notSupported;
-  public readonly readlinkSync: FsSynchronousApi['readlinkSync'] = notSupported;
   public readonly readSync: FsSynchronousApi['readSync'] = notSupported;
   public readonly realpathSync: FsSynchronousApi['realpathSync'] = notSupported;
-  public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = notSupported;
   public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = notSupported;
   public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
+
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
   public readonly chownSync: FsSynchronousApi['chownSync'] = noop;
   public readonly fchmodSync: FsSynchronousApi['fchmodSync'] = noop;
@@ -905,6 +910,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly lchmodSync: FsSynchronousApi['lchmodSync'] = noop;
   public readonly lchownSync: FsSynchronousApi['lchownSync'] = noop;
   public readonly utimesSync: FsSynchronousApi['utimesSync'] = noop;
+  
+  public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
+  public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
 
   // ------------------------------------------------------------ FsPromisesApi
 

@@ -141,5 +141,8 @@ export class FsaNodeSyncWorker {
     move: async ({ src, dst }): Promise<void> => {
       await this.fs.promises.rename(src, dst);
     },
+    rmdir: async ({ path, opts }): Promise<void> => {
+      await this.fs.promises.rmdir(path, opts);
+    },
   };
 }

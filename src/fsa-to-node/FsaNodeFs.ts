@@ -857,6 +857,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     adapter.call('move', {src: srcFilename, dst: destFilename});
   };
 
+  public readonly rmdirSync: FsSynchronousApi['rmdirSync'] = (path: misc.PathLike, opts?: opts.IRmdirOptions): void => {
+    const filename = pathToFilename(path);
+    const adapter = this.getSyncAdapter();
+    adapter.call('rmdir', {path: filename, opts});
+  };
+
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
   public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = notSupported;
@@ -867,7 +873,6 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly readlinkSync: FsSynchronousApi['readlinkSync'] = notSupported;
   public readonly readSync: FsSynchronousApi['readSync'] = notSupported;
   public readonly realpathSync: FsSynchronousApi['realpathSync'] = notSupported;
-  public readonly rmdirSync: FsSynchronousApi['rmdirSync'] = notSupported;
   public readonly rmSync: FsSynchronousApi['rmSync'] = notSupported;
   public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = notSupported;

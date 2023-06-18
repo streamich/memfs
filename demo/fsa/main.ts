@@ -51,6 +51,12 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   strictEqual(fs.existsSync('/to-be-deleted'), true);
   fs.rmdirSync('/to-be-deleted');
   strictEqual(fs.existsSync('/to-be-deleted'), false);
+
+  console.log('rmSync() - can delete a file');
+  await fs.promises.writeFile('/dir/tmp', '...');
+  strictEqual(fs.existsSync('/dir/tmp'), true);
+  fs.rmSync('/dir/tmp');
+  strictEqual(fs.existsSync('/dir/tmp'), false);
 };
 
 const main = async () => {

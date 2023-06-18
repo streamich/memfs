@@ -155,6 +155,15 @@ onlyOnNode20('FsaNodeFs', () => {
       const { fs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
       await fs.promises.rm('/lala/lulu', { recursive: true, force: true });
     });
+
+    test('can remove a file', async () => {
+      const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+      await fs.promises.rm('/folder/subfolder/file');
+      expect(mfs.__vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/subfolder': null,
+        '/mountpoint/empty-folder': null,
+      });
+    });
   });
 
   describe('.unlink()', () => {

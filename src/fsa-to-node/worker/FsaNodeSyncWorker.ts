@@ -156,5 +156,8 @@ export class FsaNodeSyncWorker {
     trunc: async ([filename, len]): Promise<void> => {
       await this.fs.promises.truncate(filename, len);
     },
+    unlink: async ([filename]): Promise<void> => {
+      await this.fs.promises.unlink(filename);
+    },
   };
 }

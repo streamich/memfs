@@ -2,8 +2,8 @@ import { AsyncCallback, SyncMessenger } from './SyncMessenger';
 import { encode, decode } from 'json-joy/es6/json-pack/msgpack/util';
 import { FsaNodeWorkerMessageCode } from './constants';
 import type * as fsa from '../../fsa/types';
-import type { FsaNodeWorkerError, FsaNodeWorkerMsg, FsaNodeWorkerMsgInit, FsaNodeWorkerMsgRootSet, FsaNodeWorkerMsgStat } from './types';
-import type { FsaNodeSyncAdapterStats } from '../types';
+import type { FsaNodeWorkerError, FsaNodeWorkerMsg, FsaNodeWorkerMsgInit, FsaNodeWorkerMsgRequest, FsaNodeWorkerMsgRootSet } from './types';
+import type { FsLocation, FsaNodeSyncAdapterApi, FsaNodeSyncAdapterStats } from '../types';
 
 export class FsaNodeSyncWorker {
   protected readonly sab: SharedArrayBuffer = new SharedArrayBuffer(1024 * 32);
@@ -35,12 +35,14 @@ export class FsaNodeSyncWorker {
 
   protected readonly onRequest: AsyncCallback = async (request: Uint8Array): Promise<Uint8Array> => {
     try {
-      const message = decode(request as any) as FsaNodeWorkerMsg;
+      const message = decode(request as any) as FsaNodeWorkerMsgRequest;
       if (!Array.isArray(message)) throw new Error('Invalid message format');
       const code = message[0];
-      const handler = this.handlers[code];
-      if (!handler) throw new Error('Invalid message code');
-      const response = await handler(message);
+      if (code !== FsaNodeWorkerMessageCode.Request) throw new Error('Invalid message code');
+      const [, method, payload] = message;
+      const handler = this.handlers[method];
+      if (!handler) throw new Error(`Unknown method ${method}`);
+      const response = await handler(payload);
       return encode([FsaNodeWorkerMessageCode.Response, response]);
     } catch (err) {
       const message = err && typeof err === 'object' && err.message ? err.message : 'Unknown error';
@@ -99,8 +101,8 @@ export class FsaNodeSyncWorker {
     }
   }
 
-  protected handlers: Record<number, (msg: FsaNodeWorkerMsg) => Promise<unknown>> = {
-    [FsaNodeWorkerMessageCode.Stat]: async ([, location]: FsaNodeWorkerMsgStat): Promise<FsaNodeSyncAdapterStats> => {
+  protected handlers: {[K in keyof FsaNodeSyncAdapterApi]: ((request: Parameters<FsaNodeSyncAdapterApi[K]>[0]) => Promise<ReturnType<FsaNodeSyncAdapterApi[K]>>)} = {
+    stat: async (location: FsLocation): Promise<FsaNodeSyncAdapterStats> => {
       const handle = await this.getFileOrDir(location[0], location[1], 'statSync');
       return {
         kind: handle.kind,

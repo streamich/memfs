@@ -765,10 +765,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     if (!adapter) throw new Error('No sync adapter');
     const filename = pathToFilename(path);
     const location = pathToLocation(filename);
-    const res = adapter.stat(location);
+    const res = adapter.call('stat', location);
     const stats = new FsaNodeStats(bigint, res.size ?? 0, res.kind);
     return stats;
   };
+
+  public readonly lstatSync: FsSynchronousApi['lstatSync'] = this.statSync;
 
   public readonly accessSync: FsSynchronousApi['accessSync'] = noop;
   public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = notSupported;
@@ -787,7 +789,6 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly lchmodSync: FsSynchronousApi['lchmodSync'] = noop;
   public readonly lchownSync: FsSynchronousApi['lchownSync'] = noop;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
-  public readonly lstatSync: FsSynchronousApi['lstatSync'] = notSupported;
   public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = notSupported;
   public readonly mkdirpSync: FsSynchronousApi['mkdirpSync'] = notSupported;
   public readonly mkdtempSync: FsSynchronousApi['mkdtempSync'] = notSupported;

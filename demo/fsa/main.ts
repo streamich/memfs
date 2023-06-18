@@ -1,6 +1,8 @@
 (window as any).process = require('process/browser');
 (window as any).Buffer = require('buffer').Buffer;
 
+import {strictEqual} from 'assert';
+
 import type * as fsa from '../../src/fsa/types';
 import {FsaNodeFs, FsaNodeSyncAdapterWorker} from '../../src/fsa-to-node';
 
@@ -14,59 +16,23 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   const list = await fs.promises.readdir('');
   console.log(list);
 
-  // fs.accessSync('/test.txt', fs.constants.F_OK);
-  console.log('/test.txt', fs.statSync('/test.txt'), fs.statSync('/test.txt').isFile(), fs.statSync('/test.txt').isDirectory());
-  console.log('/dir', fs.statSync('/dir'), fs.statSync('/dir').isFile(), fs.statSync('/dir').isDirectory());
-  console.log('/test.txt', fs.readFileSync('/test.txt', 'utf8'));
+  console.log('existsSync()');
+  strictEqual(fs.existsSync('/test.txt'), true);
+  
+  console.log('statSync() - returns correct type for file');
+  strictEqual(fs.statSync('/test.txt').isFile(), true);
+  strictEqual(fs.statSync('/test.txt').isDirectory(), false);
+  
+  console.log('statSync() - returns correct type for directory');
+  strictEqual(fs.statSync('/dir').isFile(), false);
+  strictEqual(fs.statSync('/dir').isDirectory(), true);
+  
+  console.log('readFileSync() - can read file as text');
+  strictEqual(fs.readFileSync('/test.txt', 'utf8'), 'Hello world!');
+  
+  console.log('writeFileSync() - can write text to a new file');
   fs.writeFileSync('/cool.txt', 'worlds');
-  console.log('/cool.txt', fs.readFileSync('/cool.txt', 'utf8'));
-  // await fs.promises.mkdir('storage/a/b/c', {recursive: true});
-  // await fs.promises.rm('storage/a/b', {recursive: true});
-
-  
-  // const stream = fs.createWriteStream('stream.txt');
-  // stream.write('abc');
-  // stream.write('def');
-  // stream.end('ghi');
-
-  // const worker = new Worker('https://localhost:9876/worker.js');
-  // worker.onerror = (e) => {
-  //   console.log("error", e);
-  // };
-
-  // let sab: SharedArrayBuffer | undefined = undefined;
-  // let channel: SyncMessenger | undefined = undefined;
-
-  // worker.onmessage = (e) => {
-  //   const data = e.data;
-  //   if (data && typeof data === 'object') {
-  //     console.log('<', data);
-  //     switch (data.type) {
-  //       case 'init': {
-  //         sab = data.sab;
-  //         channel = new SyncMessenger(sab!);
-  //         worker.postMessage({type: 'set-root', dir, id: 0});
-  //         break;
-  //       }
-  //       case 'root-set': {
-  //         console.log('READY');
-
-  //         const request = encode({type: 'readdir', path: ''});
-  //         console.log('call sync', request);
-  //         const response = channel!.callSync(request);
-  //         const responseDecoded = decode(response as any);
-  //         console.log('response', responseDecoded);
-  //         console.log('READY');
-
-
-  //         break;
-  //       }
-  //     }
-  //   }
-  // };
-
-
-  
+  strictEqual(fs.readFileSync('/cool.txt', 'utf8'), 'worlds');
 };
 
 const main = async () => {

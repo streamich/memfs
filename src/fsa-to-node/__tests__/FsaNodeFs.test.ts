@@ -3,6 +3,7 @@ import { AMODE } from '../../consts/AMODE';
 import { nodeToFsa } from '../../node-to-fsa';
 import { IDirent, IStats } from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
+import { tick, until, of } from 'thingies';
 
 const setup = (json: NestedDirectoryJSON | null = null, mode: 'read' | 'readwrite' = 'readwrite') => {
   const mfs = memfs({ mountpoint: json }) as IFsWithVolume;
@@ -648,5 +649,121 @@ describe('.createWriteStream()', () => {
       '/mountpoint/empty-folder': null,
       '/mountpoint/f.html': 'test',
     });
+  });
+
+  test('can use stream to overwrite existing file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const stream = fs.createWriteStream('/folder/file');
+    stream.write(Buffer.from('A'));
+    stream.write(Buffer.from('BC'));
+    stream.end();
+    await new Promise(resolve => stream.once('close', resolve));
+    expect(stream.bytesWritten).toBe(3);
+    expect(mfs.__vol.toJSON()).toStrictEqual({
+      '/mountpoint/folder/file': 'ABC',
+      '/mountpoint/empty-folder': null,
+      '/mountpoint/f.html': 'test',
+    });
+  });
+
+  test('can write by file descriptor', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const handle = await fs.promises.open('/folder/file', 'a');
+    const stream = fs.createWriteStream('', { fd: handle.fd, start: 1, flags: 'a' });
+    stream.write(Buffer.from('BC'));
+    stream.end();
+    await new Promise(resolve => stream.once('close', resolve));
+    expect(stream.bytesWritten).toBe(2);
+    expect(mfs.__vol.toJSON()).toStrictEqual({
+      '/mountpoint/folder/file': 'tBCt',
+      '/mountpoint/empty-folder': null,
+      '/mountpoint/f.html': 'test',
+    });
+  });
+
+  test('closes file once stream ends', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const handle = await fs.promises.open('/folder/file', 'a');
+    const stream = fs.createWriteStream('', { fd: handle.fd, start: 1, flags: 'a' });
+    stream.write(Buffer.from('BC'));
+    const stat = async () => await new Promise((resolve, reject) => fs.fstat(handle.fd, (err, stats) => {
+      if (err) reject(err);
+      else resolve(stats);
+    }));
+    await stat();
+    stream.end();
+    await until(async () => {
+      const [, error] = await of(stat());
+      return !!error;
+    });
+    const [, error] = await of(stat());
+    expect((error as any).code).toBe('EBADF');
+  });
+
+  test('does not close file if "autoClose" is false', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const handle = await fs.promises.open('/folder/file', 'a');
+    const stream = fs.createWriteStream('', { fd: handle.fd, start: 1, flags: 'a', autoClose: false });
+    stream.write(Buffer.from('BC'));
+    const stat = async () => await new Promise((resolve, reject) => fs.fstat(handle.fd, (err, stats) => {
+      if (err) reject(err);
+      else resolve(stats);
+    }));
+    await stat();
+    stream.end();
+    await tick(200);
+    await stat();
+  });
+
+  test('can use stream to add to existing file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const stream = fs.createWriteStream('/folder/file', {flags: 'a'});
+    stream.write(Buffer.from('A'));
+    stream.write(Buffer.from('BC'));
+    stream.end();
+    await new Promise(resolve => stream.once('close', resolve));
+    expect(stream.bytesWritten).toBe(3);
+    expect(mfs.__vol.toJSON()).toStrictEqual({
+      '/mountpoint/folder/file': 'ABCt',
+      '/mountpoint/empty-folder': null,
+      '/mountpoint/f.html': 'test',
+    });
+  });
+
+  test('can use stream to add to existing file at specified offset', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const stream = fs.createWriteStream('/folder/file', {flags: 'a', start: 1});
+    stream.write(Buffer.from('A'));
+    stream.write(Buffer.from('B'));
+    stream.end();
+    await new Promise(resolve => stream.once('close', resolve));
+    expect(stream.bytesWritten).toBe(2);
+    expect(mfs.__vol.toJSON()).toStrictEqual({
+      '/mountpoint/folder/file': 'tABt',
+      '/mountpoint/empty-folder': null,
+      '/mountpoint/f.html': 'test',
+    });
+  });
+
+  test('throws if "start" option is not a number', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    try {
+      fs.createWriteStream('/folder/file', {flags: 'a', start: '1' as any});
+      throw new Error('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(TypeError);
+      expect(error.message).toBe('"start" option must be a Number');
+    }
+  });
+
+  test('throws if "start" option is negative', async () => {
+    const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    try {
+      fs.createWriteStream('/folder/file', {flags: 'a', start: -1});
+      throw new Error('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(TypeError);
+      expect(error.message).toBe('"start" must be >= zero');
+    }
   });
 });

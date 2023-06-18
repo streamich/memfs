@@ -12,6 +12,7 @@ import {
   getRealpathOptsAndCb,
   writeFileDefaults,
   getWriteFileOptions,
+  getOptions,
 } from '../node/options';
 import {
   bufferToEncoding,
@@ -152,6 +153,16 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
     return await dir.getFileHandle(name, { create: true });
   }
 
+  private async __open(filename: string, flags: number, mode: number): Promise<FsaNodeFsOpenFile> {
+    const [folder, name] = pathToLocation(filename);
+    const createIfMissing = !!(flags & FLAG.O_CREAT);
+    const fsaFile = await this.getFile(folder, name, 'open', createIfMissing);
+    const fd = this.newFdNumber();
+    const file = new FsaNodeFsOpenFile(fd, mode, flags, fsaFile);
+    this.fds.set(fd, file);
+    return file;
+  }
+
   // ------------------------------------------------------------ FsCallbackApi
 
   public readonly open: FsCallbackApi['open'] = (
@@ -170,16 +181,7 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
     const modeNum = modeToNumber(mode);
     const filename = pathToFilename(path);
     const flagsNum = flagsToNumber(flags);
-    const [folder, name] = pathToLocation(filename);
-    const createIfMissing = !!(flagsNum & FLAG.O_CREAT);
-    this.getFile(folder, name, 'open', createIfMissing)
-      .then(file => {
-        const fd = this.newFdNumber();
-        const openFile = new FsaNodeFsOpenFile(fd, modeNum, flagsNum, file);
-        this.fds.set(fd, openFile);
-        callback(null, fd);
-      })
-      .catch(error => callback(error));
+    this.__open(filename, flagsNum, modeNum).then(openFile => callback(null, openFile.fd), error => callback(error));
   };
 
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback<void>): void => {
@@ -822,17 +824,29 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
     path: misc.PathLike,
     options?: opts.IWriteStreamOptions | string,
   ): FsaNodeWriteStream => {
-    const optionsObj: opts.IWriteStreamOptions = !options
-      ? {}
-      : typeof options === 'object'
-      ? options
-      : ({ encoding: options } as opts.IWriteStreamOptions);
+    const defaults: opts.IWriteStreamOptions = {
+      encoding: 'utf8',
+      flags: 'w',
+      autoClose: true,
+      emitClose: true
+    };
+    const optionsObj: opts.IWriteStreamOptions = getOptions(defaults, options);
     const filename = pathToFilename(path);
-    const location = pathToLocation(filename);
     const flags = flagsToNumber(optionsObj.flags ?? 'w');
-    const createIfMissing = !!(flags & FLAG.O_CREAT);
-    const handle = this.getFile(location[0], location[1], 'createWriteStream', createIfMissing);
-    return new FsaNodeWriteStream(handle, filename, optionsObj);
+    const fd: number = optionsObj.fd ? typeof optionsObj.fd === 'number' ? optionsObj.fd : optionsObj.fd.fd : 0;
+    const handle = fd
+      ? this.getFileByFd(fd)
+      : this.__open(filename, flags, 0)
+    const stream = new FsaNodeWriteStream(handle, filename, optionsObj);
+    if (optionsObj.autoClose) {
+      stream.once('finish', () => {
+        handle.then(file => this.close(file.fd, () => {}));
+      });
+      stream.once('error', () => {
+        handle.then(file => this.close(file.fd, () => {}));
+      });
+    }
+    return stream;
   };
 
   public readonly symlink: FsCallbackApi['symlink'] = notSupported;

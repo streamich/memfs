@@ -17,6 +17,12 @@ export class FsaNodeCore {
     protected syncAdapter?: FsaNodeSyncAdapter,
   ) {}
 
+  protected getSyncAdapter(): FsaNodeSyncAdapter {
+    const adapter = this.syncAdapter;
+    if (!adapter) throw new Error('No sync adapter');
+    return adapter;
+  }
+
   /**
    * A list of reusable (opened and closed) file descriptors, that should be
    * used first before creating a new file descriptor.

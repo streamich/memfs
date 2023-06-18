@@ -5,6 +5,7 @@ export type FsLocation = [folder: string[], file: string];
  */
 export interface FsaNodeSyncAdapterApi {
   stat(location: FsLocation): FsaNodeSyncAdapterStats;
+  access(req: {filename: string, mode: number}): void;
 }
 
 export interface FsaNodeSyncAdapter {

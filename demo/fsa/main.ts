@@ -33,6 +33,10 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   console.log('writeFileSync() - can write text to a new file');
   fs.writeFileSync('/cool.txt', 'worlds');
   strictEqual(fs.readFileSync('/cool.txt', 'utf8'), 'worlds');
+  
+  console.log('appendFileSync() - can append to an existing file');
+  fs.appendFileSync('/cool.txt', '!');
+  strictEqual(fs.readFileSync('/cool.txt', 'utf8'), 'worlds!');
 };
 
 const main = async () => {

@@ -14,6 +14,7 @@ import {
   getWriteFileOptions,
   getOptions,
   getStatOptions,
+  getAppendFileOpts,
 } from '../node/options';
 import {
   bufToUint8,
@@ -29,6 +30,7 @@ import {
   pathToFilename,
   validateCallback,
   validateFd,
+  isFd,
 } from '../node/util';
 import { pathToLocation, testDirectoryIsWritable } from './util';
 import { ERRSTR, MODE } from '../node/constants';
@@ -815,6 +817,15 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     adapter.call('writeFile', { filename, data: bufToUint8(buf), opts });
   };
 
+  public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = (id: misc.TFileId, data: misc.TData, options?: opts.IAppendFileOptions | string) => {
+    const opts = getAppendFileOpts(options);
+    if (!opts.flag || isFd(id)) opts.flag = 'a';
+    const filename = this.getFileName(id);
+    const buf = dataToBuffer(data, opts.encoding);
+    const adapter = this.getSyncAdapter();
+    adapter.call('appendFile', { filename, data: bufToUint8(buf), opts });
+  };
+
   public readonly closeSync: FsSynchronousApi['closeSync'] = (fd: number) => {
     validateFd(fd);
     const file = this.getFileByFd(fd, 'close');
@@ -832,7 +843,6 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     }
   };
 
-  public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = notSupported;
   public readonly copyFileSync: FsSynchronousApi['copyFileSync'] = notSupported;
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;

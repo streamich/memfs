@@ -310,6 +310,13 @@ onlyOnNode20('FsaNodeFs', () => {
       await fs.promises.appendFile('file', 'x');
       expect(mfs.readFileSync('/mountpoint/file', 'utf8')).toBe('123x');
     });
+
+    test('can append to a file - 2', async () => {
+      const { fs, mfs } = setup({ file: '123' });
+      await fs.promises.writeFile('cool.txt', 'worlds');
+      await fs.promises.appendFile('cool.txt', '!');
+      expect(mfs.readFileSync('/mountpoint/cool.txt', 'utf8')).toBe('worlds!');
+    });
   });
 
   describe('.write()', () => {

@@ -891,12 +891,21 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return bufferToEncoding(buffer, opts.encoding);
   };
 
-  public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
+  public readonly truncateSync: FsSynchronousApi['truncateSync'] = (id: misc.TFileId, len?: number): void => {
+    if (isFd(id)) return this.ftruncateSync(id as number, len);
+    const filename = pathToFilename(id as misc.PathLike);
+    this.getSyncAdapter().call('trunc', [filename, Number(len) || 0]);
+  };
+
+  public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = (fd: number, len?: number): void => {
+    const filename = this.getFileName(fd);
+    this.truncateSync(filename, len);
+  };
+
   public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
   public readonly readdirSync: FsSynchronousApi['readdirSync'] = notSupported;
   public readonly readSync: FsSynchronousApi['readSync'] = notSupported;
   public readonly realpathSync: FsSynchronousApi['realpathSync'] = notSupported;
-  public readonly truncateSync: FsSynchronousApi['truncateSync'] = notSupported;
   public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = notSupported;
   public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
 

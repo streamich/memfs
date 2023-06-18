@@ -18,6 +18,7 @@ export interface FsaNodeSyncAdapterApi {
   rm(req: [filename: string, opts?: opts.IRmOptions]): void;
   mkdir(req: [filename: string, opts?: misc.TMode | opts.IMkdirOptions]): string | undefined;
   mkdtemp(req: [filename: string, opts?: misc.TMode | opts.IOptions]): string;
+  trunc(req: [filename: string, len: number]): void;
 }
 
 export interface FsaNodeSyncAdapter {

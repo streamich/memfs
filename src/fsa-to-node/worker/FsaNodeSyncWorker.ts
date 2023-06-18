@@ -153,5 +153,8 @@ export class FsaNodeSyncWorker {
     mkdtemp: async ([filename]): Promise<string> => {
       return await this.fs.promises.mkdtemp(filename, {encoding: 'utf8'}) as string;
     },
+    trunc: async ([filename, len]): Promise<void> => {
+      await this.fs.promises.truncate(filename, len);
+    },
   };
 }

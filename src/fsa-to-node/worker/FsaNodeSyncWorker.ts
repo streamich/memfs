@@ -11,7 +11,7 @@ import type {
   FsaNodeWorkerMsgRootSet,
 } from './types';
 import type { FsLocation, FsaNodeSyncAdapterApi, FsaNodeSyncAdapterStats, FsaNodeSyncAdapterEntry } from '../types';
-import {IDirent} from '../../node/types/misc';
+import { IDirent } from '../../node/types/misc';
 
 export class FsaNodeSyncWorker {
   protected readonly sab: SharedArrayBuffer = new SharedArrayBuffer(1024 * 32);
@@ -152,7 +152,7 @@ export class FsaNodeSyncWorker {
       return await this.fs.promises.mkdir(filename, options);
     },
     mkdtemp: async ([filename]): Promise<string> => {
-      return await this.fs.promises.mkdtemp(filename, {encoding: 'utf8'}) as string;
+      return (await this.fs.promises.mkdtemp(filename, { encoding: 'utf8' })) as string;
     },
     trunc: async ([filename, len]): Promise<void> => {
       await this.fs.promises.truncate(filename, len);
@@ -161,11 +161,14 @@ export class FsaNodeSyncWorker {
       await this.fs.promises.unlink(filename);
     },
     readdir: async ([filename]): Promise<FsaNodeSyncAdapterEntry[]> => {
-      const list = await this.fs.promises.readdir(filename, { withFileTypes: true, encoding: 'utf8' }) as IDirent[];
-      const res = list.map(entry => <FsaNodeSyncAdapterEntry>({
-        kind: entry.isDirectory() ? 'directory' : 'file',
-        name: entry.name,
-      }));
+      const list = (await this.fs.promises.readdir(filename, { withFileTypes: true, encoding: 'utf8' })) as IDirent[];
+      const res = list.map(
+        entry =>
+          <FsaNodeSyncAdapterEntry>{
+            kind: entry.isDirectory() ? 'directory' : 'file',
+            name: entry.name,
+          },
+      );
       return res;
     },
   };

@@ -818,7 +818,11 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     adapter.call('writeFile', { filename, data: bufToUint8(buf), opts });
   };
 
-  public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = (id: misc.TFileId, data: misc.TData, options?: opts.IAppendFileOptions | string) => {
+  public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = (
+    id: misc.TFileId,
+    data: misc.TData,
+    options?: opts.IAppendFileOptions | string,
+  ) => {
     const opts = getAppendFileOpts(options);
     if (!opts.flag || isFd(id)) opts.flag = 'a';
     const filename = this.getFileName(id);
@@ -844,18 +848,25 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     }
   };
 
-  public readonly copyFileSync: FsSynchronousApi['copyFileSync'] = (src: misc.PathLike, dest: misc.PathLike, flags?: misc.TFlagsCopy): void => {
+  public readonly copyFileSync: FsSynchronousApi['copyFileSync'] = (
+    src: misc.PathLike,
+    dest: misc.PathLike,
+    flags?: misc.TFlagsCopy,
+  ): void => {
     const srcFilename = pathToFilename(src);
     const destFilename = pathToFilename(dest);
     const adapter = this.getSyncAdapter();
-    adapter.call('copy', {src: srcFilename, dst: destFilename, flags});
+    adapter.call('copy', { src: srcFilename, dst: destFilename, flags });
   };
 
-  public readonly renameSync: FsSynchronousApi['renameSync'] = (oldPath: misc.PathLike, newPath: misc.PathLike): void => {
+  public readonly renameSync: FsSynchronousApi['renameSync'] = (
+    oldPath: misc.PathLike,
+    newPath: misc.PathLike,
+  ): void => {
     const srcFilename = pathToFilename(oldPath);
     const destFilename = pathToFilename(newPath);
     const adapter = this.getSyncAdapter();
-    adapter.call('move', {src: srcFilename, dst: destFilename});
+    adapter.call('move', { src: srcFilename, dst: destFilename });
   };
 
   public readonly rmdirSync: FsSynchronousApi['rmdirSync'] = (path: misc.PathLike, opts?: opts.IRmdirOptions): void => {
@@ -870,22 +881,31 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     adapter.call('rm', [filename, options]);
   };
 
-  public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = (path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): string | undefined => {
+  public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = (
+    path: misc.PathLike,
+    options?: misc.TMode | opts.IMkdirOptions,
+  ): string | undefined => {
     const opts = getMkdirOptions(options);
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
     return this.getSyncAdapter().call('mkdir', [filename, options]);
   };
 
-  public readonly mkdtempSync: FsSynchronousApi['mkdtempSync'] = (prefix: string, options?: opts.IOptions): misc.TDataOut => {
-    const {encoding} = getDefaultOpts(options);
+  public readonly mkdtempSync: FsSynchronousApi['mkdtempSync'] = (
+    prefix: string,
+    options?: opts.IOptions,
+  ): misc.TDataOut => {
+    const { encoding } = getDefaultOpts(options);
     if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
     nullCheck(prefix);
     const result = this.getSyncAdapter().call('mkdtemp', [prefix, options]);
     return strToEncoding(result, encoding);
   };
-  
-  public readonly readlinkSync: FsSynchronousApi['readlinkSync'] = (path: misc.PathLike, options?: opts.IOptions): misc.TDataOut => {
+
+  public readonly readlinkSync: FsSynchronousApi['readlinkSync'] = (
+    path: misc.PathLike,
+    options?: opts.IOptions,
+  ): misc.TDataOut => {
     const opts = getDefaultOpts(options);
     const filename = pathToFilename(path);
     const buffer = Buffer.from(filename);
@@ -908,7 +928,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     this.getSyncAdapter().call('unlink', [filename]);
   };
 
-  public readonly readdirSync: FsSynchronousApi['readdirSync'] = (path: misc.PathLike, options?: opts.IReaddirOptions | string): misc.TDataOut[] | misc.IDirent[] => {
+  public readonly readdirSync: FsSynchronousApi['readdirSync'] = (
+    path: misc.PathLike,
+    options?: opts.IReaddirOptions | string,
+  ): misc.TDataOut[] | misc.IDirent[] => {
     const opts = getReaddirOptions(options);
     const filename = pathToFilename(path);
     const adapter = this.getSyncAdapter();
@@ -942,7 +965,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly lchmodSync: FsSynchronousApi['lchmodSync'] = noop;
   public readonly lchownSync: FsSynchronousApi['lchownSync'] = noop;
   public readonly utimesSync: FsSynchronousApi['utimesSync'] = noop;
-  
+
   public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
 

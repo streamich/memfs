@@ -16,6 +16,7 @@ import {
   getStatOptions,
 } from '../node/options';
 import {
+  bufToUint8,
   bufferToEncoding,
   createError,
   dataToBuffer,
@@ -778,19 +779,24 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     adapter.call('access', {filename, mode});
   };
 
-  public readonly readFileSync: FsSynchronousApi['readFileSync'] = (file: misc.TFileId, options?: opts.IReadFileOptions | string): misc.TDataOut => {
+  public readonly readFileSync: FsSynchronousApi['readFileSync'] = (id: misc.TFileId, options?: opts.IReadFileOptions | string): misc.TDataOut => {
     const opts = getReadFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
-    let filename: string = '';
-    if (typeof file === 'number') {
-      const openFile = this.fds.get(file);
-      if (!openFile) throw createError('EBADF', 'readFile');
-      filename = openFile.filename;
-    } else filename = pathToFilename(file);
+    const filename = this.getFileName(id);
     const adapter = this.getSyncAdapter();
     const uint8 = adapter.call('readFile', {filename, opts});
     const buffer = Buffer.from(uint8.buffer, uint8.byteOffset, uint8.byteLength);
     return bufferToEncoding(buffer, opts.encoding);
+  };
+
+  public readonly writeFileSync: FsSynchronousApi['writeFileSync'] = (id: misc.TFileId, data: misc.TData, options?: opts.IWriteFileOptions): void => {
+    const opts = getWriteFileOptions(options);
+    const flagsNum = flagsToNumber(opts.flag);
+    const modeNum = modeToNumber(opts.mode);
+    const buf = dataToBuffer(data, opts.encoding);
+    const filename = this.getFileName(id);
+    const adapter = this.getSyncAdapter();
+    adapter.call('writeFile', {filename, data: bufToUint8(buf), opts});
   };
 
   public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = notSupported;
@@ -824,7 +830,6 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = notSupported;
   public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = notSupported;
   public readonly utimesSync: FsSynchronousApi['utimesSync'] = noop;
-  public readonly writeFileSync: FsSynchronousApi['writeFileSync'] = notSupported;
   public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
 
   // ------------------------------------------------------------ FsPromisesApi

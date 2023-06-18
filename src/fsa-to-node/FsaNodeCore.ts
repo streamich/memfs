@@ -124,4 +124,13 @@ export class FsaNodeCore {
     this.fds.set(fd, file);
     return file;
   }
+
+  protected getFileName(id: misc.TFileId): string {
+    if (typeof id === 'number') {
+      const openFile = this.fds.get(id);
+      if (!openFile) throw createError('EBADF', 'readFile');
+      return openFile.filename;
+    }
+    return pathToFilename(id);
+  }
 }

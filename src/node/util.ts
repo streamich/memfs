@@ -177,6 +177,9 @@ export function dataToBuffer(data: misc.TData, encoding: string = ENCODING_UTF8)
   else return bufferFrom(String(data), encoding);
 }
 
+export const bufToUint8 = (buf: Buffer): Uint8Array =>
+  new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+
 export const getWriteArgs = (
   fd: number,
   a?: unknown,

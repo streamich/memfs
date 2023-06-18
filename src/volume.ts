@@ -1009,7 +1009,7 @@ export class Volume {
     }
   }
 
-  writeFileSync(id: TFileId, data: TData, options?: opts.IWriteFileOptions) {
+  writeFileSync(id: TFileId, data: TData, options?: opts.IWriteFileOptions): void {
     const opts = getWriteFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     const modeNum = modeToNumber(opts.mode);

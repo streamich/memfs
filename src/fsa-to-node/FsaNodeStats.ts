@@ -1,5 +1,3 @@
-import { NodeFileSystemDirectoryHandle, NodeFileSystemFileHandle } from '../node-to-fsa';
-import type { IFileSystemHandle } from '../fsa/types';
 import type * as misc from '../node/types/misc';
 
 const time: number = 0;
@@ -26,7 +24,7 @@ export class FsaNodeStats<T = misc.TStatNumber> implements misc.IStats<T> {
   public readonly mode: T;
   public readonly nlink: T;
 
-  public constructor(isBigInt: boolean, size: T, protected readonly handle: IFileSystemHandle) {
+  public constructor(isBigInt: boolean, size: T, protected readonly kind: 'file' | 'directory') {
     const dummy = (isBigInt ? timex : time) as any as T;
     this.uid = dummy;
     this.gid = dummy;
@@ -49,11 +47,11 @@ export class FsaNodeStats<T = misc.TStatNumber> implements misc.IStats<T> {
   }
 
   public isDirectory(): boolean {
-    return this.handle instanceof NodeFileSystemDirectoryHandle;
+    return this.kind === 'directory';
   }
 
   public isFile(): boolean {
-    return this.handle instanceof NodeFileSystemFileHandle;
+    return this.kind === 'file';
   }
 
   public isBlockDevice(): boolean {

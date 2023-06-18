@@ -8,7 +8,8 @@
     "strictNullChecks": true,
     "sourceMap": false,
     "outDir": "lib",
-    "declaration": true
+    "declaration": true,
+    "skipLibCheck": true
   },
   "include": ["src"],
   "exclude": [

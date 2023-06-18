@@ -1,5 +1,4 @@
 import type { IFileSystemDirectoryHandle } from '../../fsa/types';
-import type { FsLocation } from '../types';
 import type { FsaNodeWorkerMessageCode } from './constants';
 
 export type FsaNodeWorkerMsgInit = [type: FsaNodeWorkerMessageCode.Init, sab: SharedArrayBuffer];
@@ -9,9 +8,9 @@ export type FsaNodeWorkerMsgSetRoot = [
   dir: IFileSystemDirectoryHandle,
 ];
 export type FsaNodeWorkerMsgRootSet = [type: FsaNodeWorkerMessageCode.RootSet, id: number];
+export type FsaNodeWorkerMsgRequest = [type: FsaNodeWorkerMessageCode.Request, method: string, data: unknown];
 export type FsaNodeWorkerMsgResponse = [type: FsaNodeWorkerMessageCode.Response, data: unknown];
 export type FsaNodeWorkerMsgResponseError = [type: FsaNodeWorkerMessageCode.ResponseError, data: unknown];
-export type FsaNodeWorkerMsgStat = [type: FsaNodeWorkerMessageCode.Stat, location: FsLocation];
 
 export interface FsaNodeWorkerError {
   message: string;
@@ -22,6 +21,7 @@ export type FsaNodeWorkerMsg =
   | FsaNodeWorkerMsgInit
   | FsaNodeWorkerMsgSetRoot
   | FsaNodeWorkerMsgRootSet
+  | FsaNodeWorkerMsgRequest
   | FsaNodeWorkerMsgResponse
   | FsaNodeWorkerMsgResponseError
-  | FsaNodeWorkerMsgStat;
+  ;

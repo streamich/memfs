@@ -3,8 +3,8 @@ import { FsaNodeWorkerMessageCode } from './constants';
 import { encode, decode } from 'json-joy/es6/json-pack/msgpack/util';
 import { SyncMessenger } from './SyncMessenger';
 import type * as fsa from '../../fsa/types';
-import type { FsLocation, FsaNodeSyncAdapter, FsaNodeSyncAdapterStats } from '../types';
-import type { FsaNodeWorkerMsg, FsaNodeWorkerMsgInit, FsaNodeWorkerMsgRootSet, FsaNodeWorkerMsgSetRoot } from './types';
+import type { FsaNodeSyncAdapter, FsaNodeSyncAdapterApi } from '../types';
+import type { FsaNodeWorkerMsg, FsaNodeWorkerMsgInit, FsaNodeWorkerMsgRequest, FsaNodeWorkerMsgResponse, FsaNodeWorkerMsgResponseError, FsaNodeWorkerMsgRootSet, FsaNodeWorkerMsgSetRoot } from './types';
 
 let rootId = 0;
 
@@ -31,7 +31,7 @@ export class FsaNodeSyncAdapterWorker implements FsaNodeSyncAdapter {
         case FsaNodeWorkerMessageCode.RootSet: {
           const [, rootId] = msg as FsaNodeWorkerMsgRootSet;
           if (id !== rootId) return;
-          const adapter = new FsaNodeSyncAdapterWorker(messenger!, id, dir);
+          const adapter = new FsaNodeSyncAdapterWorker(messenger!, dir);
           future.resolve(adapter);
           break;
         }
@@ -42,32 +42,21 @@ export class FsaNodeSyncAdapterWorker implements FsaNodeSyncAdapter {
 
   public constructor(
     protected readonly messenger: SyncMessenger,
-    protected readonly id: number,
     protected readonly root: fsa.IFileSystemDirectoryHandle,
   ) {}
 
-  public call(msg: FsaNodeWorkerMsg): unknown {
-    const request = encode(msg);
-    const response = this.messenger.callSync(request);
-    const resposeMsg = decode<FsaNodeWorkerMsg>(response as any);
-    switch (resposeMsg[0]) {
-      case FsaNodeWorkerMessageCode.Response: {
-        const [, responseData] = resposeMsg;
-        return responseData;
-        break;
-      }
-      case FsaNodeWorkerMessageCode.ResponseError: {
-        const [, error] = resposeMsg;
-        throw error;
-        break;
-      }
+  public call<K extends keyof FsaNodeSyncAdapterApi>(method: K, payload: Parameters<FsaNodeSyncAdapterApi[K]>[0]): ReturnType<FsaNodeSyncAdapterApi[K]> {
+    const request: FsaNodeWorkerMsgRequest = [FsaNodeWorkerMessageCode.Request, method, payload];
+    const encoded = encode(request);
+    const encodedResponse = this.messenger.callSync(encoded);
+    type MsgBack = FsaNodeWorkerMsgResponse | FsaNodeWorkerMsgResponseError;
+    const [code, data] = decode<MsgBack>(encodedResponse as any);
+    switch (code) {
+      case FsaNodeWorkerMessageCode.Response: return data as any;
+      case FsaNodeWorkerMessageCode.ResponseError: throw data;
       default: {
         throw new Error('Invalid response message code');
       }
     }
-  }
-
-  public stat(location: FsLocation): FsaNodeSyncAdapterStats {
-    return this.call([FsaNodeWorkerMessageCode.Stat, location]) as FsaNodeSyncAdapterStats;
   }
 }

@@ -181,7 +181,10 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
     const modeNum = modeToNumber(mode);
     const filename = pathToFilename(path);
     const flagsNum = flagsToNumber(flags);
-    this.__open(filename, flagsNum, modeNum).then(openFile => callback(null, openFile.fd), error => callback(error));
+    this.__open(filename, flagsNum, modeNum).then(
+      openFile => callback(null, openFile.fd),
+      error => callback(error),
+    );
   };
 
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback<void>): void => {
@@ -828,15 +831,13 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
       encoding: 'utf8',
       flags: 'w',
       autoClose: true,
-      emitClose: true
+      emitClose: true,
     };
     const optionsObj: opts.IWriteStreamOptions = getOptions(defaults, options);
     const filename = pathToFilename(path);
     const flags = flagsToNumber(optionsObj.flags ?? 'w');
-    const fd: number = optionsObj.fd ? typeof optionsObj.fd === 'number' ? optionsObj.fd : optionsObj.fd.fd : 0;
-    const handle = fd
-      ? this.getFileByFd(fd)
-      : this.__open(filename, flags, 0)
+    const fd: number = optionsObj.fd ? (typeof optionsObj.fd === 'number' ? optionsObj.fd : optionsObj.fd.fd) : 0;
+    const handle = fd ? this.getFileByFd(fd) : this.__open(filename, flags, 0);
     const stream = new FsaNodeWriteStream(handle, filename, optionsObj);
     if (optionsObj.autoClose) {
       stream.once('finish', () => {

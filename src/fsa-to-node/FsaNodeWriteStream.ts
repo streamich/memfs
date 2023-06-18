@@ -24,6 +24,7 @@ import type { IWriteStreamOptions } from '../node/types/options';
 export class FsaNodeWriteStream extends Writable implements IWriteStream {
   protected __pending__: boolean = true;
   protected __closed__: boolean = false;
+  protected __bytes__: number = 0;
   protected readonly __stream__: Promise<IFileSystemWritableFileStream>;
   protected readonly __mutex__ = concurrency(1);
 
@@ -52,6 +53,7 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
       const writable = await this.__stream__;
       for (const buffer of buffers) {
         await writable.write(buffer);
+        this.__bytes__ += buffer.byteLength;
       }
     });
   }
@@ -77,7 +79,7 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
   // ------------------------------------------------------------- IWriteStream
 
   public get bytesWritten(): number {
-    return 0;
+    return this.__bytes__;
   }
 
   public get pending(): boolean {

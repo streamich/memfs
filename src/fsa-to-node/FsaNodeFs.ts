@@ -958,8 +958,23 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return strToEncoding(filename, encoding);
   }
 
+  public readonly readSync: FsSynchronousApi['readSync'] = (
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    position: number,
+  ): number => {
+    validateFd(fd);
+    const filename = this.getFileName(fd);
+    const adapter = this.getSyncAdapter();
+    const uint8 = adapter.call('read', [filename, position, length]);
+    const dest = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+    dest.set(uint8, offset);
+    return uint8.length;
+  };
+
   public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
-  public readonly readSync: FsSynchronousApi['readSync'] = notSupported;
   public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
 
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;

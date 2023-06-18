@@ -150,5 +150,8 @@ export class FsaNodeSyncWorker {
     mkdir: async ([filename, options]): Promise<string | undefined> => {
       return await this.fs.promises.mkdir(filename, options);
     },
+    mkdtemp: async ([filename]): Promise<string> => {
+      return await this.fs.promises.mkdtemp(filename, {encoding: 'utf8'}) as string;
+    },
   };
 }

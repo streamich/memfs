@@ -120,10 +120,15 @@ export class NodeFileSystemWritableFileStream extends WritableStream implements 
   }
 
   protected async writeBase(chunk: Data): Promise<void> {
+    console.log('base')
     const writer = this.getWriter();
+    console.log('writer')
     try {
-      await writer.write(chunk);
+      console.log('write', chunk)
+      await writer.write(new Uint8Array([123]));
+      console.log('done')
     } finally {
+      console.log('finally');
       writer.releaseLock();
     }
   }
@@ -147,7 +152,11 @@ export class NodeFileSystemWritableFileStream extends WritableStream implements 
           case DataView:
             return this.writeBase(params);
           default: {
-            if (ArrayBuffer.isView(params)) return this.writeBase(params);
+            if (ArrayBuffer.isView(params)) {
+
+              console.log('ERIT', params)
+              return this.writeBase(params);
+            }
             else {
               const options = params as FileSystemWritableFileStreamParams;
               switch (options.type) {

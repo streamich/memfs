@@ -85,6 +85,7 @@
   },
   "dependencies": {
     "fs-monkey": "^1.0.4",
+    "json-joy": "^9.2.0",
     "thingies": "^1.11.1"
   },
   "devDependencies": {

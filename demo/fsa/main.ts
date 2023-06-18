@@ -61,11 +61,16 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   console.log('mkdirSync() - can create a nested directory');
   fs.mkdirSync('/public/site/assets/img', {recursive: true});
   strictEqual(fs.statSync('/public/site/assets/img').isDirectory(), true);
+
+  console.log('mkdtempSync() - can create a temporary directory');
+  await fs.promises.mkdir('/tmp');
+  const tmpDirName = fs.mkdtempSync('/tmp/temporary-');
+  strictEqual(fs.statSync(tmpDirName).isDirectory(), true);
 };
 
 const main = async () => {
   const button = document.createElement("button");
-  button.textContent = "Select folder";
+  button.textContent = "Select an empty folder";
   document.body.appendChild(button);
   button.onclick = async () => {
     const dir = await (window as any).showDirectoryPicker({id: 'demo', mode: 'readwrite'});

@@ -15,6 +15,7 @@ import {
   getOptions,
   getStatOptions,
   getAppendFileOpts,
+  getDefaultOpts,
 } from '../node/options';
 import {
   bufToUint8,
@@ -875,10 +876,16 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return this.getSyncAdapter().call('mkdir', [filename, options]);
   };
 
+  public readonly mkdtempSync: FsSynchronousApi['mkdtempSync'] = (prefix: string, options?: opts.IOptions): misc.TDataOut => {
+    const {encoding} = getDefaultOpts(options);
+    if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
+    nullCheck(prefix);
+    const result = this.getSyncAdapter().call('mkdtemp', [prefix, options]);
+    return strToEncoding(result, encoding);
+  };
+
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
-  public readonly mkdirpSync: FsSynchronousApi['mkdirpSync'] = notSupported;
-  public readonly mkdtempSync: FsSynchronousApi['mkdtempSync'] = notSupported;
   public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
   public readonly readdirSync: FsSynchronousApi['readdirSync'] = notSupported;
   public readonly readlinkSync: FsSynchronousApi['readlinkSync'] = notSupported;

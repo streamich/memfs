@@ -58,7 +58,6 @@ export interface FsSynchronousApi {
   mkdirSync(path: misc.PathLike, options: opts.IMkdirOptions & { recursive: true }): string | undefined;
   mkdirSync(path: misc.PathLike, options?: misc.TMode | (opts.IMkdirOptions & { recursive?: false })): void;
   mkdirSync(path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): string | undefined;
-  mkdirpSync(path: misc.PathLike, mode?: misc.TMode): void;
   mkdtempSync(prefix: string, options?: opts.IOptions): misc.TDataOut;
   rmdirSync(path: misc.PathLike, options?: opts.IRmdirOptions): void;
   rmSync(path: misc.PathLike, options?: opts.IRmOptions): void;

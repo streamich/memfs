@@ -868,7 +868,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     adapter.call('rm', [filename, options]);
   };
 
-  public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = notSupported;
+  public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = (path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): string | undefined => {
+    const opts = getMkdirOptions(options);
+    const modeNum = modeToNumber(opts.mode, 0o777);
+    const filename = pathToFilename(path);
+    return this.getSyncAdapter().call('mkdir', [filename, options]);
+  };
 
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;

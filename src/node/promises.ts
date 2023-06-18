@@ -48,7 +48,7 @@ export function createPromisesApi(vol: FsCallbackApi): FsPromisesApi {
       return promisify(vol, 'lstat')(path, options);
     },
 
-    mkdir(path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): Promise<void> {
+    mkdir(path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): Promise<string | undefined> {
       return promisify(vol, 'mkdir')(path, options);
     },
 

@@ -1,6 +1,7 @@
 import { AsyncCallback, SyncMessenger } from './SyncMessenger';
 import { encode, decode } from 'json-joy/es6/json-pack/msgpack/util';
 import { FsaNodeWorkerMessageCode } from './constants';
+import {FsaNodeFs} from '../FsaNodeFs';
 import type * as fsa from '../../fsa/types';
 import type {
   FsaNodeWorkerError,
@@ -15,6 +16,7 @@ export class FsaNodeSyncWorker {
   protected readonly sab: SharedArrayBuffer = new SharedArrayBuffer(1024 * 32);
   protected readonly messenger = new SyncMessenger(this.sab);
   protected root!: fsa.IFileSystemDirectoryHandle;
+  protected fs!: FsaNodeFs;
 
   public start() {
     onmessage = e => {
@@ -31,6 +33,7 @@ export class FsaNodeSyncWorker {
       case FsaNodeWorkerMessageCode.SetRoot: {
         const [, id, dir] = msg;
         this.root = dir;
+        this.fs = new FsaNodeFs(this.root);
         const response: FsaNodeWorkerMsgRootSet = [FsaNodeWorkerMessageCode.RootSet, id];
         postMessage(response);
         this.messenger.serveAsync(this.onRequest);
@@ -117,6 +120,9 @@ export class FsaNodeSyncWorker {
       return {
         kind: handle.kind,
       };
+    },
+    access: async ({filename, mode}): Promise<void> => {
+      await this.fs.promises.access(filename, mode);
     },
   };
 }

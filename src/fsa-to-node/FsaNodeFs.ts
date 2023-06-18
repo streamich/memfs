@@ -761,10 +761,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     options?: opts.IStatOptions,
   ): misc.IStats<any> => {
     const { bigint = true, throwIfNoEntry = true } = getStatOptions(options);
-    const adapter = this.syncAdapter;
-    if (!adapter) throw new Error('No sync adapter');
     const filename = pathToFilename(path);
     const location = pathToLocation(filename);
+    const adapter = this.getSyncAdapter();
     const res = adapter.call('stat', location);
     const stats = new FsaNodeStats(bigint, res.size ?? 0, res.kind);
     return stats;
@@ -772,7 +771,13 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
   public readonly lstatSync: FsSynchronousApi['lstatSync'] = this.statSync;
 
-  public readonly accessSync: FsSynchronousApi['accessSync'] = noop;
+  public readonly accessSync: FsSynchronousApi['accessSync'] = (path: misc.PathLike, mode: number = AMODE.F_OK): void => {
+    const filename = pathToFilename(path);
+    mode = mode | 0;
+    const adapter = this.getSyncAdapter();
+    adapter.call('access', {filename, mode});
+  };
+
   public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = notSupported;
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
   public readonly chownSync: FsSynchronousApi['chownSync'] = noop;

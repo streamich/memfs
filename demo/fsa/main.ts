@@ -14,6 +14,7 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   const list = await fs.promises.readdir('');
   console.log(list);
 
+  // fs.accessSync('/test.txt', fs.constants.F_OK);
   console.log('/test.txt', fs.statSync('/test.txt'), fs.statSync('/test.txt').isFile(), fs.statSync('/test.txt').isDirectory());
   console.log('/dir', fs.statSync('/dir'), fs.statSync('/dir').isFile(), fs.statSync('/dir').isDirectory());
   // await fs.promises.mkdir('storage/a/b/c', {recursive: true});

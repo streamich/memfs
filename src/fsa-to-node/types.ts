@@ -1,4 +1,5 @@
 import type * as opts from '../node/types/options';
+import type * as misc from '../node/types/misc';
 
 export type FsLocation = [folder: string[], file: string];
 
@@ -15,6 +16,7 @@ export interface FsaNodeSyncAdapterApi {
   move(req: { src: string; dst: string }): void;
   rmdir(req: [filename: string, opts?: opts.IRmdirOptions]): void;
   rm(req: [filename: string, opts?: opts.IRmOptions]): void;
+  mkdir(req: [filename: string, opts?: misc.TMode | opts.IMkdirOptions]): string | undefined;
 }
 
 export interface FsaNodeSyncAdapter {

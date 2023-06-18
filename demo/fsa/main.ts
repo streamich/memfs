@@ -57,6 +57,10 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   strictEqual(fs.existsSync('/dir/tmp'), true);
   fs.rmSync('/dir/tmp');
   strictEqual(fs.existsSync('/dir/tmp'), false);
+
+  console.log('mkdirSync() - can create a nested directory');
+  fs.mkdirSync('/public/site/assets/img', {recursive: true});
+  strictEqual(fs.statSync('/public/site/assets/img').isDirectory(), true);
 };
 
 const main = async () => {

@@ -147,5 +147,8 @@ export class FsaNodeSyncWorker {
     rm: async ([filename, options]): Promise<void> => {
       await this.fs.promises.rm(filename, options);
     },
+    mkdir: async ([filename, options]): Promise<string | undefined> => {
+      return await this.fs.promises.mkdir(filename, options);
+    },
   };
 }

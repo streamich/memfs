@@ -12,7 +12,7 @@ export interface FsPromisesApi {
   lchown(path: misc.PathLike, uid: number, gid: number): Promise<void>;
   link(existingPath: misc.PathLike, newPath: misc.PathLike): Promise<void>;
   lstat(path: misc.PathLike, options?: opts.IStatOptions): Promise<misc.IStats>;
-  mkdir(path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): Promise<void>;
+  mkdir(path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): Promise<string | undefined>;
   mkdtemp(prefix: string, options?: opts.IOptions): Promise<misc.TDataOut>;
   open(path: misc.PathLike, flags?: misc.TFlags, mode?: misc.TMode): Promise<misc.IFileHandle>;
   readdir(path: misc.PathLike, options?: opts.IReaddirOptions | string): Promise<misc.TDataOut[] | misc.IDirent[]>;

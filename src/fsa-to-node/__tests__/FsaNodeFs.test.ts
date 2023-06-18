@@ -641,6 +641,7 @@ describe('.createWriteStream()', () => {
     stream.write(Buffer.from('DEF'));
     stream.end();
     await new Promise(resolve => stream.once('close', resolve));
+    expect(stream.bytesWritten).toBe(6);
     expect(mfs.__vol.toJSON()).toStrictEqual({
       '/mountpoint/folder/file': 'test',
       '/mountpoint/folder/file2': 'ABCDEF',

@@ -20,6 +20,7 @@ export interface FsaNodeSyncAdapterApi {
   mkdtemp(req: [filename: string, opts?: misc.TMode | opts.IOptions]): string;
   trunc(req: [filename: string, len: number]): void;
   unlink(req: [filename: string]): void;
+  readdir(req: [filename: string]): FsaNodeSyncAdapterEntry[];
 }
 
 export interface FsaNodeSyncAdapter {
@@ -32,4 +33,9 @@ export interface FsaNodeSyncAdapter {
 export interface FsaNodeSyncAdapterStats {
   kind: 'file' | 'directory';
   size?: number;
+}
+
+export interface FsaNodeSyncAdapterEntry {
+  kind: 'file' | 'directory';
+  name: string;
 }

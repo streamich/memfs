@@ -1,7 +1,7 @@
 (window as any).process = require('process/browser');
 (window as any).Buffer = require('buffer').Buffer;
 
-import {strictEqual} from 'assert';
+import {strictEqual, deepEqual} from 'assert';
 
 import type * as fsa from '../../src/fsa/types';
 import {FsaNodeFs, FsaNodeSyncAdapterWorker} from '../../src/fsa-to-node';
@@ -76,6 +76,15 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   await fs.promises.writeFile('/delete-me.txt', 'abc');
   fs.unlinkSync('/delete-me.txt');
   strictEqual(fs.existsSync('/delete-me.txt'), false);
+
+  console.log('readdirSync() - can list files in a directory');
+  const listInDir = fs.readdirSync('/dir');
+  deepEqual(listInDir, ['very-cool.txt']);
+
+  console.log('readdirSync() - can list files in a directory as Dirent[]');
+  const listInDir2 = fs.readdirSync('/dir', {withFileTypes: true}) as any;
+  deepEqual(listInDir2[0].name, 'very-cool.txt');
+  deepEqual(listInDir2[0].isFile(), true);
 };
 
 const main = async () => {

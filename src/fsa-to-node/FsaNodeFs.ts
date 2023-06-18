@@ -645,7 +645,6 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const [options, callback] = getRmOptsAndCb(a, b);
     const [folder, name] = pathToLocation(pathToFilename(path));
     this.getDir(folder, false, 'rmdir')
-      .then(dir => dir.getDirectoryHandle(name).then(() => dir))
       .then(dir => dir.removeEntry(name, { recursive: options.recursive ?? false }))
       .then(
         () => callback(null),
@@ -860,12 +859,19 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly rmdirSync: FsSynchronousApi['rmdirSync'] = (path: misc.PathLike, opts?: opts.IRmdirOptions): void => {
     const filename = pathToFilename(path);
     const adapter = this.getSyncAdapter();
-    adapter.call('rmdir', {path: filename, opts});
+    adapter.call('rmdir', [filename, opts]);
   };
+
+  public readonly rmSync: FsSynchronousApi['rmSync'] = (path: misc.PathLike, options?: opts.IRmOptions): void => {
+    const filename = pathToFilename(path);
+    const adapter = this.getSyncAdapter();
+    adapter.call('rm', [filename, options]);
+  };
+
+  public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = notSupported;
 
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
-  public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = notSupported;
   public readonly mkdirpSync: FsSynchronousApi['mkdirpSync'] = notSupported;
   public readonly mkdtempSync: FsSynchronousApi['mkdtempSync'] = notSupported;
   public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
@@ -873,7 +879,6 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly readlinkSync: FsSynchronousApi['readlinkSync'] = notSupported;
   public readonly readSync: FsSynchronousApi['readSync'] = notSupported;
   public readonly realpathSync: FsSynchronousApi['realpathSync'] = notSupported;
-  public readonly rmSync: FsSynchronousApi['rmSync'] = notSupported;
   public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = notSupported;
   public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = notSupported;

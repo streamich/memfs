@@ -11,6 +11,7 @@ export interface FsaNodeSyncAdapterApi {
   readFile(req: { filename: string; opts?: opts.IReadFileOptions }): Uint8Array;
   writeFile(req: { filename: string; data: Uint8Array; opts?: opts.IWriteFileOptions }): void;
   appendFile(req: { filename: string; data: Uint8Array; opts?: opts.IAppendFileOptions }): void;
+  copy(req: { src: string; dst: string, flags?: number }): void;
 }
 
 export interface FsaNodeSyncAdapter {

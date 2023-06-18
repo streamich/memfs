@@ -135,5 +135,8 @@ export class FsaNodeSyncWorker {
     appendFile: async ({ filename, data, opts }): Promise<void> => {
       await this.fs.promises.appendFile(filename, data, { ...opts, encoding: 'buffer' });
     },
+    copy: async ({ src, dst, flags }): Promise<void> => {
+      await this.fs.promises.copyFile(src, dst, flags);
+    },
   };
 }

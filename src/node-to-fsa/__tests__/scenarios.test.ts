@@ -1,6 +1,6 @@
 import { nodeToFsa } from '..';
 import { IFsWithVolume, memfs } from '../..';
-import { onlyOnNode20 } from './util';
+import { onlyOnNode20 } from '../../__tests__/util';
 
 onlyOnNode20('scenarios', () => {
   test('can init FSA from an arbitrary FS folder and execute operations', async () => {

@@ -1,8 +1,7 @@
 export type AsyncCallback = (request: Uint8Array) => Promise<Uint8Array>;
 
 const microSleepSync = () => {
-  /** @todo Replace this by synchronous XHR call. */
-  Math.random();
+  // Math.random();
 };
 
 const sleepUntilSync = (condition: () => boolean) => {
@@ -38,12 +37,13 @@ export class SyncMessenger {
   public callSync(data: Uint8Array): Uint8Array {
     const requestLength = data.length;
     const headerSize = this.headerSize;
-    this.int32[1] = 0;
-    this.int32[2] = requestLength;
+    const int32 = this.int32;
+    int32[1] = 0;
+    int32[2] = requestLength;
     this.uint8.set(data, headerSize);
-    Atomics.notify(this.int32, 0);
-    sleepUntilSync(() => this.int32[1] === 1);
-    const responseLength = this.int32[2];
+    Atomics.notify(int32, 0);
+    sleepUntilSync(() => int32[1] === 1);
+    const responseLength = int32[2];
     const response = this.uint8.slice(headerSize, headerSize + responseLength);
     return response;
   }
@@ -52,15 +52,16 @@ export class SyncMessenger {
     const headerSize = this.headerSize;
     (async () => {
       try {
-        const res = Atomics.wait(this.int32, 0, 0);
+        const int32 = this.int32;
+        const res = Atomics.wait(int32, 0, 0);
         if (res !== 'ok') throw new Error(`Unexpected Atomics.wait result: ${res}`);
         const requestLength = this.int32[2];
         const request = this.uint8.slice(headerSize, headerSize + requestLength);
         const response = await callback(request);
         const responseLength = response.length;
-        this.int32[2] = responseLength;
+        int32[2] = responseLength;
         this.uint8.set(response, headerSize);
-        this.int32[1] = 1;
+        int32[1] = 1;
       } catch {}
       this.serveAsync(callback);
     })().catch(() => {});

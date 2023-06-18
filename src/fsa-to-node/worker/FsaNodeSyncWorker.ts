@@ -138,5 +138,8 @@ export class FsaNodeSyncWorker {
     copy: async ({ src, dst, flags }): Promise<void> => {
       await this.fs.promises.copyFile(src, dst, flags);
     },
+    move: async ({ src, dst }): Promise<void> => {
+      await this.fs.promises.rename(src, dst);
+    },
   };
 }

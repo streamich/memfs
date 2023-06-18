@@ -41,6 +41,10 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   console.log('copyFileSync() - can copy a file');
   fs.copyFileSync('/cool.txt', '/cool (Copy).txt');
   strictEqual(fs.readFileSync('/cool (Copy).txt', 'utf8'), 'worlds!');
+
+  console.log('renameSync() - can move a file');
+  fs.renameSync('/cool (Copy).txt', '/dir/very-cool.txt');
+  strictEqual(fs.readFileSync('/dir/very-cool.txt', 'utf8'), 'worlds!');
 };
 
 const main = async () => {

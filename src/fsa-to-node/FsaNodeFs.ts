@@ -41,13 +41,13 @@ import { FsaNodeStats } from './FsaNodeStats';
 import process from '../process';
 import { FsSynchronousApi } from '../node/types/FsSynchronousApi';
 import { FsaNodeWriteStream } from './FsaNodeWriteStream';
+import { FsaNodeCore } from './FsaNodeCore';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 import type { FsCommonObjects } from '../node/types/FsCommonObjects';
 import type { WritevCallback } from '../node/types/callback';
-import {FsaNodeCore} from './FsaNodeCore';
 
 const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
@@ -60,7 +60,6 @@ const noop: (...args: any[]) => any = () => {};
  * [`FileSystemDirectoryHandle` object](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle).
  */
 export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchronousApi, FsCommonObjects {
-
   // ------------------------------------------------------------ FsCallbackApi
 
   public readonly open: FsCallbackApi['open'] = (
@@ -757,7 +756,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
   // --------------------------------------------------------- FsSynchronousApi
 
-  public readonly statSync: FsSynchronousApi['statSync'] = (path: misc.PathLike, options?: opts.IStatOptions): misc.IStats<any> => {
+  public readonly statSync: FsSynchronousApi['statSync'] = (
+    path: misc.PathLike,
+    options?: opts.IStatOptions,
+  ): misc.IStats<any> => {
     const { bigint = true, throwIfNoEntry = true } = getStatOptions(options);
     const adapter = this.syncAdapter;
     if (!adapter) throw new Error('No sync adapter');

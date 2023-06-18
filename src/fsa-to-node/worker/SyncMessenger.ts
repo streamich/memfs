@@ -13,12 +13,12 @@ const sleepUntilSync = (condition: () => boolean) => {
  * `SyncMessenger` allows to execute asynchronous code synchronously. The
  * asynchronous code is executed in a Worker thread, while the main thread is
  * blocked until the asynchronous code is finished.
- * 
+ *
  * First, four 4-byte works is the header, where the first word is used for Atomics
  * notifications. The second word is used for spin-locking the main thread until
  * the asynchronous code is finished. The third word is used to specify payload
  * length. The fourth word is currently unused.
- * 
+ *
  * The maximum payload size is the size of the SharedArrayBuffer minus the
  * header size.
  */

@@ -1,6 +1,6 @@
 import { DirectoryJSON, IFsWithVolume, memfs } from '../..';
 import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
-import { onlyOnNode20 } from './util';
+import { onlyOnNode20 } from '../../__tests__/util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const fs = memfs(json, '/') as IFsWithVolume;

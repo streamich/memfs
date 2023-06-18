@@ -778,6 +778,21 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     adapter.call('access', {filename, mode});
   };
 
+  public readonly readFileSync: FsSynchronousApi['readFileSync'] = (file: misc.TFileId, options?: opts.IReadFileOptions | string): misc.TDataOut => {
+    const opts = getReadFileOptions(options);
+    const flagsNum = flagsToNumber(opts.flag);
+    let filename: string = '';
+    if (typeof file === 'number') {
+      const openFile = this.fds.get(file);
+      if (!openFile) throw createError('EBADF', 'readFile');
+      filename = openFile.filename;
+    } else filename = pathToFilename(file);
+    const adapter = this.getSyncAdapter();
+    const uint8 = adapter.call('readFile', {filename, opts});
+    const buffer = Buffer.from(uint8.buffer, uint8.byteOffset, uint8.byteLength);
+    return bufferToEncoding(buffer, opts.encoding);
+  };
+
   public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = notSupported;
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
   public readonly chownSync: FsSynchronousApi['chownSync'] = noop;
@@ -799,7 +814,6 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly mkdtempSync: FsSynchronousApi['mkdtempSync'] = notSupported;
   public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
   public readonly readdirSync: FsSynchronousApi['readdirSync'] = notSupported;
-  public readonly readFileSync: FsSynchronousApi['readFileSync'] = notSupported;
   public readonly readlinkSync: FsSynchronousApi['readlinkSync'] = notSupported;
   public readonly readSync: FsSynchronousApi['readSync'] = notSupported;
   public readonly realpathSync: FsSynchronousApi['realpathSync'] = notSupported;

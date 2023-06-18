@@ -1,3 +1,5 @@
+import type * as opts from '../node/types/options';
+
 export type FsLocation = [folder: string[], file: string];
 
 /**
@@ -6,6 +8,7 @@ export type FsLocation = [folder: string[], file: string];
 export interface FsaNodeSyncAdapterApi {
   stat(location: FsLocation): FsaNodeSyncAdapterStats;
   access(req: {filename: string, mode: number}): void;
+  readFile(req: {filename: string, opts: opts.IReadFileOptions}): Uint8Array;
 }
 
 export interface FsaNodeSyncAdapter {

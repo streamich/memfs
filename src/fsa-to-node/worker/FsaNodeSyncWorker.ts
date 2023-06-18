@@ -1,7 +1,7 @@
 import { AsyncCallback, SyncMessenger } from './SyncMessenger';
-import { encode, decode } from 'json-joy/es6/json-pack/msgpack/util';
 import { FsaNodeWorkerMessageCode } from './constants';
 import {FsaNodeFs} from '../FsaNodeFs';
+import {decoder, encoder} from '../json';
 import type * as fsa from '../../fsa/types';
 import type {
   FsaNodeWorkerError,
@@ -44,7 +44,7 @@ export class FsaNodeSyncWorker {
 
   protected readonly onRequest: AsyncCallback = async (request: Uint8Array): Promise<Uint8Array> => {
     try {
-      const message = decode(request as any) as FsaNodeWorkerMsgRequest;
+      const message = decoder.decode(request as any) as FsaNodeWorkerMsgRequest;
       if (!Array.isArray(message)) throw new Error('Invalid message format');
       const code = message[0];
       if (code !== FsaNodeWorkerMessageCode.Request) throw new Error('Invalid message code');
@@ -52,12 +52,12 @@ export class FsaNodeSyncWorker {
       const handler = this.handlers[method];
       if (!handler) throw new Error(`Unknown method ${method}`);
       const response = await handler(payload);
-      return encode([FsaNodeWorkerMessageCode.Response, response]);
+      return encoder.encode([FsaNodeWorkerMessageCode.Response, response]);
     } catch (err) {
       const message = err && typeof err === 'object' && err.message ? err.message : 'Unknown error';
       const error: FsaNodeWorkerError = { message };
       if (err && typeof err === 'object' && (err.code || err.name)) error.code = err.code || err.name;
-      return encode([FsaNodeWorkerMessageCode.ResponseError, error]);
+      return encoder.encode([FsaNodeWorkerMessageCode.ResponseError, error]);
     }
   };
 
@@ -123,6 +123,11 @@ export class FsaNodeSyncWorker {
     },
     access: async ({filename, mode}): Promise<void> => {
       await this.fs.promises.access(filename, mode);
+    },
+    readFile: async ({filename, opts}): Promise<Uint8Array> => {
+      const buf = await this.fs.promises.readFile(filename, {...opts, encoding: 'buffer'}) as Buffer;
+      const uint8 = new Uint8Array(buf, buf.byteOffset, buf.byteLength);
+      return uint8;
     },
   };
 }

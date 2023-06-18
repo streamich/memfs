@@ -120,7 +120,7 @@ export class FsaNodeCore {
     const createIfMissing = !!(flags & FLAG.O_CREAT);
     const fsaFile = await this.getFile(folder, name, 'open', createIfMissing);
     const fd = this.newFdNumber();
-    const file = new FsaNodeFsOpenFile(fd, mode, flags, fsaFile);
+    const file = new FsaNodeFsOpenFile(fd, mode, flags, fsaFile, filename);
     this.fds.set(fd, file);
     return file;
   }

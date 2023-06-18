@@ -22,6 +22,7 @@ export class FsaNodeFsOpenFile {
     public readonly createMode: misc.TMode,
     public readonly flags: number,
     public readonly file: fsa.IFileSystemFileHandle,
+    public readonly filename: string,
   ) {
     this.keepExistingData = !!(flags & FLAG.O_APPEND);
   }

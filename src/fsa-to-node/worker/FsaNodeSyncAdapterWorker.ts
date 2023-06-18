@@ -1,7 +1,7 @@
 import { Defer } from 'thingies/es6/Defer';
 import { FsaNodeWorkerMessageCode } from './constants';
-import { encode, decode } from 'json-joy/es6/json-pack/msgpack/util';
 import { SyncMessenger } from './SyncMessenger';
+import {decoder, encoder} from '../json';
 import type * as fsa from '../../fsa/types';
 import type { FsaNodeSyncAdapter, FsaNodeSyncAdapterApi } from '../types';
 import type {
@@ -58,10 +58,10 @@ export class FsaNodeSyncAdapterWorker implements FsaNodeSyncAdapter {
     payload: Parameters<FsaNodeSyncAdapterApi[K]>[0],
   ): ReturnType<FsaNodeSyncAdapterApi[K]> {
     const request: FsaNodeWorkerMsgRequest = [FsaNodeWorkerMessageCode.Request, method, payload];
-    const encoded = encode(request);
+    const encoded = encoder.encode(request);
     const encodedResponse = this.messenger.callSync(encoded);
     type MsgBack = FsaNodeWorkerMsgResponse | FsaNodeWorkerMsgResponseError;
-    const [code, data] = decode<MsgBack>(encodedResponse as any);
+    const [code, data] = decoder.decode(encodedResponse) as MsgBack;
     switch (code) {
       case FsaNodeWorkerMessageCode.Response:
         return data as any;

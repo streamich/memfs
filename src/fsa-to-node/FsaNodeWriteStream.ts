@@ -118,20 +118,20 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
 
   _write(chunk: any, encoding: string, callback: (error?: Error | null) => void): void {
     this.___write___([chunk])
-      .then(() => callback(null))
-      .catch(error => callback(error));
+      .then(() => { if (callback) callback(null); })
+      .catch(error => { if (callback) callback(error); });
   }
 
   _writev(chunks: Array<{ chunk: any; encoding: string }>, callback: (error?: Error | null) => void): void {
     const buffers = chunks.map(({ chunk }) => chunk);
     this.___write___(buffers)
-      .then(() => callback(null))
-      .catch(error => callback(error));
+      .then(() => { if (callback) callback(null); })
+      .catch(error => { if (callback) callback(error); });
   }
 
   _final(callback: (error?: Error | null) => void): void {
     this.__close__()
-      .then(() => callback(null))
-      .catch(error => callback(error));
+      .then(() => { if (callback) callback(null); })
+      .catch(error => { if (callback) callback(error); });
   }
 }

@@ -653,6 +653,23 @@ onlyOnNode20('FsaNodeFs', () => {
       });
     });
 
+    test('can use stream to write to a new file using strings', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const stream = fs.createWriteStream('/folder/file2');
+      stream.write('A');
+      stream.write('BC');
+      stream.write('DEF');
+      stream.end();
+      await new Promise(resolve => stream.once('close', resolve));
+      expect(stream.bytesWritten).toBe(6);
+      expect(mfs.__vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/folder/file2': 'ABCDEF',
+        '/mountpoint/empty-folder': null,
+        '/mountpoint/f.html': 'test',
+      });
+    });
+
     test('can use stream to overwrite existing file', async () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const stream = fs.createWriteStream('/folder/file');

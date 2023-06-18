@@ -11,6 +11,12 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   await fs.promises.writeFile('test.txt', 'Hello world!');
   await fs.promises.mkdir('storage/a/b/c', {recursive: true});
   await fs.promises.rm('storage/a/b', {recursive: true});
+
+  
+  const stream = fs.createWriteStream('stream.txt');
+  stream.write('abc');
+  stream.write('def');
+  stream.end('ghi');
 };
 
 const main = async () => {

@@ -23,5 +23,4 @@ export type FsaNodeWorkerMsg =
   | FsaNodeWorkerMsgRootSet
   | FsaNodeWorkerMsgRequest
   | FsaNodeWorkerMsgResponse
-  | FsaNodeWorkerMsgResponseError
-  ;
+  | FsaNodeWorkerMsgResponseError;

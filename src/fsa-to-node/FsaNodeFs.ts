@@ -13,6 +13,7 @@ import {
   writeFileDefaults,
   getWriteFileOptions,
   getOptions,
+  getStatOptions,
 } from '../node/options';
 import {
   bufferToEncoding,
@@ -21,7 +22,6 @@ import {
   flagsToNumber,
   genRndStr6,
   getWriteArgs,
-  isFd,
   isWin,
   modeToNumber,
   nullCheck,
@@ -33,7 +33,6 @@ import { pathToLocation, testDirectoryIsWritable } from './util';
 import { ERRSTR, MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
 import { FsaToNodeConstants } from './constants';
-import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FsaNodeDirent } from './FsaNodeDirent';
 import { FLAG } from '../consts/FLAG';
 import { AMODE } from '../consts/AMODE';
@@ -48,6 +47,7 @@ import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 import type { FsCommonObjects } from '../node/types/FsCommonObjects';
 import type { WritevCallback } from '../node/types/callback';
+import {FsaNodeCore} from './FsaNodeCore';
 
 const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
@@ -59,109 +59,7 @@ const noop: (...args: any[]) => any = () => {};
  * Constructs a Node.js `fs` API from a File System Access API
  * [`FileSystemDirectoryHandle` object](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle).
  */
-export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjects {
-  protected static fd: number = 0x7fffffff;
-  protected readonly fds = new Map<number, FsaNodeFsOpenFile>();
-
-  public constructor(protected readonly root: fsa.IFileSystemDirectoryHandle) {}
-
-  /**
-   * A list of reusable (opened and closed) file descriptors, that should be
-   * used first before creating a new file descriptor.
-   */
-  releasedFds: number[] = [];
-
-  private newFdNumber(): number {
-    const releasedFd = this.releasedFds.pop();
-    return typeof releasedFd === 'number' ? releasedFd : FsaNodeFs.fd--;
-  }
-
-  /**
-   * @param path Path from root to the new folder.
-   * @param create Whether to create the folders if they don't exist.
-   */
-  private async getDir(path: string[], create: boolean, funcName?: string): Promise<fsa.IFileSystemDirectoryHandle> {
-    let curr: fsa.IFileSystemDirectoryHandle = this.root;
-
-    const options: fsa.GetDirectoryHandleOptions = { create };
-
-    try {
-      for (const name of path) {
-        curr = await curr.getDirectoryHandle(name, options);
-      }
-    } catch (error) {
-      if (error && typeof error === 'object' && error.name === 'TypeMismatchError')
-        throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
-      throw error;
-    }
-    return curr;
-  }
-
-  private async getFile(
-    path: string[],
-    name: string,
-    funcName?: string,
-    create?: boolean,
-  ): Promise<fsa.IFileSystemFileHandle> {
-    const dir = await this.getDir(path, false, funcName);
-    const file = await dir.getFileHandle(name, { create });
-    return file;
-  }
-
-  private async getFileOrDir(
-    path: string[],
-    name: string,
-    funcName?: string,
-    create?: boolean,
-  ): Promise<fsa.IFileSystemFileHandle | fsa.IFileSystemDirectoryHandle> {
-    const dir = await this.getDir(path, false, funcName);
-    try {
-      const file = await dir.getFileHandle(name);
-      return file;
-    } catch (error) {
-      if (error && typeof error === 'object') {
-        switch (error.name) {
-          case 'TypeMismatchError':
-            return await dir.getDirectoryHandle(name);
-          case 'NotFoundError':
-            throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
-        }
-      }
-      throw error;
-    }
-  }
-
-  private async getFileByFd(fd: number, funcName?: string): Promise<FsaNodeFsOpenFile> {
-    if (!isFd(fd)) throw TypeError(ERRSTR.FD);
-    const file = this.fds.get(fd);
-    if (!file) throw createError('EBADF', funcName);
-    return file;
-  }
-
-  private async getFileById(id: misc.TFileId, funcName?: string, create?: boolean): Promise<fsa.IFileSystemFileHandle> {
-    if (typeof id === 'number') return (await this.getFileByFd(id, funcName)).file;
-    const filename = pathToFilename(id);
-    const [folder, name] = pathToLocation(filename);
-    return await this.getFile(folder, name, funcName, create);
-  }
-
-  private async getFileByIdOrCreate(id: misc.TFileId, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
-    if (typeof id === 'number') return (await this.getFileByFd(id, funcName)).file;
-    const filename = pathToFilename(id);
-    const [folder, name] = pathToLocation(filename);
-    const dir = await this.getDir(folder, false, funcName);
-    return await dir.getFileHandle(name, { create: true });
-  }
-
-  private async __open(filename: string, flags: number, mode: number): Promise<FsaNodeFsOpenFile> {
-    const [folder, name] = pathToLocation(filename);
-    const createIfMissing = !!(flags & FLAG.O_CREAT);
-    const fsaFile = await this.getFile(folder, name, 'open', createIfMissing);
-    const fd = this.newFdNumber();
-    const file = new FsaNodeFsOpenFile(fd, mode, flags, fsaFile);
-    this.fds.set(fd, file);
-    return file;
-  }
+export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchronousApi, FsCommonObjects {
 
   // ------------------------------------------------------------ FsCallbackApi
 
@@ -438,7 +336,7 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
       const fileData = await file.getFile();
       size = fileData.size;
     }
-    const stats = new FsaNodeStats(bigint, bigint ? BigInt(size) : size, handle);
+    const stats = new FsaNodeStats(bigint, bigint ? BigInt(size) : size, handle.kind);
     return stats;
   }
 
@@ -859,6 +757,17 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
 
   // --------------------------------------------------------- FsSynchronousApi
 
+  public readonly statSync: FsSynchronousApi['statSync'] = (path: misc.PathLike, options?: opts.IStatOptions): misc.IStats<any> => {
+    const { bigint = true, throwIfNoEntry = true } = getStatOptions(options);
+    const adapter = this.syncAdapter;
+    if (!adapter) throw new Error('No sync adapter');
+    const filename = pathToFilename(path);
+    const location = pathToLocation(filename);
+    const res = adapter.stat(location);
+    const stats = new FsaNodeStats(bigint, res.size ?? 0, res.kind);
+    return stats;
+  };
+
   public readonly accessSync: FsSynchronousApi['accessSync'] = noop;
   public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = notSupported;
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
@@ -889,7 +798,6 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
   public readonly renameSync: FsSynchronousApi['renameSync'] = notSupported;
   public readonly rmdirSync: FsSynchronousApi['rmdirSync'] = notSupported;
   public readonly rmSync: FsSynchronousApi['rmSync'] = notSupported;
-  public readonly statSync: FsSynchronousApi['statSync'] = notSupported;
   public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = notSupported;
   public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = notSupported;

@@ -1,4 +1,4 @@
-type AsyncCallback = (request: Uint8Array) => Promise<Uint8Array>;
+export type AsyncCallback = (request: Uint8Array) => Promise<Uint8Array>;
 
 const microSleepSync = () => {
   /** @todo Replace this by synchronous XHR call. */
@@ -11,10 +11,10 @@ const sleepUntilSync = (condition: () => boolean) => {
 
 /**
  * `SyncMessenger` allows to execute asynchronous code synchronously. The
- * asynchronous code is executed in a Worker, while the main thread is blocked
- * until the asynchronous code is finished.
+ * asynchronous code is executed in a Worker thread, while the main thread is
+ * blocked until the asynchronous code is finished.
  * 
- * First, four 4-byte works is header, where the first word is used for Atomics
+ * First, four 4-byte works is the header, where the first word is used for Atomics
  * notifications. The second word is used for spin-locking the main thread until
  * the asynchronous code is finished. The third word is used to specify payload
  * length. The fourth word is currently unused.
@@ -37,29 +37,32 @@ export class SyncMessenger {
 
   public callSync(data: Uint8Array): Uint8Array {
     const requestLength = data.length;
+    const headerSize = this.headerSize;
     this.int32[1] = 0;
     this.int32[2] = requestLength;
-    this.uint8.set(data, this.headerSize);
+    this.uint8.set(data, headerSize);
     Atomics.notify(this.int32, 0);
     sleepUntilSync(() => this.int32[1] === 1);
     const responseLength = this.int32[2];
-    const response = this.uint8.slice(this.headerSize, this.headerSize + responseLength);
+    const response = this.uint8.slice(headerSize, headerSize + responseLength);
     return response;
   }
 
   public serveAsync(callback: AsyncCallback): void {
+    const headerSize = this.headerSize;
     (async () => {
       try {
         const res = Atomics.wait(this.int32, 0, 0);
         if (res !== 'ok') throw new Error(`Unexpected Atomics.wait result: ${res}`);
         const requestLength = this.int32[2];
-        const request = this.uint8.slice(this.headerSize, this.headerSize + requestLength);
+        const request = this.uint8.slice(headerSize, headerSize + requestLength);
         const response = await callback(request);
         const responseLength = response.length;
         this.int32[2] = responseLength;
-        this.uint8.set(response, this.headerSize);
+        this.uint8.set(response, headerSize);
         this.int32[1] = 1;
       } catch {}
+      this.serveAsync(callback);
     })().catch(() => {});
   }
 }

@@ -45,6 +45,12 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   console.log('renameSync() - can move a file');
   fs.renameSync('/cool (Copy).txt', '/dir/very-cool.txt');
   strictEqual(fs.readFileSync('/dir/very-cool.txt', 'utf8'), 'worlds!');
+
+  console.log('rmdirSync() - can remove an empty directory');
+  await fs.promises.mkdir('/to-be-deleted');
+  strictEqual(fs.existsSync('/to-be-deleted'), true);
+  fs.rmdirSync('/to-be-deleted');
+  strictEqual(fs.existsSync('/to-be-deleted'), false);
 };
 
 const main = async () => {

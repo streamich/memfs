@@ -13,6 +13,7 @@ export interface FsaNodeSyncAdapterApi {
   appendFile(req: { filename: string; data: Uint8Array; opts?: opts.IAppendFileOptions }): void;
   copy(req: { src: string; dst: string, flags?: number }): void;
   move(req: { src: string; dst: string }): void;
+  rmdir(req: { path: string; opts?: opts.IRmdirOptions }): void;
 }
 
 export interface FsaNodeSyncAdapter {

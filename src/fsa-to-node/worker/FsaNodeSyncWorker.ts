@@ -1,9 +1,9 @@
-import {AsyncCallback, SyncMessenger} from "./SyncMessenger";
-import {encode, decode} from 'json-joy/es6/json-pack/msgpack/util';
-import {FsaNodeWorkerMessageCode} from "./constants";
+import { AsyncCallback, SyncMessenger } from './SyncMessenger';
+import { encode, decode } from 'json-joy/es6/json-pack/msgpack/util';
+import { FsaNodeWorkerMessageCode } from './constants';
 import type * as fsa from '../../fsa/types';
-import type {FsaNodeWorkerError, FsaNodeWorkerMsg, FsaNodeWorkerMsgInit, FsaNodeWorkerMsgRootSet} from "./types";
-import type {FsaNodeSyncAdapterStats} from "../types";
+import type { FsaNodeWorkerError, FsaNodeWorkerMsg, FsaNodeWorkerMsgInit, FsaNodeWorkerMsgRootSet } from './types';
+import type { FsaNodeSyncAdapterStats } from '../types';
 
 export class FsaNodeSyncWorker {
   protected readonly sab: SharedArrayBuffer = new SharedArrayBuffer(1024 * 32);
@@ -15,7 +15,7 @@ export class FsaNodeSyncWorker {
   };
 
   public start() {
-    onmessage = (e) => {
+    onmessage = e => {
       if (!Array.isArray(e.data)) return;
       console.log('>', e.data);
       this.onPostMessage(e.data as FsaNodeWorkerMsg);
@@ -48,7 +48,7 @@ export class FsaNodeSyncWorker {
       return encode([FsaNodeWorkerMessageCode.Response, response]);
     } catch (err) {
       const message = err && typeof err === 'object' && err.message ? err.message : 'Unknown error';
-      const error: FsaNodeWorkerError = {message};
+      const error: FsaNodeWorkerError = { message };
       if (err && typeof err === 'object' && err.code) error.code = err.code;
       return encode([FsaNodeWorkerMessageCode.ResponseError, error]);
     }

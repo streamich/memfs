@@ -1,16 +1,12 @@
-import {
-  createError,
-  isFd,
-  pathToFilename,
-} from '../node/util';
-import { pathToLocation} from './util';
-import { ERRSTR} from '../node/constants';
+import { createError, isFd, pathToFilename } from '../node/util';
+import { pathToLocation } from './util';
+import { ERRSTR } from '../node/constants';
 import { FsaToNodeConstants } from './constants';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FLAG } from '../consts/FLAG';
 import type * as fsa from '../fsa/types';
 import type * as misc from '../node/types/misc';
-import type {FsaNodeSyncAdapter} from './types';
+import type { FsaNodeSyncAdapter } from './types';
 
 export class FsaNodeCore {
   protected static fd: number = 0x7fffffff;
@@ -94,7 +90,11 @@ export class FsaNodeCore {
     return file;
   }
 
-  protected async getFileById(id: misc.TFileId, funcName?: string, create?: boolean): Promise<fsa.IFileSystemFileHandle> {
+  protected async getFileById(
+    id: misc.TFileId,
+    funcName?: string,
+    create?: boolean,
+  ): Promise<fsa.IFileSystemFileHandle> {
     if (typeof id === 'number') return (await this.getFileByFd(id, funcName)).file;
     const filename = pathToFilename(id);
     const [folder, name] = pathToLocation(filename);

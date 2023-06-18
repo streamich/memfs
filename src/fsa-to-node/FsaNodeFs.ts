@@ -17,6 +17,7 @@ import {
   getAppendFileOpts,
   getDefaultOpts,
   getReaddirOptions,
+  getRealpathOptions,
 } from '../node/options';
 import {
   bufToUint8,
@@ -950,9 +951,15 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     }
   };
 
+  public readonly realpathSync: FsSynchronousApi['realpathSync'] = (path: misc.PathLike, options?: opts.IRealpathOptions | string): misc.TDataOut => {
+    let filename = pathToFilename(path);
+    const {encoding} = getRealpathOptions(options);
+    if (filename[0] !== FsaToNodeConstants.Separator) filename = FsaToNodeConstants.Separator + filename;
+    return strToEncoding(filename, encoding);
+  }
+
   public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
   public readonly readSync: FsSynchronousApi['readSync'] = notSupported;
-  public readonly realpathSync: FsSynchronousApi['realpathSync'] = notSupported;
   public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
 
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;

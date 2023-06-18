@@ -588,6 +588,14 @@ onlyOnNode20('FsaNodeFs', () => {
     });
   });
 
+  describe('.realpathSync()', () => {
+    test('returns file path', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const path = fs.realpathSync('folder/file');
+      expect(path).toBe('/folder/file');
+    });
+  });
+
   describe('.copyFile()', () => {
     test('can copy a file', async () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });

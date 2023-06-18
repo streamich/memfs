@@ -1,7 +1,7 @@
 import { AsyncCallback, SyncMessenger } from './SyncMessenger';
 import { FsaNodeWorkerMessageCode } from './constants';
-import {FsaNodeFs} from '../FsaNodeFs';
-import {decoder, encoder} from '../json';
+import { FsaNodeFs } from '../FsaNodeFs';
+import { decoder, encoder } from '../json';
 import type * as fsa from '../../fsa/types';
 import type {
   FsaNodeWorkerError,
@@ -121,16 +121,16 @@ export class FsaNodeSyncWorker {
         kind: handle.kind,
       };
     },
-    access: async ({filename, mode}): Promise<void> => {
+    access: async ({ filename, mode }): Promise<void> => {
       await this.fs.promises.access(filename, mode);
     },
-    readFile: async ({filename, opts}): Promise<Uint8Array> => {
-      const buf = await this.fs.promises.readFile(filename, {...opts, encoding: 'buffer'}) as Buffer;
+    readFile: async ({ filename, opts }): Promise<Uint8Array> => {
+      const buf = (await this.fs.promises.readFile(filename, { ...opts, encoding: 'buffer' })) as Buffer;
       const uint8 = new Uint8Array(buf, buf.byteOffset, buf.byteLength);
       return uint8;
     },
-    writeFile: async ({filename, data, opts}): Promise<void> => {
-      await this.fs.promises.writeFile(filename, data, {...opts, encoding: 'buffer'});
+    writeFile: async ({ filename, data, opts }): Promise<void> => {
+      await this.fs.promises.writeFile(filename, data, { ...opts, encoding: 'buffer' });
     },
   };
 }

@@ -5,7 +5,10 @@ const root = require('app-root-path');
 module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
-  entry: __dirname + '/main',
+  entry: {
+    bundle: __dirname + '/main',
+    worker: __dirname + '/worker',
+  },
   plugins: [
     // new ForkTsCheckerWebpackPlugin(),
     new HtmlWebpackPlugin({
@@ -36,10 +39,17 @@ module.exports = {
     },
   },
   output: {
-    filename: 'bundle.js',
+    filename: '[name].js',
     path: path.resolve(root.path, 'dist'),
   },
   devServer: {
+    // HTTPS is required for SharedArrayBuffer to work.
+    https: true,
+    headers: {
+      // These two headers are required for SharedArrayBuffer to work.
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
     port: 9876,
     hot: false,
   },

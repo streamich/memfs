@@ -902,11 +902,15 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     this.truncateSync(filename, len);
   };
 
+  public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = (path: misc.PathLike): void => {
+    const filename = pathToFilename(path);
+    this.getSyncAdapter().call('unlink', [filename]);
+  };
+
   public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
   public readonly readdirSync: FsSynchronousApi['readdirSync'] = notSupported;
   public readonly readSync: FsSynchronousApi['readSync'] = notSupported;
   public readonly realpathSync: FsSynchronousApi['realpathSync'] = notSupported;
-  public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = notSupported;
   public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
 
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;

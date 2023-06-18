@@ -71,6 +71,11 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   await fs.promises.writeFile('/truncated.txt', 'truncate here: abcdefghijklmnopqrstuvwxyz');
   fs.truncateSync('/truncated.txt', 14);
   strictEqual(fs.readFileSync('/truncated.txt', 'utf8'), 'truncate here:');
+
+  console.log('unlinkSync() - can delete a file');
+  await fs.promises.writeFile('/delete-me.txt', 'abc');
+  fs.unlinkSync('/delete-me.txt');
+  strictEqual(fs.existsSync('/delete-me.txt'), false);
 };
 
 const main = async () => {

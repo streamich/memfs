@@ -94,7 +94,7 @@ export interface IWriteStream extends Writable {
   bytesWritten: number;
   path: string;
   pending: boolean;
-  close();
+  close(callback?: (err?: Error) => void): void;
 }
 
 export interface IFSWatcher extends EventEmitter {

@@ -631,3 +631,17 @@ describe('.read()', () => {
     expect(buffer[1]).toBe(115);
   });
 });
+
+describe('.createWriteStream()', () => {
+  test.only('can use stream to write to a file', async () => {
+    const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+    const stream = fs.createWriteStream('/folder/file');
+    stream.write('a');
+    const onClose = new Promise(resolve => stream.on('close', (err) => {
+      resolve(err);
+    }));
+    stream.close();
+    await onClose;
+    console.log(mfs.__vol.toJSON());
+  });
+});

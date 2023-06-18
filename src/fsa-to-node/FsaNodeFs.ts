@@ -829,7 +829,7 @@ export class FsaNodeFs implements FsCallbackApi, FsSynchronousApi, FsCommonObjec
       : ({ encoding: options } as opts.IWriteStreamOptions);
     const filename = pathToFilename(path);
     const location = pathToLocation(filename);
-    const flags = flagsToNumber(optionsObj.flags);
+    const flags = flagsToNumber(optionsObj.flags ?? 'w');
     const createIfMissing = !!(flags & FLAG.O_CREAT);
     const handle = this.getFile(location[0], location[1], 'createWriteStream', createIfMissing);
     return new FsaNodeWriteStream(handle, filename, optionsObj);

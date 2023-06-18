@@ -823,9 +823,17 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     this.releasedFds.push(fd);
   };
 
+  public readonly existsSync: FsSynchronousApi['existsSync'] = (path: misc.PathLike): boolean => {
+    try {
+      this.statSync(path);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = notSupported;
   public readonly copyFileSync: FsSynchronousApi['copyFileSync'] = notSupported;
-  public readonly existsSync: FsSynchronousApi['existsSync'] = notSupported;
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
   public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = notSupported;

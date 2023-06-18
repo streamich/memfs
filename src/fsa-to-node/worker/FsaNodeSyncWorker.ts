@@ -10,7 +10,8 @@ import type {
   FsaNodeWorkerMsgRequest,
   FsaNodeWorkerMsgRootSet,
 } from './types';
-import type { FsLocation, FsaNodeSyncAdapterApi, FsaNodeSyncAdapterStats } from '../types';
+import type { FsLocation, FsaNodeSyncAdapterApi, FsaNodeSyncAdapterStats, FsaNodeSyncAdapterEntry } from '../types';
+import {IDirent} from '../../node/types/misc';
 
 export class FsaNodeSyncWorker {
   protected readonly sab: SharedArrayBuffer = new SharedArrayBuffer(1024 * 32);
@@ -158,6 +159,14 @@ export class FsaNodeSyncWorker {
     },
     unlink: async ([filename]): Promise<void> => {
       await this.fs.promises.unlink(filename);
+    },
+    readdir: async ([filename]): Promise<FsaNodeSyncAdapterEntry[]> => {
+      const list = await this.fs.promises.readdir(filename, { withFileTypes: true, encoding: 'utf8' }) as IDirent[];
+      const res = list.map(entry => <FsaNodeSyncAdapterEntry>({
+        kind: entry.isDirectory() ? 'directory' : 'file',
+        name: entry.name,
+      }));
+      return res;
     },
   };
 }

@@ -16,6 +16,7 @@ import {
   getStatOptions,
   getAppendFileOpts,
   getDefaultOpts,
+  getReaddirOptions,
 } from '../node/options';
 import {
   bufToUint8,
@@ -462,7 +463,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (options.withFileTypes) {
             const list: misc.IDirent[] = [];
             for await (const [name, handle] of dir.entries()) {
-              const dirent = new FsaNodeDirent(name, handle);
+              const dirent = new FsaNodeDirent(name, handle.kind);
               list.push(dirent);
             }
             if (!isWin && options.encoding !== 'buffer')
@@ -907,8 +908,26 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     this.getSyncAdapter().call('unlink', [filename]);
   };
 
+  public readonly readdirSync: FsSynchronousApi['readdirSync'] = (path: misc.PathLike, options?: opts.IReaddirOptions | string): misc.TDataOut[] | misc.IDirent[] => {
+    const opts = getReaddirOptions(options);
+    const filename = pathToFilename(path);
+    const adapter = this.getSyncAdapter();
+    const list = adapter.call('readdir', [filename]);
+    if (opts.withFileTypes) {
+      const res: misc.IDirent[] = [];
+      for (const entry of list) res.push(new FsaNodeDirent(entry.name, entry.kind));
+      return res;
+    } else {
+      const res: misc.TDataOut[] = [];
+      for (const entry of list) {
+        const buffer = Buffer.from(entry.name);
+        res.push(bufferToEncoding(buffer, opts.encoding));
+      }
+      return res;
+    }
+  };
+
   public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
-  public readonly readdirSync: FsSynchronousApi['readdirSync'] = notSupported;
   public readonly readSync: FsSynchronousApi['readSync'] = notSupported;
   public readonly realpathSync: FsSynchronousApi['realpathSync'] = notSupported;
   public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;

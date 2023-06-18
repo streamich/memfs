@@ -129,5 +129,8 @@ export class FsaNodeSyncWorker {
       const uint8 = new Uint8Array(buf, buf.byteOffset, buf.byteLength);
       return uint8;
     },
+    writeFile: async ({filename, data, opts}): Promise<void> => {
+      await this.fs.promises.writeFile(filename, data, {...opts, encoding: 'buffer'});
+    },
   };
 }

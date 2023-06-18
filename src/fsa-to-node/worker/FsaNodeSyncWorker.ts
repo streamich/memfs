@@ -11,10 +11,10 @@ import type {
   FsaNodeWorkerMsgRootSet,
 } from './types';
 import type { FsLocation, FsaNodeSyncAdapterApi, FsaNodeSyncAdapterStats, FsaNodeSyncAdapterEntry } from '../types';
-import { IDirent } from '../../node/types/misc';
+import type { IDirent } from '../../node/types/misc';
 
 export class FsaNodeSyncWorker {
-  protected readonly sab: SharedArrayBuffer = new SharedArrayBuffer(1024 * 32);
+  protected readonly sab: SharedArrayBuffer = new SharedArrayBuffer(1024 * 1024);
   protected readonly messenger = new SyncMessenger(this.sab);
   protected root!: fsa.IFileSystemDirectoryHandle;
   protected fs!: FsaNodeFs;
@@ -170,6 +170,18 @@ export class FsaNodeSyncWorker {
           },
       );
       return res;
+    },
+    read: async ([filename, position, length]): Promise<Uint8Array> => {
+      let uint8 = new Uint8Array(length);
+      const handle = await this.fs.promises.open(filename, 'r');
+      const bytesRead = await new Promise<number>((resolve, reject) => {
+        this.fs.read(handle.fd, uint8, 0, length, position, (err, bytesRead) => {
+          if (err) return reject(err);
+          resolve(bytesRead || length);
+        });
+      });
+      if (bytesRead < length) uint8 = uint8.slice(0, bytesRead);
+      return uint8;
     },
   };
 }

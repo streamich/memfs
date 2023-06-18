@@ -21,6 +21,11 @@ export interface FsaNodeSyncAdapterApi {
   trunc(req: [filename: string, len: number]): void;
   unlink(req: [filename: string]): void;
   readdir(req: [filename: string]): FsaNodeSyncAdapterEntry[];
+  read(req: [
+    filename: string,
+    position: number,
+    length: number,
+  ]): Uint8Array;
 }
 
 export interface FsaNodeSyncAdapter {

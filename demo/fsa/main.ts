@@ -85,6 +85,13 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   const listInDir2 = fs.readdirSync('/dir', {withFileTypes: true}) as any;
   deepEqual(listInDir2[0].name, 'very-cool.txt');
   deepEqual(listInDir2[0].isFile(), true);
+
+  console.log('readSync() - can read a file into a buffer');
+  const buf = Buffer.alloc(3);
+  const readHandle = await fs.promises.open('/cool.txt', 'r');
+  const bytesRead = fs.readSync(readHandle.fd, buf, 0, 3, 0);
+  strictEqual(bytesRead, 3);
+  strictEqual(buf.toString('utf8'), 'wor');
 };
 
 const main = async () => {

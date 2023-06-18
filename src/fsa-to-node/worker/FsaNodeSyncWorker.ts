@@ -2,7 +2,13 @@ import { AsyncCallback, SyncMessenger } from './SyncMessenger';
 import { encode, decode } from 'json-joy/es6/json-pack/msgpack/util';
 import { FsaNodeWorkerMessageCode } from './constants';
 import type * as fsa from '../../fsa/types';
-import type { FsaNodeWorkerError, FsaNodeWorkerMsg, FsaNodeWorkerMsgInit, FsaNodeWorkerMsgRequest, FsaNodeWorkerMsgRootSet } from './types';
+import type {
+  FsaNodeWorkerError,
+  FsaNodeWorkerMsg,
+  FsaNodeWorkerMsgInit,
+  FsaNodeWorkerMsgRequest,
+  FsaNodeWorkerMsgRootSet,
+} from './types';
 import type { FsLocation, FsaNodeSyncAdapterApi, FsaNodeSyncAdapterStats } from '../types';
 
 export class FsaNodeSyncWorker {
@@ -101,7 +107,11 @@ export class FsaNodeSyncWorker {
     }
   }
 
-  protected handlers: {[K in keyof FsaNodeSyncAdapterApi]: ((request: Parameters<FsaNodeSyncAdapterApi[K]>[0]) => Promise<ReturnType<FsaNodeSyncAdapterApi[K]>>)} = {
+  protected handlers: {
+    [K in keyof FsaNodeSyncAdapterApi]: (
+      request: Parameters<FsaNodeSyncAdapterApi[K]>[0],
+    ) => Promise<ReturnType<FsaNodeSyncAdapterApi[K]>>;
+  } = {
     stat: async (location: FsLocation): Promise<FsaNodeSyncAdapterStats> => {
       const handle = await this.getFileOrDir(location[0], location[1], 'statSync');
       return {

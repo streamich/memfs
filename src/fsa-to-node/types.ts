@@ -8,7 +8,10 @@ export interface FsaNodeSyncAdapterApi {
 }
 
 export interface FsaNodeSyncAdapter {
-  call<K extends keyof FsaNodeSyncAdapterApi>(method: K, payload: Parameters<FsaNodeSyncAdapterApi[K]>[0]): ReturnType<FsaNodeSyncAdapterApi[K]>;
+  call<K extends keyof FsaNodeSyncAdapterApi>(
+    method: K,
+    payload: Parameters<FsaNodeSyncAdapterApi[K]>[0],
+  ): ReturnType<FsaNodeSyncAdapterApi[K]>;
 }
 
 export interface FsaNodeSyncAdapterStats {

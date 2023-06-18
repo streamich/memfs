@@ -843,7 +843,13 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     }
   };
 
-  public readonly copyFileSync: FsSynchronousApi['copyFileSync'] = notSupported;
+  public readonly copyFileSync: FsSynchronousApi['copyFileSync'] = (src: misc.PathLike, dest: misc.PathLike, flags?: misc.TFlagsCopy): void => {
+    const srcFilename = pathToFilename(src);
+    const destFilename = pathToFilename(dest);
+    const adapter = this.getSyncAdapter();
+    adapter.call('copy', {src: srcFilename, dst: destFilename, flags});
+  };
+
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
   public readonly mkdirSync: FsSynchronousApi['mkdirSync'] = notSupported;
@@ -861,7 +867,6 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = notSupported;
   public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = notSupported;
   public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
-
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
   public readonly chownSync: FsSynchronousApi['chownSync'] = noop;
   public readonly fchmodSync: FsSynchronousApi['fchmodSync'] = noop;

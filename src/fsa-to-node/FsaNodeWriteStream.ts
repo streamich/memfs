@@ -1,6 +1,6 @@
 import { Writable } from 'stream';
 import { Defer } from 'thingies/es6/Defer';
-import { codeMutex } from 'thingies/es6/codeMutex';
+import { concurrency } from 'thingies/es6/concurrency';
 import type { IFileSystemFileHandle, IFileSystemWritableFileStream } from '../fsa/types';
 import type { IWriteStream } from '../node/types/misc';
 import type { IWriteStreamOptions } from '../node/types/options';
@@ -23,9 +23,9 @@ import type { IWriteStreamOptions } from '../node/types/options';
  */
 export class FsaNodeWriteStream extends Writable implements IWriteStream {
   protected __pending__: boolean = true;
-  protected __stream__: Promise<IFileSystemWritableFileStream>;
   protected __closed__: boolean = false;
-  protected readonly __mutex__ = codeMutex();
+  protected readonly __stream__: Promise<IFileSystemWritableFileStream>;
+  protected readonly __mutex__ = concurrency(1);
 
   public constructor(
     handle: Promise<IFileSystemFileHandle>,
@@ -45,6 +45,35 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
     });
   }
 
+  private async ___write___(buffers: Buffer[]): Promise<void> {
+    await this.__mutex__(async () => {
+      if (this.__closed__) return;
+      // if (this.__closed__) throw new Error('WriteStream is closed');
+      const writable = await this.__stream__;
+      for (const buffer of buffers) {
+        await writable.write(buffer);
+      }
+    });
+  }
+
+  private async __close__(): Promise<void> {
+    await this.__mutex__(async () => {
+      if (this.__closed__) {
+        process.nextTick(() => this.emit('close'));
+        return;
+      }
+      try {
+        const writable = await this.__stream__;
+        this.__closed__ = true;
+        await writable.close();
+        this.emit('close');
+      } catch (error) {
+        this.emit('error', error);
+        this.emit('close', error);
+      }
+    });
+  }
+
   // ------------------------------------------------------------- IWriteStream
 
   public get bytesWritten(): number {
@@ -57,77 +86,25 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
 
   public close(cb): void {
     if (cb) this.once('close', cb);
-    if (this.__closed__) {
-      process.nextTick(() => this.emit('close'));
-      return;
-    }
-    this.__closed__ = true;
-    (async () => {
-      try {
-        const writable = await this.__stream__;
-        this.__mutex__(async () => {
-          console.log('closing')
-          await writable.close();
-        });
-        this.emit('close');
-      } catch (error) {
-        this.emit('error', error);
-        this.emit('close', error);
-      }
-    })().catch(() => {});
+    this.__close__().catch(() => {});
   }
 
   // ----------------------------------------------------------------- Writable
 
-  private async ___write___(buffers: Buffer[]): Promise<void> {
-    const writable = await this.__stream__;
-    this.__mutex__(async () => {
-      for (const buffer of buffers) {
-        try {
-          console.log(1);
-          await writable.write(buffer);
-          console.log(2);
-        } catch (error) {
-         console.log('err', error);
-        }
-      }
-    });
-  }
-
   _write(chunk: any, encoding: string, callback: (error?: Error | null) => void): void {
-    (async () => {
-      try {
-        await this.___write___([chunk]);
-        callback(null);
-      } catch (error) {
-        callback(error);
-      }
-    })().catch(() => {});
+    this.___write___([chunk])
+      .then(() => callback(null))
+      .catch(error => callback(error));
   }
 
   _writev(chunks: Array<{ chunk: any; encoding: string }>, callback: (error?: Error | null) => void): void {
-    (async () => {
-      try {
-        const buffers = chunks.map(({chunk}) => chunk);
-        await this.___write___(buffers);
-        callback(null);
-      } catch (error) {
-        callback(error);
-      }
-    })().catch(() => {});
+    const buffers = chunks.map(({chunk}) => chunk);
+    this.___write___(buffers)
+      .then(() => callback(null))
+      .catch(error => callback(error));
   }
 
   _final(callback: (error?: Error | null) => void): void {
-    (async () => {
-      try {
-        const writable = await this.__stream__;
-        this.__mutex__(async () => {
-          await writable.close();
-        });
-        callback(null);
-      } catch (error) {
-        callback(error);
-      }
-    })().catch(() => {});
+    this.__close__().then(() => callback(null)).catch(error => callback(error));
   }
 }

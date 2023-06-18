@@ -9,12 +9,13 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   const adapter = await FsaNodeSyncAdapterWorker.start(dir);
   const fs = new FsaNodeFs(dir, adapter);
 
+  await fs.promises.mkdir('/dir');
   await fs.promises.writeFile('/test.txt', 'Hello world!');
   const list = await fs.promises.readdir('');
   console.log(list);
 
-  const stats = fs.statSync('/test.txt');
-  console.log('stats', stats, stats.isDirectory(), stats.isFile());
+  console.log('/test.txt', fs.statSync('/test.txt'), fs.statSync('/test.txt').isFile(), fs.statSync('/test.txt').isDirectory());
+  console.log('/dir', fs.statSync('/dir'), fs.statSync('/dir').isFile(), fs.statSync('/dir').isDirectory());
   // await fs.promises.mkdir('storage/a/b/c', {recursive: true});
   // await fs.promises.rm('storage/a/b', {recursive: true});
 

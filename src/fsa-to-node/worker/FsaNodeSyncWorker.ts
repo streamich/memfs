@@ -2,17 +2,13 @@ import { AsyncCallback, SyncMessenger } from './SyncMessenger';
 import { encode, decode } from 'json-joy/es6/json-pack/msgpack/util';
 import { FsaNodeWorkerMessageCode } from './constants';
 import type * as fsa from '../../fsa/types';
-import type { FsaNodeWorkerError, FsaNodeWorkerMsg, FsaNodeWorkerMsgInit, FsaNodeWorkerMsgRootSet } from './types';
+import type { FsaNodeWorkerError, FsaNodeWorkerMsg, FsaNodeWorkerMsgInit, FsaNodeWorkerMsgRootSet, FsaNodeWorkerMsgStat } from './types';
 import type { FsaNodeSyncAdapterStats } from '../types';
 
 export class FsaNodeSyncWorker {
   protected readonly sab: SharedArrayBuffer = new SharedArrayBuffer(1024 * 32);
   protected readonly messenger = new SyncMessenger(this.sab);
-  protected readonly roots = new Map<number, fsa.IFileSystemDirectoryHandle>();
-
-  protected readonly onCall: AsyncCallback = (request: Uint8Array): Promise<Uint8Array> => {
-    throw new Error('Not implemented');
-  };
+  protected root!: fsa.IFileSystemDirectoryHandle;
 
   public start() {
     onmessage = e => {
@@ -28,7 +24,7 @@ export class FsaNodeSyncWorker {
     switch (msg[0]) {
       case FsaNodeWorkerMessageCode.SetRoot: {
         const [, id, dir] = msg;
-        this.roots.set(id, dir);
+        this.root = dir;
         const response: FsaNodeWorkerMsgRootSet = [FsaNodeWorkerMessageCode.RootSet, id];
         postMessage(response);
         this.messenger.serveAsync(this.onRequest);
@@ -49,15 +45,65 @@ export class FsaNodeSyncWorker {
     } catch (err) {
       const message = err && typeof err === 'object' && err.message ? err.message : 'Unknown error';
       const error: FsaNodeWorkerError = { message };
-      if (err && typeof err === 'object' && err.code) error.code = err.code;
+      if (err && typeof err === 'object' && (err.code || err.name)) error.code = err.code || err.name;
       return encode([FsaNodeWorkerMessageCode.ResponseError, error]);
     }
   };
 
+  protected async getDir(path: string[], create: boolean, funcName?: string): Promise<fsa.IFileSystemDirectoryHandle> {
+    let curr: fsa.IFileSystemDirectoryHandle = this.root;
+    const options: fsa.GetDirectoryHandleOptions = { create };
+    try {
+      for (const name of path) {
+        curr = await curr.getDirectoryHandle(name, options);
+      }
+    } catch (error) {
+      // if (error && typeof error === 'object' && error.name === 'TypeMismatchError')
+      //   throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
+      throw error;
+    }
+    return curr;
+  }
+
+  protected async getFile(
+    path: string[],
+    name: string,
+    funcName?: string,
+    create?: boolean,
+  ): Promise<fsa.IFileSystemFileHandle> {
+    const dir = await this.getDir(path, false, funcName);
+    const file = await dir.getFileHandle(name, { create });
+    return file;
+  }
+
+  protected async getFileOrDir(
+    path: string[],
+    name: string,
+    funcName?: string,
+    create?: boolean,
+  ): Promise<fsa.IFileSystemFileHandle | fsa.IFileSystemDirectoryHandle> {
+    const dir = await this.getDir(path, false, funcName);
+    try {
+      const file = await dir.getFileHandle(name);
+      return file;
+    } catch (error) {
+      if (error && typeof error === 'object') {
+        switch (error.name) {
+          case 'TypeMismatchError':
+            return await dir.getDirectoryHandle(name);
+          // case 'NotFoundError':
+          //   throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
+        }
+      }
+      throw error;
+    }
+  }
+
   protected handlers: Record<number, (msg: FsaNodeWorkerMsg) => Promise<unknown>> = {
-    [FsaNodeWorkerMessageCode.Stat]: async (msg: FsaNodeWorkerMsg): Promise<FsaNodeSyncAdapterStats> => {
+    [FsaNodeWorkerMessageCode.Stat]: async ([, location]: FsaNodeWorkerMsgStat): Promise<FsaNodeSyncAdapterStats> => {
+      const handle = await this.getFileOrDir(location[0], location[1], 'statSync');
       return {
-        kind: 'directory',
+        kind: handle.kind,
       };
     },
   };

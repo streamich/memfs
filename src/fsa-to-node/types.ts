@@ -1,4 +1,4 @@
-import type {IFileSystemFileHandle} from '../fsa/types';
+import type { IFileSystemFileHandle } from '../fsa/types';
 import type * as opts from '../node/types/options';
 import type * as misc from '../node/types/misc';
 
@@ -22,16 +22,8 @@ export interface FsaNodeSyncAdapterApi {
   trunc(req: [filename: string, len: number]): void;
   unlink(req: [filename: string]): void;
   readdir(req: [filename: string]): FsaNodeSyncAdapterEntry[];
-  read(req: [
-    filename: string,
-    position: number,
-    length: number,
-  ]): Uint8Array;
-  write(req: [
-    filename: string,
-    data: Uint8Array,
-    position: number | null,
-  ]): number;
+  read(req: [filename: string, position: number, length: number]): Uint8Array;
+  write(req: [filename: string, data: Uint8Array, position: number | null]): number;
   open(req: [filename: string, flags: number, mode: number]): IFileSystemFileHandle;
 }
 

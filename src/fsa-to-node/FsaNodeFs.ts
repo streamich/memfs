@@ -952,12 +952,15 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     }
   };
 
-  public readonly realpathSync: FsSynchronousApi['realpathSync'] = (path: misc.PathLike, options?: opts.IRealpathOptions | string): misc.TDataOut => {
+  public readonly realpathSync: FsSynchronousApi['realpathSync'] = (
+    path: misc.PathLike,
+    options?: opts.IRealpathOptions | string,
+  ): misc.TDataOut => {
     let filename = pathToFilename(path);
-    const {encoding} = getRealpathOptions(options);
+    const { encoding } = getRealpathOptions(options);
     if (filename[0] !== FsaToNodeConstants.Separator) filename = FsaToNodeConstants.Separator + filename;
     return strToEncoding(filename, encoding);
-  }
+  };
 
   public readonly readSync: FsSynchronousApi['readSync'] = (
     fd: number,
@@ -982,13 +985,17 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     c?: number | BufferEncoding,
     d?: number,
   ): number => {
-    const [, buf, offset, length, position] = getWriteSyncArgs(fd, a, b, c, d)
+    const [, buf, offset, length, position] = getWriteSyncArgs(fd, a, b, c, d);
     const filename = this.getFileName(fd);
     const data = new Uint8Array(buf.buffer, buf.byteOffset + offset, length);
     return this.getSyncAdapter().call('write', [filename, data, position || null]);
   };
 
-  public readonly openSync: FsSynchronousApi['openSync'] = (path: misc.PathLike, flags: misc.TFlags, mode: misc.TMode = MODE.DEFAULT): number => {
+  public readonly openSync: FsSynchronousApi['openSync'] = (
+    path: misc.PathLike,
+    flags: misc.TFlags,
+    mode: misc.TMode = MODE.DEFAULT,
+  ): number => {
     const modeNum = modeToNumber(mode);
     const filename = pathToFilename(path);
     const flagsNum = flagsToNumber(flags);

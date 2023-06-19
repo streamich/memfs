@@ -124,7 +124,12 @@ export class FsaNodeCore {
     return this.__open2(fsaFile, filename, flags, mode);
   }
 
-  protected __open2(fsaFile: fsa.IFileSystemFileHandle, filename: string, flags: number, mode: number): FsaNodeFsOpenFile {
+  protected __open2(
+    fsaFile: fsa.IFileSystemFileHandle,
+    filename: string,
+    flags: number,
+    mode: number,
+  ): FsaNodeFsOpenFile {
     const fd = this.newFdNumber();
     const file = new FsaNodeFsOpenFile(fd, mode, flags, fsaFile, filename);
     this.fds.set(fd, file);

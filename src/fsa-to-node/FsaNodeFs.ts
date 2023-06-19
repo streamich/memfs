@@ -1,41 +1,6 @@
+import * as optHelpers from '../node/options';
+import * as util from '../node/util';
 import { createPromisesApi } from '../node/promises';
-import {
-  getDefaultOptsAndCb,
-  getMkdirOptions,
-  getReadFileOptions,
-  getReaddirOptsAndCb,
-  getRmOptsAndCb,
-  getRmdirOptions,
-  optsAndCbGenerator,
-  getAppendFileOptsAndCb,
-  getStatOptsAndCb,
-  getRealpathOptsAndCb,
-  writeFileDefaults,
-  getWriteFileOptions,
-  getOptions,
-  getStatOptions,
-  getAppendFileOpts,
-  getDefaultOpts,
-  getReaddirOptions,
-  getRealpathOptions,
-} from '../node/options';
-import {
-  bufToUint8,
-  bufferToEncoding,
-  createError,
-  dataToBuffer,
-  flagsToNumber,
-  genRndStr6,
-  getWriteArgs,
-  isWin,
-  modeToNumber,
-  nullCheck,
-  pathToFilename,
-  validateCallback,
-  validateFd,
-  isFd,
-  getWriteSyncArgs,
-} from '../node/util';
 import { pathToLocation, testDirectoryIsWritable } from './util';
 import { ERRSTR, MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
@@ -87,9 +52,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
       callback = a;
     }
     mode = mode || MODE.DEFAULT;
-    const modeNum = modeToNumber(mode);
-    const filename = pathToFilename(path);
-    const flagsNum = flagsToNumber(flags);
+    const modeNum = util.modeToNumber(mode);
+    const filename = util.pathToFilename(path);
+    const flagsNum = util.flagsToNumber(flags);
     this.__open(filename, flagsNum, modeNum).then(
       openFile => callback(null, openFile.fd),
       error => callback(error),
@@ -97,7 +62,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback<void>): void => {
-    validateFd(fd);
+    util.validateFd(fd);
     this.getFileByFdAsync(fd, 'close')
       .then(file => file.close())
       .then(
@@ -120,7 +85,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     position: number,
     callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | ArrayBufferView | DataView) => void,
   ): void => {
-    validateCallback(callback);
+    util.validateCallback(callback);
     // This `if` branch is from Node.js
     if (length === 0) {
       return process.nextTick(() => {
@@ -146,14 +111,14 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a?: opts.IReadFileOptions | string | misc.TCallback<misc.TDataOut>,
     b?: misc.TCallback<misc.TDataOut>,
   ) => {
-    const [opts, callback] = optsAndCbGenerator<opts.IReadFileOptions, misc.TDataOut>(getReadFileOptions)(a, b);
-    const flagsNum = flagsToNumber(opts.flag);
+    const [opts, callback] = optHelpers.optsAndCbGenerator<opts.IReadFileOptions, misc.TDataOut>(optHelpers.getReadFileOptions)(a, b);
+    const flagsNum = util.flagsToNumber(opts.flag);
     return this.__getFileById(id, 'readFile')
       .then(file => file.getFile())
       .then(file => file.arrayBuffer())
       .then(data => {
         const buffer = Buffer.from(data);
-        callback(null, bufferToEncoding(buffer, opts.encoding));
+        callback(null, util.bufferToEncoding(buffer, opts.encoding));
       })
       .catch(error => {
         callback(error);
@@ -168,7 +133,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     d?: unknown,
     e?: unknown,
   ) => {
-    const [, asStr, buf, offset, length, position, cb] = getWriteArgs(fd, a, b, c, d, e);
+    const [, asStr, buf, offset, length, position, cb] = util.getWriteArgs(fd, a, b, c, d, e);
     (async () => {
       const openFile = await this.getFileByFd(fd, 'write');
       const data = buf.subarray(offset, offset + length);
@@ -186,7 +151,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: number | null | WritevCallback,
     b?: WritevCallback,
   ): void => {
-    validateFd(fd);
+    util.validateFd(fd);
     let position: number | null = null;
     let callback: WritevCallback;
     if (typeof a === 'function') {
@@ -195,7 +160,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
       position = Number(a);
       callback = <WritevCallback>b;
     }
-    validateCallback(callback);
+    util.validateCallback(callback);
     (async () => {
       const openFile = await this.getFileByFd(fd, 'writev');
       const length = buffers.length;
@@ -222,14 +187,14 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     let options: opts.IWriteFileOptions | string = a as opts.IWriteFileOptions;
     let callback: misc.TCallback<void> | undefined = b;
     if (typeof a === 'function') {
-      options = writeFileDefaults;
+      options = optHelpers.writeFileDefaults;
       callback = a;
     }
-    const cb = validateCallback(callback);
-    const opts = getWriteFileOptions(options);
-    const flagsNum = flagsToNumber(opts.flag);
-    const modeNum = modeToNumber(opts.mode);
-    const buf = dataToBuffer(data, opts.encoding);
+    const cb = util.validateCallback(callback);
+    const opts = optHelpers.getWriteFileOptions(options);
+    const flagsNum = util.flagsToNumber(opts.flag);
+    const modeNum = util.modeToNumber(opts.mode);
+    const buf = util.dataToBuffer(data, opts.encoding);
     (async () => {
       const createIfMissing = !!(flagsNum & FLAG.O_CREAT);
       const file = await this.__getFileById(id, 'writeFile', createIfMissing);
@@ -243,8 +208,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public readonly copyFile: FsCallbackApi['copyFile'] = (src: misc.PathLike, dest: misc.PathLike, a, b?): void => {
-    const srcFilename = pathToFilename(src);
-    const destFilename = pathToFilename(dest);
+    const srcFilename = util.pathToFilename(src);
+    const destFilename = util.pathToFilename(dest);
     let flags: misc.TFlagsCopy;
     let callback: misc.TCallback<void>;
     if (typeof a === 'function') {
@@ -254,7 +219,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
       flags = a;
       callback = b;
     }
-    validateCallback(callback);
+    util.validateCallback(callback);
     const [oldFolder, oldName] = pathToLocation(srcFilename);
     const [newFolder, newName] = pathToLocation(destFilename);
     (async () => {
@@ -272,7 +237,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public readonly unlink: FsCallbackApi['unlink'] = (path: misc.PathLike, callback: misc.TCallback<void>): void => {
-    const filename = pathToFilename(path);
+    const filename = util.pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
     this.getDir(folder, false, 'unlink')
       .then(dir => dir.removeEntry(name))
@@ -282,11 +247,11 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                callback(createError('ENOENT', 'unlink', filename));
+                callback(util.createError('ENOENT', 'unlink', filename));
                 return;
               }
               case 'InvalidModificationError': {
-                callback(createError('EISDIR', 'unlink', filename));
+                callback(util.createError('EISDIR', 'unlink', filename));
                 return;
               }
             }
@@ -301,8 +266,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: misc.TCallback<misc.TDataOut> | opts.IRealpathOptions | string,
     b?: misc.TCallback<misc.TDataOut>,
   ): void => {
-    const [opts, callback] = getRealpathOptsAndCb(a, b);
-    let pathFilename = pathToFilename(path);
+    const [opts, callback] = optHelpers.getRealpathOptsAndCb(a, b);
+    let pathFilename = util.pathToFilename(path);
     if (pathFilename[0] !== FsaToNodeConstants.Separator) pathFilename = FsaToNodeConstants.Separator + pathFilename;
     callback(null, strToEncoding(pathFilename, opts.encoding));
   };
@@ -312,8 +277,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: misc.TCallback<misc.IStats> | opts.IStatOptions,
     b?: misc.TCallback<misc.IStats>,
   ): void => {
-    const [{ bigint = false, throwIfNoEntry = true }, callback] = getStatOptsAndCb(a, b);
-    const filename = pathToFilename(path);
+    const [{ bigint = false, throwIfNoEntry = true }, callback] = optHelpers.getStatOptsAndCb(a, b);
+    const filename = util.pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
     (async () => {
       const handle = await this.getFileOrDir(folder, name, 'stat');
@@ -331,7 +296,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: misc.TCallback<misc.IStats> | opts.IStatOptions,
     b?: misc.TCallback<misc.IStats>,
   ): void => {
-    const [{ bigint = false, throwIfNoEntry = true }, callback] = getStatOptsAndCb(a, b);
+    const [{ bigint = false, throwIfNoEntry = true }, callback] = optHelpers.getStatOptsAndCb(a, b);
     (async () => {
       const openFile = await this.getFileByFd(fd, 'fstat');
       return await this.getHandleStats(bigint, openFile.file);
@@ -357,8 +322,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     newPath: misc.PathLike,
     callback: misc.TCallback<void>,
   ): void => {
-    const oldPathFilename = pathToFilename(oldPath);
-    const newPathFilename = pathToFilename(newPath);
+    const oldPathFilename = util.pathToFilename(oldPath);
+    const newPathFilename = util.pathToFilename(newPath);
     const [oldFolder, oldName] = pathToLocation(oldPathFilename);
     const [newFolder, newName] = pathToLocation(newPathFilename);
     (async () => {
@@ -381,7 +346,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     path: misc.PathLike,
     callback: (exists: boolean) => void,
   ): void => {
-    const filename = pathToFilename(path);
+    const filename = util.pathToFilename(path);
     if (typeof callback !== 'function') throw Error(ERRSTR.CB);
     this.access(path, AMODE.F_OK, error => callback(!error));
   };
@@ -395,16 +360,16 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     let callback: misc.TCallback<void>;
     if (typeof a !== 'function') {
       mode = a | 0; // cast to number
-      callback = validateCallback(b);
+      callback = util.validateCallback(b);
     } else {
       callback = a;
     }
-    const filename = pathToFilename(path);
+    const filename = util.pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
     (async () => {
       const node = folder.length || name ? await this.getFileOrDir(folder, name, 'access') : this.root;
       const checkIfCanExecute = mode & AMODE.X_OK;
-      if (checkIfCanExecute) throw createError('EACCESS', 'access', filename);
+      if (checkIfCanExecute) throw util.createError('EACCESS', 'access', filename);
       const checkIfCanWrite = mode & AMODE.W_OK;
       switch (node.kind) {
         case 'file': {
@@ -414,7 +379,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
               const writable = await file.createWritable();
               await writable.close();
             } catch {
-              throw createError('EACCESS', 'access', filename);
+              throw util.createError('EACCESS', 'access', filename);
             }
           }
           break;
@@ -423,12 +388,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (checkIfCanWrite) {
             const dir = node as fsa.IFileSystemDirectoryHandle;
             const canWrite = await testDirectoryIsWritable(dir);
-            if (!canWrite) throw createError('EACCESS', 'access', filename);
+            if (!canWrite) throw util.createError('EACCESS', 'access', filename);
           }
           break;
         }
         default: {
-          throw createError('EACCESS', 'access', filename);
+          throw util.createError('EACCESS', 'access', filename);
         }
       }
     })().then(
@@ -438,8 +403,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public readonly appendFile: FsCallbackApi['appendFile'] = (id: misc.TFileId, data: misc.TData, a, b?) => {
-    const [opts, callback] = getAppendFileOptsAndCb(a, b);
-    const buffer = dataToBuffer(data, opts.encoding);
+    const [opts, callback] = optHelpers.getAppendFileOptsAndCb(a, b);
+    const buffer = util.dataToBuffer(data, opts.encoding);
     this.getFileByIdOrCreate(id, 'appendFile')
       .then(file =>
         (async () => {
@@ -460,8 +425,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public readonly readdir: FsCallbackApi['readdir'] = (path: misc.PathLike, a?, b?) => {
-    const [options, callback] = getReaddirOptsAndCb(a, b);
-    const filename = pathToFilename(path);
+    const [options, callback] = optHelpers.getReaddirOptsAndCb(a, b);
+    const filename = util.pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
     if (name) folder.push(name);
     this.getDir(folder, false, 'readdir')
@@ -473,7 +438,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
               const dirent = new FsaNodeDirent(name, handle.kind);
               list.push(dirent);
             }
-            if (!isWin && options.encoding !== 'buffer')
+            if (!util.isWin && options.encoding !== 'buffer')
               list.sort((a, b) => {
                 if (a.name < b.name) return -1;
                 if (a.name > b.name) return 1;
@@ -485,7 +450,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
             for await (const key of dir.keys()) list.push(key);
 
-            if (!isWin && options.encoding !== 'buffer') list.sort();
+            if (!util.isWin && options.encoding !== 'buffer') list.sort();
 
             return list;
           }
@@ -502,10 +467,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: misc.TCallback<misc.TDataOut> | opts.IOptions,
     b?: misc.TCallback<misc.TDataOut>,
   ) => {
-    const [opts, callback] = getDefaultOptsAndCb(a, b);
-    const filename = pathToFilename(path);
+    const [opts, callback] = optHelpers.getDefaultOptsAndCb(a, b);
+    const filename = util.pathToFilename(path);
     const buffer = Buffer.from(filename);
-    callback(null, bufferToEncoding(buffer, opts.encoding));
+    callback(null, util.bufferToEncoding(buffer, opts.encoding));
   };
 
   public readonly fsync: FsCallbackApi['fsync'] = (fd: number, callback: misc.TCallback<void>): void => {
@@ -522,7 +487,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     b?: misc.TCallback<void>,
   ): void => {
     const len: number = typeof a === 'number' ? a : 0;
-    const callback: misc.TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
+    const callback: misc.TCallback<void> = util.validateCallback(typeof a === 'number' ? b : a);
     this.getFileByFdAsync(fd)
       .then(file => file.file.createWritable({ keepExistingData: true }))
       .then(writable => writable.truncate(len).then(() => writable.close()))
@@ -538,7 +503,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     b?: misc.TCallback<void>,
   ) => {
     const len: number = typeof a === 'number' ? a : 0;
-    const callback: misc.TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
+    const callback: misc.TCallback<void> = util.validateCallback(typeof a === 'number' ? b : a);
     this.open(path, 'r+', (error, fd) => {
       if (error) callback(error);
       else {
@@ -573,10 +538,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: misc.TCallback<void> | misc.TMode | opts.IMkdirOptions,
     b?: misc.TCallback<string> | misc.TCallback<void>,
   ) => {
-    const opts: misc.TMode | opts.IMkdirOptions = getMkdirOptions(a);
-    const callback = validateCallback(typeof a === 'function' ? a : b!);
+    const opts: misc.TMode | opts.IMkdirOptions = optHelpers.getMkdirOptions(a);
+    const callback = util.validateCallback(typeof a === 'function' ? a : b!);
     // const modeNum = modeToNumber(opts.mode, 0o777);
-    const filename = pathToFilename(path);
+    const filename = util.pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
     // TODO: need to throw if directory already exists
     this.getDir(folder, opts.recursive ?? false)
@@ -587,7 +552,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                const err = createError('ENOENT', 'mkdir', folder.join('/'));
+                const err = util.createError('ENOENT', 'mkdir', folder.join('/'));
                 callback(err);
                 return;
               }
@@ -603,10 +568,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: misc.TCallback<string> | opts.IOptions,
     b?: misc.TCallback<string>,
   ) => {
-    const [{ encoding }, callback] = getDefaultOptsAndCb(a, b);
+    const [{ encoding }, callback] = optHelpers.getDefaultOptsAndCb(a, b);
     if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
-    if (!nullCheck(prefix)) return;
-    const filename = prefix + genRndStr6();
+    if (!util.nullCheck(prefix)) return;
+    const filename = prefix + util.genRndStr6();
     this.mkdir(filename, MODE.DIR, err => {
       if (err) callback(err);
       else callback(null, strToEncoding(filename, encoding));
@@ -618,9 +583,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: misc.TCallback<void> | opts.IRmdirOptions,
     b?: misc.TCallback<void>,
   ) => {
-    const options: opts.IRmdirOptions = getRmdirOptions(a);
-    const callback: misc.TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
-    const [folder, name] = pathToLocation(pathToFilename(path));
+    const options: opts.IRmdirOptions = optHelpers.getRmdirOptions(a);
+    const callback: misc.TCallback<void> = util.validateCallback(typeof a === 'function' ? a : b);
+    const [folder, name] = pathToLocation(util.pathToFilename(path));
     this.getDir(folder, false, 'rmdir')
       .then(dir => dir.getDirectoryHandle(name).then(() => dir))
       .then(dir => dir.removeEntry(name, { recursive: options.recursive ?? false }))
@@ -630,12 +595,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                const err = createError('ENOENT', 'rmdir', folder.join('/'));
+                const err = util.createError('ENOENT', 'rmdir', folder.join('/'));
                 callback(err);
                 return;
               }
               case 'InvalidModificationError': {
-                const err = createError('ENOTEMPTY', 'rmdir', folder.join('/'));
+                const err = util.createError('ENOTEMPTY', 'rmdir', folder.join('/'));
                 callback(err);
                 return;
               }
@@ -651,8 +616,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: misc.TCallback<void> | opts.IRmOptions,
     b?: misc.TCallback<void>,
   ): void => {
-    const [options, callback] = getRmOptsAndCb(a, b);
-    const [folder, name] = pathToLocation(pathToFilename(path));
+    const [options, callback] = optHelpers.getRmOptsAndCb(a, b);
+    const [folder, name] = pathToLocation(util.pathToFilename(path));
     this.getDir(folder, false, 'rmdir')
       .then(dir => dir.removeEntry(name, { recursive: options.recursive ?? false }))
       .then(
@@ -665,12 +630,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                const err = createError('ENOENT', 'rmdir', folder.join('/'));
+                const err = util.createError('ENOENT', 'rmdir', folder.join('/'));
                 callback(err);
                 return;
               }
               case 'InvalidModificationError': {
-                const err = createError('ENOTEMPTY', 'rmdir', folder.join('/'));
+                const err = util.createError('ENOTEMPTY', 'rmdir', folder.join('/'));
                 callback(err);
                 return;
               }
@@ -742,9 +707,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
       autoClose: true,
       emitClose: true,
     };
-    const optionsObj: opts.IWriteStreamOptions = getOptions(defaults, options);
-    const filename = pathToFilename(path);
-    const flags = flagsToNumber(optionsObj.flags ?? 'w');
+    const optionsObj: opts.IWriteStreamOptions = optHelpers.getOptions(defaults, options);
+    const filename = util.pathToFilename(path);
+    const flags = util.flagsToNumber(optionsObj.flags ?? 'w');
     const fd: number = optionsObj.fd ? (typeof optionsObj.fd === 'number' ? optionsObj.fd : optionsObj.fd.fd) : 0;
     const handle = fd ? this.getFileByFdAsync(fd) : this.__open(filename, flags, 0);
     const stream = new FsaNodeWriteStream(handle, filename, optionsObj);
@@ -775,9 +740,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
       fs: null,
       signal: null,
     };
-    const optionsObj: opts.IReadStreamOptions = getOptions<opts.IReadStreamOptions>(defaults, options);
-    const filename = pathToFilename(path);
-    const flags = flagsToNumber(optionsObj.flags);
+    const optionsObj: opts.IReadStreamOptions = optHelpers.getOptions<opts.IReadStreamOptions>(defaults, options);
+    const filename = util.pathToFilename(path);
+    const flags = util.flagsToNumber(optionsObj.flags);
     const fd: number = optionsObj.fd ? (typeof optionsObj.fd === 'number' ? optionsObj.fd : optionsObj.fd.fd) : 0;
     const handle = fd ? this.getFileByFdAsync(fd) : this.__open(filename, flags, 0);
     const stream = new FsaNodeReadStream(this, handle, filename, optionsObj);
@@ -796,8 +761,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     path: misc.PathLike,
     options?: opts.IStatOptions,
   ): misc.IStats<any> => {
-    const { bigint = true, throwIfNoEntry = true } = getStatOptions(options);
-    const filename = pathToFilename(path);
+    const { bigint = true, throwIfNoEntry = true } = optHelpers.getStatOptions(options);
+    const filename = util.pathToFilename(path);
     const location = pathToLocation(filename);
     const adapter = this.getSyncAdapter();
     const res = adapter.call('stat', location);
@@ -816,7 +781,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     path: misc.PathLike,
     mode: number = AMODE.F_OK,
   ): void => {
-    const filename = pathToFilename(path);
+    const filename = util.pathToFilename(path);
     mode = mode | 0;
     const adapter = this.getSyncAdapter();
     adapter.call('access', [filename, mode]);
@@ -826,13 +791,13 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     id: misc.TFileId,
     options?: opts.IReadFileOptions | string,
   ): misc.TDataOut => {
-    const opts = getReadFileOptions(options);
-    const flagsNum = flagsToNumber(opts.flag);
+    const opts = optHelpers.getReadFileOptions(options);
+    const flagsNum = util.flagsToNumber(opts.flag);
     const filename = this.getFileName(id);
     const adapter = this.getSyncAdapter();
     const uint8 = adapter.call('readFile', [filename, opts]);
     const buffer = Buffer.from(uint8.buffer, uint8.byteOffset, uint8.byteLength);
-    return bufferToEncoding(buffer, opts.encoding);
+    return util.bufferToEncoding(buffer, opts.encoding);
   };
 
   public readonly writeFileSync: FsSynchronousApi['writeFileSync'] = (
@@ -840,13 +805,13 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     data: misc.TData,
     options?: opts.IWriteFileOptions,
   ): void => {
-    const opts = getWriteFileOptions(options);
-    const flagsNum = flagsToNumber(opts.flag);
-    const modeNum = modeToNumber(opts.mode);
-    const buf = dataToBuffer(data, opts.encoding);
+    const opts = optHelpers.getWriteFileOptions(options);
+    const flagsNum = util.flagsToNumber(opts.flag);
+    const modeNum = util.modeToNumber(opts.mode);
+    const buf = util.dataToBuffer(data, opts.encoding);
     const filename = this.getFileName(id);
     const adapter = this.getSyncAdapter();
-    adapter.call('writeFile', [filename, bufToUint8(buf), opts]);
+    adapter.call('writeFile', [filename, util.bufToUint8(buf), opts]);
   };
 
   public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = (
@@ -854,16 +819,16 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     data: misc.TData,
     options?: opts.IAppendFileOptions | string,
   ) => {
-    const opts = getAppendFileOpts(options);
-    if (!opts.flag || isFd(id)) opts.flag = 'a';
+    const opts = optHelpers.getAppendFileOpts(options);
+    if (!opts.flag || util.isFd(id)) opts.flag = 'a';
     const filename = this.getFileName(id);
-    const buf = dataToBuffer(data, opts.encoding);
+    const buf = util.dataToBuffer(data, opts.encoding);
     const adapter = this.getSyncAdapter();
-    adapter.call('appendFile', [filename, bufToUint8(buf), opts]);
+    adapter.call('appendFile', [filename, util.bufToUint8(buf), opts]);
   };
 
   public readonly closeSync: FsSynchronousApi['closeSync'] = (fd: number) => {
-    validateFd(fd);
+    util.validateFd(fd);
     const file = this.getFileByFd(fd, 'close');
     file.close().catch(() => {});
     this.fds.delete(fd);
@@ -884,8 +849,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     dest: misc.PathLike,
     flags?: misc.TFlagsCopy,
   ): void => {
-    const srcFilename = pathToFilename(src);
-    const destFilename = pathToFilename(dest);
+    const srcFilename = util.pathToFilename(src);
+    const destFilename = util.pathToFilename(dest);
     const adapter = this.getSyncAdapter();
     adapter.call('copy', [srcFilename, destFilename, flags]);
   };
@@ -894,20 +859,20 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     oldPath: misc.PathLike,
     newPath: misc.PathLike,
   ): void => {
-    const srcFilename = pathToFilename(oldPath);
-    const destFilename = pathToFilename(newPath);
+    const srcFilename = util.pathToFilename(oldPath);
+    const destFilename = util.pathToFilename(newPath);
     const adapter = this.getSyncAdapter();
     adapter.call('move', [srcFilename, destFilename]);
   };
 
   public readonly rmdirSync: FsSynchronousApi['rmdirSync'] = (path: misc.PathLike, opts?: opts.IRmdirOptions): void => {
-    const filename = pathToFilename(path);
+    const filename = util.pathToFilename(path);
     const adapter = this.getSyncAdapter();
     adapter.call('rmdir', [filename, opts]);
   };
 
   public readonly rmSync: FsSynchronousApi['rmSync'] = (path: misc.PathLike, options?: opts.IRmOptions): void => {
-    const filename = pathToFilename(path);
+    const filename = util.pathToFilename(path);
     const adapter = this.getSyncAdapter();
     adapter.call('rm', [filename, options]);
   };
@@ -916,9 +881,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     path: misc.PathLike,
     options?: misc.TMode | opts.IMkdirOptions,
   ): string | undefined => {
-    const opts = getMkdirOptions(options);
-    const modeNum = modeToNumber(opts.mode, 0o777);
-    const filename = pathToFilename(path);
+    const opts = optHelpers.getMkdirOptions(options);
+    const modeNum = util.modeToNumber(opts.mode, 0o777);
+    const filename = util.pathToFilename(path);
     return this.getSyncAdapter().call('mkdir', [filename, options]);
   };
 
@@ -926,9 +891,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     prefix: string,
     options?: opts.IOptions,
   ): misc.TDataOut => {
-    const { encoding } = getDefaultOpts(options);
+    const { encoding } = optHelpers.getDefaultOpts(options);
     if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
-    nullCheck(prefix);
+    util.nullCheck(prefix);
     const result = this.getSyncAdapter().call('mkdtemp', [prefix, options]);
     return strToEncoding(result, encoding);
   };
@@ -937,15 +902,15 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     path: misc.PathLike,
     options?: opts.IOptions,
   ): misc.TDataOut => {
-    const opts = getDefaultOpts(options);
-    const filename = pathToFilename(path);
+    const opts = optHelpers.getDefaultOpts(options);
+    const filename = util.pathToFilename(path);
     const buffer = Buffer.from(filename);
-    return bufferToEncoding(buffer, opts.encoding);
+    return util.bufferToEncoding(buffer, opts.encoding);
   };
 
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = (id: misc.TFileId, len?: number): void => {
-    if (isFd(id)) return this.ftruncateSync(id as number, len);
-    const filename = pathToFilename(id as misc.PathLike);
+    if (util.isFd(id)) return this.ftruncateSync(id as number, len);
+    const filename = util.pathToFilename(id as misc.PathLike);
     this.getSyncAdapter().call('trunc', [filename, Number(len) || 0]);
   };
 
@@ -955,7 +920,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public readonly unlinkSync: FsSynchronousApi['unlinkSync'] = (path: misc.PathLike): void => {
-    const filename = pathToFilename(path);
+    const filename = util.pathToFilename(path);
     this.getSyncAdapter().call('unlink', [filename]);
   };
 
@@ -963,8 +928,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     path: misc.PathLike,
     options?: opts.IReaddirOptions | string,
   ): misc.TDataOut[] | misc.IDirent[] => {
-    const opts = getReaddirOptions(options);
-    const filename = pathToFilename(path);
+    const opts = optHelpers.getReaddirOptions(options);
+    const filename = util.pathToFilename(path);
     const adapter = this.getSyncAdapter();
     const list = adapter.call('readdir', [filename]);
     if (opts.withFileTypes) {
@@ -975,7 +940,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
       const res: misc.TDataOut[] = [];
       for (const entry of list) {
         const buffer = Buffer.from(entry.name);
-        res.push(bufferToEncoding(buffer, opts.encoding));
+        res.push(util.bufferToEncoding(buffer, opts.encoding));
       }
       return res;
     }
@@ -985,8 +950,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     path: misc.PathLike,
     options?: opts.IRealpathOptions | string,
   ): misc.TDataOut => {
-    let filename = pathToFilename(path);
-    const { encoding } = getRealpathOptions(options);
+    let filename = util.pathToFilename(path);
+    const { encoding } = optHelpers.getRealpathOptions(options);
     if (filename[0] !== FsaToNodeConstants.Separator) filename = FsaToNodeConstants.Separator + filename;
     return strToEncoding(filename, encoding);
   };
@@ -998,7 +963,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     length: number,
     position: number,
   ): number => {
-    validateFd(fd);
+    util.validateFd(fd);
     const filename = this.getFileName(fd);
     const adapter = this.getSyncAdapter();
     const uint8 = adapter.call('read', [filename, position, length]);
@@ -1014,7 +979,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     c?: number | BufferEncoding,
     d?: number,
   ): number => {
-    const [, buf, offset, length, position] = getWriteSyncArgs(fd, a, b, c, d);
+    const [, buf, offset, length, position] = util.getWriteSyncArgs(fd, a, b, c, d);
     const filename = this.getFileName(fd);
     const data = new Uint8Array(buf.buffer, buf.byteOffset + offset, length);
     return this.getSyncAdapter().call('write', [filename, data, position || null]);
@@ -1025,9 +990,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     flags: misc.TFlags,
     mode: misc.TMode = MODE.DEFAULT,
   ): number => {
-    const modeNum = modeToNumber(mode);
-    const filename = pathToFilename(path);
-    const flagsNum = flagsToNumber(flags);
+    const modeNum = util.modeToNumber(mode);
+    const filename = util.pathToFilename(path);
+    const flagsNum = util.flagsToNumber(flags);
     const adapter = this.getSyncAdapter();
     const handle = adapter.call('open', [filename, flagsNum, modeNum]);
     const openFile = this.__open2(handle, filename, flagsNum, modeNum);

@@ -7,8 +7,7 @@ import type * as fsa from '../../src/fsa/types';
 import {FsaNodeFs, FsaNodeSyncAdapterWorker} from '../../src/fsa-to-node';
 
 const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
-  console.log('demo', dir);
-  const adapter = await FsaNodeSyncAdapterWorker.start(dir);
+  const adapter = await FsaNodeSyncAdapterWorker.start('https://localhost:9876/worker.js', dir);
   const fs = new FsaNodeFs(dir, adapter);
 
   await fs.promises.mkdir('/dir');
@@ -104,6 +103,7 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   strictEqual(fs.existsSync('/new-file.txt'), false);
   const fd = fs.openSync('/new-file.txt', 'w');
   strictEqual(fs.existsSync('/new-file.txt'), true);
+  fs.unlinkSync('/new-file.txt');
   strictEqual(typeof fd, 'number');
 };
 

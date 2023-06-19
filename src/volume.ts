@@ -63,7 +63,6 @@ const {
   O_EXCL,
   O_TRUNC,
   O_APPEND,
-  O_SYNC,
   O_DIRECTORY,
   F_OK,
   COPYFILE_EXCL,
@@ -85,23 +84,16 @@ export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
 export type TTime = number | string | Date;
 export type TCallback<TData> = (error?: IError | null, data?: TData) => void;
-// type TCallbackWrite = (err?: IError, bytesWritten?: number, source?: Buffer) => void;
-// type TCallbackWriteStr = (err?: IError, written?: number, str?: string) => void;
 
 // ---------------------------------------- Constants
 
 const kMinPoolSpace = 128;
-// const kMaxLength = require('buffer').kMaxLength;
 
 // ---------------------------------------- Error messages
-
-// const ERRSTR_FLAG = flag => `Unknown file open flag: ${flag}`;
 
 const ENOENT = 'ENOENT';
 const EBADF = 'EBADF';
 const EINVAL = 'EINVAL';
-const EPERM = 'EPERM';
-const EPROTO = 'EPROTO';
 const EEXIST = 'EEXIST';
 const ENOTDIR = 'ENOTDIR';
 const EMFILE = 'EMFILE';
@@ -129,42 +121,10 @@ export interface IWatchFileOptions {
   interval?: number;
 }
 
-// Options for `fs.createWriteStream`
-export interface IWriteStreamOptions {
-  flags?: TFlags;
-  defaultEncoding?: BufferEncoding;
-  fd?: number;
-  mode?: TMode;
-  autoClose?: boolean;
-  start?: number;
-}
-
 // Options for `fs.watch`
 export interface IWatchOptions extends opts.IOptions {
   persistent?: boolean;
   recursive?: boolean;
-}
-
-// Options for `fs.mkdir` and `fs.mkdirSync`
-export interface IMkdirOptions {
-  mode?: TMode;
-  recursive?: boolean;
-}
-
-// Options for `fs.readdir` and `fs.readdirSync`
-export interface IReaddirOptions extends opts.IOptions {
-  withFileTypes?: boolean;
-}
-
-// Options for `fs.lstat`, `fs.lstatSync`, `fs.stat`, and `fs.statSync`
-export interface IStatOptions {
-  bigint?: boolean;
-  throwIfNoEntry?: boolean;
-}
-
-// Options for `fs.fstat`, fs.fstatSync
-export interface IFStatOptions {
-  bigint?: boolean;
 }
 
 // ---------------------------------------- Utility functions
@@ -1183,15 +1143,15 @@ export class Volume implements FsCallbackApi {
   lstatSync(path: PathLike, options: { throwIfNoEntry: false }): Stats<number> | undefined;
   lstatSync(path: PathLike, options: { bigint: false; throwIfNoEntry: false }): Stats<number> | undefined;
   lstatSync(path: PathLike, options: { bigint: true; throwIfNoEntry: false }): Stats<bigint> | undefined;
-  lstatSync(path: PathLike, options?: IStatOptions): Stats | undefined {
+  lstatSync(path: PathLike, options?: opts.IStatOptions): Stats | undefined {
     const { throwIfNoEntry = true, bigint = false } = getStatOptions(options);
 
     return this.lstatBase(pathToFilename(path), bigint as any, throwIfNoEntry as any);
   }
 
   lstat(path: PathLike, callback: TCallback<Stats>): void;
-  lstat(path: PathLike, options: IStatOptions, callback: TCallback<Stats>): void;
-  lstat(path: PathLike, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>): void {
+  lstat(path: PathLike, options: opts.IStatOptions, callback: TCallback<Stats>): void;
+  lstat(path: PathLike, a: TCallback<Stats> | opts.IStatOptions, b?: TCallback<Stats>): void {
     const [{ throwIfNoEntry = true, bigint = false }, callback] = getStatOptsAndCb(a, b);
     this.wrapAsync(this.lstatBase, [pathToFilename(path), bigint, throwIfNoEntry], callback);
   }
@@ -1220,15 +1180,15 @@ export class Volume implements FsCallbackApi {
   statSync(path: PathLike, options: { bigint: true; throwIfNoEntry?: true }): Stats<bigint>;
   statSync(path: PathLike, options: { bigint: false; throwIfNoEntry: false }): Stats<number> | undefined;
   statSync(path: PathLike, options: { bigint: true; throwIfNoEntry: false }): Stats<bigint> | undefined;
-  statSync(path: PathLike, options?: IStatOptions): Stats | undefined {
+  statSync(path: PathLike, options?: opts.IStatOptions): Stats | undefined {
     const { bigint = true, throwIfNoEntry = true } = getStatOptions(options);
 
     return this.statBase(pathToFilename(path), bigint as any, throwIfNoEntry as any);
   }
 
   stat(path: PathLike, callback: TCallback<Stats>): void;
-  stat(path: PathLike, options: IStatOptions, callback: TCallback<Stats>): void;
-  stat(path: PathLike, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>): void {
+  stat(path: PathLike, options: opts.IStatOptions, callback: TCallback<Stats>): void;
+  stat(path: PathLike, a: TCallback<Stats> | opts.IStatOptions, b?: TCallback<Stats>): void {
     const [{ bigint = false, throwIfNoEntry = true }, callback] = getStatOptsAndCb(a, b);
 
     this.wrapAsync(this.statBase, [pathToFilename(path), bigint, throwIfNoEntry], callback);
@@ -1246,13 +1206,13 @@ export class Volume implements FsCallbackApi {
   fstatSync(fd: number): Stats<number>;
   fstatSync(fd: number, options: { bigint: false }): Stats<number>;
   fstatSync(fd: number, options: { bigint: true }): Stats<bigint>;
-  fstatSync(fd: number, options?: IFStatOptions): Stats {
+  fstatSync(fd: number, options?: opts.IFStatOptions): Stats {
     return this.fstatBase(fd, getStatOptions(options).bigint as any);
   }
 
   fstat(fd: number, callback: TCallback<Stats>): void;
-  fstat(fd: number, options: IFStatOptions, callback: TCallback<Stats>): void;
-  fstat(fd: number, a: TCallback<Stats> | IFStatOptions, b?: TCallback<Stats>): void {
+  fstat(fd: number, options: opts.IFStatOptions, callback: TCallback<Stats>): void;
+  fstat(fd: number, a: TCallback<Stats> | opts.IFStatOptions, b?: TCallback<Stats>): void {
     const [opts, callback] = getStatOptsAndCb(a, b);
     this.wrapAsync(this.fstatBase, [fd, opts.bigint], callback);
   }
@@ -1373,7 +1333,7 @@ export class Volume implements FsCallbackApi {
     this.writeFile(id, data, opts, callback);
   }
 
-  private readdirBase(filename: string, options: IReaddirOptions): TDataOut[] | Dirent[] {
+  private readdirBase(filename: string, options: opts.IReaddirOptions): TDataOut[] | Dirent[] {
     const steps = filenameToSteps(filename);
     const link: Link | null = this.getResolvedLink(steps);
     if (!link) throw createError(ENOENT, 'readdir', filename);
@@ -1414,14 +1374,14 @@ export class Volume implements FsCallbackApi {
     return list;
   }
 
-  readdirSync(path: PathLike, options?: IReaddirOptions | string): TDataOut[] | Dirent[] {
+  readdirSync(path: PathLike, options?: opts.IReaddirOptions | string): TDataOut[] | Dirent[] {
     const opts = getReaddirOptions(options);
     const filename = pathToFilename(path);
     return this.readdirBase(filename, opts);
   }
 
   readdir(path: PathLike, callback: TCallback<TDataOut[] | Dirent[]>);
-  readdir(path: PathLike, options: IReaddirOptions | string, callback: TCallback<TDataOut[] | Dirent[]>);
+  readdir(path: PathLike, options: opts.IReaddirOptions | string, callback: TCallback<TDataOut[] | Dirent[]>);
   readdir(path: PathLike, a?, b?) {
     const [options, callback] = getReaddirOptsAndCb(a, b);
     const filename = pathToFilename(path);
@@ -1601,10 +1561,10 @@ export class Volume implements FsCallbackApi {
     return created ? fullPath : undefined;
   }
 
-  mkdirSync(path: PathLike, options: IMkdirOptions & { recursive: true }): string | undefined;
-  mkdirSync(path: PathLike, options?: TMode | (IMkdirOptions & { recursive?: false })): void;
-  mkdirSync(path: PathLike, options?: TMode | IMkdirOptions): string | undefined;
-  mkdirSync(path: PathLike, options?: TMode | IMkdirOptions) {
+  mkdirSync(path: PathLike, options: opts.IMkdirOptions & { recursive: true }): string | undefined;
+  mkdirSync(path: PathLike, options?: TMode | (opts.IMkdirOptions & { recursive?: false })): void;
+  mkdirSync(path: PathLike, options?: TMode | opts.IMkdirOptions): string | undefined;
+  mkdirSync(path: PathLike, options?: TMode | opts.IMkdirOptions) {
     const opts = getMkdirOptions(options);
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
@@ -1613,11 +1573,11 @@ export class Volume implements FsCallbackApi {
   }
 
   mkdir(path: PathLike, callback: TCallback<void>);
-  mkdir(path: PathLike, mode: TMode | (IMkdirOptions & { recursive?: false }), callback: TCallback<void>);
-  mkdir(path: PathLike, mode: IMkdirOptions & { recursive: true }, callback: TCallback<string>);
-  mkdir(path: PathLike, mode: TMode | IMkdirOptions, callback: TCallback<string>);
-  mkdir(path: PathLike, a: TCallback<void> | TMode | IMkdirOptions, b?: TCallback<string> | TCallback<void>) {
-    const opts: TMode | IMkdirOptions = getMkdirOptions(a);
+  mkdir(path: PathLike, mode: TMode | (opts.IMkdirOptions & { recursive?: false }), callback: TCallback<void>);
+  mkdir(path: PathLike, mode: opts.IMkdirOptions & { recursive: true }, callback: TCallback<string>);
+  mkdir(path: PathLike, mode: TMode | opts.IMkdirOptions, callback: TCallback<string>);
+  mkdir(path: PathLike, a: TCallback<void> | TMode | opts.IMkdirOptions, b?: TCallback<string> | TCallback<void>) {
+    const opts: TMode | opts.IMkdirOptions = getMkdirOptions(a);
     const callback = validateCallback(typeof a === 'function' ? a : b!);
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
@@ -1894,7 +1854,7 @@ export class Volume implements FsCallbackApi {
     return new this.ReadStream(path, options);
   }
 
-  createWriteStream(path: PathLike, options?: IWriteStreamOptions | string): IWriteStream {
+  createWriteStream(path: PathLike, options?: opts.IWriteStreamOptions | string): IWriteStream {
     return new this.WriteStream(path, options);
   }
 
@@ -2162,7 +2122,7 @@ export interface IWriteStream extends Writable {
   bytesWritten: number;
   path: string;
   pending: boolean;
-  new (path: PathLike, options: IWriteStreamOptions);
+  new (path: PathLike, options: opts.IWriteStreamOptions);
   open();
   close();
 }

@@ -1,11 +1,15 @@
 export type AsyncCallback = (request: Uint8Array) => Promise<Uint8Array>;
 
-const microSleepSync = () => {
-  // Math.random();
-};
-
-const sleepUntilSync = (condition: () => boolean) => {
-  while (!condition()) microSleepSync();
+/**
+ * @param condition Condition to wait for, when true, the function returns.
+ * @param ms Maximum time to wait in milliseconds.
+ */
+const sleepUntil = (condition: () => boolean, ms: number = 100) => {
+  const start = Date.now();
+  while (!condition()) {
+    const now = Date.now();
+    if (now - start > ms) throw new Error('Timeout');
+  }
 };
 
 /**
@@ -42,7 +46,7 @@ export class SyncMessenger {
     int32[2] = requestLength;
     this.uint8.set(data, headerSize);
     Atomics.notify(int32, 0);
-    sleepUntilSync(() => int32[1] === 1);
+    sleepUntil(() => int32[1] === 1);
     const responseLength = int32[2];
     const response = this.uint8.slice(headerSize, headerSize + responseLength);
     return response;

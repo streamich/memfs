@@ -238,6 +238,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     );
   };
 
+  /**
+   * @todo There is a proposal for native "self remove" operation.
+   * @see https://github.com/whatwg/fs/blob/main/proposals/Remove.md
+   */
   public readonly unlink: FsCallbackApi['unlink'] = (path: misc.PathLike, callback: misc.TCallback<void>): void => {
     const filename = util.pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
@@ -319,6 +323,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return stats;
   }
 
+  /**
+   * @todo There is a proposal for native move support.
+   * @see https://github.com/whatwg/fs/blob/main/proposals/MovingNonOpfsFiles.md
+   */
   public readonly rename: FsCallbackApi['rename'] = (
     oldPath: misc.PathLike,
     newPath: misc.PathLike,
@@ -754,6 +762,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
   public readonly symlink: FsCallbackApi['symlink'] = notSupported;
   public readonly link: FsCallbackApi['link'] = notSupported;
+
+  /**
+   * @todo Watchers could be implemented in the future on top of `FileSystemObserver`,
+   * which is currently a proposal.
+   * @see https://github.com/whatwg/fs/blob/main/proposals/FileSystemObserver.md
+   */
   public readonly watchFile: FsCallbackApi['watchFile'] = notSupported;
   public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notSupported;
   public readonly watch: FsCallbackApi['watch'] = notSupported;

@@ -183,5 +183,10 @@ export class FsaNodeSyncWorker {
       if (bytesRead < length) uint8 = uint8.slice(0, bytesRead);
       return uint8;
     },
+    write: async ([filename, data, position]): Promise<number> => {
+      const handle = await this.fs.promises.open(filename, 'a');
+      const {bytesWritten} = await handle.write(data, 0, data.length, position || undefined);
+      return bytesWritten;
+    },
   };
 }

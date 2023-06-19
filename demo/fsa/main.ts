@@ -92,6 +92,13 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   const bytesRead = fs.readSync(readHandle.fd, buf, 0, 3, 0);
   strictEqual(bytesRead, 3);
   strictEqual(buf.toString('utf8'), 'wor');
+
+  console.log('writeSync() - can write into an open file');
+  const writeHandle = await fs.promises.open('/cool.txt', 'a');
+  const bytesWritten = fs.writeSync(writeHandle.fd, Buffer.from('W'), 0, 1, 0);
+  await writeHandle.close();
+  strictEqual(bytesWritten, 1);
+  strictEqual(fs.readFileSync('/cool.txt', 'utf8'), 'Worlds!');
 };
 
 const main = async () => {

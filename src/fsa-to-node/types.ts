@@ -26,6 +26,11 @@ export interface FsaNodeSyncAdapterApi {
     position: number,
     length: number,
   ]): Uint8Array;
+  write(req: [
+    filename: string,
+    data: Uint8Array,
+    position: number | null,
+  ]): number;
 }
 
 export interface FsaNodeSyncAdapter {

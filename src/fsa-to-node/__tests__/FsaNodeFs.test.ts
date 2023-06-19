@@ -816,4 +816,70 @@ onlyOnNode20('FsaNodeFs', () => {
       }
     });
   });
+
+  describe('.createReadStream()', () => {
+    test('can pipe fs.ReadStream to fs.WriteStream', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const readStream = fs.createReadStream('/folder/file');
+      const writeStream = fs.createWriteStream('/folder/file2');
+      readStream.pipe(writeStream);
+      await new Promise(resolve => writeStream.once('close', resolve));
+      expect(mfs.__vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/folder/file2': 'test',
+        '/mountpoint/empty-folder': null,
+        '/mountpoint/f.html': 'test',
+      });
+    });
+
+    test('emits "open" event', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const readStream = fs.createReadStream('/folder/file');
+      const fd = await new Promise(resolve => readStream.once('open', resolve));
+      expect(typeof fd).toBe('number');
+    });
+
+    test('emits "ready" event', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const readStream = fs.createReadStream('/folder/file');
+      await new Promise(resolve => readStream.once('ready', resolve));
+    });
+
+    test('emits "close" event', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const readStream = fs.createReadStream('/folder/file', {emitClose: true});
+      const writeStream = fs.createWriteStream('/folder/file2');
+      readStream.pipe(writeStream);
+      await new Promise(resolve => readStream.once('close', resolve));
+    });
+
+    test('can write to already open file', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const handle = await fs.promises.open('/folder/file');
+      const readStream = fs.createReadStream('xyz', {fd: handle.fd});
+      const writeStream = fs.createWriteStream('/folder/file2');
+      readStream.pipe(writeStream);
+      await new Promise(resolve => writeStream.once('close', resolve));
+      expect(mfs.__vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/folder/file2': 'test',
+        '/mountpoint/empty-folder': null,
+        '/mountpoint/f.html': 'test',
+      });
+    });
+
+    test('can read a specified slice of a file', async () => {
+      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const readStream = fs.createReadStream('/folder/file', {start: 1, end: 2});
+      const writeStream = fs.createWriteStream('/folder/file2');
+      readStream.pipe(writeStream);
+      await new Promise(resolve => writeStream.once('close', resolve));
+      expect(mfs.__vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/folder/file2': 'es',
+        '/mountpoint/empty-folder': null,
+        '/mountpoint/f.html': 'test',
+      });
+    });
+  });
 });

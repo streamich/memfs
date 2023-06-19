@@ -53,7 +53,7 @@ if (typeof window === 'undefined') {
 }
 ```
 
-You will also need to run you app through HTTPS and with [COI enabled](https://web.dev/cross-origin-isolation-guide/).
+You will also need to run your app through HTTPS and with [COI enabled](https://web.dev/cross-origin-isolation-guide/).
 Using Webpack dev server you can do it like this:
 
 ```js

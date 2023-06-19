@@ -188,5 +188,11 @@ export class FsaNodeSyncWorker {
       const {bytesWritten} = await handle.write(data, 0, data.length, position || undefined);
       return bytesWritten;
     },
+    open: async ([filename, flags, mode]): Promise<fsa.IFileSystemFileHandle> => {
+      const handle = await this.fs.promises.open(filename, flags, mode);
+      const file = await this.fs.__getFileById(handle.fd);
+      await handle.close();
+      return file;
+    },
   };
 }

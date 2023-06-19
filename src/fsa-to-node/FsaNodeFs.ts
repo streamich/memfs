@@ -143,7 +143,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   ) => {
     const [opts, callback] = optsAndCbGenerator<opts.IReadFileOptions, misc.TDataOut>(getReadFileOptions)(a, b);
     const flagsNum = flagsToNumber(opts.flag);
-    return this.getFileById(id, 'readFile')
+    return this.__getFileById(id, 'readFile')
       .then(file => file.getFile())
       .then(file => file.arrayBuffer())
       .then(data => {
@@ -227,7 +227,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const buf = dataToBuffer(data, opts.encoding);
     (async () => {
       const createIfMissing = !!(flagsNum & FLAG.O_CREAT);
-      const file = await this.getFileById(id, 'writeFile', createIfMissing);
+      const file = await this.__getFileById(id, 'writeFile', createIfMissing);
       const writable = await file.createWritable({ keepExistingData: false });
       await writable.write(buf);
       await writable.close();
@@ -988,7 +988,15 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return this.getSyncAdapter().call('write', [filename, data, position || null]);
   };
 
-  public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
+  public readonly openSync: FsSynchronousApi['openSync'] = (path: misc.PathLike, flags: misc.TFlags, mode: misc.TMode = MODE.DEFAULT): number => {
+    const modeNum = modeToNumber(mode);
+    const filename = pathToFilename(path);
+    const flagsNum = flagsToNumber(flags);
+    const adapter = this.getSyncAdapter();
+    const handle = adapter.call('open', [filename, flagsNum, modeNum]);
+    const openFile = this.__open2(handle, filename, flagsNum, modeNum);
+    return openFile.fd;
+  };
 
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
   public readonly chownSync: FsSynchronousApi['chownSync'] = noop;

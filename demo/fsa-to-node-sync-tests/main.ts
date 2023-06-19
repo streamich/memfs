@@ -115,6 +115,15 @@ const main = async () => {
     const dir = await (window as any).showDirectoryPicker({id: 'demo', mode: 'readwrite'});
     await demo(dir);
   };
+
+  const button2 = document.createElement("button");
+  button2.textContent = "Run tests in OPFS";
+  button2.style.marginLeft = '1em';
+  document.body.appendChild(button2);
+  button2.onclick = async () => {
+    const dir = await navigator.storage.getDirectory();
+    await demo(dir as any);
+  };
 };
 
 main();

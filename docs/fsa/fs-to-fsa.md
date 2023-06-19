@@ -1,7 +1,11 @@
-# `memfs` File System Access API
+# Node `fs` API to File System Access API
 
-`memfs` implements the web [File System Access API][fsa] (formerly known as
+`memfs` implements the web [File System Access (FSA) API][fsa] (formerly known as
 Native File System API) on top of Node's `fs`-like filesystem API.
+
+This means you can instantiate an FSA-compatible API on top of Node.js `fs` module,
+or on top of `memfs` [in-memory filesystem](../node/index.md), or on top of any other filesystem
+that implements Node's `fs` API.
 
 [fsa]: https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API
 

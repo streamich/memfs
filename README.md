@@ -1,6 +1,11 @@
 # memfs
 
-[![][chat-badge]][chat] [![][npm-badge]][npm-url] [![][travis-badge]][travis-url]
+[![][chat-badge]][chat] [![][npm-badge]][npm-url]
+
+[chat]: https://onp4.com/@vadim/~memfs
+[chat-badge]: https://img.shields.io/badge/Chat-%F0%9F%92%AC-green?style=flat&logo=chat&link=https://onp4.com/@vadim/~memfs
+[npm-url]: https://www.npmjs.com/package/memfs
+[npm-badge]: https://img.shields.io/npm/v/memfs.svg
 
 JavaScript file system utilities for Node.js and browser.
 

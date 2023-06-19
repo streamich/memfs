@@ -819,7 +819,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const filename = pathToFilename(path);
     mode = mode | 0;
     const adapter = this.getSyncAdapter();
-    adapter.call('access', { filename, mode });
+    adapter.call('access', [filename, mode]);
   };
 
   public readonly readFileSync: FsSynchronousApi['readFileSync'] = (
@@ -830,7 +830,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const flagsNum = flagsToNumber(opts.flag);
     const filename = this.getFileName(id);
     const adapter = this.getSyncAdapter();
-    const uint8 = adapter.call('readFile', { filename, opts });
+    const uint8 = adapter.call('readFile', [filename, opts]);
     const buffer = Buffer.from(uint8.buffer, uint8.byteOffset, uint8.byteLength);
     return bufferToEncoding(buffer, opts.encoding);
   };
@@ -846,7 +846,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const buf = dataToBuffer(data, opts.encoding);
     const filename = this.getFileName(id);
     const adapter = this.getSyncAdapter();
-    adapter.call('writeFile', { filename, data: bufToUint8(buf), opts });
+    adapter.call('writeFile', [filename, bufToUint8(buf), opts]);
   };
 
   public readonly appendFileSync: FsSynchronousApi['appendFileSync'] = (
@@ -859,7 +859,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const filename = this.getFileName(id);
     const buf = dataToBuffer(data, opts.encoding);
     const adapter = this.getSyncAdapter();
-    adapter.call('appendFile', { filename, data: bufToUint8(buf), opts });
+    adapter.call('appendFile', [filename, bufToUint8(buf), opts]);
   };
 
   public readonly closeSync: FsSynchronousApi['closeSync'] = (fd: number) => {
@@ -887,7 +887,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const srcFilename = pathToFilename(src);
     const destFilename = pathToFilename(dest);
     const adapter = this.getSyncAdapter();
-    adapter.call('copy', { src: srcFilename, dst: destFilename, flags });
+    adapter.call('copy', [srcFilename, destFilename, flags]);
   };
 
   public readonly renameSync: FsSynchronousApi['renameSync'] = (
@@ -897,7 +897,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const srcFilename = pathToFilename(oldPath);
     const destFilename = pathToFilename(newPath);
     const adapter = this.getSyncAdapter();
-    adapter.call('move', { src: srcFilename, dst: destFilename });
+    adapter.call('move', [srcFilename, destFilename]);
   };
 
   public readonly rmdirSync: FsSynchronousApi['rmdirSync'] = (path: misc.PathLike, opts?: opts.IRmdirOptions): void => {

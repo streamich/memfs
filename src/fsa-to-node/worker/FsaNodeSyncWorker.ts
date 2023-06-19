@@ -122,24 +122,24 @@ export class FsaNodeSyncWorker {
         kind: handle.kind,
       };
     },
-    access: async ({ filename, mode }): Promise<void> => {
+    access: async ([filename, mode]): Promise<void> => {
       await this.fs.promises.access(filename, mode);
     },
-    readFile: async ({ filename, opts }): Promise<Uint8Array> => {
+    readFile: async ([filename, opts]): Promise<Uint8Array> => {
       const buf = (await this.fs.promises.readFile(filename, { ...opts, encoding: 'buffer' })) as Buffer;
       const uint8 = new Uint8Array(buf, buf.byteOffset, buf.byteLength);
       return uint8;
     },
-    writeFile: async ({ filename, data, opts }): Promise<void> => {
+    writeFile: async ([filename, data, opts]): Promise<void> => {
       await this.fs.promises.writeFile(filename, data, { ...opts, encoding: 'buffer' });
     },
-    appendFile: async ({ filename, data, opts }): Promise<void> => {
+    appendFile: async ([filename, data, opts]): Promise<void> => {
       await this.fs.promises.appendFile(filename, data, { ...opts, encoding: 'buffer' });
     },
-    copy: async ({ src, dst, flags }): Promise<void> => {
+    copy: async ([src, dst, flags]): Promise<void> => {
       await this.fs.promises.copyFile(src, dst, flags);
     },
-    move: async ({ src, dst }): Promise<void> => {
+    move: async ([src, dst]): Promise<void> => {
       await this.fs.promises.rename(src, dst);
     },
     rmdir: async ([filename, options]): Promise<void> => {

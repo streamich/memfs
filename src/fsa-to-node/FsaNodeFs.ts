@@ -759,7 +759,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return stream;
   };
 
-  public readonly createReadStream: FsCallbackApi['createReadStream'] = (path: misc.PathLike, options?: opts.IReadStreamOptions | string): misc.IReadStream => {
+  public readonly createReadStream: FsCallbackApi['createReadStream'] = (
+    path: misc.PathLike,
+    options?: opts.IReadStreamOptions | string,
+  ): misc.IReadStream => {
     const defaults: opts.IReadStreamOptions = {
       flags: 'r',
       fd: null,

@@ -61,13 +61,27 @@ export interface IWatchFileOptions {
 }
 
 export interface IReadStreamOptions {
+  /** Defaults to `'r'`. */
   flags?: TFlags;
-  encoding?: BufferEncoding;
-  fd?: number;
+  /** Defaults to `null`. */
+  encoding?: BufferEncoding | null;
+  /** Defaults to `null`. */
+  fd?: number | IFileHandle | null;
+  /** Defaults to 0o666 */
   mode?: TMode;
+  /** Defaults to `true`. */
   autoClose?: boolean;
+  /** Defaults to `true`. */
+  emitClose?: boolean;
   start?: number;
+  /** Defaults to `Infinity`. */
   end?: number;
+  /** Defaults to `64 * 1024`. */
+  highWaterMark?: number;
+  /** Defaults to `null`. */
+  fs?: object | null;
+  /** Defaults to `null`. */
+  signal?: AbortSignal | null;
 }
 
 export interface IWriteStreamOptions {

@@ -11,6 +11,7 @@ import { constants } from './constants';
 import { EventEmitter } from 'events';
 import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as util from 'util';
+import * as misc from './node/types/misc';
 import * as opts from './node/types/options';
 import { createPromisesApi } from './node/promises';
 import { ERRSTR, FLAGS, MODE } from './node/constants';
@@ -51,7 +52,7 @@ import {
   getWriteSyncArgs,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
-import { WritevCallback } from './node/types/callback';
+import { FsCallbackApi, WritevCallback } from './node/types/callback';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -126,17 +127,6 @@ export interface IAppendFileOptions extends opts.IFileOptions {}
 export interface IWatchFileOptions {
   persistent?: boolean;
   interval?: number;
-}
-
-// Options for `fs.createReadStream`
-export interface IReadStreamOptions {
-  flags?: TFlags;
-  encoding?: BufferEncoding;
-  fd?: number;
-  mode?: TMode;
-  autoClose?: boolean;
-  start?: number;
-  end?: number;
 }
 
 // Options for `fs.createWriteStream`
@@ -271,7 +261,7 @@ function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {
 /**
  * `Volume` represents a file system.
  */
-export class Volume {
+export class Volume implements FsCallbackApi {
   static fromJSON(json: DirectoryJSON, cwd?: string): Volume {
     const vol = new Volume();
     vol.fromJSON(json, cwd);
@@ -323,7 +313,7 @@ export class Volume {
   openFiles = 0;
 
   StatWatcher: new () => StatWatcher;
-  ReadStream: new (...args) => IReadStream;
+  ReadStream: new (...args) => misc.IReadStream;
   WriteStream: new (...args) => IWriteStream;
   FSWatcher: new () => FSWatcher;
 
@@ -354,12 +344,12 @@ export class Volume {
       }
     };
 
-    const _ReadStream: new (...args) => IReadStream = FsReadStream as any;
+    const _ReadStream: new (...args) => misc.IReadStream = FsReadStream as any;
     this.ReadStream = class extends _ReadStream {
       constructor(...args) {
         super(self, ...args);
       }
-    } as any as new (...args) => IReadStream;
+    } as any as new (...args) => misc.IReadStream;
 
     const _WriteStream: new (...args) => IWriteStream = FsWriteStream as any;
     this.WriteStream = class extends _WriteStream {
@@ -1900,7 +1890,7 @@ export class Volume {
     }
   }
 
-  createReadStream(path: PathLike, options?: IReadStreamOptions | string): IReadStream {
+  createReadStream(path: misc.PathLike, options?: opts.IReadStreamOptions | string): misc.IReadStream {
     return new this.ReadStream(path, options);
   }
 
@@ -1997,14 +1987,6 @@ export class StatWatcher extends EventEmitter {
 
 /* tslint:disable no-var-keyword prefer-const */
 // ---------------------------------------- ReadStream
-
-export interface IReadStream extends Readable {
-  new (path: PathLike, options: IReadStreamOptions);
-  open();
-  close(callback: TCallback<void>);
-  bytesRead: number;
-  path: string;
-}
 
 var pool;
 

@@ -39,7 +39,8 @@
     "tslint": "tslint \"src/**/*.ts\" -t verbose",
     "typecheck": "tsc -p .",
     "watch": "watch \"npm run build\" ./src",
-    "demo:fsa": "webpack serve --config ./demo/fsa/webpack.config.js"
+    "demo:fsa-to-node-sync-tests": "webpack serve --config ./demo/fsa-to-node-sync-tests/webpack.config.js",
+    "demo:fsa-to-node-zipfile": "webpack serve --config ./demo/fsa-to-node-zipfile/webpack.config.js"
   },
   "commitlint": {
     "extends": [
@@ -107,6 +108,7 @@
     "readable-stream": "^4.4.0",
     "rimraf": "^3.0.2",
     "semantic-release": "^19.0.3",
+    "tar-stream": "^3.1.2",
     "ts-jest": "^28.0.5",
     "ts-loader": "^9.4.3",
     "ts-node": "^10.8.1",

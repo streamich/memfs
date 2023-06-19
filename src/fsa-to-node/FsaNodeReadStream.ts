@@ -21,7 +21,7 @@ export class FsaNodeReadStream extends Readable implements IReadStream {
   ) {
     super();
     handle
-      .then((file) => {
+      .then(file => {
         if (this.__closed__) return;
         this.__file__.resolve(file);
         if (this.options.fd !== undefined) this.emit('open', file.fd);
@@ -38,7 +38,7 @@ export class FsaNodeReadStream extends Readable implements IReadStream {
   private async __read__(): Promise<Uint8Array | undefined> {
     return await this.__mutex__<Uint8Array | undefined>(async () => {
       if (this.__closed__) return;
-      const {file} = await this.__file__.promise;
+      const { file } = await this.__file__.promise;
       const blob = await file.getFile();
       const buffer = await blob.arrayBuffer();
       const start = this.options.start || 0;
@@ -57,7 +57,7 @@ export class FsaNodeReadStream extends Readable implements IReadStream {
         .then(file => {
           this.fs.close(file.fd, () => {
             this.emit('close');
-          })
+          });
           return file.close();
         })
         .catch(error => {});
@@ -77,17 +77,19 @@ export class FsaNodeReadStream extends Readable implements IReadStream {
   // ----------------------------------------------------------------- Readable
 
   _read() {
-    this.__read__()
-      .then((uint8: Uint8Array) => {
+    this.__read__().then(
+      (uint8: Uint8Array) => {
         if (this.__closed__) return;
         if (!uint8) return this.push(null);
         this.__bytes__ += uint8.length;
         this.__close__();
         this.push(uint8);
         this.push(null);
-      }, (error) => {
+      },
+      error => {
         this.__close__();
         this.destroy(error);
-      });
+      },
+    );
   }
 }

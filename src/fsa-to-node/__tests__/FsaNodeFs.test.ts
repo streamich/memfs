@@ -847,7 +847,7 @@ onlyOnNode20('FsaNodeFs', () => {
 
     test('emits "close" event', async () => {
       const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
-      const readStream = fs.createReadStream('/folder/file', {emitClose: true});
+      const readStream = fs.createReadStream('/folder/file', { emitClose: true });
       const writeStream = fs.createWriteStream('/folder/file2');
       readStream.pipe(writeStream);
       await new Promise(resolve => readStream.once('close', resolve));
@@ -856,7 +856,7 @@ onlyOnNode20('FsaNodeFs', () => {
     test('can write to already open file', async () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const handle = await fs.promises.open('/folder/file');
-      const readStream = fs.createReadStream('xyz', {fd: handle.fd});
+      const readStream = fs.createReadStream('xyz', { fd: handle.fd });
       const writeStream = fs.createWriteStream('/folder/file2');
       readStream.pipe(writeStream);
       await new Promise(resolve => writeStream.once('close', resolve));
@@ -870,7 +870,7 @@ onlyOnNode20('FsaNodeFs', () => {
 
     test('can read a specified slice of a file', async () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
-      const readStream = fs.createReadStream('/folder/file', {start: 1, end: 2});
+      const readStream = fs.createReadStream('/folder/file', { start: 1, end: 2 });
       const writeStream = fs.createWriteStream('/folder/file2');
       readStream.pipe(writeStream);
       await new Promise(resolve => writeStream.once('close', resolve));

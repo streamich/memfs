@@ -34,6 +34,7 @@ import {
   validateCallback,
   validateFd,
   isFd,
+  getWriteSyncArgs,
 } from '../node/util';
 import { pathToLocation, testDirectoryIsWritable } from './util';
 import { ERRSTR, MODE } from '../node/constants';
@@ -974,8 +975,20 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return uint8.length;
   };
 
+  public readonly writeSync: FsSynchronousApi['writeSync'] = (
+    fd: number,
+    a: string | Buffer | ArrayBufferView | DataView,
+    b?: number,
+    c?: number | BufferEncoding,
+    d?: number,
+  ): number => {
+    const [, buf, offset, length, position] = getWriteSyncArgs(fd, a, b, c, d)
+    const filename = this.getFileName(fd);
+    const data = new Uint8Array(buf.buffer, buf.byteOffset + offset, length);
+    return this.getSyncAdapter().call('write', [filename, data, position || null]);
+  };
+
   public readonly openSync: FsSynchronousApi['openSync'] = notSupported;
-  public readonly writeSync: FsSynchronousApi['writeSync'] = notSupported;
 
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
   public readonly chownSync: FsSynchronousApi['chownSync'] = noop;

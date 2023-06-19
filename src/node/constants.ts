@@ -34,10 +34,6 @@ const {
   O_TRUNC,
   O_APPEND,
   O_SYNC,
-  O_DIRECTORY,
-  F_OK,
-  COPYFILE_EXCL,
-  COPYFILE_FICLONE_FORCE,
 } = constants;
 
 // List of file `flags` as defined by Node.

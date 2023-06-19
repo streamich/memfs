@@ -244,6 +244,39 @@ export const getWriteArgs = (
   return [fd, tipa === 'string', buf, offset, length!, position, cb];
 };
 
+export const getWriteSyncArgs = (
+  fd: number,
+  a: string | Buffer | ArrayBufferView | DataView,
+  b?: number,
+  c?: number | BufferEncoding,
+  d?: number,
+): [fd: number, buf: Buffer, offset: number, length?: number, position?: number] => {
+  validateFd(fd);
+  let encoding: BufferEncoding | undefined;
+  let offset: number | undefined;
+  let length: number | undefined;
+  let position: number | undefined;
+  const isBuffer = typeof a !== 'string';
+  if (isBuffer) {
+    offset = (b || 0) | 0;
+    length = c as number;
+    position = d;
+  } else {
+    position = b;
+    encoding = c as BufferEncoding;
+  }
+  const buf: Buffer = dataToBuffer(a, encoding);
+  if (isBuffer) {
+    if (typeof length === 'undefined') {
+      length = buf.length;
+    }
+  } else {
+    offset = 0;
+    length = buf.length;
+  }
+  return [fd, buf, offset || 0, length, position];
+};
+
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): misc.TDataOut {
   if (!encoding || encoding === 'buffer') return buffer;
   else return buffer.toString(encoding);

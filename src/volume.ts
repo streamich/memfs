@@ -48,6 +48,7 @@ import {
   dataToBuffer,
   getWriteArgs,
   bufferToEncoding,
+  getWriteSyncArgs,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
 import { WritevCallback } from './node/types/callback';
@@ -907,34 +908,7 @@ export class Volume {
     c?: number | BufferEncoding,
     d?: number,
   ): number {
-    validateFd(fd);
-
-    let encoding: BufferEncoding | undefined;
-    let offset: number | undefined;
-    let length: number | undefined;
-    let position: number | undefined;
-
-    const isBuffer = typeof a !== 'string';
-    if (isBuffer) {
-      offset = (b || 0) | 0;
-      length = c as number;
-      position = d;
-    } else {
-      position = b;
-      encoding = c as BufferEncoding;
-    }
-
-    const buf: Buffer = dataToBuffer(a, encoding);
-
-    if (isBuffer) {
-      if (typeof length === 'undefined') {
-        length = buf.length;
-      }
-    } else {
-      offset = 0;
-      length = buf.length;
-    }
-
+    const [, buf, offset, length, position] =  getWriteSyncArgs(fd, a, b, c, d)
     return this.writeBase(fd, buf, offset, length, position);
   }
 

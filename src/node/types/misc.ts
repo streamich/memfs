@@ -83,11 +83,9 @@ export interface IStatWatcher extends EventEmitter {
 }
 
 export interface IReadStream extends Readable {
-  new (path: PathLike, options: IReadStreamOptions);
-  open();
-  close(callback: TCallback<void>);
   bytesRead: number;
-  path: string;
+  path: string | Buffer;
+  pending: boolean;
 }
 
 export interface IWriteStream extends Writable {

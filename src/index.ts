@@ -5,7 +5,6 @@ import {
   StatWatcher,
   FSWatcher,
   toUnixTimestamp,
-  IReadStream,
   IWriteStream,
   DirectoryJSON,
   NestedDirectoryJSON,
@@ -13,6 +12,7 @@ import {
 const { fsSyncMethods, fsAsyncMethods } = require('fs-monkey/lib/util/lists');
 import { constants } from './constants';
 import type { FsPromisesApi } from './node/types';
+import type * as misc from './node/types/misc';
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
 export { DirectoryJSON, NestedDirectoryJSON };
@@ -27,7 +27,7 @@ export interface IFs extends _Volume {
   Dirent: new (...args) => Dirent;
   StatWatcher: new () => StatWatcher;
   FSWatcher: new () => FSWatcher;
-  ReadStream: new (...args) => IReadStream;
+  ReadStream: new (...args) => misc.IReadStream;
   WriteStream: new (...args) => IWriteStream;
   promises: FsPromisesApi;
   _toUnixTimestamp;

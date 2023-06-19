@@ -67,6 +67,10 @@ const noop: (...args: any[]) => any = () => {};
  * [`FileSystemDirectoryHandle` object](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle).
  */
 export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchronousApi, FsCommonObjects {
+  // ------------------------------------------------------------ FsPromisesApi
+
+  public readonly promises: FsPromisesApi = createPromisesApi(this);
+
   // ------------------------------------------------------------ FsCallbackApi
 
   public readonly open: FsCallbackApi['open'] = (
@@ -1019,10 +1023,6 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;
 
-  // ------------------------------------------------------------ FsPromisesApi
-
-  public readonly promises: FsPromisesApi = createPromisesApi(this);
-
   // ---------------------------------------------------------- FsCommonObjects
 
   public readonly F_OK = constants.F_OK;
@@ -1033,6 +1033,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly Dirent = FsaNodeDirent;
   public readonly Stats = FsaNodeStats<any>;
   public readonly WriteStream = FsaNodeWriteStream;
+
   public readonly StatFs = 0 as any;
   public readonly Dir = 0 as any;
   public readonly StatsWatcher = 0 as any;

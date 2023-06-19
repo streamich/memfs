@@ -25,16 +25,7 @@ export const ERRSTR = {
   POSITION: 'position must be an integer',
 };
 
-const {
-  O_RDONLY,
-  O_WRONLY,
-  O_RDWR,
-  O_CREAT,
-  O_EXCL,
-  O_TRUNC,
-  O_APPEND,
-  O_SYNC,
-} = constants;
+const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_APPEND, O_SYNC } = constants;
 
 // List of file `flags` as defined by Node.
 export enum FLAGS {

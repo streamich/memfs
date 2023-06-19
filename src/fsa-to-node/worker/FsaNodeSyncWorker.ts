@@ -185,7 +185,7 @@ export class FsaNodeSyncWorker {
     },
     write: async ([filename, data, position]): Promise<number> => {
       const handle = await this.fs.promises.open(filename, 'a');
-      const {bytesWritten} = await handle.write(data, 0, data.length, position || undefined);
+      const { bytesWritten } = await handle.write(data, 0, data.length, position || undefined);
       return bytesWritten;
     },
     open: async ([filename, flags, mode]): Promise<fsa.IFileSystemFileHandle> => {

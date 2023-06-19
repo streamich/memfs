@@ -908,7 +908,7 @@ export class Volume {
     c?: number | BufferEncoding,
     d?: number,
   ): number {
-    const [, buf, offset, length, position] =  getWriteSyncArgs(fd, a, b, c, d)
+    const [, buf, offset, length, position] = getWriteSyncArgs(fd, a, b, c, d);
     return this.writeBase(fd, buf, offset, length, position);
   }
 

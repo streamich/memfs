@@ -13,9 +13,17 @@ export class FsaNodeCore {
   protected readonly fds = new Map<number, FsaNodeFsOpenFile>();
 
   public constructor(
-    protected readonly root: fsa.IFileSystemDirectoryHandle,
-    protected syncAdapter?: FsaNodeSyncAdapter,
-  ) {}
+    protected readonly root: fsa.IFileSystemDirectoryHandle | Promise<fsa.IFileSystemDirectoryHandle>,
+    public syncAdapter?: FsaNodeSyncAdapter,
+  ) {
+    if (root instanceof Promise) {
+      root
+        .then((root) => {
+          (this as any).root = root;
+        })
+        .catch((error) => {});
+    }
+  }
 
   protected getSyncAdapter(): FsaNodeSyncAdapter {
     const adapter = this.syncAdapter;
@@ -39,7 +47,7 @@ export class FsaNodeCore {
    * @param create Whether to create the folders if they don't exist.
    */
   protected async getDir(path: string[], create: boolean, funcName?: string): Promise<fsa.IFileSystemDirectoryHandle> {
-    let curr: fsa.IFileSystemDirectoryHandle = this.root;
+    let curr: fsa.IFileSystemDirectoryHandle = await this.root;
     const options: fsa.GetDirectoryHandleOptions = { create };
     try {
       for (const name of path) {

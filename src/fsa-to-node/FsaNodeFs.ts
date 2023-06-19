@@ -377,7 +377,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const filename = util.pathToFilename(path);
     const [folder, name] = pathToLocation(filename);
     (async () => {
-      const node = folder.length || name ? await this.getFileOrDir(folder, name, 'access') : this.root;
+      const node = folder.length || name ? await this.getFileOrDir(folder, name, 'access') : await this.root;
       const checkIfCanExecute = mode & AMODE.X_OK;
       if (checkIfCanExecute) throw util.createError('EACCESS', 'access', filename);
       const checkIfCanWrite = mode & AMODE.W_OK;

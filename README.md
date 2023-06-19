@@ -24,6 +24,13 @@ npm install --save memfs
 
 https://github.com/streamich/memfs/assets/9773803/8dc61d1e-61bf-4dfc-973b-028332fd4473
 
+Above demo uses the File System Access API in the browser to get access to a real folder
+on the file system. It then converts a [`FileSystemDirectoryHandle`](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle) instance
+to a Node-like `fs` file system. It then uses the `fs` API to create a couple
+of files and then read them and zip into a tarball, which is written to the file system
+using the `fs` WriteStream API.
+
+
 ## License
 
 Apache 2.0

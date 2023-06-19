@@ -22,7 +22,6 @@ export class FsaNodeSyncWorker {
   public start() {
     onmessage = e => {
       if (!Array.isArray(e.data)) return;
-      console.log('>', e.data);
       this.onPostMessage(e.data as FsaNodeWorkerMsg);
     };
     const initMsg: FsaNodeWorkerMsgInit = [FsaNodeWorkerMessageCode.Init, this.sab];

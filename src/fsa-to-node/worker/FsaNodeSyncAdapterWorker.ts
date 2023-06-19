@@ -17,29 +17,29 @@ import type {
 let rootId = 0;
 
 export class FsaNodeSyncAdapterWorker implements FsaNodeSyncAdapter {
-  public static async start(url: string, dir: fsa.IFileSystemDirectoryHandle): Promise<FsaNodeSyncAdapterWorker> {
+  public static async start(url: string, dir: fsa.IFileSystemDirectoryHandle | Promise<fsa.IFileSystemDirectoryHandle>): Promise<FsaNodeSyncAdapterWorker> {
     const worker = new Worker(url);
     const future = new Defer<FsaNodeSyncAdapterWorker>();
     let id = rootId++;
     let messenger: SyncMessenger | undefined = undefined;
+    const _dir = await dir;
     worker.onmessage = e => {
       const data = e.data;
       if (!Array.isArray(data)) return;
-      console.log('<', data);
       const msg = data as FsaNodeWorkerMsg;
       const code = msg[0] as FsaNodeWorkerMessageCode;
       switch (code) {
         case FsaNodeWorkerMessageCode.Init: {
           const [, sab] = msg as FsaNodeWorkerMsgInit;
           messenger = new SyncMessenger(sab);
-          const setRootMessage: FsaNodeWorkerMsgSetRoot = [FsaNodeWorkerMessageCode.SetRoot, id, dir];
+          const setRootMessage: FsaNodeWorkerMsgSetRoot = [FsaNodeWorkerMessageCode.SetRoot, id, _dir];
           worker.postMessage(setRootMessage);
           break;
         }
         case FsaNodeWorkerMessageCode.RootSet: {
           const [, rootId] = msg as FsaNodeWorkerMsgRootSet;
           if (id !== rootId) return;
-          const adapter = new FsaNodeSyncAdapterWorker(messenger!, dir);
+          const adapter = new FsaNodeSyncAdapterWorker(messenger!, _dir);
           future.resolve(adapter);
           break;
         }

@@ -48,6 +48,7 @@ import { FsaNodeStats } from './FsaNodeStats';
 import process from '../process';
 import { FsSynchronousApi } from '../node/types/FsSynchronousApi';
 import { FsaNodeWriteStream } from './FsaNodeWriteStream';
+import { FsaNodeReadStream } from './FsaNodeReadStream';
 import { FsaNodeCore } from './FsaNodeCore';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
@@ -758,11 +759,32 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return stream;
   };
 
+  public readonly createReadStream: FsCallbackApi['createReadStream'] = (path: misc.PathLike, options?: opts.IReadStreamOptions | string): misc.IReadStream => {
+    const defaults: opts.IReadStreamOptions = {
+      flags: 'r',
+      fd: null,
+      mode: 0o666,
+      autoClose: true,
+      emitClose: true,
+      start: 0,
+      end: Infinity,
+      highWaterMark: 64 * 1024,
+      fs: null,
+      signal: null,
+    };
+    const optionsObj: opts.IReadStreamOptions = getOptions<opts.IReadStreamOptions>(defaults, options);
+    const filename = pathToFilename(path);
+    const flags = flagsToNumber(optionsObj.flags);
+    const fd: number = optionsObj.fd ? (typeof optionsObj.fd === 'number' ? optionsObj.fd : optionsObj.fd.fd) : 0;
+    const handle = fd ? this.getFileByFdAsync(fd) : this.__open(filename, flags, 0);
+    const stream = new FsaNodeReadStream(this, handle, filename, optionsObj);
+    return stream;
+  };
+
   public readonly symlink: FsCallbackApi['symlink'] = notSupported;
   public readonly link: FsCallbackApi['link'] = notSupported;
   public readonly watchFile: FsCallbackApi['watchFile'] = notSupported;
   public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notSupported;
-  public readonly createReadStream: FsCallbackApi['createReadStream'] = notSupported;
   public readonly watch: FsCallbackApi['watch'] = notSupported;
 
   // --------------------------------------------------------- FsSynchronousApi
@@ -1033,10 +1055,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly Dirent = FsaNodeDirent;
   public readonly Stats = FsaNodeStats<any>;
   public readonly WriteStream = FsaNodeWriteStream;
+  public readonly ReadStream = FsaNodeReadStream;
 
   public readonly StatFs = 0 as any;
   public readonly Dir = 0 as any;
   public readonly StatsWatcher = 0 as any;
   public readonly FSWatcher = 0 as any;
-  public readonly ReadStream = 0 as any;
 }

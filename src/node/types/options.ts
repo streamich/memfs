@@ -60,11 +60,11 @@ export interface IWatchFileOptions {
   interval?: number;
 }
 
-export interface IReadStreamOptions {
+export interface IReadStreamOptions extends IOptions {
   /** Defaults to `'r'`. */
   flags?: TFlags;
   /** Defaults to `null`. */
-  encoding?: BufferEncoding | null;
+  encoding?: BufferEncoding;
   /** Defaults to `null`. */
   fd?: number | IFileHandle | null;
   /** Defaults to 0o666 */

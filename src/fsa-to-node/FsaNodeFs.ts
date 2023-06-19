@@ -475,6 +475,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     callback(null, util.bufferToEncoding(buffer, opts.encoding));
   };
 
+  /** @todo Could this use `FileSystemSyncAccessHandle.flush` through a Worker thread? */
   public readonly fsync: FsCallbackApi['fsync'] = (fd: number, callback: misc.TCallback<void>): void => {
     callback(null);
   };
@@ -1001,12 +1002,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return openFile.fd;
   };
 
+  public readonly fdatasyncSync: FsSynchronousApi['fdatasyncSync'] = noop;
+  public readonly fsyncSync: FsSynchronousApi['fsyncSync'] = noop;
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
   public readonly chownSync: FsSynchronousApi['chownSync'] = noop;
   public readonly fchmodSync: FsSynchronousApi['fchmodSync'] = noop;
   public readonly fchownSync: FsSynchronousApi['fchownSync'] = noop;
-  public readonly fdatasyncSync: FsSynchronousApi['fdatasyncSync'] = noop;
-  public readonly fsyncSync: FsSynchronousApi['fsyncSync'] = noop;
   public readonly futimesSync: FsSynchronousApi['futimesSync'] = noop;
   public readonly lchmodSync: FsSynchronousApi['lchmodSync'] = noop;
   public readonly lchownSync: FsSynchronousApi['lchownSync'] = noop;

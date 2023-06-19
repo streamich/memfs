@@ -26,6 +26,8 @@ import type { IWriteStreamOptions } from '../node/types/options';
  *
  * @todo Could make this flush the data to the original file periodically, so that
  *       the data is visible to other processes.
+ * @todo This stream could work through `FileSystemSyncAccessHandle.write` in a
+ *       Worker thread instead.
  */
 export class FsaNodeWriteStream extends Writable implements IWriteStream {
   protected __pending__: boolean = true;

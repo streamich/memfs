@@ -111,7 +111,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a?: opts.IReadFileOptions | string | misc.TCallback<misc.TDataOut>,
     b?: misc.TCallback<misc.TDataOut>,
   ) => {
-    const [opts, callback] = optHelpers.optsAndCbGenerator<opts.IReadFileOptions, misc.TDataOut>(optHelpers.getReadFileOptions)(a, b);
+    const [opts, callback] = optHelpers.optsAndCbGenerator<opts.IReadFileOptions, misc.TDataOut>(
+      optHelpers.getReadFileOptions,
+    )(a, b);
     const flagsNum = util.flagsToNumber(opts.flag);
     return this.__getFileById(id, 'readFile')
       .then(file => file.getFile())

@@ -99,6 +99,12 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   await writeHandle.close();
   strictEqual(bytesWritten, 1);
   strictEqual(fs.readFileSync('/cool.txt', 'utf8'), 'Worlds!');
+
+  console.log('openSync() - can create a file');
+  strictEqual(fs.existsSync('/new-file.txt'), false);
+  const fd = fs.openSync('/new-file.txt', 'w');
+  strictEqual(fs.existsSync('/new-file.txt'), true);
+  strictEqual(typeof fd, 'number');
 };
 
 const main = async () => {

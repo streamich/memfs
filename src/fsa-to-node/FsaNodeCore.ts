@@ -40,9 +40,7 @@ export class FsaNodeCore {
    */
   protected async getDir(path: string[], create: boolean, funcName?: string): Promise<fsa.IFileSystemDirectoryHandle> {
     let curr: fsa.IFileSystemDirectoryHandle = this.root;
-
     const options: fsa.GetDirectoryHandleOptions = { create };
-
     try {
       for (const name of path) {
         curr = await curr.getDirectoryHandle(name, options);
@@ -100,7 +98,7 @@ export class FsaNodeCore {
     return this.getFileByFd(fd, funcName);
   }
 
-  protected async getFileById(
+  public async __getFileById(
     id: misc.TFileId,
     funcName?: string,
     create?: boolean,
@@ -123,6 +121,10 @@ export class FsaNodeCore {
     const [folder, name] = pathToLocation(filename);
     const createIfMissing = !!(flags & FLAG.O_CREAT);
     const fsaFile = await this.getFile(folder, name, 'open', createIfMissing);
+    return this.__open2(fsaFile, filename, flags, mode);
+  }
+
+  protected __open2(fsaFile: fsa.IFileSystemFileHandle, filename: string, flags: number, mode: number): FsaNodeFsOpenFile {
     const fd = this.newFdNumber();
     const file = new FsaNodeFsOpenFile(fd, mode, flags, fsaFile, filename);
     this.fds.set(fd, file);

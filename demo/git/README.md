@@ -8,5 +8,7 @@ Run:
 
 ```
 yarn
-npx ts-node demo/isomorphic-git/index.ts
+npx ts-node demo/git/index.ts
 ```
+
+The demo will print the snapshot of the file system after each step.

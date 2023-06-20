@@ -39,7 +39,8 @@ using the `fs` WriteStream API.
 
 ### More demos
 
-- [`isomorphic-git` running on in-memory file system](demo/isomorphic-git/README.md)
+- [Git on in-memory file system](demo/git/README.md)
+- [Git in browser OPFS file system](demo/git-opfs/README.md)
 
 
 ## License

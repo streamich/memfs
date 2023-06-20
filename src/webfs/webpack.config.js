@@ -2,9 +2,11 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const root = require('app-root-path');
 
+const DEV = process.env.NODE_ENV !== 'production';
+
 module.exports = {
-  mode: 'development',
-  devtool: 'inline-source-map',
+  mode: DEV ? 'development' : 'production',
+  devtool: DEV ? 'source-map' : false,
   entry: {
     bundle: __dirname + '/index',
   },

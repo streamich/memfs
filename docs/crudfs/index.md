@@ -10,6 +10,7 @@ Folder are referred to as *collections* or *types*; and files are referred to as
 
 ## Usage
 
+
 ### `crudfs` from File System Access API
 
 You can construct `crudfs` on top of the File System Access API `FileSystemDirectoryHandle` like so:
@@ -52,4 +53,19 @@ Drop all resources in a collection:
 
 ```js
 await crud.drop(['user', 'files']);
+```
+
+
+### `crudfs` from Node.js `fs` module
+
+You can run `crudfs` on top of Node.js `fs` module by using File System Access API
+adapter on top of the  Node.js `fs` module:
+
+```js
+import * as fs from 'fs';
+import { nodeToFsa } from 'memfs/lib/node-to-fsa';
+import { FsaCrud } from 'memfs/lib/fsa-to-crud';
+
+const dir = nodeToFsa(fs, '/path/to/folder', {mode: 'readwrite'});
+const crud = new FsaCrud(dirHandle);
 ```

@@ -1,4 +1,4 @@
-// Run: npx ts-node demo/isomorphic-git/index.ts
+// Run: npx ts-node demo/git/index.ts
 
 import git from 'isomorphic-git';
 import {memfs} from '../../src';

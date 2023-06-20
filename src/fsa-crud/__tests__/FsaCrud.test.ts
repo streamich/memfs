@@ -20,14 +20,16 @@ onlyOnNode20('FsaCrud', () => {
   describe('.put()', () => {
     test('throws if the type is not valid', async () => {
       const {crud} = setup();
-      const [, err] = await of(crud.put(['', 'foo'], 'bar', new Uint8Array()));
+      const [, err] = await of(crud.put(['.', 'foo'], 'bar', new Uint8Array()));
       expect(err).toBeInstanceOf(TypeError);
+      expect((<any>err).message).toBe("Failed to execute 'put' on 'crudfs': Name is not allowed.");
     });
 
     test('throws if id is not valid', async () => {
       const {crud} = setup();
-      const [, err] = await of(crud.put(['foo'], '', new Uint8Array()));
+      const [, err] = await of(crud.put(['foo'], '..', new Uint8Array()));
       expect(err).toBeInstanceOf(TypeError);
+      expect((<any>err).message).toBe("Failed to execute 'put' on 'crudfs': Name is not allowed.");
     });
 
     test('can store a resource at root', async () => {
@@ -81,12 +83,14 @@ onlyOnNode20('FsaCrud', () => {
       const {crud} = setup();
       const [, err] = await of(crud.get(['', 'foo'], 'bar'));
       expect(err).toBeInstanceOf(TypeError);
+      expect((<any>err).message).toBe("Failed to execute 'get' on 'crudfs': Name is not allowed.");
     });
 
     test('throws if id is not valid', async () => {
       const {crud} = setup();
       const [, err] = await of(crud.get(['foo'], ''));
       expect(err).toBeInstanceOf(TypeError);
+      expect((<any>err).message).toBe("Failed to execute 'get' on 'crudfs': Name is not allowed.");
     });
 
     test('throws if collection does not exist', async () => {
@@ -115,16 +119,17 @@ onlyOnNode20('FsaCrud', () => {
   describe('.del()', () => {
     test('throws if the type is not valid', async () => {
       const {crud} = setup();
-      const [, err] = await of(crud.del(['', 'foo'], 'bar'));
+      const [, err] = await of(crud.del(['sdf\\dd', 'foo'], 'bar'));
       expect(err).toBeInstanceOf(TypeError);
+      expect((<any>err).message).toBe("Failed to execute 'del' on 'crudfs': Name is not allowed.");
     });
 
     test('throws if id is not valid', async () => {
       const {crud} = setup();
-      const [, err] = await of(crud.del(['foo'], ''));
+      const [, err] = await of(crud.del(['foo'], 'asdf/asdf'));
       expect(err).toBeInstanceOf(TypeError);
+      expect((<any>err).message).toBe("Failed to execute 'del' on 'crudfs': Name is not allowed.");
     });
-
 
     describe('when collection does not exist', () => {
       test('throws by default', async () => {
@@ -164,6 +169,59 @@ onlyOnNode20('FsaCrud', () => {
       const [, err] = await of(crud.get(['foo'], 'bar'));
       expect(err).toBeInstanceOf(DOMException);
       expect((<any>err).name).toBe('ResourceNotFound');
+    });
+  });
+
+  describe('.info()', () => {
+    test('throws if the type is not valid', async () => {
+      const {crud} = setup();
+      const [, err] = await of(crud.info(['', 'foo'], 'bar'));
+      expect(err).toBeInstanceOf(TypeError);
+      expect((<any>err).message).toBe("Failed to execute 'info' on 'crudfs': Name is not allowed.");
+    });
+
+    test('throws if id is not valid', async () => {
+      const {crud} = setup();
+      const [, err] = await of(crud.info(['foo'], '/'));
+      expect(err).toBeInstanceOf(TypeError);
+      expect((<any>err).message).toBe("Failed to execute 'info' on 'crudfs': Name is not allowed.");
+    });
+
+    test('can retrieve information about a resource', async () => {
+      const {crud} = setup();
+      await crud.put(['foo'], 'bar', b('abc'));
+      const info = await crud.info(['foo'], 'bar');
+      expect(info).toMatchObject({
+        type: 'resource',
+        id: 'bar',
+        size: 3,
+        modified: expect.any(Number),
+      });
+    });
+
+    test('can retrieve information about a collection', async () => {
+      const {crud} = setup();
+      await crud.put(['foo'], 'bar', b('abc'));
+      const info = await crud.info(['foo']);
+      expect(info).toMatchObject({
+        type: 'collection',
+      });
+    });
+
+    test('throws when resource not found', async () => {
+      const {crud} = setup();
+      await crud.put(['foo'], 'bar', b('abc'));
+      const [, err] = await of(crud.info(['foo'], 'baz'));
+      expect(err).toBeInstanceOf(DOMException);
+      expect((<any>err).name).toBe('ResourceNotFound');
+    });
+
+    test('throws when collection not found', async () => {
+      const {crud} = setup();
+      await crud.put(['foo', 'a'], 'bar', b('abc'));
+      const [, err] = await of(crud.info(['foo', 'b'], 'baz'));
+      expect(err).toBeInstanceOf(DOMException);
+      expect((<any>err).name).toBe('CollectionNotFound');
     });
   });
 });

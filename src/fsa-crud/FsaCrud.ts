@@ -75,8 +75,8 @@ export class FsaCrud implements crud.CrudApi {
   };
 
   public readonly del = async (collection: crud.CrudCollection, id: string, silent?: boolean): Promise<void> => {
-    assertType(collection, 'get', 'crudfs');
-    assertName(id, 'get', 'crudfs');
+    assertType(collection, 'del', 'crudfs');
+    assertName(id, 'del', 'crudfs');
     try {
       const [dir] = await this.getFile(collection, id);
       await dir.removeEntry(id, {recursive: false});
@@ -86,7 +86,24 @@ export class FsaCrud implements crud.CrudApi {
   };
 
   public readonly info = async (collection: crud.CrudCollection, id?: string): Promise<crud.CrudResourceInfo> => {
-    throw new Error('Not implemented');
+    assertType(collection, 'info', 'crudfs');
+    if (id) {
+      assertName(id, 'info', 'crudfs');
+      const [, file] = await this.getFile(collection, id);
+      const blob = await file.getFile();
+      return {
+        type: 'resource',
+        id,
+        size: blob.size,
+        modified: blob.lastModified,
+      };
+    } else {
+      await this.getDir(collection, false);
+      return {
+        type: 'collection',
+        id: '',
+      };
+    }
   };
 
   public readonly drop = async (collection: crud.CrudCollection): Promise<void> => {

@@ -73,7 +73,7 @@ export interface CrudPutOptions {
 
 export interface CrudTypeEntry {
   /** Kind of the resource, type or item. */
-  kind: 'type' | 'item';
+  type: 'resource' | 'collection';
   /** Name of the resource. */
   id: string;
 }
@@ -94,5 +94,5 @@ export interface CrudScanResult {
 
 export interface CrudScanEntry extends CrudTypeEntry {
   /** Collection, which contains this entry. */
-  type: CrudCollection;
+  collection: CrudCollection;
 }

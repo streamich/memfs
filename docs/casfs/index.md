@@ -53,7 +53,7 @@ const blob2 = await cas.get(hash);
 You can also delete blobs:
 
 ```js
-await cas.delete(hash);
+await cas.del(hash);
 ```
 
 And retrieve information about blobs:

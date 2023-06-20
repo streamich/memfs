@@ -5,6 +5,7 @@ import { onlyOnNode20 } from '../../__tests__/util';
 import { NodeFileSystemDirectoryHandle } from '../../node-to-fsa';
 import { FsaCrud } from '../../fsa-to-crud/FsaCrud';
 import { CrudCas } from '../CrudCas';
+import { hashToLocation } from '../util';
 
 const hash = async (blob: Uint8Array): Promise<string> => {
   const shasum = createHash('sha1');
@@ -52,6 +53,27 @@ onlyOnNode20('CrudCas', () => {
       const [, err] = await of(cas.get('2aae6c35c94fcfb415dbe95f408b9ce91ee846ed'));
       expect(err).toBeInstanceOf(DOMException);
       expect((<any>err).name).toBe('BlobNotFound');
+    });
+
+    test('throws if blob contents does not match the hash', async () => {
+      const blob = b('hello world');
+      const { cas, crud } = setup();
+      const hash = await cas.put(blob);
+      const location = hashToLocation(hash);
+      await crud.put(location[0], location[1], b('hello world!'));
+      const [, err] = await of(cas.get(hash));
+      expect(err).toBeInstanceOf(DOMException);
+      expect((<any>err).name).toBe('Integrity');
+    });
+
+    test('does not throw if integrity check is skipped', async () => {
+      const blob = b('hello world');
+      const { cas, crud } = setup();
+      const hash = await cas.put(blob);
+      const location = hashToLocation(hash);
+      await crud.put(location[0], location[1], b('hello world!'));
+      const blob2 = await cas.get(hash, { skipVerification: true });
+      expect(blob2).toStrictEqual(b('hello world!'));
     });
   });
 

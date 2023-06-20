@@ -1,5 +1,5 @@
 import { hashToLocation } from './util';
-import type { CasApi } from '../cas/types';
+import type { CasApi, CasGetOptions } from '../cas/types';
 import type { CrudApi, CrudResourceInfo } from '../crud/types';
 
 export interface CrudCasOptions {
@@ -31,10 +31,15 @@ export class CrudCas implements CasApi {
     return digest;
   };
 
-  public readonly get = async (hash: string): Promise<Uint8Array> => {
+  public readonly get = async (hash: string, options?: CasGetOptions): Promise<Uint8Array> => {
     const [collection, resource] = hashToLocation(hash);
     return await normalizeErrors(async () => {
-      return await this.crud.get(collection, resource);
+      const blob = await this.crud.get(collection, resource);
+      if (!options?.skipVerification) {
+        const digest = await this.options.hash(blob);
+        if (hash !== digest) throw new DOMException('Blob contents does not match hash', 'Integrity');
+      }
+      return blob;
     });
   };
 

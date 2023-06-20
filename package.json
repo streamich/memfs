@@ -95,6 +95,7 @@
     "buffer": "^6.0.3",
     "html-webpack-plugin": "^5.5.3",
     "husky": "^8.0.1",
+    "isomorphic-git": "^1.24.2",
     "jest": "^28.1.1",
     "path-browserify": "^1.0.1",
     "prettier": "^2.7.1",

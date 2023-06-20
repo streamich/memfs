@@ -527,6 +527,18 @@ onlyOnNode20('FsaNodeFs', () => {
       expect(stats.isFile()).toBe(true);
     });
 
+    test('throws "ENOENT" when path is not found', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const [, error] = await of(fs.promises.stat('/folder/repo/.git'));
+      expect((<any>error).code).toBe('ENOENT');
+    });
+
+    test('throws "ENOTDIR" when sub-folder is a file', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const [, error] = await of(fs.promises.stat('/folder/file/repo/.git'));
+      expect((<any>error).code).toBe('ENOTDIR');
+    });
+
     test('can retrieve file size', async () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const stats = await fs.promises.stat('/folder/file');

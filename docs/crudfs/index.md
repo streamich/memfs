@@ -1,4 +1,4 @@
-`crudfs`
+# `crudfs`
 
 `crudfs` is a CRUD-like file system abstraction. It is a thin wrapper around a
 real file system, which allows to perform CRUD operations on files and folders.
@@ -22,3 +22,34 @@ const crud = new FsaCrud(dirHandle);
 
 Now you can use the `crud` instance to execute CRUD operations on the file system.
 See the available methods [here](../../src/crud/types.ts).
+
+In this below example we create a `/user/files` collection which contains two files:
+
+```js
+await crud.put(['user', 'files'], 'file1.bin', new Uint8Array([1, 2, 3]));
+await crud.put(['user', 'files'], 'file2.bin', new Uint8Array([1, 2, 3]));
+```
+
+We can list all resources in the `/user/files` collection:
+
+```js
+const files = await crud.list(['user', 'files']);
+```
+
+Retrieve a resource contents:
+
+```js
+const file1 = await crud.get(['user', 'files'], 'file1.bin');
+```
+
+Delete a resource:
+
+```js
+await crud.delete(['user', 'files'], 'file1.bin');
+```
+
+Drop all resources in a collection:
+
+```js
+await crud.drop(['user', 'files']);
+```

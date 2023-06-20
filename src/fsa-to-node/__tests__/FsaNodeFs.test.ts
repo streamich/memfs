@@ -106,6 +106,14 @@ onlyOnNode20('FsaNodeFs', () => {
         '/mountpoint/empty-folder': null,
       });
     });
+
+    test('can remove starting from root folder', async () => {
+      const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+      await fs.promises.rmdir('/', { recursive: true });
+      expect(mfs.__vol.toJSON()).toStrictEqual({
+        '/mountpoint': null,
+      });
+    });
   });
 
   describe('.rm()', () => {
@@ -162,6 +170,14 @@ onlyOnNode20('FsaNodeFs', () => {
       expect(mfs.__vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/subfolder': null,
         '/mountpoint/empty-folder': null,
+      });
+    });
+
+    test('can remove starting from root folder', async () => {
+      const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+      await fs.promises.rm('/', { recursive: true });
+      expect(mfs.__vol.toJSON()).toStrictEqual({
+        '/mountpoint': null,
       });
     });
   });

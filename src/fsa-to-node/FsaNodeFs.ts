@@ -589,6 +589,16 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     });
   };
 
+  private rmAll(callback: (err: Error | null) => void): void {
+    (async () => {
+      const root = await this.root;
+      for await (const name of root.keys()) {
+        await root.removeEntry(name, {recursive: true});
+      }
+    })()
+      .then(() => callback(null), error => callback(error));
+  }
+
   public readonly rmdir: FsCallbackApi['rmdir'] = (
     path: misc.PathLike,
     a: misc.TCallback<void> | opts.IRmdirOptions,
@@ -597,6 +607,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const options: opts.IRmdirOptions = optHelpers.getRmdirOptions(a);
     const callback: misc.TCallback<void> = util.validateCallback(typeof a === 'function' ? a : b);
     const [folder, name] = pathToLocation(util.pathToFilename(path));
+    if (!name && options.recursive) return this.rmAll(callback);
     this.getDir(folder, false, 'rmdir')
       .then(dir => dir.getDirectoryHandle(name).then(() => dir))
       .then(dir => dir.removeEntry(name, { recursive: options.recursive ?? false }))
@@ -629,6 +640,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   ): void => {
     const [options, callback] = optHelpers.getRmOptsAndCb(a, b);
     const [folder, name] = pathToLocation(util.pathToFilename(path));
+    if (!name && options.recursive) return this.rmAll(callback);
     this.getDir(folder, false, 'rmdir')
       .then(dir => dir.removeEntry(name, { recursive: options.recursive ?? false }))
       .then(

@@ -6,12 +6,16 @@ import {assertType} from './util';
 export class FsaCrud implements crud.CrudApi {
   public constructor (protected readonly root: fsa.IFileSystemDirectoryHandle | Promise<fsa.IFileSystemDirectoryHandle>) {}
 
-  protected async getDir(collection: crud.CrudCollection, create: boolean): Promise<fsa.IFileSystemDirectoryHandle> {
+  protected async getDir(collection: crud.CrudCollection, create: boolean): Promise<[dir: fsa.IFileSystemDirectoryHandle, parent: fsa.IFileSystemDirectoryHandle | undefined]> {
+    let parent: undefined | fsa.IFileSystemDirectoryHandle = undefined;
     let dir = await this.root;
     try {
-      for (const name of collection)
-        dir = await dir.getDirectoryHandle(name, {create});
-      return dir;
+      for (const name of collection) {
+        const child = await dir.getDirectoryHandle(name, {create});
+        parent = dir;
+        dir = child;
+      }
+      return [dir, parent];
     } catch (error) {
       if (error.name === 'NotFoundError')
         throw new DOMException(`Collection /${collection.join('/')} does not exist`, 'CollectionNotFound');
@@ -20,7 +24,7 @@ export class FsaCrud implements crud.CrudApi {
   }
 
   protected async getFile(collection: crud.CrudCollection, id: string): Promise<[dir: fsa.IFileSystemDirectoryHandle, file: fsa.IFileSystemFileHandle]> {
-    const dir = await this.getDir(collection, false);
+    const [dir] = await this.getDir(collection, false);
     try {
       const file = await dir.getFileHandle(id, {create: false});
       return [dir, file];
@@ -34,7 +38,7 @@ export class FsaCrud implements crud.CrudApi {
   public readonly put = async (collection: crud.CrudCollection, id: string, data: Uint8Array, options?: crud.CrudPutOptions): Promise<void> => {
     assertType(collection, 'put', 'crudfs');
     assertName(id, 'put', 'crudfs');
-    const dir = await this.getDir(collection, true);
+    const [dir] = await this.getDir(collection, true);
     let file: fsa.IFileSystemFileHandle | undefined;
     switch (options?.throwIf) {
       case 'exists': {
@@ -106,8 +110,20 @@ export class FsaCrud implements crud.CrudApi {
     }
   };
 
-  public readonly drop = async (collection: crud.CrudCollection): Promise<void> => {
-    throw new Error('Not implemented');
+  public readonly drop = async (collection: crud.CrudCollection, silent?: boolean): Promise<void> => {
+    assertType(collection, 'drop', 'crudfs');
+    try {
+      const [dir, parent] = await this.getDir(collection, false);
+      if (parent) {
+        await parent.removeEntry(dir.name, {recursive: true});
+      } else {
+        const root = await this.root;
+        for await (const name of root.keys())
+        await root.removeEntry(name, {recursive: true});
+      }
+    } catch (error) {
+      if (!silent) throw error;
+    }
   };
 
   public readonly list = async (collection: crud.CrudCollection): Promise<crud.CrudTypeEntry[]> => {

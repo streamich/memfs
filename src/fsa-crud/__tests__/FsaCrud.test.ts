@@ -224,4 +224,55 @@ onlyOnNode20('FsaCrud', () => {
       expect((<any>err).name).toBe('CollectionNotFound');
     });
   });
+
+  describe('.drop()', () => {
+    test('throws if the collection is not valid', async () => {
+      const {crud} = setup();
+      const [, err] = await of(crud.drop(['', 'foo']));
+      expect(err).toBeInstanceOf(TypeError);
+      expect((<any>err).message).toBe("Failed to execute 'drop' on 'crudfs': Name is not allowed.");
+    });
+
+    test('can recursively delete a collection', async () => {
+      const {crud} = setup();
+      await crud.put(['foo', 'a'], 'bar', b('1'));
+      await crud.put(['foo', 'a'], 'baz', b('2'));
+      await crud.put(['foo', 'b'], 'xyz', b('3'));
+      const info = await crud.info(['foo', 'a']);
+      expect(info.type).toBe('collection');
+      await crud.drop(['foo', 'a']);
+      const [, err] = await of(crud.info(['foo', 'a']));
+      expect(err).toBeInstanceOf(DOMException);
+      expect((<any>err).name).toBe('CollectionNotFound');
+    });
+
+    test('throws if collection does not exist', async () => {
+      const {crud} = setup();
+      await crud.put(['foo', 'a'], 'bar', b('1'));
+      await crud.put(['foo', 'a'], 'baz', b('2'));
+      await crud.put(['foo', 'b'], 'xyz', b('3'));
+      const [, err] = await of(crud.drop(['gg']));
+      expect(err).toBeInstanceOf(DOMException);
+      expect((<any>err).name).toBe('CollectionNotFound');
+    });
+
+    test('when "silent" flag set, does not throw if collection does not exist', async () => {
+      const {crud} = setup();
+      await crud.put(['foo', 'a'], 'bar', b('1'));
+      await crud.put(['foo', 'a'], 'baz', b('2'));
+      await crud.put(['foo', 'b'], 'xyz', b('3'));
+      await crud.drop(['gg'], true);
+    });
+
+    test('can recursively delete everything from root', async () => {
+      const {crud, snapshot} = setup();
+      await crud.put(['foo', 'a'], 'bar', b('1'));
+      await crud.put(['baz', 'a'], 'baz', b('2'));
+      await crud.put(['bar', 'b'], 'xyz', b('3'));
+      const info = await crud.info(['foo', 'a']);
+      expect(info.type).toBe('collection');
+      await crud.drop([]);
+      expect(snapshot()).toEqual({});
+    });
+  });
 });

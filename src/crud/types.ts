@@ -41,8 +41,10 @@ export interface CrudApi {
    * Deletes all resources of a collection, and deletes recursively all sub-collections.
    * 
    * @param collection Type of the resource, collection name.
+   * @param silent When true, does not throw an error if the collection or
+   *               resource does not exist. Default is false.
    */
-  drop: (collection: CrudCollection) => Promise<void>;
+  drop: (collection: CrudCollection, silent?: boolean) => Promise<void>;
 
   /**
    * Fetches a list of resources of a collection, and sub-collections.

@@ -5,16 +5,17 @@ import {
   StatWatcher,
   FSWatcher,
   toUnixTimestamp,
-  IReadStream,
   IWriteStream,
   DirectoryJSON,
+  NestedDirectoryJSON,
 } from './volume';
 const { fsSyncMethods, fsAsyncMethods } = require('fs-monkey/lib/util/lists');
 import { constants } from './constants';
 import type { FsPromisesApi } from './node/types';
+import type * as misc from './node/types/misc';
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
-export { DirectoryJSON };
+export { DirectoryJSON, NestedDirectoryJSON };
 export const Volume = _Volume;
 
 // Default volume.
@@ -26,7 +27,7 @@ export interface IFs extends _Volume {
   Dirent: new (...args) => Dirent;
   StatWatcher: new () => StatWatcher;
   FSWatcher: new () => FSWatcher;
-  ReadStream: new (...args) => IReadStream;
+  ReadStream: new (...args) => misc.IReadStream;
   WriteStream: new (...args) => IWriteStream;
   promises: FsPromisesApi;
   _toUnixTimestamp;
@@ -63,8 +64,8 @@ export const fs: IFs = createFsFromVolume(vol);
  * @returns A `memfs` file system instance, which is a drop-in replacement for
  *          the `fs` module.
  */
-export const memfs = (json: DirectoryJSON = {}, cwd: string = '/'): IFs => {
-  const volume = Volume.fromJSON(json, cwd);
+export const memfs = (json: NestedDirectoryJSON = {}, cwd: string = '/'): IFs => {
+  const volume = Volume.fromNestedJSON(json, cwd);
   const fs = createFsFromVolume(volume);
   return fs;
 };

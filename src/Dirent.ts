@@ -1,13 +1,14 @@
 import { Link } from './node';
 import { constants } from './constants';
 import { TEncodingExtended, strToEncoding, TDataOut } from './encoding';
+import type { IDirent } from './node/types/misc';
 
 const { S_IFMT, S_IFDIR, S_IFREG, S_IFBLK, S_IFCHR, S_IFLNK, S_IFIFO, S_IFSOCK } = constants;
 
 /**
  * A directory entry, like `fs.Dirent`.
  */
-export class Dirent {
+export class Dirent implements IDirent {
   static build(link: Link, encoding: TEncodingExtended | undefined) {
     const dirent = new Dirent();
     const { mode } = link.getNode();

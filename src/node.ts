@@ -531,7 +531,7 @@ export class File {
     return Stats.build(this.node) as Stats<number>;
   }
 
-  write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number): number {
+  write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number | null): number {
     if (typeof position !== 'number') position = this.position;
     const bytes = this.node.write(buf, offset, length, position);
     this.position = position + bytes;

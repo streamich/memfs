@@ -8,7 +8,6 @@ import type {
   IReadStreamOptions,
   IStatOptions,
   IWriteFileOptions,
-  IWriteStreamOptions,
 } from './options';
 import type { Readable, Writable } from 'stream';
 
@@ -84,19 +83,16 @@ export interface IStatWatcher extends EventEmitter {
 }
 
 export interface IReadStream extends Readable {
-  new (path: PathLike, options: IReadStreamOptions);
-  open();
-  close(callback: TCallback<void>);
   bytesRead: number;
-  path: string;
+  path: string | Buffer;
+  pending: boolean;
 }
 
 export interface IWriteStream extends Writable {
   bytesWritten: number;
   path: string;
-  new (path: PathLike, options: IWriteStreamOptions);
-  open();
-  close();
+  pending: boolean;
+  close(callback?: (err?: Error) => void): void;
 }
 
 export interface IFSWatcher extends EventEmitter {
@@ -136,3 +132,5 @@ export interface TFileHandleWriteResult {
   bytesWritten: number;
   buffer: Buffer | Uint8Array;
 }
+
+export type AssertCallback<T> = T extends () => void ? T : never;

@@ -4,10 +4,9 @@ import type * as opts from './types/options';
 import type * as misc from './types/misc';
 import type { FsCallbackApi, FsPromisesApi } from './types';
 
-export function createPromisesApi(vol: FsCallbackApi): null | FsPromisesApi {
-  if (typeof Promise === 'undefined') return null;
+export function createPromisesApi(vol: FsCallbackApi): FsPromisesApi {
   return {
-    FileHandle,
+    FileHandle: FileHandle as any,
 
     access(path: misc.PathLike, mode?: number): Promise<void> {
       return promisify(vol, 'access')(path, mode);
@@ -49,7 +48,7 @@ export function createPromisesApi(vol: FsCallbackApi): null | FsPromisesApi {
       return promisify(vol, 'lstat')(path, options);
     },
 
-    mkdir(path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): Promise<void> {
+    mkdir(path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): Promise<string | undefined> {
       return promisify(vol, 'mkdir')(path, options);
     },
 
@@ -57,7 +56,7 @@ export function createPromisesApi(vol: FsCallbackApi): null | FsPromisesApi {
       return promisify(vol, 'mkdtemp')(prefix, options);
     },
 
-    open(path: misc.PathLike, flags: misc.TFlags, mode?: misc.TMode) {
+    open(path: misc.PathLike, flags: misc.TFlags = 'r', mode?: misc.TMode) {
       return promisify(vol, 'open', fd => new FileHandle(vol, fd))(path, flags, mode);
     },
 

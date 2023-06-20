@@ -1,4 +1,4 @@
-import type { TEncodingExtended, TFlags, TMode } from './misc';
+import type { IFileHandle, TEncodingExtended, TFlags, TMode } from './misc';
 
 export interface IOptions {
   encoding?: BufferEncoding | TEncodingExtended;
@@ -42,7 +42,6 @@ export interface IMkdirOptions {
 }
 
 export interface IRmdirOptions {
-  /** @deprecated */
   recursive?: boolean;
   maxRetries?: number;
   retryDelay?: number;
@@ -60,22 +59,37 @@ export interface IWatchFileOptions {
   interval?: number;
 }
 
-export interface IReadStreamOptions {
+export interface IReadStreamOptions extends IOptions {
+  /** Defaults to `'r'`. */
   flags?: TFlags;
+  /** Defaults to `null`. */
   encoding?: BufferEncoding;
-  fd?: number;
+  /** Defaults to `null`. */
+  fd?: number | IFileHandle | null;
+  /** Defaults to 0o666 */
   mode?: TMode;
+  /** Defaults to `true`. */
   autoClose?: boolean;
+  /** Defaults to `true`. */
+  emitClose?: boolean;
   start?: number;
+  /** Defaults to `Infinity`. */
   end?: number;
+  /** Defaults to `64 * 1024`. */
+  highWaterMark?: number;
+  /** Defaults to `null`. */
+  fs?: object | null;
+  /** Defaults to `null`. */
+  signal?: AbortSignal | null;
 }
 
 export interface IWriteStreamOptions {
   flags?: TFlags;
-  defaultEncoding?: BufferEncoding;
-  fd?: number;
+  encoding?: BufferEncoding;
+  fd?: number | IFileHandle;
   mode?: TMode;
   autoClose?: boolean;
+  emitClose?: boolean;
   start?: number;
 }
 

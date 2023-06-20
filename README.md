@@ -20,19 +20,19 @@ npm i memfs
 ## Docs
 
 - Node.js `fs` API
-  - [In-memory file system](./docs/node/index.md)
-- File System Access ([FSA](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API)) API (the browser file system API)
+  - [In-memory `fs` API](./docs/node/index.md)
+- File System Access (FSA) API &mdash; the browser file system
   - [`fs` to FSA adapter](./docs/fsa/fs-to-fsa.md)
   - [FSA to `fs` adapter](./docs/fsa/fsa-to-fs.md)
 
 
 ## Demos
 
-- [`fs` in browser, including synchronous API, writes to real folder](demo/fsa-to-node-sync-tests/README.md)
-- [`fs` in browser, creates a `.tar` file in real folder](demo/fsa-to-node-zipfile/README.md)
 - [Git in browser, which writes to a real folder](demo/git-fsa/README.md)
 - [Git in browser, which writes to OPFS file system](demo/git-opfs/README.md)
 - [Git on in-memory file system](demo/git/README.md)
+- [`fs` in browser, creates a `.tar` file in real folder](demo/fsa-to-node-zipfile/README.md)
+- [`fs` in browser, including synchronous API, writes to real folder](demo/fsa-to-node-sync-tests/README.md)
 
 
 ## License

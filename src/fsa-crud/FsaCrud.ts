@@ -138,14 +138,23 @@ export class FsaCrud implements crud.CrudApi {
     }
   };
 
-  public readonly list = async (collection: crud.CrudCollection): Promise<crud.CrudTypeEntry[]> => {
-    throw new Error('Not implemented');
-  };
-
-  public readonly scan = async (
-    collection: crud.CrudCollection,
-    cursor?: string | '',
-  ): Promise<crud.CrudScanResult> => {
-    throw new Error('Not implemented');
+  public readonly list = async (collection: crud.CrudCollection): Promise<crud.CrudCollectionEntry[]> => {
+    assertType(collection, 'drop', 'crudfs');
+    const [dir] = await this.getDir(collection, false);
+    const entries: crud.CrudCollectionEntry[] = [];
+    for await (const [id, handle] of dir.entries()) {
+      if (handle.kind === 'file') {
+        entries.push({
+          type: 'resource',
+          id,
+        });
+      } else if (handle.kind === 'directory') {
+        entries.push({
+          type: 'collection',
+          id,
+        });
+      }
+    }
+    return entries;
   };
 }

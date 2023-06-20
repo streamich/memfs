@@ -52,19 +52,7 @@ export interface CrudApi {
    * @param collection Type of the resource, collection name.
    * @returns List of resources of the given type, and sub-types.
    */
-  list: (collection: CrudCollection) => Promise<CrudTypeEntry[]>;
-
-  /**
-   * Recursively scans all resources of a collection, and sub-collections. Returns
-   * a cursor to continue scanning.
-   *
-   * @param collection Type of the resource, collection name.
-   * @param cursor Cursor to start scanning from. If empty string, starts from the beginning.
-   * @returns List of resources of the given type, and sub-collections. Also
-   *          returns a cursor to continue scanning. If the cursor is empty
-   *          string, the scan is complete.
-   */
-  scan: (collection: CrudCollection, cursor?: string | '') => Promise<CrudScanResult>;
+  list: (collection: CrudCollection) => Promise<CrudCollectionEntry[]>;
 }
 
 export type CrudCollection = string[];
@@ -73,14 +61,14 @@ export interface CrudPutOptions {
   throwIf?: 'exists' | 'missing';
 }
 
-export interface CrudTypeEntry {
+export interface CrudCollectionEntry {
   /** Kind of the resource, type or item. */
   type: 'resource' | 'collection';
   /** Name of the resource. */
   id: string;
 }
 
-export interface CrudResourceInfo extends CrudTypeEntry {
+export interface CrudResourceInfo extends CrudCollectionEntry {
   /** Size of the resource in bytes. */
   size?: number;
   /** Timestamp when the resource last modified. */
@@ -91,10 +79,5 @@ export interface CrudResourceInfo extends CrudTypeEntry {
 
 export interface CrudScanResult {
   cursor: string | '';
-  list: CrudTypeEntry[];
-}
-
-export interface CrudScanEntry extends CrudTypeEntry {
-  /** Collection, which contains this entry. */
-  collection: CrudCollection;
+  list: CrudCollectionEntry[];
 }

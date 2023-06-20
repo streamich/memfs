@@ -275,4 +275,44 @@ onlyOnNode20('FsaCrud', () => {
       expect(snapshot()).toEqual({});
     });
   });
+
+  describe('.list()', () => {
+    test('throws if the collection is not valid', async () => {
+      const { crud } = setup();
+      const [, err] = await of(crud.list(['./..', 'foo']));
+      expect(err).toBeInstanceOf(TypeError);
+      expect((<any>err).message).toBe("Failed to execute 'drop' on 'crudfs': Name is not allowed.");
+    });
+
+    test('can retrieve a list of resources and collections at root', async () => {
+      const { crud } = setup();
+      await crud.put(['foo'], 'bar', b('1'));
+      await crud.put([], 'baz', b('1'));
+      await crud.put([], 'qux', b('2'));
+      const list = await crud.list([]);
+      expect(list.length).toBe(3);
+      expect(list.find(x => x.id === 'baz')).toMatchObject({
+        type: 'resource',
+        id: 'baz',
+      });
+      expect(list.find(x => x.id === 'qux')).toMatchObject({
+        type: 'resource',
+        id: 'qux',
+      });
+      expect(list.find(x => x.id === 'foo')).toMatchObject({
+        type: 'collection',
+        id: 'foo',
+      });
+    });
+
+    test('throws when try to list a non-existing collection', async () => {
+      const { crud } = setup();
+      await crud.put(['foo'], 'bar', b('1'));
+      await crud.put([], 'baz', b('1'));
+      await crud.put([], 'qux', b('2'));
+      const [, err] = await of(crud.list(['gg']));
+      expect(err).toBeInstanceOf(DOMException);
+      expect((<any>err).name).toBe('CollectionNotFound');
+    });
+  });
 });

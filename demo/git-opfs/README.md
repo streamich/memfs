@@ -8,6 +8,8 @@ out of OPFS. We then use `isomorphic-git` to run Git commands on that file syste
 In the demo itself we initiate a Git repo, then we create a `README.md` file, we
 stage it, and finally we commit it.
 
+https://github.com/streamich/memfs/assets/9773803/bbc83f3f-98ad-48cc-9259-b6f543aa1a03
+
 Run:
 
 ```

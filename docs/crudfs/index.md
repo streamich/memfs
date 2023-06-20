@@ -67,5 +67,5 @@ import { nodeToFsa } from 'memfs/lib/node-to-fsa';
 import { FsaCrud } from 'memfs/lib/fsa-to-crud';
 
 const dir = nodeToFsa(fs, '/path/to/folder', {mode: 'readwrite'});
-const crud = new FsaCrud(dirHandle);
+const crud = new FsaCrud(dir);
 ```

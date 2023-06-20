@@ -1,5 +1,5 @@
-import {CrudCollection} from "../crud/types";
-import {assertName} from "../node-to-fsa/util";
+import { CrudCollection } from '../crud/types';
+import { assertName } from '../node-to-fsa/util';
 
 export const assertType = (type: CrudCollection, method: string, klass: string): void => {
   const length = type.length;

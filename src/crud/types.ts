@@ -1,7 +1,7 @@
 export interface CrudApi {
   /**
    * Creates a new resource, or overwrites an existing one.
-   * 
+   *
    * @param collection Type of the resource, collection name.
    * @param id Id of the resource, document name.
    * @param data Blob content of the resource.
@@ -11,7 +11,7 @@ export interface CrudApi {
 
   /**
    * Retrieves the content of a resource.
-   * 
+   *
    * @param collection Type of the resource, collection name.
    * @param id Id of the resource, document name.
    * @returns Blob content of the resource.
@@ -20,7 +20,7 @@ export interface CrudApi {
 
   /**
    * Deletes a resource.
-   * 
+   *
    * @param collection Type of the resource, collection name.
    * @param id Id of the resource, document name.
    * @param silent When true, does not throw an error if the collection or
@@ -30,7 +30,7 @@ export interface CrudApi {
 
   /**
    * Fetches information about a resource.
-   * 
+   *
    * @param collection Type of the resource, collection name.
    * @param id Id of the resource, document name, if any.
    * @returns Information about the resource.
@@ -39,7 +39,7 @@ export interface CrudApi {
 
   /**
    * Deletes all resources of a collection, and deletes recursively all sub-collections.
-   * 
+   *
    * @param collection Type of the resource, collection name.
    * @param silent When true, does not throw an error if the collection or
    *               resource does not exist. Default is false.
@@ -48,7 +48,7 @@ export interface CrudApi {
 
   /**
    * Fetches a list of resources of a collection, and sub-collections.
-   * 
+   *
    * @param collection Type of the resource, collection name.
    * @returns List of resources of the given type, and sub-types.
    */
@@ -57,7 +57,7 @@ export interface CrudApi {
   /**
    * Recursively scans all resources of a collection, and sub-collections. Returns
    * a cursor to continue scanning.
-   * 
+   *
    * @param collection Type of the resource, collection name.
    * @param cursor Cursor to start scanning from. If empty string, starts from the beginning.
    * @returns List of resources of the given type, and sub-collections. Also

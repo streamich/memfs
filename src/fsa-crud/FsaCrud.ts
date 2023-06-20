@@ -1,17 +1,22 @@
 import type * as crud from '../crud/types';
 import type * as fsa from '../fsa/types';
-import {assertName} from '../node-to-fsa/util';
-import {assertType} from './util';
+import { assertName } from '../node-to-fsa/util';
+import { assertType } from './util';
 
 export class FsaCrud implements crud.CrudApi {
-  public constructor (protected readonly root: fsa.IFileSystemDirectoryHandle | Promise<fsa.IFileSystemDirectoryHandle>) {}
+  public constructor(
+    protected readonly root: fsa.IFileSystemDirectoryHandle | Promise<fsa.IFileSystemDirectoryHandle>,
+  ) {}
 
-  protected async getDir(collection: crud.CrudCollection, create: boolean): Promise<[dir: fsa.IFileSystemDirectoryHandle, parent: fsa.IFileSystemDirectoryHandle | undefined]> {
+  protected async getDir(
+    collection: crud.CrudCollection,
+    create: boolean,
+  ): Promise<[dir: fsa.IFileSystemDirectoryHandle, parent: fsa.IFileSystemDirectoryHandle | undefined]> {
     let parent: undefined | fsa.IFileSystemDirectoryHandle = undefined;
     let dir = await this.root;
     try {
       for (const name of collection) {
-        const child = await dir.getDirectoryHandle(name, {create});
+        const child = await dir.getDirectoryHandle(name, { create });
         parent = dir;
         dir = child;
       }
@@ -23,19 +28,27 @@ export class FsaCrud implements crud.CrudApi {
     }
   }
 
-  protected async getFile(collection: crud.CrudCollection, id: string): Promise<[dir: fsa.IFileSystemDirectoryHandle, file: fsa.IFileSystemFileHandle]> {
+  protected async getFile(
+    collection: crud.CrudCollection,
+    id: string,
+  ): Promise<[dir: fsa.IFileSystemDirectoryHandle, file: fsa.IFileSystemFileHandle]> {
     const [dir] = await this.getDir(collection, false);
     try {
-      const file = await dir.getFileHandle(id, {create: false});
+      const file = await dir.getFileHandle(id, { create: false });
       return [dir, file];
     } catch (error) {
       if (error.name === 'NotFoundError')
         throw new DOMException(`Resource "${id}" in /${collection.join('/')} not found`, 'ResourceNotFound');
       throw error;
     }
-  };
+  }
 
-  public readonly put = async (collection: crud.CrudCollection, id: string, data: Uint8Array, options?: crud.CrudPutOptions): Promise<void> => {
+  public readonly put = async (
+    collection: crud.CrudCollection,
+    id: string,
+    data: Uint8Array,
+    options?: crud.CrudPutOptions,
+  ): Promise<void> => {
     assertType(collection, 'put', 'crudfs');
     assertName(id, 'put', 'crudfs');
     const [dir] = await this.getDir(collection, true);
@@ -43,17 +56,17 @@ export class FsaCrud implements crud.CrudApi {
     switch (options?.throwIf) {
       case 'exists': {
         try {
-          file = await dir.getFileHandle(id, {create: false});
+          file = await dir.getFileHandle(id, { create: false });
           throw new DOMException('Resource already exists', 'Exists');
         } catch (e) {
           if (e.name !== 'NotFoundError') throw e;
-          file = await dir.getFileHandle(id, {create: true});
+          file = await dir.getFileHandle(id, { create: true });
         }
         break;
       }
       case 'missing': {
         try {
-          file = await dir.getFileHandle(id, {create: false});
+          file = await dir.getFileHandle(id, { create: false });
         } catch (e) {
           if (e.name === 'NotFoundError') throw new DOMException('Resource is missing', 'Missing');
           throw e;
@@ -61,7 +74,7 @@ export class FsaCrud implements crud.CrudApi {
         break;
       }
       default: {
-        file = await dir.getFileHandle(id, {create: true});
+        file = await dir.getFileHandle(id, { create: true });
       }
     }
     const writable = await file!.createWritable();
@@ -83,7 +96,7 @@ export class FsaCrud implements crud.CrudApi {
     assertName(id, 'del', 'crudfs');
     try {
       const [dir] = await this.getFile(collection, id);
-      await dir.removeEntry(id, {recursive: false});
+      await dir.removeEntry(id, { recursive: false });
     } catch (error) {
       if (!silent) throw error;
     }
@@ -115,11 +128,10 @@ export class FsaCrud implements crud.CrudApi {
     try {
       const [dir, parent] = await this.getDir(collection, false);
       if (parent) {
-        await parent.removeEntry(dir.name, {recursive: true});
+        await parent.removeEntry(dir.name, { recursive: true });
       } else {
         const root = await this.root;
-        for await (const name of root.keys())
-        await root.removeEntry(name, {recursive: true});
+        for await (const name of root.keys()) await root.removeEntry(name, { recursive: true });
       }
     } catch (error) {
       if (!silent) throw error;
@@ -130,7 +142,10 @@ export class FsaCrud implements crud.CrudApi {
     throw new Error('Not implemented');
   };
 
-  public readonly scan = async (collection: crud.CrudCollection, cursor?: string | ''): Promise<crud.CrudScanResult> => {
+  public readonly scan = async (
+    collection: crud.CrudCollection,
+    cursor?: string | '',
+  ): Promise<crud.CrudScanResult> => {
     throw new Error('Not implemented');
   };
 }

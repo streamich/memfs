@@ -18,10 +18,10 @@ export class FsaNodeCore {
   ) {
     if (root instanceof Promise) {
       root
-        .then((root) => {
+        .then(root => {
           (this as any).root = root;
         })
-        .catch((error) => {});
+        .catch(error => {});
     }
   }
 

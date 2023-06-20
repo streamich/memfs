@@ -19,11 +19,11 @@ export class FsaCrud implements crud.CrudApi {
     }
   }
 
-  protected async getFile(collection: crud.CrudCollection, id: string): Promise<fsa.IFileSystemFileHandle> {
+  protected async getFile(collection: crud.CrudCollection, id: string): Promise<[dir: fsa.IFileSystemDirectoryHandle, file: fsa.IFileSystemFileHandle]> {
     const dir = await this.getDir(collection, false);
     try {
       const file = await dir.getFileHandle(id, {create: false});
-      return file;
+      return [dir, file];
     } catch (error) {
       if (error.name === 'NotFoundError')
         throw new DOMException(`Resource "${id}" in /${collection.join('/')} not found`, 'ResourceNotFound');
@@ -68,14 +68,21 @@ export class FsaCrud implements crud.CrudApi {
   public readonly get = async (collection: crud.CrudCollection, id: string): Promise<Uint8Array> => {
     assertType(collection, 'get', 'crudfs');
     assertName(id, 'get', 'crudfs');
-    const file = await this.getFile(collection, id);
+    const [, file] = await this.getFile(collection, id);
     const blob = await file.getFile();
     const buffer = await blob.arrayBuffer();
     return new Uint8Array(buffer);
   };
 
-  public readonly del = async (collection: crud.CrudCollection, id: string): Promise<void> => {
-    throw new Error('Not implemented');
+  public readonly del = async (collection: crud.CrudCollection, id: string, silent?: boolean): Promise<void> => {
+    assertType(collection, 'get', 'crudfs');
+    assertName(id, 'get', 'crudfs');
+    try {
+      const [dir] = await this.getFile(collection, id);
+      await dir.removeEntry(id, {recursive: false});
+    } catch (error) {
+      if (!silent) throw error;
+    }
   };
 
   public readonly info = async (collection: crud.CrudCollection, id?: string): Promise<crud.CrudResourceInfo> => {

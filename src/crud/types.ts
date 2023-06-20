@@ -23,8 +23,10 @@ export interface CrudApi {
    * 
    * @param collection Type of the resource, collection name.
    * @param id Id of the resource, document name.
+   * @param silent When true, does not throw an error if the collection or
+   *               resource does not exist. Default is false.
    */
-  del: (collection: CrudCollection, id: string) => Promise<void>;
+  del: (collection: CrudCollection, id: string, silent?: boolean) => Promise<void>;
 
   /**
    * Fetches information about a resource.

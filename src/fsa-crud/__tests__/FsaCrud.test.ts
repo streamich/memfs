@@ -111,4 +111,59 @@ onlyOnNode20('FsaCrud', () => {
       expect(blob).toStrictEqual(b('abc'));
     });
   });
+
+  describe('.del()', () => {
+    test('throws if the type is not valid', async () => {
+      const {crud} = setup();
+      const [, err] = await of(crud.del(['', 'foo'], 'bar'));
+      expect(err).toBeInstanceOf(TypeError);
+    });
+
+    test('throws if id is not valid', async () => {
+      const {crud} = setup();
+      const [, err] = await of(crud.del(['foo'], ''));
+      expect(err).toBeInstanceOf(TypeError);
+    });
+
+
+    describe('when collection does not exist', () => {
+      test('throws by default', async () => {
+        const {crud} = setup();
+        const [, err] = await of(crud.del(['foo'], 'bar'));
+        expect(err).toBeInstanceOf(DOMException);
+        expect((<any>err).name).toBe('CollectionNotFound');
+      });
+
+      test('does not throw when "silent" flag set', async () => {
+        const {crud} = setup();
+        await crud.del(['foo'], 'bar', true);
+      });
+    });
+
+    describe('when collection is found but resource is not', () => {
+      test('throws by default', async () => {
+        const {crud} = setup();
+        await crud.put(['foo'], 'bar', b('abc'));
+        const [, err] = await of(crud.del(['foo'], 'baz'));
+        expect(err).toBeInstanceOf(DOMException);
+        expect((<any>err).name).toBe('ResourceNotFound');
+      });
+
+      test('does not throw when "silent" flag set', async () => {
+        const {crud} = setup();
+        await crud.put(['foo'], 'bar', b('abc'));
+        await crud.del(['foo'], 'baz', true);
+      });
+    });
+
+    test('deletes an existing resource', async () => {
+      const {crud} = setup();
+      await crud.put(['foo'], 'bar', b('abc'));
+      await crud.get(['foo'], 'bar');
+      await crud.del(['foo'], 'bar');
+      const [, err] = await of(crud.get(['foo'], 'bar'));
+      expect(err).toBeInstanceOf(DOMException);
+      expect((<any>err).name).toBe('ResourceNotFound');
+    });
+  });
 });

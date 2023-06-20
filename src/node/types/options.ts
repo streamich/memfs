@@ -42,7 +42,6 @@ export interface IMkdirOptions {
 }
 
 export interface IRmdirOptions {
-  /** @deprecated */
   recursive?: boolean;
   maxRetries?: number;
   retryDelay?: number;

@@ -1,4 +1,4 @@
-import type {FsLocation} from "../fsa-to-node/types";
+import type { FsLocation } from '../fsa-to-node/types';
 
 export const hashToLocation = (hash: string): FsLocation => {
   if (hash.length < 20) throw new TypeError('Hash is too short');

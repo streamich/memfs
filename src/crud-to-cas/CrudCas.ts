@@ -1,6 +1,6 @@
-import {hashToLocation} from "./util";
-import type {CasApi} from "../cas/types";
-import type {CrudApi, CrudResourceInfo} from "../crud/types";
+import { hashToLocation } from './util';
+import type { CasApi } from '../cas/types';
+import type { CrudApi, CrudResourceInfo } from '../crud/types';
 
 export interface CrudCasOptions {
   hash: (blob: Uint8Array) => Promise<string>;

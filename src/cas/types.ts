@@ -1,4 +1,4 @@
-import type {CrudResourceInfo} from "../crud/types";
+import type { CrudResourceInfo } from '../crud/types';
 
 export interface CasApi {
   put(blob: Uint8Array): Promise<string>;

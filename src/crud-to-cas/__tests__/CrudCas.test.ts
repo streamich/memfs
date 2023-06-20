@@ -7,16 +7,16 @@ import { FsaCrud } from '../../fsa-to-crud/FsaCrud';
 import { CrudCas } from '../CrudCas';
 
 const hash = async (blob: Uint8Array): Promise<string> => {
-  const shasum = createHash('sha1')
-  shasum.update(blob)
-  return shasum.digest('hex') 
+  const shasum = createHash('sha1');
+  shasum.update(blob);
+  return shasum.digest('hex');
 };
 
 const setup = () => {
   const fs = memfs();
   const fsa = new NodeFileSystemDirectoryHandle(fs, '/', { mode: 'readwrite' });
   const crud = new FsaCrud(fsa);
-  const cas = new CrudCas(crud, {hash});
+  const cas = new CrudCas(crud, { hash });
   return { fs, fsa, crud, cas, snapshot: () => (<any>fs).__vol.toJSON() };
 };
 

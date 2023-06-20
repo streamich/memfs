@@ -16,6 +16,7 @@ JavaScript file system utilities for Node.js and browser.
 npm install --save memfs
 ```
 
+
 ## Docs
 
 - Node.js `fs` API
@@ -25,7 +26,7 @@ npm install --save memfs
   - [FSA to `fs` adapter](./docs/fsa/fsa-to-fs.md)
 
 
-## Demo
+## Demos
 
 https://github.com/streamich/memfs/assets/9773803/8dc61d1e-61bf-4dfc-973b-028332fd4473
 
@@ -34,6 +35,11 @@ on the file system. It then converts a [`FileSystemDirectoryHandle`](https://dev
 to a Node-like `fs` file system. It then uses the `fs` API to create a couple
 of files and then read them and zip into a tarball, which is written to the file system
 using the `fs` WriteStream API.
+
+
+### More demos
+
+- [`isomorphic-git` running on in-memory file system](demo/isomorphic-git/README.md)
 
 
 ## License

@@ -7,7 +7,7 @@ export interface CrudApi {
    * @param data Blob content of the resource.
    * @param options Write behavior options.
    */
-  put: (collection: CrudCollection, id: string, data: Uint8Array, options: CrudPutOptions) => Promise<void>;
+  put: (collection: CrudCollection, id: string, data: Uint8Array, options?: CrudPutOptions) => Promise<void>;
 
   /**
    * Retrieves the content of a resource.

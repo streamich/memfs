@@ -17,7 +17,10 @@ import type {
 let rootId = 0;
 
 export class FsaNodeSyncAdapterWorker implements FsaNodeSyncAdapter {
-  public static async start(url: string, dir: fsa.IFileSystemDirectoryHandle | Promise<fsa.IFileSystemDirectoryHandle>): Promise<FsaNodeSyncAdapterWorker> {
+  public static async start(
+    url: string,
+    dir: fsa.IFileSystemDirectoryHandle | Promise<fsa.IFileSystemDirectoryHandle>,
+  ): Promise<FsaNodeSyncAdapterWorker> {
     const worker = new Worker(url);
     const future = new Defer<FsaNodeSyncAdapterWorker>();
     let id = rootId++;

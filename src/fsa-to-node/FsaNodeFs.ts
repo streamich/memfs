@@ -593,10 +593,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     (async () => {
       const root = await this.root;
       for await (const name of root.keys()) {
-        await root.removeEntry(name, {recursive: true});
+        await root.removeEntry(name, { recursive: true });
       }
-    })()
-      .then(() => callback(null), error => callback(error));
+    })().then(
+      () => callback(null),
+      error => callback(error),
+    );
   }
 
   public readonly rmdir: FsCallbackApi['rmdir'] = (

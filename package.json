@@ -42,7 +42,8 @@
     "build:webfs": "NODE_ENV=production webpack --config ./src/webfs/webpack.config.js",
     "demo:webfs": "webpack serve --config ./src/webfs/webpack.config.js",
     "demo:fsa-to-node-sync-tests": "webpack serve --config ./demo/fsa-to-node-sync-tests/webpack.config.js",
-    "demo:fsa-to-node-zipfile": "webpack serve --config ./demo/fsa-to-node-zipfile/webpack.config.js"
+    "demo:fsa-to-node-zipfile": "webpack serve --config ./demo/fsa-to-node-zipfile/webpack.config.js",
+    "demo:git-opfs": "webpack serve --config ./demo/git-opfs/webpack.config.js"
   },
   "commitlint": {
     "extends": [

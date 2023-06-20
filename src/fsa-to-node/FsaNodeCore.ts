@@ -54,8 +54,14 @@ export class FsaNodeCore {
         curr = await curr.getDirectoryHandle(name, options);
       }
     } catch (error) {
-      if (error && typeof error === 'object' && error.name === 'TypeMismatchError')
-        throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
+      if (error && typeof error === 'object') {
+        switch (error.name) {
+          case 'TypeMismatchError':
+            throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
+          case 'NotFoundError':
+            throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
+        }
+      }
       throw error;
     }
     return curr;
@@ -86,7 +92,18 @@ export class FsaNodeCore {
       if (error && typeof error === 'object') {
         switch (error.name) {
           case 'TypeMismatchError':
-            return await dir.getDirectoryHandle(name);
+            try {
+              return await dir.getDirectoryHandle(name);
+            } catch (error2) {
+              if (error2 && typeof error2 === 'object') {
+                switch (error2.name) {
+                  case 'TypeMismatchError':
+                    throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
+                  case 'NotFoundError':
+                    throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
+                }
+              }
+            }
           case 'NotFoundError':
             throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
         }

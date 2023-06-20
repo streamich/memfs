@@ -11,7 +11,10 @@ const setup = () => {
   return {fs, fsa, crud, snapshot: () => (<any>fs).__vol.toJSON()};
 };
 
-const b = (str: string) => Buffer.from(str).subarray(0);
+const b = (str: string) => {
+  const buf = Buffer.from(str);
+  return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+};
 
 onlyOnNode20('FsaCrud', () => {
   describe('.put()', () => {
@@ -57,7 +60,7 @@ onlyOnNode20('FsaCrud', () => {
       await crud.put(['a', 'b'], 'bar', b('abc'), {throwIf: 'exists'});
       const [, err] = await of(crud.put(['a', 'b'], 'bar', b('efg'), {throwIf: 'exists'}));
       expect(err).toBeInstanceOf(DOMException);
-      expect((<DOMException>err).name).toBe('ExistsError');
+      expect((<DOMException>err).name).toBe('Exists');
     });
 
     test('can choose to throw if item does not exist', async () => {
@@ -66,10 +69,46 @@ onlyOnNode20('FsaCrud', () => {
       await crud.put(['a', 'b'], 'bar', b('2'), );
       await crud.put(['a', 'b'], 'bar', b('3'), {throwIf: 'missing'});
       expect(err).toBeInstanceOf(DOMException);
-      expect((<DOMException>err).name).toBe('MissingError');
+      expect((<DOMException>err).name).toBe('Missing');
       expect(snapshot()).toStrictEqual({
         '/a/b/bar': '3',
       });
+    });
+  });
+
+  describe('.get()', () => {
+    test('throws if the type is not valid', async () => {
+      const {crud} = setup();
+      const [, err] = await of(crud.get(['', 'foo'], 'bar'));
+      expect(err).toBeInstanceOf(TypeError);
+    });
+
+    test('throws if id is not valid', async () => {
+      const {crud} = setup();
+      const [, err] = await of(crud.get(['foo'], ''));
+      expect(err).toBeInstanceOf(TypeError);
+    });
+
+    test('throws if collection does not exist', async () => {
+      const {crud} = setup();
+      const [, err] = await of(crud.get(['foo'], 'bar'));
+      expect(err).toBeInstanceOf(DOMException);
+      expect((<any>err).name).toBe('CollectionNotFound');
+    });
+
+    test('throws if resource does not exist', async () => {
+      const {crud} = setup();
+      await crud.put(['foo'], 'bar', b('abc'));
+      const [, err] = await of(crud.get(['foo'], 'baz'));
+      expect(err).toBeInstanceOf(DOMException);
+      expect((<any>err).name).toBe('ResourceNotFound');
+    });
+
+    test('can fetch an existing resource', async () => {
+      const {crud} = setup();
+      await crud.put(['foo'], 'bar', b('abc'));
+      const blob = await crud.get(['foo'], 'bar');
+      expect(blob).toStrictEqual(b('abc'));
     });
   });
 });

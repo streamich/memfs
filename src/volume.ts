@@ -1585,19 +1585,6 @@ export class Volume implements FsCallbackApi {
     else this.wrapAsync(this.mkdirBase, [filename, modeNum], callback);
   }
 
-  // legacy interface
-  mkdirpSync(path: PathLike, mode?: TMode) {
-    return this.mkdirSync(path, { mode, recursive: true });
-  }
-
-  mkdirp(path: PathLike, callback: TCallback<string>);
-  mkdirp(path: PathLike, mode: TMode, callback: TCallback<string>);
-  mkdirp(path: PathLike, a: TCallback<string> | TMode, b?: TCallback<string>) {
-    const mode: TMode | undefined = typeof a === 'function' ? undefined : a;
-    const callback = validateCallback(typeof a === 'function' ? a : b);
-    this.mkdir(path, { mode, recursive: true }, callback);
-  }
-
   private mkdtempBase(prefix: string, encoding?: TEncodingExtended, retry: number = 5): TDataOut {
     const filename = prefix + genRndStr6();
     try {

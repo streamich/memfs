@@ -23,6 +23,7 @@ npm i memfs
 - `experimental` [`fs` to File System Access API adapter](./docs/fsa/fs-to-fsa.md)
 - `experimental` [File System Access API to `fs` adapter](./docs/fsa/fsa-to-fs.md)
 - `experimental` [`crudfs` a CRUD-like file system abstraction](./docs/crudfs/index.md)
+- `experimental` [`casfs` Content Addressable Storage file system abstraction](./docs/casfs/index.md)
 
 
 ## Demos

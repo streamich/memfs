@@ -13,6 +13,10 @@ describe('pathToLocation()', () => {
     expect(pathToLocation('scary.exe')).toStrictEqual([[], 'scary.exe']);
   });
 
+  test('strips trailing slash', () => {
+    expect(pathToLocation('scary.exe/')).toStrictEqual([[], 'scary.exe']);
+  });
+
   test('multiple steps in the path', () => {
     expect(pathToLocation('/gg/wp/hf/gl.txt')).toStrictEqual([['gg', 'wp', 'hf'], 'gl.txt']);
     expect(pathToLocation('gg/wp/hf/gl.txt')).toStrictEqual([['gg', 'wp', 'hf'], 'gl.txt']);

@@ -1,7 +1,11 @@
-import { CrudCollection } from '../crud/types';
-import { assertName } from '../node-to-fsa/util';
+import type * as crud from '../crud/types';
 
-export const assertType = (type: CrudCollection, method: string, klass: string): void => {
-  const length = type.length;
-  for (let i = 0; i < length; i++) assertName(type[i], method, klass);
-};
+export const newFile404Error = (collection: crud.CrudCollection, id: string) =>
+  new DOMException(`Resource "${id}" in /${collection.join('/')} not found`, 'ResourceNotFound');
+
+export const newFolder404Error = (collection: crud.CrudCollection) =>
+  new DOMException(`Collection /${collection.join('/')} does not exist`, 'CollectionNotFound');
+
+export const newExistsError = () => new DOMException('Resource already exists', 'Exists');
+
+export const newMissingError = () => new DOMException('Resource is missing', 'Missing');

@@ -4,6 +4,7 @@ import { ERRSTR } from '../node/constants';
 import { FsaToNodeConstants } from './constants';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FLAG } from '../consts/FLAG';
+import * as util from '../node/util';
 import type * as fsa from '../fsa/types';
 import type * as misc from '../node/types/misc';
 import type { FsaNodeSyncAdapter } from './types';
@@ -82,9 +83,9 @@ export class FsaNodeCore {
     path: string[],
     name: string,
     funcName?: string,
-    create?: boolean,
   ): Promise<fsa.IFileSystemFileHandle | fsa.IFileSystemDirectoryHandle> {
     const dir = await this.getDir(path, false, funcName);
+    if (!name) return dir;
     try {
       const file = await dir.getFileHandle(name);
       return file;
@@ -123,15 +124,11 @@ export class FsaNodeCore {
     return this.getFileByFd(fd, funcName);
   }
 
-  public async __getFileById(
-    id: misc.TFileId,
-    funcName?: string,
-    create?: boolean,
-  ): Promise<fsa.IFileSystemFileHandle> {
+  public async __getFileById(id: misc.TFileId, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
     if (typeof id === 'number') return (await this.getFileByFd(id, funcName)).file;
     const filename = pathToFilename(id);
     const [folder, name] = pathToLocation(filename);
-    return await this.getFile(folder, name, funcName, create);
+    return await this.getFile(folder, name, funcName);
   }
 
   protected async getFileByIdOrCreate(id: misc.TFileId, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
@@ -144,9 +141,42 @@ export class FsaNodeCore {
 
   protected async __open(filename: string, flags: number, mode: number): Promise<FsaNodeFsOpenFile> {
     const [folder, name] = pathToLocation(filename);
-    const createIfMissing = !!(flags & FLAG.O_CREAT);
-    const fsaFile = await this.getFile(folder, name, 'open', createIfMissing);
-    return this.__open2(fsaFile, filename, flags, mode);
+    const throwIfExists = !!(flags & FLAG.O_EXCL);
+    if (throwIfExists) {
+      try {
+        await this.getFile(folder, name, 'open', false);
+        throw util.createError('EEXIST', 'writeFile');
+      } catch (error) {
+        const file404 =
+          error && typeof error === 'object' && (error.code === 'ENOENT' || error.name === 'NotFoundError');
+        if (!file404) {
+          if (error && typeof error === 'object') {
+            switch (error.name) {
+              case 'TypeMismatchError':
+                throw createError('ENOTDIR', 'open', filename);
+              case 'NotFoundError':
+                throw createError('ENOENT', 'open', filename);
+            }
+          }
+          throw error;
+        }
+      }
+    }
+    try {
+      const createIfMissing = !!(flags & FLAG.O_CREAT);
+      const fsaFile = await this.getFile(folder, name, 'open', createIfMissing);
+      return this.__open2(fsaFile, filename, flags, mode);
+    } catch (error) {
+      if (error && typeof error === 'object') {
+        switch (error.name) {
+          case 'TypeMismatchError':
+            throw createError('ENOTDIR', 'open', filename);
+          case 'NotFoundError':
+            throw createError('ENOENT', 'open', filename);
+        }
+      }
+      throw error;
+    }
   }
 
   protected __open2(
@@ -159,6 +189,13 @@ export class FsaNodeCore {
     const file = new FsaNodeFsOpenFile(fd, mode, flags, fsaFile, filename);
     this.fds.set(fd, file);
     return file;
+  }
+
+  protected async __close(fd: number): Promise<void> {
+    const openFile = await this.getFileByFdAsync(fd, 'close');
+    await openFile.close();
+    const deleted = this.fds.delete(fd);
+    if (deleted) this.releasedFds.push(fd);
   }
 
   protected getFileName(id: misc.TFileId): string {

@@ -33,19 +33,20 @@ npm i memfs
 - [Git on in-memory file system](demo/git/README.md)
 - [`fs` in browser, creates a `.tar` file in real folder](demo/fsa-to-node-zipfile/README.md)
 - [`fs` in browser, synchronous API, writes to real folder](demo/fsa-to-node-sync-tests/README.md)
+- [`crudfs` and `casfs` in browser and Node.js interoperability](demo/crud-and-cas/README.md)
 
 
 ## See also
 
-- [`spyfs`][spyfs] - spies on filesystem actions
 - [`unionfs`][unionfs] - creates a union of multiple filesystem volumes
-- [`linkfs`][linkfs] - redirects filesystem paths
 - [`fs-monkey`][fs-monkey] - monkey-patches Node's `fs` module and `require` function
+- [`linkfs`][linkfs] - redirects filesystem paths
+- [`spyfs`][spyfs] - spies on filesystem actions
 
-[spyfs]: https://github.com/streamich/spyfs
 [unionfs]: https://github.com/streamich/unionfs
-[linkfs]: https://github.com/streamich/linkfs
 [fs-monkey]: https://github.com/streamich/fs-monkey
+[linkfs]: https://github.com/streamich/linkfs
+[spyfs]: https://github.com/streamich/spyfs
 
 
 ## License

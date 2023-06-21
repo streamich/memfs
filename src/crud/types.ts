@@ -53,6 +53,14 @@ export interface CrudApi {
    * @returns List of resources of the given type, and sub-types.
    */
   list: (collection: CrudCollection) => Promise<CrudCollectionEntry[]>;
+
+  /**
+   * Creates a new CrudApi instance, with the given collection as root.
+   *
+   * @param collection Type of the resource, collection name.
+   * @returns A new CrudApi instance, with the given collection as root.
+   */
+  from: (collection: CrudCollection) => Promise<CrudApi>;
 }
 
 export type CrudCollection = string[];

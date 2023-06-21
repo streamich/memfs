@@ -58,6 +58,18 @@ await crud.drop(['user', 'files']);
 
 ### `crudfs` from Node.js `fs` module
 
+You can run `crudfs` on top of Node.js `fs` module like so:
+
+```js
+import * as fs from 'fs';
+import { NodeCrud } from 'memfs/lib/node-to-crud';
+
+const crud = new NodeCrud({fs: fs.promises, dir: '/path/to/folder'});
+```
+
+
+#### Indirectly with FAS in-between
+
 You can run `crudfs` on top of Node.js `fs` module by using File System Access API
 adapter on top of the  Node.js `fs` module:
 

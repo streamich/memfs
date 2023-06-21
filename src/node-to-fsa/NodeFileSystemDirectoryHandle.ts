@@ -24,13 +24,13 @@ import type {
  */
 export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implements IFileSystemDirectoryHandle {
   protected readonly ctx: Partial<NodeFsaContext>;
-  public constructor(
-    protected readonly fs: NodeFsaFs,
-    public readonly __path: string,
-    ctx: Partial<NodeFsaContext> = {},
-  ) {
-    super('directory', basename(__path, ctx.separator || '/'));
+  /** Directory path with trailing slash. */
+  public readonly __path: string;
+
+  public constructor(protected readonly fs: NodeFsaFs, path: string, ctx: Partial<NodeFsaContext> = {}) {
+    super('directory', basename(path, ctx.separator || '/'));
     this.ctx = createCtx(ctx);
+    this.__path = path[path.length - 1] === this.ctx.separator ? path : path + this.ctx.separator;
   }
 
   /**
@@ -84,7 +84,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
     options?: GetDirectoryHandleOptions,
   ): Promise<IFileSystemDirectoryHandle> {
     assertName(name, 'getDirectoryHandle', 'FileSystemDirectoryHandle');
-    const filename = this.__path + this.ctx.separator! + name;
+    const filename = this.__path + name;
     try {
       const stats = await this.fs.promises.stat(filename);
       if (!stats.isDirectory()) throw newTypeMismatchError();
@@ -121,7 +121,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
    */
   public async getFileHandle(name: string, options?: GetFileHandleOptions): Promise<IFileSystemFileHandle> {
     assertName(name, 'getFileHandle', 'FileSystemDirectoryHandle');
-    const filename = this.__path + this.ctx.separator! + name;
+    const filename = this.__path + name;
     try {
       const stats = await this.fs.promises.stat(filename);
       if (!stats.isFile()) throw newTypeMismatchError();
@@ -159,7 +159,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
   public async removeEntry(name: string, { recursive = false }: RemoveEntryOptions = {}): Promise<void> {
     assertCanWrite(this.ctx.mode!);
     assertName(name, 'removeEntry', 'FileSystemDirectoryHandle');
-    const filename = this.__path + this.ctx.separator! + name;
+    const filename = this.__path + name;
     const promises = this.fs.promises;
     try {
       const stats = await promises.stat(filename);

@@ -63,6 +63,8 @@ ufs.readFileSync('/foo'); // bar
 
 Use [`fs-monkey`][fs-monkey] to monkey-patch Node's `require` function:
 
+[fs-monkey]: https://github.com/streamich/fs-monkey
+
 ```js
 import { patchRequire } from 'fs-monkey';
 

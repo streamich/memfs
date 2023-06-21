@@ -6,8 +6,6 @@ export const newFile404Error = (collection: crud.CrudCollection, id: string) =>
 export const newFolder404Error = (collection: crud.CrudCollection) =>
   new DOMException(`Collection /${collection.join('/')} does not exist`, 'CollectionNotFound');
 
-export const newExistsError = () =>
-  new DOMException('Resource already exists', 'Exists');
+export const newExistsError = () => new DOMException('Resource already exists', 'Exists');
 
-export const newMissingError = () =>
-  new DOMException('Resource is missing', 'Missing');
+export const newMissingError = () => new DOMException('Resource is missing', 'Missing');

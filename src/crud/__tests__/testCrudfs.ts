@@ -1,5 +1,5 @@
 import { of } from 'thingies';
-import type {CrudApi} from '../types';
+import type { CrudApi } from '../types';
 
 export type Setup = () => {
   crud: CrudApi;

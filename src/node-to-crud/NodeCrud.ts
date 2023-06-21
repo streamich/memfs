@@ -4,7 +4,7 @@ import { FLAG } from '../consts/FLAG';
 import { newExistsError, newFile404Error, newFolder404Error, newMissingError } from '../fsa-to-crud/util';
 import type { FsPromisesApi } from '../node/types';
 import type * as crud from '../crud/types';
-import type {IDirent} from '../node/types/misc';
+import type { IDirent } from '../node/types/misc';
 
 export interface NodeCrudOptions {
   readonly fs: FsPromisesApi;
@@ -17,9 +17,7 @@ export class NodeCrud implements crud.CrudApi {
   protected readonly dir: string;
   protected readonly separator: string;
 
-  public constructor(
-    protected readonly options: NodeCrudOptions,
-  ) {
+  public constructor(protected readonly options: NodeCrudOptions) {
     this.separator = options.separator ?? '/';
     let dir = options.dir;
     const last = dir[dir.length - 1];
@@ -28,7 +26,7 @@ export class NodeCrud implements crud.CrudApi {
     this.fs = options.fs;
   }
 
-  protected async checkDir(collection: crud.CrudCollection,): Promise<string> {
+  protected async checkDir(collection: crud.CrudCollection): Promise<string> {
     const dir = this.dir + collection.join(this.separator);
     const fs = this.fs;
     try {
@@ -62,20 +60,18 @@ export class NodeCrud implements crud.CrudApi {
     switch (options?.throwIf) {
       case 'exists': {
         try {
-          await fs.writeFile(filename, data, {flag: FLAG.O_CREAT | FLAG.O_EXCL});
+          await fs.writeFile(filename, data, { flag: FLAG.O_CREAT | FLAG.O_EXCL });
         } catch (error) {
-          if (error && typeof error === 'object' && error.code === 'EEXIST')
-            throw newExistsError();
+          if (error && typeof error === 'object' && error.code === 'EEXIST') throw newExistsError();
           throw error;
         }
         break;
       }
       case 'missing': {
         try {
-          await fs.writeFile(filename, data, {flag: FLAG.O_RDWR});
+          await fs.writeFile(filename, data, { flag: FLAG.O_RDWR });
         } catch (error) {
-          if (error && typeof error === 'object' && error.code === 'ENOENT')
-            throw newMissingError();
+          if (error && typeof error === 'object' && error.code === 'ENOENT') throw newMissingError();
           throw error;
         }
         break;
@@ -93,7 +89,7 @@ export class NodeCrud implements crud.CrudApi {
     const filename = dir + this.separator + id;
     const fs = this.fs;
     try {
-      const buf = await fs.readFile(filename) as Buffer;
+      const buf = (await fs.readFile(filename)) as Buffer;
       return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
     } catch (error) {
       if (error && typeof error === 'object') {
@@ -176,9 +172,8 @@ export class NodeCrud implements crud.CrudApi {
       const dir = await this.checkDir(collection);
       const isRoot = dir === this.dir;
       if (isRoot) {
-        const list = await this.fs.readdir(dir) as string[];
-        for (const entry of list)
-          await this.fs.rmdir(dir + this.separator + entry, { recursive: true });
+        const list = (await this.fs.readdir(dir)) as string[];
+        for (const entry of list) await this.fs.rmdir(dir + this.separator + entry, { recursive: true });
       } else {
         await this.fs.rmdir(dir, { recursive: true });
       }
@@ -190,7 +185,7 @@ export class NodeCrud implements crud.CrudApi {
   public readonly list = async (collection: crud.CrudCollection): Promise<crud.CrudCollectionEntry[]> => {
     assertType(collection, 'drop', 'crudfs');
     const dir = await this.checkDir(collection);
-    const dirents = await this.fs.readdir(dir, { withFileTypes: true }) as IDirent[];
+    const dirents = (await this.fs.readdir(dir, { withFileTypes: true })) as IDirent[];
     const entries: crud.CrudCollectionEntry[] = [];
     for await (const entry of dirents) {
       if (entry.isFile()) {

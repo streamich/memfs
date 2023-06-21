@@ -1,7 +1,7 @@
 import { memfs } from '../..';
 import { onlyOnNode20 } from '../../__tests__/util';
 import { NodeCrud } from '../NodeCrud';
-import {testCrudfs} from '../../crud/__tests__/testCrudfs';
+import { testCrudfs } from '../../crud/__tests__/testCrudfs';
 
 const setup = () => {
   const fs = memfs();

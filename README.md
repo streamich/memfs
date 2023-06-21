@@ -37,15 +37,15 @@ npm i memfs
 
 ## See also
 
-- [`spyfs`][spyfs] - spies on filesystem actions
 - [`unionfs`][unionfs] - creates a union of multiple filesystem volumes
-- [`linkfs`][linkfs] - redirects filesystem paths
 - [`fs-monkey`][fs-monkey] - monkey-patches Node's `fs` module and `require` function
+- [`linkfs`][linkfs] - redirects filesystem paths
+- [`spyfs`][spyfs] - spies on filesystem actions
 
-[spyfs]: https://github.com/streamich/spyfs
 [unionfs]: https://github.com/streamich/unionfs
-[linkfs]: https://github.com/streamich/linkfs
 [fs-monkey]: https://github.com/streamich/fs-monkey
+[linkfs]: https://github.com/streamich/linkfs
+[spyfs]: https://github.com/streamich/spyfs
 
 
 ## License

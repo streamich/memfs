@@ -1,4 +1,4 @@
-import type { FsSynchronousApi } from "../types";
+import type { FsSynchronousApi } from '../types';
 
 export const fsSynchronousApiList: Array<keyof FsSynchronousApi> = [
   'accessSync',

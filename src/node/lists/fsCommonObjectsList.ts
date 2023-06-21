@@ -1,4 +1,4 @@
-import type { FsCommonObjects } from "../types/FsCommonObjects";
+import type { FsCommonObjects } from '../types/FsCommonObjects';
 
 export const fsCommonObjectsList: Array<keyof FsCommonObjects> = [
   'F_OK',

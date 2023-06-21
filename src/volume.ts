@@ -13,6 +13,7 @@ import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from './enc
 import * as util from 'util';
 import * as misc from './node/types/misc';
 import * as opts from './node/types/options';
+import { FsCallbackApi, WritevCallback } from './node/types/callback';
 import { createPromisesApi } from './node/promises';
 import { ERRSTR, FLAGS, MODE } from './node/constants';
 import {
@@ -50,9 +51,9 @@ import {
   getWriteArgs,
   bufferToEncoding,
   getWriteSyncArgs,
+  unixify,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
-import { FsCallbackApi, WritevCallback } from './node/types/callback';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -133,7 +134,6 @@ type TResolve = (filename: string, base?: string) => string;
 let resolve: TResolve = (filename, base = process.cwd()) => resolveCrossPlatform(base, filename);
 if (isWin) {
   const _resolve = resolve;
-  const { unixify } = require('fs-monkey/lib/correctPath');
   resolve = (filename, base) => unixify(_resolve(filename, base));
 }
 

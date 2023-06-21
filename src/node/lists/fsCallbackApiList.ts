@@ -1,4 +1,4 @@
-import type { FsCallbackApi } from "../types";
+import type { FsCallbackApi } from '../types';
 
 export const fsCallbackApiList: Array<keyof FsCallbackApi> = [
   'access',

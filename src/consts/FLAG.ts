@@ -1,4 +1,9 @@
-// Constants used in `open` system calls, see [open(2)](http://man7.org/linux/man-pages/man2/open.2.html).
+/**
+ * Constants used in `open` system calls, see [open(2)](http://man7.org/linux/man-pages/man2/open.2.html).
+ * 
+ * @see http://man7.org/linux/man-pages/man2/open.2.html
+ * @see https://www.gnu.org/software/libc/manual/html_node/Open_002dtime-Flags.html
+ */
 export const enum FLAG {
   O_RDONLY = 0,
   O_WRONLY = 1,

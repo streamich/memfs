@@ -2,6 +2,7 @@ import type * as crud from '../crud/types';
 import type * as fsa from '../fsa/types';
 import { assertName } from '../node-to-fsa/util';
 import { assertType } from '../crud/util';
+import { newExistsError, newFile404Error, newFolder404Error, newMissingError } from './util';
 
 export class FsaCrud implements crud.CrudApi {
   public constructor(
@@ -22,8 +23,7 @@ export class FsaCrud implements crud.CrudApi {
       }
       return [dir, parent];
     } catch (error) {
-      if (error.name === 'NotFoundError')
-        throw new DOMException(`Collection /${collection.join('/')} does not exist`, 'CollectionNotFound');
+      if (error.name === 'NotFoundError') throw newFolder404Error(collection);
       throw error;
     }
   }
@@ -37,8 +37,7 @@ export class FsaCrud implements crud.CrudApi {
       const file = await dir.getFileHandle(id, { create: false });
       return [dir, file];
     } catch (error) {
-      if (error.name === 'NotFoundError')
-        throw new DOMException(`Resource "${id}" in /${collection.join('/')} not found`, 'ResourceNotFound');
+      if (error.name === 'NotFoundError') throw newFile404Error(collection, id);
       throw error;
     }
   }
@@ -57,7 +56,7 @@ export class FsaCrud implements crud.CrudApi {
       case 'exists': {
         try {
           file = await dir.getFileHandle(id, { create: false });
-          throw new DOMException('Resource already exists', 'Exists');
+          throw newExistsError();
         } catch (e) {
           if (e.name !== 'NotFoundError') throw e;
           file = await dir.getFileHandle(id, { create: true });
@@ -68,7 +67,7 @@ export class FsaCrud implements crud.CrudApi {
         try {
           file = await dir.getFileHandle(id, { create: false });
         } catch (e) {
-          if (e.name === 'NotFoundError') throw new DOMException('Resource is missing', 'Missing');
+          if (e.name === 'NotFoundError') throw newMissingError();
           throw e;
         }
         break;

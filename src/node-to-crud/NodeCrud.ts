@@ -1,53 +1,51 @@
 import { assertName } from '../node-to-fsa/util';
 import { assertType } from '../crud/util';
+import { FLAG } from '../consts/FLAG';
+import { newExistsError, newFile404Error, newFolder404Error, newMissingError } from '../fsa-to-crud/util';
 import type { FsPromisesApi } from '../node/types';
 import type * as crud from '../crud/types';
+import type {IDirent} from '../node/types/misc';
 
 export interface NodeCrudOptions {
-  fs: FsPromisesApi;
-  dir: string;
-  separator?: string;
+  readonly fs: FsPromisesApi;
+  readonly dir: string;
+  readonly separator?: string;
 }
 
 export class NodeCrud implements crud.CrudApi {
+  protected readonly fs: FsPromisesApi;
+  protected readonly dir: string;
+  protected readonly separator: string;
+
   public constructor(
-    options: NodeCrudOptions,
-  ) {}
+    protected readonly options: NodeCrudOptions,
+  ) {
+    this.separator = options.separator ?? '/';
+    let dir = options.dir;
+    const last = dir[dir.length - 1];
+    if (last !== this.separator) dir = dir + this.separator;
+    this.dir = dir;
+    this.fs = options.fs;
+  }
 
-  // protected async getDir(
-  //   collection: crud.CrudCollection,
-  //   create: boolean,
-  // ): Promise<[dir: fsa.IFileSystemDirectoryHandle, parent: fsa.IFileSystemDirectoryHandle | undefined]> {
-  //   let parent: undefined | fsa.IFileSystemDirectoryHandle = undefined;
-  //   let dir = await this.root;
-  //   try {
-  //     for (const name of collection) {
-  //       const child = await dir.getDirectoryHandle(name, { create });
-  //       parent = dir;
-  //       dir = child;
-  //     }
-  //     return [dir, parent];
-  //   } catch (error) {
-  //     if (error.name === 'NotFoundError')
-  //       throw new DOMException(`Collection /${collection.join('/')} does not exist`, 'CollectionNotFound');
-  //     throw error;
-  //   }
-  // }
-
-  // protected async getFile(
-  //   collection: crud.CrudCollection,
-  //   id: string,
-  // ): Promise<[dir: fsa.IFileSystemDirectoryHandle, file: fsa.IFileSystemFileHandle]> {
-  //   const [dir] = await this.getDir(collection, false);
-  //   try {
-  //     const file = await dir.getFileHandle(id, { create: false });
-  //     return [dir, file];
-  //   } catch (error) {
-  //     if (error.name === 'NotFoundError')
-  //       throw new DOMException(`Resource "${id}" in /${collection.join('/')} not found`, 'ResourceNotFound');
-  //     throw error;
-  //   }
-  // }
+  protected async checkDir(collection: crud.CrudCollection,): Promise<string> {
+    const dir = this.dir + collection.join(this.separator);
+    const fs = this.fs;
+    try {
+      const stats = await fs.stat(dir);
+      if (!stats.isDirectory()) throw newFolder404Error(collection);
+      return dir;
+    } catch (error) {
+      if (error && typeof error === 'object') {
+        switch (error.code) {
+          case 'ENOENT':
+          case 'ENOTDIR':
+            throw newFolder404Error(collection);
+        }
+      }
+      throw error;
+    }
+  }
 
   public readonly put = async (
     collection: crud.CrudCollection,
@@ -57,116 +55,156 @@ export class NodeCrud implements crud.CrudApi {
   ): Promise<void> => {
     assertType(collection, 'put', 'crudfs');
     assertName(id, 'put', 'crudfs');
-    throw new Error('Not implemented');
-    // const [dir] = await this.getDir(collection, true);
-    // let file: fsa.IFileSystemFileHandle | undefined;
-    // switch (options?.throwIf) {
-    //   case 'exists': {
-    //     try {
-    //       file = await dir.getFileHandle(id, { create: false });
-    //       throw new DOMException('Resource already exists', 'Exists');
-    //     } catch (e) {
-    //       if (e.name !== 'NotFoundError') throw e;
-    //       file = await dir.getFileHandle(id, { create: true });
-    //     }
-    //     break;
-    //   }
-    //   case 'missing': {
-    //     try {
-    //       file = await dir.getFileHandle(id, { create: false });
-    //     } catch (e) {
-    //       if (e.name === 'NotFoundError') throw new DOMException('Resource is missing', 'Missing');
-    //       throw e;
-    //     }
-    //     break;
-    //   }
-    //   default: {
-    //     file = await dir.getFileHandle(id, { create: true });
-    //   }
-    // }
-    // const writable = await file!.createWritable();
-    // await writable.write(data);
-    // await writable.close();
+    const dir = this.dir + collection.join(this.separator);
+    const fs = this.fs;
+    await fs.mkdir(dir, { recursive: true });
+    const filename = dir + this.separator + id;
+    switch (options?.throwIf) {
+      case 'exists': {
+        try {
+          await fs.writeFile(filename, data, {flag: FLAG.O_CREAT | FLAG.O_EXCL});
+        } catch (error) {
+          if (error && typeof error === 'object' && error.code === 'EEXIST')
+            throw newExistsError();
+          throw error;
+        }
+        break;
+      }
+      case 'missing': {
+        try {
+          await fs.writeFile(filename, data, {flag: FLAG.O_RDWR});
+        } catch (error) {
+          if (error && typeof error === 'object' && error.code === 'ENOENT')
+            throw newMissingError();
+          throw error;
+        }
+        break;
+      }
+      default: {
+        await fs.writeFile(filename, data);
+      }
+    }
   };
 
   public readonly get = async (collection: crud.CrudCollection, id: string): Promise<Uint8Array> => {
     assertType(collection, 'get', 'crudfs');
     assertName(id, 'get', 'crudfs');
-    throw new Error('Not implemented');
-    // const [, file] = await this.getFile(collection, id);
-    // const blob = await file.getFile();
-    // const buffer = await blob.arrayBuffer();
-    // return new Uint8Array(buffer);
+    const dir = await this.checkDir(collection);
+    const filename = dir + this.separator + id;
+    const fs = this.fs;
+    try {
+      const buf = await fs.readFile(filename) as Buffer;
+      return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+    } catch (error) {
+      if (error && typeof error === 'object') {
+        switch (error.code) {
+          case 'ENOENT':
+            throw newFile404Error(collection, id);
+        }
+      }
+      throw error;
+    }
   };
 
   public readonly del = async (collection: crud.CrudCollection, id: string, silent?: boolean): Promise<void> => {
     assertType(collection, 'del', 'crudfs');
     assertName(id, 'del', 'crudfs');
-    throw new Error('Not implemented');
-    // try {
-    //   const [dir] = await this.getFile(collection, id);
-    //   await dir.removeEntry(id, { recursive: false });
-    // } catch (error) {
-    //   if (!silent) throw error;
-    // }
+    try {
+      const dir = await this.checkDir(collection);
+      const filename = dir + this.separator + id;
+      await this.fs.unlink(filename);
+    } catch (error) {
+      if (!!silent) return;
+      if (error && typeof error === 'object') {
+        switch (error.code) {
+          case 'ENOENT':
+            throw newFile404Error(collection, id);
+        }
+      }
+      throw error;
+    }
   };
 
   public readonly info = async (collection: crud.CrudCollection, id?: string): Promise<crud.CrudResourceInfo> => {
     assertType(collection, 'info', 'crudfs');
-    throw new Error('Not implemented');
-    // if (id) {
-    //   assertName(id, 'info', 'crudfs');
-    //   const [, file] = await this.getFile(collection, id);
-    //   const blob = await file.getFile();
-    //   return {
-    //     type: 'resource',
-    //     id,
-    //     size: blob.size,
-    //     modified: blob.lastModified,
-    //   };
-    // } else {
-    //   await this.getDir(collection, false);
-    //   return {
-    //     type: 'collection',
-    //     id: '',
-    //   };
-    // }
+    if (id) {
+      assertName(id, 'info', 'crudfs');
+      await this.checkDir(collection);
+      try {
+        const stats = await this.fs.stat(this.dir + collection.join(this.separator) + this.separator + id);
+        if (!stats.isFile()) throw newFile404Error(collection, id);
+        return {
+          type: 'resource',
+          id,
+          size: <number>stats.size,
+          modified: <number>stats.mtimeMs,
+        };
+      } catch (error) {
+        if (error && typeof error === 'object') {
+          switch (error.code) {
+            case 'ENOENT':
+              throw newFile404Error(collection, id);
+          }
+        }
+        throw error;
+      }
+    } else {
+      await this.checkDir(collection);
+      try {
+        const stats = await this.fs.stat(this.dir + collection.join(this.separator));
+        if (!stats.isDirectory()) throw newFolder404Error(collection);
+        return {
+          type: 'collection',
+          id: '',
+        };
+      } catch (error) {
+        if (error && typeof error === 'object') {
+          switch (error.code) {
+            case 'ENOENT':
+            case 'ENOTDIR':
+              throw newFolder404Error(collection);
+          }
+        }
+        throw error;
+      }
+    }
   };
 
   public readonly drop = async (collection: crud.CrudCollection, silent?: boolean): Promise<void> => {
     assertType(collection, 'drop', 'crudfs');
-    throw new Error('Not implemented');
-    // try {
-    //   const [dir, parent] = await this.getDir(collection, false);
-    //   if (parent) {
-    //     await parent.removeEntry(dir.name, { recursive: true });
-    //   } else {
-    //     const root = await this.root;
-    //     for await (const name of root.keys()) await root.removeEntry(name, { recursive: true });
-    //   }
-    // } catch (error) {
-    //   if (!silent) throw error;
-    // }
+    try {
+      const dir = await this.checkDir(collection);
+      const isRoot = dir === this.dir;
+      if (isRoot) {
+        const list = await this.fs.readdir(dir) as string[];
+        for (const entry of list)
+          await this.fs.rmdir(dir + this.separator + entry, { recursive: true });
+      } else {
+        await this.fs.rmdir(dir, { recursive: true });
+      }
+    } catch (error) {
+      if (!silent) throw error;
+    }
   };
 
   public readonly list = async (collection: crud.CrudCollection): Promise<crud.CrudCollectionEntry[]> => {
     assertType(collection, 'drop', 'crudfs');
-    throw new Error('Not implemented');
-    // const [dir] = await this.getDir(collection, false);
-    // const entries: crud.CrudCollectionEntry[] = [];
-    // for await (const [id, handle] of dir.entries()) {
-    //   if (handle.kind === 'file') {
-    //     entries.push({
-    //       type: 'resource',
-    //       id,
-    //     });
-    //   } else if (handle.kind === 'directory') {
-    //     entries.push({
-    //       type: 'collection',
-    //       id,
-    //     });
-    //   }
-    // }
-    // return entries;
+    const dir = await this.checkDir(collection);
+    const dirents = await this.fs.readdir(dir, { withFileTypes: true }) as IDirent[];
+    const entries: crud.CrudCollectionEntry[] = [];
+    for await (const entry of dirents) {
+      if (entry.isFile()) {
+        entries.push({
+          type: 'resource',
+          id: '' + entry.name,
+        });
+      } else if (entry.isDirectory()) {
+        entries.push({
+          type: 'collection',
+          id: '' + entry.name,
+        });
+      }
+    }
+    return entries;
   };
 }

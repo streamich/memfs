@@ -2,21 +2,19 @@
 
 In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 
-- Node's `fs` API implemented, see [_old API Status_](./api-status.md), [missing list](https://github.com/streamich/memfs/issues/735), [missing `opendir`](https://github.com/streamich/memfs/issues/663)
+- Node's `fs` API implemented, see [missing list](https://github.com/streamich/memfs/issues/735)
 - Stores files in memory, in `Buffer`s
 - Throws sameish\* errors as Node.js
 - Has concept of _i-nodes_
 - Implements _hard links_
 - Implements _soft links_ (aka symlinks, symbolic links)
-- Permissions may\* be implemented in the future
-- Can be used in browser, see [`memfs-webpack`](https://github.com/streamich/memfs-webpack)
+- Can be used in browser, see `/demo` folder
 
 ## Docs
 
 - [Getting started](./usage.md)
 - [Reference](./reference.md)
 - [Relative paths](./relative-paths.md)
-- [API status](./api-status.md)
 - [Dependencies](./dependencies.md)
 
 [chat]: https://onp4.com/@vadim/~memfs

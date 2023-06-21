@@ -20,8 +20,9 @@ npm i memfs
 ## Docs
 
 - [In-memory Node.js `fs` API](./docs/node/index.md)
-- [`fs` to File System Access API adapter](./docs/fsa/fs-to-fsa.md)
-- [File System Access to `fs` adapter](./docs/fsa/fsa-to-fs.md)
+- `experimental` [`fs` to File System Access API adapter](./docs/fsa/fs-to-fsa.md)
+- `experimental` [File System Access API to `fs` adapter](./docs/fsa/fsa-to-fs.md)
+- `experimental` [`crudfs` a CRUD-like file system abstraction](./docs/crudfs/index.md)
 
 
 ## Demos
@@ -39,12 +40,10 @@ npm i memfs
 - [`unionfs`][unionfs] - creates a union of multiple filesystem volumes
 - [`linkfs`][linkfs] - redirects filesystem paths
 - [`fs-monkey`][fs-monkey] - monkey-patches Node's `fs` module and `require` function
-- [`libfs`](https://github.com/streamich/full-js/blob/master/src/lib/fs.ts) - real filesystem (that executes UNIX system calls) implemented in JavaScript
 
-[memfs]: https://github.com/streamich/memfs
+[spyfs]: https://github.com/streamich/spyfs
 [unionfs]: https://github.com/streamich/unionfs
 [linkfs]: https://github.com/streamich/linkfs
-[spyfs]: https://github.com/streamich/spyfs
 [fs-monkey]: https://github.com/streamich/fs-monkey
 
 

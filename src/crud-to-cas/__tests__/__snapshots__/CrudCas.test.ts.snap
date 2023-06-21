@@ -1,18 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CrudCas .put() can store a blob 1`] = `
-Object {
-  "/ed/46/2aae6c35c94fcfb415dbe95f408b9ce91ee846ed": "hello world",
-}
-`;
-
 exports[`CrudCas on FsaCrud .put() can store a blob 1`] = `
-Object {
-  "/ed/46/2aae6c35c94fcfb415dbe95f408b9ce91ee846ed": "hello world",
-}
-`;
-
-exports[`CrudCas on NodeCrud .put() can store a blob 1`] = `
 Object {
   "/ed/46/2aae6c35c94fcfb415dbe95f408b9ce91ee846ed": "hello world",
 }

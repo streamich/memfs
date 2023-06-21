@@ -5,6 +5,7 @@ import { IDirent, IStats } from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
 import { tick, until, of } from 'thingies';
 import { onlyOnNode20 } from '../../__tests__/util';
+import {FLAG} from '../../consts/FLAG';
 
 const setup = (json: NestedDirectoryJSON | null = null, mode: 'read' | 'readwrite' = 'readwrite') => {
   const mfs = memfs({ mountpoint: json }) as IFsWithVolume;
@@ -19,6 +20,17 @@ onlyOnNode20('FsaNodeFs', () => {
       const { fs, mfs } = setup();
       await new Promise<void>((resolve, reject) =>
         fs.mkdir('/test', err => {
+          if (err) return reject(err);
+          return resolve();
+        }),
+      );
+      expect(mfs.statSync('/mountpoint/test').isDirectory()).toBe(true);
+    });
+
+    test('can create a sub-folder with trailing slash', async () => {
+      const { fs, mfs } = setup();
+      await new Promise<void>((resolve, reject) =>
+        fs.mkdir('/test/', err => {
           if (err) return reject(err);
           return resolve();
         }),
@@ -653,6 +665,20 @@ onlyOnNode20('FsaNodeFs', () => {
         '/mountpoint/empty-folder': null,
         '/mountpoint/f.html': 'test',
       });
+    });
+
+    test('throws "EEXIST", if file already exists and O_EXCL flag set', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const [, err] = await of(fs.promises.writeFile('/folder/file', 'bar', { flag: 'wx' }));
+      expect(err).toBeInstanceOf(Error);
+      expect((<any>err).code).toBe('EEXIST');
+    });
+
+    test('throws "ENOENT", if file does not exist and O_CREAT flag not set', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const [, err] = await of(fs.promises.writeFile('/folder/file2', 'bar', { flag: FLAG.O_RDWR }));
+      expect(err).toBeInstanceOf(Error);
+      expect((<any>err).code).toBe('ENOENT');
     });
   });
 

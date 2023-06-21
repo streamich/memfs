@@ -63,18 +63,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback<void>): void => {
     util.validateFd(fd);
-    this.getFileByFdAsync(fd, 'close')
-      .then(file => file.close())
-      .then(
-        () => {
-          this.fds.delete(fd);
-          this.releasedFds.push(fd);
-          callback(null);
-        },
-        error => {
-          callback(error);
-        },
-      );
+    this.__close(fd)
+      .then(() => callback(null), error => callback(error));
   };
 
   public readonly read: FsCallbackApi['read'] = (
@@ -115,16 +105,27 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
       optHelpers.getReadFileOptions,
     )(a, b);
     const flagsNum = util.flagsToNumber(opts.flag);
-    return this.__getFileById(id, 'readFile')
-      .then(file => file.getFile())
-      .then(file => file.arrayBuffer())
-      .then(data => {
-        const buffer = Buffer.from(data);
-        callback(null, util.bufferToEncoding(buffer, opts.encoding));
-      })
-      .catch(error => {
-        callback(error);
-      });
+    (async () => {
+      let fd: number = typeof id === 'number' ? id : -1;
+      const originalFd = fd;
+      try {
+        if (fd === -1) {
+          const filename = util.pathToFilename(id as misc.PathLike);
+          fd = (await this.__open(filename, flagsNum, 0)).fd;
+        }
+        const handle = await this.__getFileById(fd, 'readFile');
+        const file = await handle.getFile();
+        const buffer = Buffer.from(await file.arrayBuffer());
+        return util.bufferToEncoding(buffer, opts.encoding)  
+      } finally {
+        try {
+          const idWasFd = typeof originalFd === 'number' && originalFd >= 0;
+          if (idWasFd) await this.__close(originalFd);
+        } catch {}
+      }
+    })()
+      .then(data => callback(null, data))
+      .catch(error => callback(error));
   };
 
   public readonly write: FsCallbackApi['write'] = (
@@ -198,11 +199,23 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const modeNum = util.modeToNumber(opts.mode);
     const buf = util.dataToBuffer(data, opts.encoding);
     (async () => {
-      const createIfMissing = !!(flagsNum & FLAG.O_CREAT);
-      const file = await this.__getFileById(id, 'writeFile', createIfMissing);
-      const writable = await file.createWritable({ keepExistingData: false });
-      await writable.write(buf);
-      await writable.close();
+      let fd: number = typeof id === 'number' ? id : -1;
+      const originalFd = fd;
+      try {
+        if (fd === -1) {
+          const filename = util.pathToFilename(id as misc.PathLike);
+          fd = (await this.__open(filename, flagsNum, modeNum)).fd;
+        }
+        const file = await this.__getFileById(fd, 'writeFile');
+        const writable = await file.createWritable({ keepExistingData: false });
+        await writable.write(buf);
+        await writable.close();
+      } finally {
+        try {
+          const idWasFd = typeof originalFd === 'number' && originalFd >= 0;
+          if (idWasFd) await this.__close(originalFd);
+        } catch {}
+      }
     })().then(
       () => cb(null),
       error => cb(error),

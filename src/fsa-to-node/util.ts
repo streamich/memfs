@@ -4,6 +4,7 @@ import type { FsLocation } from './types';
 
 export const pathToLocation = (path: string): FsLocation => {
   if (path[0] === FsaToNodeConstants.Separator) path = path.slice(1);
+  if (path[path.length - 1] === FsaToNodeConstants.Separator) path = path.slice(0, -1);
   const lastSlashIndex = path.lastIndexOf(FsaToNodeConstants.Separator);
   if (lastSlashIndex === -1) return [[], path];
   const file = path.slice(lastSlashIndex + 1);

@@ -1,3 +1,11 @@
+# [4.1.0-next.2](https://github.com/streamich/memfs/compare/v4.1.0-next.1...v4.1.0-next.2) (2023-06-21)
+
+
+### Features
+
+* 🎸 add integrity check on read ([710eb2f](https://github.com/streamich/memfs/commit/710eb2fbd78bc79132f93616ce347bc04fac62bd))
+* 🎸 implement CAS storage ([33ddbcc](https://github.com/streamich/memfs/commit/33ddbcc8b67a1a5e20a6e549fc5db08527516dc1))
+
 # [4.1.0-next.1](https://github.com/streamich/memfs/compare/v4.0.0...v4.1.0-next.1) (2023-06-21)
 
 

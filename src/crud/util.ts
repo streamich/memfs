@@ -1,4 +1,4 @@
-import { CrudCollection } from '../crud/types';
+import { CrudCollection } from './types';
 import { assertName } from '../node-to-fsa/util';
 
 export const assertType = (type: CrudCollection, method: string, klass: string): void => {

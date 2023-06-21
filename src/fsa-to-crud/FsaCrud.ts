@@ -1,7 +1,7 @@
 import type * as crud from '../crud/types';
 import type * as fsa from '../fsa/types';
 import { assertName } from '../node-to-fsa/util';
-import { assertType } from './util';
+import { assertType } from '../crud/util';
 
 export class FsaCrud implements crud.CrudApi {
   public constructor(

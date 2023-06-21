@@ -9,6 +9,11 @@ describe('basename()', () => {
     expect(basename('scary.exe', '/')).toBe('scary.exe');
   });
 
+  test('ignores slash, if it is the last char', () => {
+    expect(basename('scary.exe/', '/')).toBe('scary.exe');
+    expect(basename('/ab/c/scary.exe/', '/')).toBe('scary.exe');
+  });
+
   test('returns last step in path', () => {
     expect(basename('/gg/wp/hf/gl.txt', '/')).toBe('gl.txt');
     expect(basename('gg/wp/hf/gl.txt', '/')).toBe('gl.txt');

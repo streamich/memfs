@@ -5,7 +5,7 @@ import { IDirent, IStats } from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
 import { tick, until, of } from 'thingies';
 import { onlyOnNode20 } from '../../__tests__/util';
-import {FLAG} from '../../consts/FLAG';
+import { FLAG } from '../../consts/FLAG';
 
 const setup = (json: NestedDirectoryJSON | null = null, mode: 'read' | 'readwrite' = 'readwrite') => {
   const mfs = memfs({ mountpoint: json }) as IFsWithVolume;

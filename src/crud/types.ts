@@ -56,7 +56,7 @@ export interface CrudApi {
 
   /**
    * Creates a new CrudApi instance, with the given collection as root.
-   * 
+   *
    * @param collection Type of the resource, collection name.
    * @returns A new CrudApi instance, with the given collection as root.
    */

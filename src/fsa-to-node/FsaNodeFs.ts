@@ -62,8 +62,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback<void>): void => {
     util.validateFd(fd);
-    this.__close(fd)
-      .then(() => callback(null), error => callback(error));
+    this.__close(fd).then(
+      () => callback(null),
+      error => callback(error),
+    );
   };
 
   public readonly read: FsCallbackApi['read'] = (
@@ -115,7 +117,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
         const handle = await this.__getFileById(fd, 'readFile');
         const file = await handle.getFile();
         const buffer = Buffer.from(await file.arrayBuffer());
-        return util.bufferToEncoding(buffer, opts.encoding)  
+        return util.bufferToEncoding(buffer, opts.encoding);
       } finally {
         try {
           const idWasFd = typeof originalFd === 'number' && originalFd >= 0;

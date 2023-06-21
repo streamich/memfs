@@ -10,7 +10,7 @@ onlyOnNode20('CRUD matryoshka', () => {
   describe('crud(memfs)', () => {
     testCrudfs(() => {
       const fs = memfs();
-      const crud = new NodeCrud({fs: fs.promises, dir: '/'});
+      const crud = new NodeCrud({ fs: fs.promises, dir: '/' });
       return { crud, snapshot: () => (<any>fs).__vol.toJSON() };
     });
   });
@@ -29,7 +29,7 @@ onlyOnNode20('CRUD matryoshka', () => {
       const fs = memfs();
       const fsa = new NodeFileSystemDirectoryHandle(fs, '/', { mode: 'readwrite' });
       const fs2 = new FsaNodeFs(fsa);
-      const crud = new NodeCrud({fs: fs2.promises, dir: '/'});
+      const crud = new NodeCrud({ fs: fs2.promises, dir: '/' });
       return { crud, snapshot: () => (<any>fs).__vol.toJSON() };
     });
   });
@@ -52,7 +52,7 @@ onlyOnNode20('CRUD matryoshka', () => {
       const fs2 = new FsaNodeFs(fsa);
       const fsa2 = new NodeFileSystemDirectoryHandle(fs2, '/', { mode: 'readwrite' });
       const fs3 = new FsaNodeFs(fsa2);
-      const crud = new NodeCrud({fs: fs3.promises, dir: '/'});
+      const crud = new NodeCrud({ fs: fs3.promises, dir: '/' });
       return { crud, snapshot: () => (<any>fs).__vol.toJSON() };
     });
   });

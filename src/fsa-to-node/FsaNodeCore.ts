@@ -82,7 +82,7 @@ export class FsaNodeCore {
   protected async getFileOrDir(
     path: string[],
     name: string,
-    funcName?: string
+    funcName?: string,
   ): Promise<fsa.IFileSystemFileHandle | fsa.IFileSystemDirectoryHandle> {
     const dir = await this.getDir(path, false, funcName);
     if (!name) return dir;
@@ -124,10 +124,7 @@ export class FsaNodeCore {
     return this.getFileByFd(fd, funcName);
   }
 
-  public async __getFileById(
-    id: misc.TFileId,
-    funcName?: string,
-  ): Promise<fsa.IFileSystemFileHandle> {
+  public async __getFileById(id: misc.TFileId, funcName?: string): Promise<fsa.IFileSystemFileHandle> {
     if (typeof id === 'number') return (await this.getFileByFd(id, funcName)).file;
     const filename = pathToFilename(id);
     const [folder, name] = pathToLocation(filename);
@@ -150,7 +147,8 @@ export class FsaNodeCore {
         await this.getFile(folder, name, 'open', false);
         throw util.createError('EEXIST', 'writeFile');
       } catch (error) {
-        const file404 = (error && typeof error === 'object' && (error.code === 'ENOENT' || error.name === 'NotFoundError'));
+        const file404 =
+          error && typeof error === 'object' && (error.code === 'ENOENT' || error.name === 'NotFoundError');
         if (!file404) {
           if (error && typeof error === 'object') {
             switch (error.name) {
@@ -198,7 +196,7 @@ export class FsaNodeCore {
     await openFile.close();
     const deleted = this.fds.delete(fd);
     if (deleted) this.releasedFds.push(fd);
-  };
+  }
 
   protected getFileName(id: misc.TFileId): string {
     if (typeof id === 'number') {

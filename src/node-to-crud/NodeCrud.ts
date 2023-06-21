@@ -202,4 +202,17 @@ export class NodeCrud implements crud.CrudApi {
     }
     return entries;
   };
+
+  public readonly from = async (collection: crud.CrudCollection): Promise<crud.CrudApi> => {
+    assertType(collection, 'from', 'crudfs');
+    const dir = this.dir + (collection.length ? collection.join(this.separator) + this.separator : '');
+    const fs = this.fs;
+    if (dir.length > 1) await fs.mkdir(dir, { recursive: true });
+    await this.checkDir(collection);
+    return new NodeCrud({
+      dir,
+      fs: this.fs,
+      separator: this.separator,
+    });
+  };
 }

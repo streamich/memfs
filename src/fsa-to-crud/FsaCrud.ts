@@ -156,4 +156,10 @@ export class FsaCrud implements crud.CrudApi {
     }
     return entries;
   };
+
+  public readonly from = async (collection: crud.CrudCollection): Promise<crud.CrudApi> => {
+    assertType(collection, 'from', 'crudfs');
+    const [dir] = await this.getDir(collection, true);
+    return new FsaCrud(dir);
+  };
 }

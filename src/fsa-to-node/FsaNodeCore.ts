@@ -196,8 +196,8 @@ export class FsaNodeCore {
   protected async __close(fd: number): Promise<void> {
     const openFile = await this.getFileByFdAsync(fd, 'close');
     await openFile.close();
-    this.fds.delete(fd);
-    this.releasedFds.push(fd);
+    const deleted = this.fds.delete(fd);
+    if (deleted) this.releasedFds.push(fd);
   };
 
   protected getFileName(id: misc.TFileId): string {

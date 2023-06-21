@@ -27,7 +27,7 @@ export class NodeCrud implements crud.CrudApi {
   }
 
   protected async checkDir(collection: crud.CrudCollection): Promise<string> {
-    const dir = this.dir + collection.join(this.separator);
+    const dir = this.dir + (collection.length ? collection.join(this.separator) + this.separator : '');
     const fs = this.fs;
     try {
       const stats = await fs.stat(dir);
@@ -53,10 +53,10 @@ export class NodeCrud implements crud.CrudApi {
   ): Promise<void> => {
     assertType(collection, 'put', 'crudfs');
     assertName(id, 'put', 'crudfs');
-    const dir = this.dir + collection.join(this.separator);
+    const dir = this.dir + (collection.length ? collection.join(this.separator) + this.separator : '');
     const fs = this.fs;
-    await fs.mkdir(dir, { recursive: true });
-    const filename = dir + this.separator + id;
+    if (dir.length > 1) await fs.mkdir(dir, { recursive: true });
+    const filename = dir + id;
     switch (options?.throwIf) {
       case 'exists': {
         try {
@@ -86,7 +86,7 @@ export class NodeCrud implements crud.CrudApi {
     assertType(collection, 'get', 'crudfs');
     assertName(id, 'get', 'crudfs');
     const dir = await this.checkDir(collection);
-    const filename = dir + this.separator + id;
+    const filename = dir + id;
     const fs = this.fs;
     try {
       const buf = (await fs.readFile(filename)) as Buffer;
@@ -107,7 +107,7 @@ export class NodeCrud implements crud.CrudApi {
     assertName(id, 'del', 'crudfs');
     try {
       const dir = await this.checkDir(collection);
-      const filename = dir + this.separator + id;
+      const filename = dir + id;
       await this.fs.unlink(filename);
     } catch (error) {
       if (!!silent) return;
@@ -173,7 +173,7 @@ export class NodeCrud implements crud.CrudApi {
       const isRoot = dir === this.dir;
       if (isRoot) {
         const list = (await this.fs.readdir(dir)) as string[];
-        for (const entry of list) await this.fs.rmdir(dir + this.separator + entry, { recursive: true });
+        for (const entry of list) await this.fs.rmdir(dir + entry, { recursive: true });
       } else {
         await this.fs.rmdir(dir, { recursive: true });
       }

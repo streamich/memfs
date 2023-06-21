@@ -6,7 +6,6 @@ import { ERRSTR, MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
 import { FsaToNodeConstants } from './constants';
 import { FsaNodeDirent } from './FsaNodeDirent';
-import { FLAG } from '../consts/FLAG';
 import { AMODE } from '../consts/AMODE';
 import { constants } from '../constants';
 import { FsaNodeStats } from './FsaNodeStats';

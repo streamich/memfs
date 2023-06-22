@@ -1,6 +1,6 @@
 import * as optHelpers from '../node/options';
 import * as util from '../node/util';
-import { createPromisesApi } from '../node/promises';
+import { FsPromises } from '../node/FsPromises';
 import { pathToLocation, testDirectoryIsWritable } from './util';
 import { ERRSTR, MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
@@ -14,6 +14,7 @@ import { FsSynchronousApi } from '../node/types/FsSynchronousApi';
 import { FsaNodeWriteStream } from './FsaNodeWriteStream';
 import { FsaNodeReadStream } from './FsaNodeReadStream';
 import { FsaNodeCore } from './FsaNodeCore';
+import { FileHandle } from '../node/FileHandle';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -38,7 +39,7 @@ const noop: (...args: any[]) => any = () => {};
 export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchronousApi, FsCommonObjects {
   // ------------------------------------------------------------ FsPromisesApi
 
-  public readonly promises: FsPromisesApi = createPromisesApi(this);
+  public readonly promises: FsPromisesApi = new FsPromises(this, FileHandle);
 
   // ------------------------------------------------------------ FsCallbackApi
 

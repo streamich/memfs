@@ -10,11 +10,12 @@ import { Readable, Writable } from 'stream';
 import { constants } from './constants';
 import { EventEmitter } from 'events';
 import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from './encoding';
+import { FileHandle } from './node/FileHandle';
 import * as util from 'util';
 import * as misc from './node/types/misc';
 import * as opts from './node/types/options';
-import { FsCallbackApi, WritevCallback } from './node/types/FsCallbackApi';
-import { createPromisesApi } from './node/promises';
+import { FsCallbackApi } from './node/types/FsCallbackApi';
+import { FsPromises } from './node/FsPromises';
 import { ERRSTR, FLAGS, MODE } from './node/constants';
 import {
   getDefaultOpts,
@@ -54,7 +55,7 @@ import {
   unixify,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
-import type { FsSynchronousApi } from './node/types';
+import type { FsPromisesApi, FsSynchronousApi } from './node/types';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -288,9 +289,9 @@ export class Volume implements FsCallbackApi {
     File: new (...args) => File;
   };
 
-  private promisesApi = createPromisesApi(this);
+  private promisesApi = new FsPromises(this, FileHandle);
 
-  get promises() {
+  get promises(): FsPromisesApi {
     if (this.promisesApi === null) throw new Error('Promise is not supported in this environment.');
     return this.promisesApi;
   }

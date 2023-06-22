@@ -54,6 +54,7 @@ import {
   unixify,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
+import type { FsSynchronousApi } from './node/types';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -217,6 +218,10 @@ function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {
 
   return flatJSON;
 }
+
+const notImplemented: (...args: any[]) => any = () => {
+  throw new Error('Not implemented');
+};
 
 /**
  * `Volume` represents a file system.
@@ -1874,6 +1879,11 @@ export class Volume implements FsCallbackApi {
 
     return watcher;
   }
+
+  public cpSync: FsSynchronousApi['cpSync'] = notImplemented;
+  public lutimesSync: FsSynchronousApi['lutimesSync'] = notImplemented;
+  public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
+  public writevSync: FsSynchronousApi['writevSync'] = notImplemented;
 }
 
 function emitStop(self) {

@@ -25,6 +25,10 @@ const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
 };
 
+const notImplemented: (...args: any[]) => any = () => {
+  throw new Error('Not implemented');
+};
+
 const noop: (...args: any[]) => any = () => {};
 
 /**
@@ -1022,7 +1026,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: string | Buffer | ArrayBufferView | DataView,
     b?: number,
     c?: number | BufferEncoding,
-    d?: number,
+    d?: number | null,
   ): number => {
     const [, buf, offset, length, position] = util.getWriteSyncArgs(fd, a, b, c, d);
     const filename = this.getFileName(fd);
@@ -1044,6 +1048,14 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return openFile.fd;
   };
 
+  public readonly writevSync: FsSynchronousApi['writevSync'] = (fd: number, buffers: ArrayBufferView[], position?: number | null): void => {
+    if (buffers.length === 0) return;
+    this.writeSync(fd, buffers[0], 0, buffers[0].byteLength, position);
+    for (let i = 1; i < buffers.length; i++) {
+      this.writeSync(fd, buffers[i], 0, buffers[i].byteLength, null);
+    }
+  };
+
   public readonly fdatasyncSync: FsSynchronousApi['fdatasyncSync'] = noop;
   public readonly fsyncSync: FsSynchronousApi['fsyncSync'] = noop;
   public readonly chmodSync: FsSynchronousApi['chmodSync'] = noop;
@@ -1054,6 +1066,10 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly lchmodSync: FsSynchronousApi['lchmodSync'] = noop;
   public readonly lchownSync: FsSynchronousApi['lchownSync'] = noop;
   public readonly utimesSync: FsSynchronousApi['utimesSync'] = noop;
+  public readonly lutimesSync: FsSynchronousApi['lutimesSync'] = noop;
+
+  public readonly cpSync: FsSynchronousApi['cpSync'] = notImplemented;
+  public readonly statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
 
   public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;

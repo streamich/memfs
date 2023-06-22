@@ -249,13 +249,13 @@ export const getWriteSyncArgs = (
   a: string | Buffer | ArrayBufferView | DataView,
   b?: number,
   c?: number | BufferEncoding,
-  d?: number,
-): [fd: number, buf: Buffer, offset: number, length?: number, position?: number] => {
+  d?: number | null,
+): [fd: number, buf: Buffer, offset: number, length?: number, position?: number | null] => {
   validateFd(fd);
   let encoding: BufferEncoding | undefined;
   let offset: number | undefined;
   let length: number | undefined;
-  let position: number | undefined;
+  let position: number | null | undefined;
   const isBuffer = typeof a !== 'string';
   if (isBuffer) {
     offset = (b || 0) | 0;

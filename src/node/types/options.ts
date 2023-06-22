@@ -97,3 +97,40 @@ export interface IWatchOptions extends IOptions {
   persistent?: boolean;
   recursive?: boolean;
 }
+
+export interface ICpOptions {
+  /** dereference symlinks. Default: false. */
+  dereference?: boolean;
+  /**
+   * When force is false, and the destination exists, throw an error.
+   * Default: false.
+   */
+  errorOnExist?: boolean;
+  /**
+   * Function to filter copied files/directories. Return true to copy the item,
+   * false to ignore it. Default: undefined.
+   */
+  filter?: (src: string, dest: string) => boolean;
+  /**
+   * Overwrite existing file or directory. The copy operation will ignore errors
+   * if you set this to false and the destination exists. Use the errorOnExist
+   * option to change this behavior. Default: true.
+   */
+  force?: boolean;
+  /**
+   * Integer, modifiers for copy operation. Default: 0. See mode flag of
+   * `fs.copyFileSync()`.
+   */
+  mode: number;
+  /** When true timestamps from src will be preserved. Default: false. */
+  preserveTimestamps: boolean;
+  /** Copy directories recursively Default: false. */
+  recursive: boolean;
+  /** When true, path resolution for symlinks will be skipped. Default: false. */
+  verbatimSymlinks: boolean;
+}
+
+export interface IStafsOptions {
+  /** Whether the numeric values in the returned `StatFs` object should be bigint. */
+  bigint?: boolean;
+}

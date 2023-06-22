@@ -37,4 +37,9 @@ export const fsSynchronousApiList: Array<keyof FsSynchronousApi> = [
   'utimesSync',
   'writeFileSync',
   'writeSync',
+
+  // 'cpSync',
+  // 'lutimesSync',
+  // 'statfsSync',
+  // 'writevSync',
 ];

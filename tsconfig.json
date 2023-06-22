@@ -6,10 +6,12 @@
     "removeComments": false,
     "noImplicitAny": false,
     "strictNullChecks": true,
-    "sourceMap": false,
+    "sourceMap": true,
     "outDir": "lib",
     "declaration": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmitHelpers": true,
+    "importHelpers": true
   },
   "include": ["src"],
   "exclude": [

@@ -10,10 +10,12 @@ import { Readable, Writable } from 'stream';
 import { constants } from './constants';
 import { EventEmitter } from 'events';
 import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from './encoding';
+import { FileHandle } from './node/FileHandle';
 import * as util from 'util';
 import * as misc from './node/types/misc';
 import * as opts from './node/types/options';
-import { createPromisesApi } from './node/promises';
+import { FsCallbackApi } from './node/types/FsCallbackApi';
+import { FsPromises } from './node/FsPromises';
 import { ERRSTR, FLAGS, MODE } from './node/constants';
 import {
   getDefaultOpts,
@@ -50,9 +52,10 @@ import {
   getWriteArgs,
   bufferToEncoding,
   getWriteSyncArgs,
+  unixify,
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
-import { FsCallbackApi, WritevCallback } from './node/types/callback';
+import type { FsPromisesApi, FsSynchronousApi } from './node/types';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -133,7 +136,6 @@ type TResolve = (filename: string, base?: string) => string;
 let resolve: TResolve = (filename, base = process.cwd()) => resolveCrossPlatform(base, filename);
 if (isWin) {
   const _resolve = resolve;
-  const { unixify } = require('fs-monkey/lib/correctPath');
   resolve = (filename, base) => unixify(_resolve(filename, base));
 }
 
@@ -218,6 +220,10 @@ function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {
   return flatJSON;
 }
 
+const notImplemented: (...args: any[]) => any = () => {
+  throw new Error('Not implemented');
+};
+
 /**
  * `Volume` represents a file system.
  */
@@ -283,9 +289,9 @@ export class Volume implements FsCallbackApi {
     File: new (...args) => File;
   };
 
-  private promisesApi = createPromisesApi(this);
+  private promisesApi = new FsPromises(this, FileHandle);
 
-  get promises() {
+  get promises(): FsPromisesApi {
     if (this.promisesApi === null) throw new Error('Promise is not supported in this environment.');
     return this.promisesApi;
   }
@@ -896,12 +902,6 @@ export class Volume implements FsCallbackApi {
         cb(err);
       }
     });
-  }
-
-  writev(fd: number, buffers: ArrayBufferView[], callback: WritevCallback): void;
-  writev(fd: number, buffers: ArrayBufferView[], position: number | null, callback: WritevCallback): void;
-  writev(fd: number, buffers: ArrayBufferView[], a, b?): void {
-    throw new Error('not implemented');
   }
 
   private writeFileBase(id: TFileId, buf: Buffer, flagsNum: number, modeNum: number) {
@@ -1585,19 +1585,6 @@ export class Volume implements FsCallbackApi {
     else this.wrapAsync(this.mkdirBase, [filename, modeNum], callback);
   }
 
-  // legacy interface
-  mkdirpSync(path: PathLike, mode?: TMode) {
-    return this.mkdirSync(path, { mode, recursive: true });
-  }
-
-  mkdirp(path: PathLike, callback: TCallback<string>);
-  mkdirp(path: PathLike, mode: TMode, callback: TCallback<string>);
-  mkdirp(path: PathLike, a: TCallback<string> | TMode, b?: TCallback<string>) {
-    const mode: TMode | undefined = typeof a === 'function' ? undefined : a;
-    const callback = validateCallback(typeof a === 'function' ? a : b);
-    this.mkdir(path, { mode, recursive: true }, callback);
-  }
-
   private mkdtempBase(prefix: string, encoding?: TEncodingExtended, retry: number = 5): TDataOut {
     const filename = prefix + genRndStr6();
     try {
@@ -1887,6 +1874,20 @@ export class Volume implements FsCallbackApi {
 
     return watcher;
   }
+
+  public cpSync: FsSynchronousApi['cpSync'] = notImplemented;
+  public lutimesSync: FsSynchronousApi['lutimesSync'] = notImplemented;
+  public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
+  public writevSync: FsSynchronousApi['writevSync'] = notImplemented;
+  public readvSync: FsSynchronousApi['readvSync'] = notImplemented;
+
+  public cp: FsCallbackApi['cp'] = notImplemented;
+  public lutimes: FsCallbackApi['lutimes'] = notImplemented;
+  public statfs: FsCallbackApi['statfs'] = notImplemented;
+  public writev: FsCallbackApi['writev'] = notImplemented;
+  public readv: FsCallbackApi['readv'] = notImplemented;
+  public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
+  public opendir: FsCallbackApi['opendir'] = notImplemented;
 }
 
 function emitStop(self) {

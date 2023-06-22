@@ -21,6 +21,7 @@ export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
 export type TTime = number | string | Date;
 export type TCallback<TData> = (error?: IError | null, data?: TData) => void;
+export type TCallback2<T1, T2> = (error: IError | null, bytesRead?: T1, buffers?: T2) => void;
 
 export interface IError extends Error {
   code?: string;
@@ -59,6 +60,27 @@ export interface IStats<T = TStatNumber> {
   isSymbolicLink(): boolean;
   isFIFO(): boolean;
   isSocket(): boolean;
+}
+
+export interface IStatFs<T = TStatNumber> {
+  bavail: T;
+  bfree: T;
+  blocks: T;
+  bsize: T;
+  ffree: T;
+  files: T;
+  type: T;
+}
+
+export interface IDir {
+  path: string;
+  close(): Promise<void>;
+  close(callback?: (err?: Error) => void): void;
+  closeSync(): void;
+  read(): Promise<IDirent | null>;
+  read(callback?: (err: Error | null, dir?: IDirent | null) => void): void;
+  readSync(): IDirent | null;
+  [Symbol.asyncIterator](): AsyncIterableIterator<IDirent>;
 }
 
 export interface IDirent {

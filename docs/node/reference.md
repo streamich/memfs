@@ -1,5 +1,6 @@
 # Reference
 
+
 ## `vol` vs `fs`
 
 This package exports `vol` and `fs` objects which both can be used for
@@ -19,6 +20,7 @@ All contents of the `fs` object are also exported individually, so you can use
 ```js
 import { readFileSync, F_OK, ReadStream } from 'memfs';
 ```
+
 
 ## `Volume` Constructor
 
@@ -52,7 +54,9 @@ const vol = Volume.fromJSON({
 
 It is just a shorthand for `vol.fromJSON`, see below.
 
+
 ## `Volume` instance `vol`
+
 
 #### `vol.fromJSON(json[, cwd])`
 
@@ -72,9 +76,11 @@ vol.fromJSON(
 );
 ```
 
+
 #### `vol.mountSync(cwd, json)`
 
 Legacy method, which is just an alias for `vol.fromJSON`.
+
 
 #### `vol.toJSON([paths[, json[, isRelative]]])`
 
@@ -90,6 +96,7 @@ an array of paths. A path can be a string, `Buffer` or an `URL` object.
 
 **Note:** JSON contains only files, empty folders will be absent.
 
+
 #### `vol.reset()`
 
 Removes all files from the volume.
@@ -101,25 +108,6 @@ vol.reset();
 vol.toJSON(); // {}
 ```
 
-#### `vol.mkdirp(path[, mode], callback)`
-
-> DEPRECATED: This method will be removed in next major release.
-> Use `vol.mkdir(..., {recursive: true}, callback)` instead.
-
-Legacy interface, which now uses the `recursive` option of `vol.mkdir`.
-
-Creates a directory tree recursively. `path` specifies a directory to
-create and can be a string, `Buffer`, or an `URL` object. `callback` is
-called on completion and may receive only one argument - an `Error` object.
-
-#### `vol.mkdirpSync(path[, mode])`
-
-> DEPRECATED: This method will be removed in next major release.
-> Use `vol.mkdirSync(..., {recursive: true})` instead.
-
-Legacy interface, which now uses the `recursive` option of `vol.mkdirSync`.
-
-A synchronous version of `vol.mkdirp()`. This method throws.
 
 ## `createFsFromVolume(vol)`
 

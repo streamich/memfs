@@ -9,11 +9,13 @@ describe('renameSync(fromPath, toPath)', () => {
     expect(tryGetChildNode(vol.root, 'baz').isFile()).toBe(true);
     expect(vol.readFileSync('/baz', 'utf8')).toBe('bar');
   });
+
   it('Updates deep links properly when renaming a directory', () => {
     const vol = create({});
-    vol.mkdirpSync('/foo/bar/qux');
+    vol.mkdirSync('/foo/bar/qux', { recursive: true });
     vol.writeFileSync('/foo/bar/qux/a.txt', 'hello');
     vol.renameSync('/foo/', '/faa/');
+
     expect(vol.toJSON()).toEqual({
       '/faa/bar/qux/a.txt': 'hello',
     });

@@ -249,13 +249,13 @@ export const getWriteSyncArgs = (
   a: string | Buffer | ArrayBufferView | DataView,
   b?: number,
   c?: number | BufferEncoding,
-  d?: number,
-): [fd: number, buf: Buffer, offset: number, length?: number, position?: number] => {
+  d?: number | null,
+): [fd: number, buf: Buffer, offset: number, length?: number, position?: number | null] => {
   validateFd(fd);
   let encoding: BufferEncoding | undefined;
   let offset: number | undefined;
   let length: number | undefined;
-  let position: number | undefined;
+  let position: number | null | undefined;
   const isBuffer = typeof a !== 'string';
   if (isBuffer) {
     offset = (b || 0) | 0;
@@ -281,3 +281,30 @@ export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): 
   if (!encoding || encoding === 'buffer') return buffer;
   else return buffer.toString(encoding);
 }
+
+const isSeparator = (str, i) => {
+  let char = str[i];
+  return i > 0 && (char === '/' || (isWin && char === '\\'));
+};
+
+const removeTrailingSeparator = (str: string): string => {
+  let i = str.length - 1;
+  if (i < 2) return str;
+  while (isSeparator(str, i)) i--;
+  return str.substr(0, i + 1);
+};
+
+const normalizePath = (str, stripTrailing): string => {
+  if (typeof str !== 'string') throw new TypeError('expected a string');
+  str = str.replace(/[\\\/]+/g, '/');
+  if (stripTrailing !== false) str = removeTrailingSeparator(str);
+  return str;
+};
+
+export const unixify = (filepath: string, stripTrailing: boolean = true): string => {
+  if (isWin) {
+    filepath = normalizePath(filepath, stripTrailing);
+    return filepath.replace(/^([a-zA-Z]+:|\.\/)/, '');
+  }
+  return filepath;
+};

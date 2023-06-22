@@ -1,3 +1,21 @@
+# [4.1.0-next.3](https://github.com/streamich/memfs/compare/v4.1.0-next.2...v4.1.0-next.3) (2023-06-22)
+
+
+### Bug Fixes
+
+* 🐛 correctly handle directory paths ([ea909e8](https://github.com/streamich/memfs/commit/ea909e805781d19f7c3749dab65155f67b119344))
+* 🐛 improve file opening and closing logic ([403c271](https://github.com/streamich/memfs/commit/403c27140536b27b1137d68d493851d360b7c90f))
+
+
+### Features
+
+* 🎸 add missing callback API methods and some sycn API ones ([956533a](https://github.com/streamich/memfs/commit/956533a30dc3ab602b3de92dccd99bffb13b1242))
+* 🎸 add missing promisees API types ([f6727f3](https://github.com/streamich/memfs/commit/f6727f328e94c5887352b283a6f4e10455e78158))
+* 🎸 add missing synchronous method types ([ac38b5d](https://github.com/streamich/memfs/commit/ac38b5d0e1a6e586a99dcdf00256144c9577e988))
+* 🎸 implement crudfs on top of fs ([cb7ac4d](https://github.com/streamich/memfs/commit/cb7ac4d1848ab7cd9ebacae9bb09ec1516b97de2))
+* 🎸 make promises methods bound ([3010141](https://github.com/streamich/memfs/commit/3010141ae2dfc3f8c4dee9fdeea4d4128e3a4dc9))
+* 🎸 setup NodeCrud implementation ([39073ce](https://github.com/streamich/memfs/commit/39073ceaa49b37c34e041eda7f18406f9cd0b566))
+
 # [4.1.0-next.2](https://github.com/streamich/memfs/compare/v4.1.0-next.1...v4.1.0-next.2) (2023-06-21)
 
 

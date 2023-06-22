@@ -1,3 +1,16 @@
+# v4 Release
+
+New major release v4 is coming out soon. Install it using `next` tag:
+
+```
+npm i memfs@next
+```
+
+See [`next`](https://github.com/streamich/memfs/tree/next) branch for code changes.
+
+---
+
+
 # memfs
 
 [![][chat-badge]][chat] [![][npm-badge]][npm-url] [![][travis-badge]][travis-url]

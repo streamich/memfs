@@ -13,7 +13,7 @@ import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from './enc
 import * as util from 'util';
 import * as misc from './node/types/misc';
 import * as opts from './node/types/options';
-import { FsCallbackApi, WritevCallback } from './node/types/callback';
+import { FsCallbackApi, WritevCallback } from './node/types/FsCallbackApi';
 import { createPromisesApi } from './node/promises';
 import { ERRSTR, FLAGS, MODE } from './node/constants';
 import {
@@ -901,12 +901,6 @@ export class Volume implements FsCallbackApi {
         cb(err);
       }
     });
-  }
-
-  writev(fd: number, buffers: ArrayBufferView[], callback: WritevCallback): void;
-  writev(fd: number, buffers: ArrayBufferView[], position: number | null, callback: WritevCallback): void;
-  writev(fd: number, buffers: ArrayBufferView[], a, b?): void {
-    throw new Error('not implemented');
   }
 
   private writeFileBase(id: TFileId, buf: Buffer, flagsNum: number, modeNum: number) {
@@ -1884,6 +1878,15 @@ export class Volume implements FsCallbackApi {
   public lutimesSync: FsSynchronousApi['lutimesSync'] = notImplemented;
   public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
   public writevSync: FsSynchronousApi['writevSync'] = notImplemented;
+  public readvSync: FsSynchronousApi['readvSync'] = notImplemented;
+
+  public cp: FsCallbackApi['cp'] = notImplemented;
+  public lutimes: FsCallbackApi['lutimes'] = notImplemented;
+  public statfs: FsCallbackApi['statfs'] = notImplemented;
+  public writev: FsCallbackApi['writev'] = notImplemented;
+  public readv: FsCallbackApi['readv'] = notImplemented;
+  public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
+  public opendir: FsCallbackApi['opendir'] = notImplemented;
 }
 
 function emitStop(self) {

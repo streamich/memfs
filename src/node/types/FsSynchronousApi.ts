@@ -35,6 +35,7 @@ export interface FsSynchronousApi {
   mkdirSync(path: misc.PathLike, options?: misc.TMode | opts.IMkdirOptions): string | undefined;
   mkdtempSync(prefix: string, options?: opts.IOptions): misc.TDataOut;
   openSync(path: misc.PathLike, flags: misc.TFlags, mode?: misc.TMode): number;
+  opendirSync(path: misc.PathLike, options?: opts.IOpendirOptions): misc.IDir;
   readdirSync(path: misc.PathLike, options?: opts.IReaddirOptions | string): misc.TDataOut[] | misc.IDirent[];
   readlinkSync(path: misc.PathLike, options?: opts.IOptions): misc.TDataOut;
   readSync(
@@ -45,6 +46,7 @@ export interface FsSynchronousApi {
     position: number,
   ): number;
   readFileSync(file: misc.TFileId, options?: opts.IReadFileOptions | string): misc.TDataOut;
+  readvSync(fd: number, buffers: ArrayBufferView[], position?: number | null): number;
   realpathSync(path: misc.PathLike, options?: opts.IRealpathOptions | string): misc.TDataOut;
   renameSync(oldPath: misc.PathLike, newPath: misc.PathLike): void;
   rmdirSync(path: misc.PathLike, options?: opts.IRmdirOptions): void;
@@ -56,7 +58,7 @@ export interface FsSynchronousApi {
   statSync(path: misc.PathLike, options: { throwIfNoEntry: false }): misc.IStats<number> | undefined;
   statSync(path: misc.PathLike, options: { throwIfNoEntry?: true }): misc.IStats<number>;
   statSync(path: misc.PathLike): misc.IStats<number>;
-  statfsSync(path: misc.PathLike, options?: opts.IStafsOptions): void;
+  statfsSync(path: misc.PathLike, options?: opts.IStafsOptions): misc.IStatFs;
   symlinkSync(target: misc.PathLike, path: misc.PathLike, type?: misc.symlink.Type): void;
   truncateSync(id: misc.TFileId, len?: number): void;
   unlinkSync(path: misc.PathLike): void;

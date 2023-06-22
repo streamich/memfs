@@ -134,3 +134,19 @@ export interface IStafsOptions {
   /** Whether the numeric values in the returned `StatFs` object should be bigint. */
   bigint?: boolean;
 }
+
+export interface IOpenAsBlobOptions {
+  /** An optional mime type for the blob. */
+  type?: string;
+}
+
+export interface IOpendirOptions extends IOptions {
+  /**
+   * Number of directory entries that are buffered internally when reading from
+   * the directory. Higher values lead to better performance but higher memory
+   * usage. Default: 32.
+   */
+  bufferSize?: number;
+  /** Default: false. */
+  recursive?: boolean;
+}

@@ -19,7 +19,7 @@ import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
 import type * as fsa from '../fsa/types';
 import type { FsCommonObjects } from '../node/types/FsCommonObjects';
-import type { WritevCallback } from '../node/types/callback';
+import type { WritevCallback } from '../node/types/FsCallbackApi';
 
 const notSupported: (...args: any[]) => any = () => {
   throw new Error('Method not supported by the File System Access API.');
@@ -792,8 +792,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return stream;
   };
 
-  public readonly symlink: FsCallbackApi['symlink'] = notSupported;
-  public readonly link: FsCallbackApi['link'] = notSupported;
+  public readonly cp: FsCallbackApi['cp'] = notImplemented;
+  public readonly lutimes: FsCallbackApi['lutimes'] = notImplemented;
+  public readonly openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
+  public readonly opendir: FsCallbackApi['opendir'] = notImplemented;
+  public readonly readv: FsCallbackApi['readv'] = notImplemented;
+  public readonly statfs: FsCallbackApi['statfs'] = notImplemented;
 
   /**
    * @todo Watchers could be implemented in the future on top of `FileSystemObserver`,
@@ -803,6 +807,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly watchFile: FsCallbackApi['watchFile'] = notSupported;
   public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notSupported;
   public readonly watch: FsCallbackApi['watch'] = notSupported;
+
+  public readonly symlink: FsCallbackApi['symlink'] = notSupported;
+  public readonly link: FsCallbackApi['link'] = notSupported;
 
   // --------------------------------------------------------- FsSynchronousApi
 
@@ -1073,7 +1080,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly lutimesSync: FsSynchronousApi['lutimesSync'] = noop;
 
   public readonly cpSync: FsSynchronousApi['cpSync'] = notImplemented;
+  public readonly opendirSync: FsSynchronousApi['opendirSync'] = notImplemented;
   public readonly statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
+  public readonly readvSync: FsSynchronousApi['readvSync'] = notImplemented;
 
   public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;

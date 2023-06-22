@@ -94,38 +94,60 @@ export interface IWriteStreamOptions {
 }
 
 export interface IWatchOptions extends IOptions {
+  /**
+   * Indicates whether the process should continue to run as long as files are
+   * being watched. Default: true.
+   */
   persistent?: boolean;
+
+  /**
+   * Indicates whether all subdirectories should be watched, or only the current
+   * directory. This applies when a directory is specified, and only on
+   * supported platforms (See caveats). Default: false.
+   */
   recursive?: boolean;
+
+  /**
+   * Allows closing the watcher with an {@link AbortSignal}.
+   */
+  signal?: AbortSignal;
 }
 
 export interface ICpOptions {
   /** dereference symlinks. Default: false. */
   dereference?: boolean;
+
   /**
    * When force is false, and the destination exists, throw an error.
    * Default: false.
    */
   errorOnExist?: boolean;
+
   /**
    * Function to filter copied files/directories. Return true to copy the item,
    * false to ignore it. Default: undefined.
    */
   filter?: (src: string, dest: string) => boolean;
+
   /**
    * Overwrite existing file or directory. The copy operation will ignore errors
    * if you set this to false and the destination exists. Use the errorOnExist
    * option to change this behavior. Default: true.
    */
   force?: boolean;
+
   /**
    * Integer, modifiers for copy operation. Default: 0. See mode flag of
    * `fs.copyFileSync()`.
    */
   mode: number;
+
   /** When true timestamps from src will be preserved. Default: false. */
   preserveTimestamps: boolean;
+
   /** Copy directories recursively Default: false. */
   recursive: boolean;
+
   /** When true, path resolution for symlinks will be skipped. Default: false. */
   verbatimSymlinks: boolean;
 }

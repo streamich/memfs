@@ -1,5 +1,6 @@
 import { FileHandle } from './FileHandle';
 import { promisify } from './util';
+import { constants } from '../constants';
 import type * as opts from './types/options';
 import type * as misc from './types/misc';
 import type { FsCallbackApi, FsPromisesApi } from './types';
@@ -7,6 +8,15 @@ import type { FsCallbackApi, FsPromisesApi } from './types';
 export function createPromisesApi(vol: FsCallbackApi): FsPromisesApi {
   return {
     FileHandle: FileHandle as any,
+    constants,
+
+    cp: promisify(vol, 'cp'),
+    opendir: promisify(vol, 'opendir'),
+    statfs: promisify(vol, 'statfs'),
+    watch: () => {
+      throw new Error('Not implemented');
+    },
+    lutimes: promisify(vol, 'lutimes'),
 
     access(path: misc.PathLike, mode?: number): Promise<void> {
       return promisify(vol, 'access')(path, mode);

@@ -1,6 +1,6 @@
 import type { FsSynchronousApi } from './FsSynchronousApi';
 import type { FsCallbackApi } from './FsCallbackApi';
-import type { FsPromisesApi } from './promises';
+import type { FsPromisesApi } from './FsPromisesApi';
 
 export { FsSynchronousApi, FsCallbackApi, FsPromisesApi };
 

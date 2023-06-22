@@ -2,22 +2,15 @@
   "name": "memfs",
   "version": "4.1.0-next.2",
   "description": "In-memory file-system with Node's fs API.",
-  "keywords": [
-    "fs",
-    "filesystem",
-    "fs.js",
-    "memory-fs",
-    "memfs",
-    "file",
-    "file system",
-    "mount",
-    "memory",
-    "in-memory",
-    "virtual",
-    "test",
-    "testing",
-    "mock"
-  ],
+  "author": {
+    "name": "streamich",
+    "url": "https://github.com/streamich"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/streamich"
+  },
+  "homepage": "https://github.com/streamich/memfs",
   "repository": {
     "type": "git",
     "url": "https://github.com/streamich/memfs.git"
@@ -26,7 +19,11 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
-    "lib"
+    "lib",
+    "dist",
+    "README.md",
+    "LICENSE",
+    "demo/runkit.js"
   ],
   "scripts": {
     "build": "tsc -p .",
@@ -47,6 +44,30 @@
     "demo:git-opfs": "webpack serve --config ./demo/git-opfs/webpack.config.js",
     "demo:crud-and-cas": "webpack serve --config ./demo/crud-and-cas/webpack.config.js"
   },
+  "keywords": [
+    "fs",
+    "filesystem",
+    "fs.js",
+    "memory-fs",
+    "memfs",
+    "file",
+    "file system",
+    "mount",
+    "memory",
+    "in-memory",
+    "virtual",
+    "test",
+    "testing",
+    "mock",
+    "fsa",
+    "file system access",
+    "native file system",
+    "webfs",
+    "crudfs",
+    "opfs",
+    "casfs",
+    "content addressable storage"
+  ],
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
@@ -131,5 +152,15 @@
   },
   "engines": {
     "node": ">= 4.0.0"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "arrowParens": "avoid"
   }
 }

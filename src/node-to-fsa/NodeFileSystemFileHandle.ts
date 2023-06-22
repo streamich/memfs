@@ -25,6 +25,7 @@ export class NodeFileSystemFileHandle extends NodeFileSystemHandle implements IF
       const path = this.__path;
       const promises = this.fs.promises;
       const stats = await promises.stat(path);
+      // TODO: Once implemented, use promises.readAsBlob() instead of promises.readFile().
       const data = await promises.readFile(path);
       const file = new File([data], this.name, { lastModified: stats.mtime.getTime() });
       return file;

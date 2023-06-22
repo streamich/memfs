@@ -1048,7 +1048,11 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return openFile.fd;
   };
 
-  public readonly writevSync: FsSynchronousApi['writevSync'] = (fd: number, buffers: ArrayBufferView[], position?: number | null): void => {
+  public readonly writevSync: FsSynchronousApi['writevSync'] = (
+    fd: number,
+    buffers: ArrayBufferView[],
+    position?: number | null,
+  ): void => {
     if (buffers.length === 0) return;
     this.writeSync(fd, buffers[0], 0, buffers[0].byteLength, position);
     for (let i = 1; i < buffers.length; i++) {

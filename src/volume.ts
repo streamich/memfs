@@ -1150,7 +1150,6 @@ export class Volume implements FsCallbackApi {
   lstatSync(path: PathLike, options: { bigint: true; throwIfNoEntry: false }): Stats<bigint> | undefined;
   lstatSync(path: PathLike, options?: opts.IStatOptions): Stats | undefined {
     const { throwIfNoEntry = true, bigint = false } = getStatOptions(options);
-
     return this.lstatBase(pathToFilename(path), bigint as any, throwIfNoEntry as any);
   }
 
@@ -1168,7 +1167,6 @@ export class Volume implements FsCallbackApi {
   private statBase(filename: string, bigint: false, throwIfNoEntry: false): Stats<number> | undefined;
   private statBase(filename: string, bigint = false, throwIfNoEntry = true): Stats | undefined {
     const link = this.getResolvedLink(filenameToSteps(filename));
-
     if (link) {
       return Stats.build(link.getNode(), bigint);
     } else if (!throwIfNoEntry) {

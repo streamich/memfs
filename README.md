@@ -24,6 +24,7 @@ npm i memfs
 - `experimental` [File System Access API to `fs` adapter](./docs/fsa/fsa-to-fs.md)
 - `experimental` [`crudfs` a CRUD-like file system abstraction](./docs/crudfs/index.md)
 - `experimental` [`casfs` Content Addressable Storage file system abstraction](./docs/casfs/index.md)
+- [Directory `snapshot` utility](./docs/snapshot/index.md)
 - [`print` directory tree to terminal](./docs/print/index.md)
 
 

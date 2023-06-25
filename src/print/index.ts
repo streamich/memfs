@@ -14,8 +14,7 @@ export const toTreeSync = (fs: FsSynchronousApi, opts: ToTreeOptions = {}) => {
     const list = fs.readdirSync(dir, {withFileTypes: true}) as IDirent[];
     subtree = printTree(tab, list.map(
       (entry) => (tab) => {
-        const isDir = entry.isDirectory();
-        if (isDir) {
+        if (entry.isDirectory()) {
           return toTreeSync(fs, {dir: dir + entry.name, depth: depth - 1, tab});
         } else if (entry.isSymbolicLink()) {
           return '' + entry.name + ' → ' + fs.readlinkSync(dir + entry.name);

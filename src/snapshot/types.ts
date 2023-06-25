@@ -1,8 +1,14 @@
-import type { FsSynchronousApi } from '../node/types';
+import type { FsPromisesApi, FsSynchronousApi } from '../node/types';
 import type { SnapshotNodeType } from './constants';
 
 export interface SnapshotOptions {
   fs: FsSynchronousApi;
+  path?: string;
+  separator?: '/' | '\\';
+}
+
+export interface AsyncSnapshotOptions {
+  fs: FsPromisesApi;
   path?: string;
   separator?: '/' | '\\';
 }

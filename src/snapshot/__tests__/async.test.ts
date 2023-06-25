@@ -1,29 +1,29 @@
-import { toSnapshotSync, fromSnapshotSync } from '..';
+import { fromSnapshot, toSnapshot } from '../async';
 import { memfs } from '../..';
 import { SnapshotNodeType } from '../constants';
 
-test('can snapshot a single file', () => {
+test('can snapshot a single file', async () => {
   const { fs } = memfs({
     '/foo': 'bar',
   });
-  const snapshot = toSnapshotSync({ fs, path: '/foo' });
+  const snapshot = await toSnapshot({ fs: fs.promises, path: '/foo' });
   expect(snapshot).toStrictEqual([SnapshotNodeType.File, expect.any(Object), new Uint8Array([98, 97, 114])]);
 });
 
-test('can snapshot a single folder', () => {
+test('can snapshot a single folder', async () => {
   const { fs } = memfs({
     '/foo': null,
   });
-  const snapshot = toSnapshotSync({ fs, path: '/foo' });
+  const snapshot = await toSnapshot({ fs: fs.promises, path: '/foo' });
   expect(snapshot).toStrictEqual([SnapshotNodeType.Folder, expect.any(Object), {}]);
 });
 
-test('can snapshot a folder with a file and symlink', () => {
+test('can snapshot a folder with a file and symlink', async () => {
   const { fs } = memfs({
     '/foo': 'bar',
   });
   fs.symlinkSync('/foo', '/baz');
-  const snapshot = toSnapshotSync({ fs, path: '/' });
+  const snapshot = await toSnapshot({ fs: fs.promises, path: '/' });
   expect(snapshot).toStrictEqual([
     SnapshotNodeType.Folder,
     expect.any(Object),
@@ -34,7 +34,7 @@ test('can snapshot a folder with a file and symlink', () => {
   ]);
 });
 
-test('can create a snapshot and un-snapshot a complex fs tree', () => {
+test('can create a snapshot and un-snapshot a complex fs tree', async () => {
   const { fs } = memfs({
     '/start': {
       file1: 'file1',
@@ -55,11 +55,11 @@ test('can create a snapshot and un-snapshot a complex fs tree', () => {
   });
   fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
   fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
-  const snapshot = toSnapshotSync({ fs, path: '/start' })!;
+  const snapshot = await toSnapshot({ fs: fs.promises, path: '/start' })!;
   const { fs: fs2, vol: vol2 } = memfs();
   fs2.mkdirSync('/start', { recursive: true });
-  fromSnapshotSync(snapshot, { fs: fs2, path: '/start' });
+  await fromSnapshot(snapshot, { fs: fs2.promises, path: '/start' });
   expect(fs2.readFileSync('/start/binary')).toStrictEqual(Buffer.from([1, 2, 3]));
-  const snapshot2 = toSnapshotSync({ fs: fs2, path: '/start' })!;
+  const snapshot2 = await toSnapshot({ fs: fs2.promises, path: '/start' })!;
   expect(snapshot2).toStrictEqual(snapshot);
 });

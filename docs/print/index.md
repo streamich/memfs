@@ -1,6 +1,6 @@
 # `print` utility
 
-The print utility allows on to print an ASCII tree of some file system directory.
+The print utility allows one to print an ASCII tree of some file system directory.
 You pass in the file system object and the folder path, and it will print out the tree.
 
 Here is the [`/src` folder print demo of this project](../../demo/print/fs.ts):

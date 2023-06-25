@@ -1,3 +1,12 @@
+# [4.1.0-next.4](https://github.com/streamich/memfs/compare/v4.1.0-next.3...v4.1.0-next.4) (2023-06-25)
+
+
+### Features
+
+* 🎸 add .toTree() to Volume ([2d5c4cb](https://github.com/streamich/memfs/commit/2d5c4cb8097f7b09b223d980efe9e14a2576ed6f))
+* 🎸 add sumlink printing support ([1850dae](https://github.com/streamich/memfs/commit/1850daecd22a945d2d374b04d118da836ccb2a12))
+* 🎸 implement toTreeSync() method ([09c9770](https://github.com/streamich/memfs/commit/09c977045f837efd49e1a61c537f06680e7a8e34))
+
 # [4.1.0-next.3](https://github.com/streamich/memfs/compare/v4.1.0-next.2...v4.1.0-next.3) (2023-06-22)
 
 

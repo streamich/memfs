@@ -94,8 +94,6 @@ an array of paths. A path can be a string, `Buffer` or an `URL` object.
 
 `isRelative` is boolean that specifies if returned paths should be relative.
 
-**Note:** JSON contains only files, empty folders will be absent.
-
 
 #### `vol.reset()`
 
@@ -107,6 +105,52 @@ vol.toJSON(); // {'/index.js': '...' }
 vol.reset();
 vol.toJSON(); // {}
 ```
+
+
+#### `vol.toTree()`
+
+Returns a string representation of a volume folder contents as a tree.
+
+```ts
+import { memfs } from 'memfs';
+
+const { vol } = memfs({
+  '/Users/streamich/src/github/memfs/src': {
+    'package.json': '...',
+    'tsconfig.json': '...',
+    'index.ts': '...',
+    'util': {
+      'index.ts': '...',
+      'print': {
+        'index.ts': '...',
+        'printTree.ts': '...',
+      },
+    },
+  },
+});
+
+console.log(vol.toTree());
+
+// Output:
+// /
+// └─ Users/
+//    └─ streamich/
+//       └─ src/
+//          └─ github/
+//             └─ memfs/
+//                └─ src/
+//                   ├─ index.ts
+//                   ├─ package.json
+//                   ├─ tsconfig.json
+//                   └─ util/
+//                      ├─ index.ts
+//                      └─ print/
+//                         ├─ index.ts
+//                         └─ printTree.ts
+```
+
+The `.toTree()` method accepts options object, where one can specify a sub-folder,
+depth of the printed tree, and a separator.
 
 
 ## `createFsFromVolume(vol)`

@@ -19,7 +19,7 @@ describe('.writeSync(fd, buffer, offset, length, position)', () => {
   });
 
   it('can write at offset', () => {
-    const fs = memfs({ foo: '123' });
+    const { fs } = memfs({ foo: '123' });
     const fd = fs.openSync('/foo', 'a+');
     expect(fs.readFileSync('/foo', 'utf8')).toBe('123');
     fs.writeSync(fd, 'x', 1);

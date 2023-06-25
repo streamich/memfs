@@ -3,9 +3,9 @@ import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle'
 import { onlyOnNode20 } from '../../__tests__/util';
 
 const setup = (json: DirectoryJSON = {}) => {
-  const fs = memfs(json, '/') as IFsWithVolume;
+  const { fs, vol } = memfs(json, '/');
   const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'readwrite' });
-  return { dir, fs };
+  return { dir, fs, vol };
 };
 
 onlyOnNode20('NodeFileSystemFileHandle', () => {
@@ -27,7 +27,7 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
 
   describe('.createWritable()', () => {
     test('throws if not in "readwrite" mode', async () => {
-      const fs = memfs({ 'file.txt': 'abc' }, '/') as IFsWithVolume;
+      const { fs } = memfs({ 'file.txt': 'abc' }, '/');
       const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'read' });
       const entry = await dir.getFileHandle('file.txt');
       try {
@@ -139,18 +139,18 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
       });
 
       test('does not commit changes if .abort() is called and removes the swap file', async () => {
-        const { dir, fs } = setup({
+        const { dir, vol } = setup({
           'file.txt': '...',
         });
         const entry = await dir.getFileHandle('file.txt');
         const writable = await entry.createWritable();
         await writable.write('1');
-        expect(fs.__vol.toJSON()).toStrictEqual({
+        expect(vol.toJSON()).toStrictEqual({
           '/file.txt': '...',
           '/file.txt.crswap': '1',
         });
         await writable.abort();
-        expect(fs.__vol.toJSON()).toStrictEqual({
+        expect(vol.toJSON()).toStrictEqual({
           '/file.txt': '...',
         });
       });

@@ -4,7 +4,7 @@ import git from 'isomorphic-git';
 import {memfs} from '../../src';
 
 const main = async () => {
-  const fs = memfs();
+  const {fs} = memfs();
 
   fs.mkdirSync('/repo');
   console.log('New folder:', (<any>fs).__vol.toJSON());

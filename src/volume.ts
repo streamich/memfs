@@ -16,6 +16,7 @@ import * as misc from './node/types/misc';
 import * as opts from './node/types/options';
 import { FsCallbackApi } from './node/types/FsCallbackApi';
 import { FsPromises } from './node/FsPromises';
+import { ToTreeOptions, toTreeSync } from './print';
 import { ERRSTR, FLAGS, MODE } from './node/constants';
 import {
   getDefaultOpts,
@@ -603,6 +604,10 @@ export class Volume implements FsCallbackApi {
 
   fromNestedJSON(json: NestedDirectoryJSON, cwd?: string) {
     this.fromJSON(flattenJSON(json), cwd);
+  }
+
+  public toTree(opts: ToTreeOptions = { separator: <'/' | '\\'>sep }): string {
+    return toTreeSync(this, opts);
   }
 
   reset() {
@@ -1880,6 +1885,7 @@ export class Volume implements FsCallbackApi {
   public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
   public writevSync: FsSynchronousApi['writevSync'] = notImplemented;
   public readvSync: FsSynchronousApi['readvSync'] = notImplemented;
+  public opendirSync: FsSynchronousApi['opendirSync'] = notImplemented;
 
   public cp: FsCallbackApi['cp'] = notImplemented;
   public lutimes: FsCallbackApi['lutimes'] = notImplemented;

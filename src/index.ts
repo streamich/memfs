@@ -65,10 +65,10 @@ export const fs: IFs = createFsFromVolume(vol);
  * @returns A `memfs` file system instance, which is a drop-in replacement for
  *          the `fs` module.
  */
-export const memfs = (json: NestedDirectoryJSON = {}, cwd: string = '/'): IFs => {
-  const volume = Volume.fromNestedJSON(json, cwd);
-  const fs = createFsFromVolume(volume);
-  return fs;
+export const memfs = (json: NestedDirectoryJSON = {}, cwd: string = '/'): { fs: IFs; vol: _Volume } => {
+  const vol = Volume.fromNestedJSON(json, cwd);
+  const fs = createFsFromVolume(vol);
+  return { fs, vol };
 };
 
 export type IFsWithVolume = IFs & { __vol: _Volume };

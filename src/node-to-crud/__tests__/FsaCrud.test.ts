@@ -4,7 +4,7 @@ import { NodeCrud } from '../NodeCrud';
 import { testCrudfs } from '../../crud/__tests__/testCrudfs';
 
 const setup = () => {
-  const fs = memfs();
+  const { fs } = memfs();
   const crud = new NodeCrud({
     fs: fs.promises,
     dir: '/',

@@ -5,7 +5,7 @@ import { FsaCrud } from '../FsaCrud';
 import { testCrudfs } from '../../crud/__tests__/testCrudfs';
 
 const setup = () => {
-  const fs = memfs();
+  const { fs } = memfs();
   const fsa = new NodeFileSystemDirectoryHandle(fs, '/', { mode: 'readwrite' });
   const crud = new FsaCrud(fsa);
   return { fs, fsa, crud, snapshot: () => (<any>fs).__vol.toJSON() };

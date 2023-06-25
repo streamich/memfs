@@ -4,7 +4,7 @@ import { NodeFileSystemSyncAccessHandle } from '../NodeFileSystemSyncAccessHandl
 import { onlyOnNode20 } from '../../__tests__/util';
 
 const setup = (json: DirectoryJSON = {}) => {
-  const fs = memfs(json, '/');
+  const { fs } = memfs(json, '/');
   const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { syncHandleAllowed: true, mode: 'readwrite' });
   return { dir, fs };
 };

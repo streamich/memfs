@@ -9,7 +9,7 @@ import { FsaCrud } from '../../fsa-to-crud';
 onlyOnNode20('CRUD matryoshka', () => {
   describe('crud(memfs)', () => {
     testCrudfs(() => {
-      const fs = memfs();
+      const { fs } = memfs();
       const crud = new NodeCrud({ fs: fs.promises, dir: '/' });
       return { crud, snapshot: () => (<any>fs).__vol.toJSON() };
     });
@@ -17,7 +17,7 @@ onlyOnNode20('CRUD matryoshka', () => {
 
   describe('crud(fsa(memfs))', () => {
     testCrudfs(() => {
-      const fs = memfs();
+      const { fs } = memfs();
       const fsa = new NodeFileSystemDirectoryHandle(fs, '/', { mode: 'readwrite' });
       const crud = new FsaCrud(fsa);
       return { crud, snapshot: () => (<any>fs).__vol.toJSON() };
@@ -26,7 +26,7 @@ onlyOnNode20('CRUD matryoshka', () => {
 
   describe('crud(fs(fsa(memfs)))', () => {
     testCrudfs(() => {
-      const fs = memfs();
+      const { fs } = memfs();
       const fsa = new NodeFileSystemDirectoryHandle(fs, '/', { mode: 'readwrite' });
       const fs2 = new FsaNodeFs(fsa);
       const crud = new NodeCrud({ fs: fs2.promises, dir: '/' });
@@ -36,7 +36,7 @@ onlyOnNode20('CRUD matryoshka', () => {
 
   describe('crud(fsa(fs(fsa(memfs))))', () => {
     testCrudfs(() => {
-      const fs = memfs();
+      const { fs } = memfs();
       const fsa = new NodeFileSystemDirectoryHandle(fs, '/', { mode: 'readwrite' });
       const fs2 = new FsaNodeFs(fsa);
       const fsa2 = new NodeFileSystemDirectoryHandle(fs2, '/', { mode: 'readwrite' });
@@ -47,7 +47,7 @@ onlyOnNode20('CRUD matryoshka', () => {
 
   describe('crud(fs(fsa(fs(fsa(memfs)))))', () => {
     testCrudfs(() => {
-      const fs = memfs();
+      const { fs } = memfs();
       const fsa = new NodeFileSystemDirectoryHandle(fs, '/', { mode: 'readwrite' });
       const fs2 = new FsaNodeFs(fsa);
       const fsa2 = new NodeFileSystemDirectoryHandle(fs2, '/', { mode: 'readwrite' });
@@ -59,7 +59,7 @@ onlyOnNode20('CRUD matryoshka', () => {
 
   describe('crud(fsa(fs(fsa(fs(fsa(memfs))))))', () => {
     testCrudfs(() => {
-      const fs = memfs();
+      const { fs } = memfs();
       const fsa = new NodeFileSystemDirectoryHandle(fs, '/', { mode: 'readwrite' });
       const fs2 = new FsaNodeFs(fsa);
       const fsa2 = new NodeFileSystemDirectoryHandle(fs2, '/', { mode: 'readwrite' });

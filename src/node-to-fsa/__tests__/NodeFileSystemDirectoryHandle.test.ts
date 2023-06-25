@@ -5,7 +5,7 @@ import { NodeFileSystemHandle } from '../NodeFileSystemHandle';
 import { onlyOnNode20 } from '../../__tests__/util';
 
 const setup = (json: DirectoryJSON = {}) => {
-  const fs = memfs(json, '/');
+  const { fs } = memfs(json, '/');
   const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'readwrite' });
   return { dir, fs };
 };
@@ -160,7 +160,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
     });
 
     test('throws if not in "readwrite" mode and attempting to create a directory', async () => {
-      const fs = memfs({}, '/');
+      const { fs } = memfs({}, '/');
       const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'read' });
       try {
         await dir.getDirectoryHandle('test', { create: true });
@@ -255,7 +255,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
     });
 
     test('throws if not in "readwrite" mode and attempting to create a file', async () => {
-      const fs = memfs({}, '/');
+      const { fs } = memfs({}, '/');
       const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'read' });
       try {
         await dir.getFileHandle('test', { create: true });
@@ -339,7 +339,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
     });
 
     test('throws if not in "readwrite" mode and attempting to remove a file', async () => {
-      const fs = memfs({ a: 'b' }, '/');
+      const { fs } = memfs({ a: 'b' }, '/');
       const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'read' });
       try {
         await dir.removeEntry('a');
@@ -354,7 +354,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
     });
 
     test('throws if not in "readwrite" mode and attempting to remove a folder', async () => {
-      const fs = memfs({ a: null }, '/');
+      const { fs } = memfs({ a: null }, '/');
       const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'read' });
       try {
         await dir.removeEntry('a');

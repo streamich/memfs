@@ -8,10 +8,10 @@ import { onlyOnNode20 } from '../../__tests__/util';
 import { FLAG } from '../../consts/FLAG';
 
 const setup = (json: NestedDirectoryJSON | null = null, mode: 'read' | 'readwrite' = 'readwrite') => {
-  const mfs = memfs({ mountpoint: json }) as IFsWithVolume;
+  const { fs: mfs, vol } = memfs({ mountpoint: json });
   const dir = nodeToFsa(mfs, '/mountpoint', { mode, syncHandleAllowed: true });
   const fs = new FsaNodeFs(dir);
-  return { fs, mfs, dir };
+  return { fs, mfs, vol, dir };
 };
 
 onlyOnNode20('FsaNodeFs', () => {
@@ -92,19 +92,19 @@ onlyOnNode20('FsaNodeFs', () => {
 
   describe('.rmdir()', () => {
     test('can remove an empty folder', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null });
       await fs.promises.rmdir('/empty-folder');
-      expect(mfs.__vol.toJSON()).toStrictEqual({ '/mountpoint/folder/file': 'test' });
+      expect(vol.toJSON()).toStrictEqual({ '/mountpoint/folder/file': 'test' });
     });
 
     test('throws when attempts to remove non-empty folder', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null });
       try {
         await fs.promises.rmdir('/folder');
         throw new Error('Expected error');
       } catch (error) {
         expect(error.code).toBe('ENOTEMPTY');
-        expect(mfs.__vol.toJSON()).toStrictEqual({
+        expect(vol.toJSON()).toStrictEqual({
           '/mountpoint/folder/file': 'test',
           '/mountpoint/empty-folder': null,
         });
@@ -112,17 +112,17 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('can remove non-empty directory recursively', async () => {
-      const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
       await fs.promises.rmdir('/folder', { recursive: true });
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/empty-folder': null,
       });
     });
 
     test('can remove starting from root folder', async () => {
-      const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
       await fs.promises.rmdir('/', { recursive: true });
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint': null,
       });
     });
@@ -130,19 +130,19 @@ onlyOnNode20('FsaNodeFs', () => {
 
   describe('.rm()', () => {
     test('can remove an empty folder', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null });
       await fs.promises.rm('/empty-folder');
-      expect(mfs.__vol.toJSON()).toStrictEqual({ '/mountpoint/folder/file': 'test' });
+      expect(vol.toJSON()).toStrictEqual({ '/mountpoint/folder/file': 'test' });
     });
 
     test('throws when attempts to remove non-empty folder', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null });
       try {
         await fs.promises.rm('/folder');
         throw new Error('Expected error');
       } catch (error) {
         expect(error.code).toBe('ENOTEMPTY');
-        expect(mfs.__vol.toJSON()).toStrictEqual({
+        expect(vol.toJSON()).toStrictEqual({
           '/mountpoint/folder/file': 'test',
           '/mountpoint/empty-folder': null,
         });
@@ -150,21 +150,21 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('can remove non-empty directory recursively', async () => {
-      const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
       await fs.promises.rm('/folder', { recursive: true });
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/empty-folder': null,
       });
     });
 
     test('throws if path does not exist', async () => {
-      const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
       try {
         await fs.promises.rm('/lala/lulu', { recursive: true });
         throw new Error('Expected error');
       } catch (error) {
         expect(error.code).toBe('ENOENT');
-        expect(mfs.__vol.toJSON()).toStrictEqual({
+        expect(vol.toJSON()).toStrictEqual({
           '/mountpoint/folder/subfolder/file': 'test',
           '/mountpoint/empty-folder': null,
         });
@@ -172,23 +172,23 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('does not throw, if path does not exist, but "force" flag set', async () => {
-      const { fs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
       await fs.promises.rm('/lala/lulu', { recursive: true, force: true });
     });
 
     test('can remove a file', async () => {
-      const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
       await fs.promises.rm('/folder/subfolder/file');
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/subfolder': null,
         '/mountpoint/empty-folder': null,
       });
     });
 
     test('can remove starting from root folder', async () => {
-      const { fs, mfs } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { subfolder: { file: 'test' } }, 'empty-folder': null });
       await fs.promises.rm('/', { recursive: true });
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint': null,
       });
     });
@@ -196,23 +196,23 @@ onlyOnNode20('FsaNodeFs', () => {
 
   describe('.unlink()', () => {
     test('can remove a file', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null });
       const res = await fs.promises.unlink('/folder/file');
       expect(res).toBe(undefined);
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder': null,
         '/mountpoint/empty-folder': null,
       });
     });
 
     test('cannot delete a folder', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null });
       try {
         await fs.promises.unlink('/folder');
         throw new Error('Expected error');
       } catch (error) {
         expect(error.code).toBe('EISDIR');
-        expect(mfs.__vol.toJSON()).toStrictEqual({
+        expect(vol.toJSON()).toStrictEqual({
           '/mountpoint/folder/file': 'test',
           '/mountpoint/empty-folder': null,
         });
@@ -220,13 +220,13 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('throws when deleting non-existing file', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null });
       try {
         await fs.promises.unlink('/folder/not-a-file');
         throw new Error('Expected error');
       } catch (error) {
         expect(error.code).toBe('ENOENT');
-        expect(mfs.__vol.toJSON()).toStrictEqual({
+        expect(vol.toJSON()).toStrictEqual({
           '/mountpoint/folder/file': 'test',
           '/mountpoint/empty-folder': null,
         });
@@ -522,9 +522,9 @@ onlyOnNode20('FsaNodeFs', () => {
 
   describe('.rename()', () => {
     test('can rename a file', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, mfs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       await fs.promises.rename('/folder/file', '/folder/file2');
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file2': 'test',
         '/mountpoint/empty-folder': null,
         '/mountpoint/f.html': 'test',
@@ -638,9 +638,9 @@ onlyOnNode20('FsaNodeFs', () => {
 
   describe('.copyFile()', () => {
     test('can copy a file', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       await fs.promises.copyFile('/folder/file', '/folder/file2');
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'test',
         '/mountpoint/folder/file2': 'test',
         '/mountpoint/empty-folder': null,
@@ -651,7 +651,7 @@ onlyOnNode20('FsaNodeFs', () => {
 
   describe('.writeFile()', () => {
     test('can create a new file', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const res = await new Promise<void>((resolve, reject) => {
         fs.writeFile('/folder/foo', 'bar', error => {
           if (error) reject(error);
@@ -659,7 +659,7 @@ onlyOnNode20('FsaNodeFs', () => {
         });
       });
       expect(res).toBe(undefined);
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'test',
         '/mountpoint/folder/foo': 'bar',
         '/mountpoint/empty-folder': null,
@@ -715,7 +715,7 @@ onlyOnNode20('FsaNodeFs', () => {
 
   describe('.createWriteStream()', () => {
     test('can use stream to write to a new file', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const stream = fs.createWriteStream('/folder/file2');
       stream.write(Buffer.from('A'));
       stream.write(Buffer.from('BC'));
@@ -723,7 +723,7 @@ onlyOnNode20('FsaNodeFs', () => {
       stream.end();
       await new Promise(resolve => stream.once('close', resolve));
       expect(stream.bytesWritten).toBe(6);
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'test',
         '/mountpoint/folder/file2': 'ABCDEF',
         '/mountpoint/empty-folder': null,
@@ -732,7 +732,7 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('can use stream to write to a new file using strings', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const stream = fs.createWriteStream('/folder/file2');
       stream.write('A');
       stream.write('BC');
@@ -740,7 +740,7 @@ onlyOnNode20('FsaNodeFs', () => {
       stream.end();
       await new Promise(resolve => stream.once('close', resolve));
       expect(stream.bytesWritten).toBe(6);
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'test',
         '/mountpoint/folder/file2': 'ABCDEF',
         '/mountpoint/empty-folder': null,
@@ -749,14 +749,14 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('can use stream to overwrite existing file', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const stream = fs.createWriteStream('/folder/file');
       stream.write(Buffer.from('A'));
       stream.write(Buffer.from('BC'));
       stream.end();
       await new Promise(resolve => stream.once('close', resolve));
       expect(stream.bytesWritten).toBe(3);
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'ABC',
         '/mountpoint/empty-folder': null,
         '/mountpoint/f.html': 'test',
@@ -764,14 +764,14 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('can write by file descriptor', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, mfs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const handle = await fs.promises.open('/folder/file', 'a');
       const stream = fs.createWriteStream('', { fd: handle.fd, start: 1, flags: 'a' });
       stream.write(Buffer.from('BC'));
       stream.end();
       await new Promise(resolve => stream.once('close', resolve));
       expect(stream.bytesWritten).toBe(2);
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'tBCt',
         '/mountpoint/empty-folder': null,
         '/mountpoint/f.html': 'test',
@@ -819,14 +819,14 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('can use stream to add to existing file', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const stream = fs.createWriteStream('/folder/file', { flags: 'a' });
       stream.write(Buffer.from('A'));
       stream.write(Buffer.from('BC'));
       stream.end();
       await new Promise(resolve => stream.once('close', resolve));
       expect(stream.bytesWritten).toBe(3);
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'ABCt',
         '/mountpoint/empty-folder': null,
         '/mountpoint/f.html': 'test',
@@ -834,14 +834,14 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('can use stream to add to existing file at specified offset', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const stream = fs.createWriteStream('/folder/file', { flags: 'a', start: 1 });
       stream.write(Buffer.from('A'));
       stream.write(Buffer.from('B'));
       stream.end();
       await new Promise(resolve => stream.once('close', resolve));
       expect(stream.bytesWritten).toBe(2);
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'tABt',
         '/mountpoint/empty-folder': null,
         '/mountpoint/f.html': 'test',
@@ -873,12 +873,12 @@ onlyOnNode20('FsaNodeFs', () => {
 
   describe('.createReadStream()', () => {
     test('can pipe fs.ReadStream to fs.WriteStream', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const readStream = fs.createReadStream('/folder/file');
       const writeStream = fs.createWriteStream('/folder/file2');
       readStream.pipe(writeStream);
       await new Promise(resolve => writeStream.once('close', resolve));
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'test',
         '/mountpoint/folder/file2': 'test',
         '/mountpoint/empty-folder': null,
@@ -908,13 +908,13 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('can write to already open file', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const handle = await fs.promises.open('/folder/file');
       const readStream = fs.createReadStream('xyz', { fd: handle.fd });
       const writeStream = fs.createWriteStream('/folder/file2');
       readStream.pipe(writeStream);
       await new Promise(resolve => writeStream.once('close', resolve));
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'test',
         '/mountpoint/folder/file2': 'test',
         '/mountpoint/empty-folder': null,
@@ -923,12 +923,12 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('can read a specified slice of a file', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const readStream = fs.createReadStream('/folder/file', { start: 1, end: 2 });
       const writeStream = fs.createWriteStream('/folder/file2');
       readStream.pipe(writeStream);
       await new Promise(resolve => writeStream.once('close', resolve));
-      expect(mfs.__vol.toJSON()).toStrictEqual({
+      expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'test',
         '/mountpoint/folder/file2': 'es',
         '/mountpoint/empty-folder': null,

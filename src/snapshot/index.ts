@@ -1,7 +1,7 @@
 import {SnapshotNodeType} from "./constants";
 import type {SnapshotNode, SnapshotOptions} from "./type";
 
-export const toSnapshotSync = ({fs, path = '/', separator = '/'}: SnapshotOptions): SnapshotNode | null => {
+export const toSnapshotSync = ({fs, path = '/', separator = '/'}: SnapshotOptions): SnapshotNode => {
   const stats = fs.lstatSync(path);
   if (stats.isDirectory()) {
     const list = fs.readdirSync(path);
@@ -25,6 +25,7 @@ export const toSnapshotSync = ({fs, path = '/', separator = '/'}: SnapshotOption
 };
 
 export const fromSnapshotSync = (snapshot: SnapshotNode, {fs, path = '/', separator = '/'}: SnapshotOptions): void => {
+  if (!snapshot) return;
   switch (snapshot[0]) {
     case SnapshotNodeType.Folder: {
       if (!path.endsWith(separator)) path = path + separator;

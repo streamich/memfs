@@ -10,7 +10,8 @@ export interface SnapshotOptions {
 export type SnapshotNode =
   | FolderNode
   | FileNode
-  | SymlinkNode;
+  | SymlinkNode
+  | UnknownNode;
 
 export type FolderNode = [
   type: SnapshotNodeType.Folder,
@@ -36,3 +37,5 @@ export type SymlinkNode = [
 export interface SymlinkMetadata {
   target: string,
 }
+
+export  type UnknownNode = null;

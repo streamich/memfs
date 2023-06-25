@@ -16,7 +16,7 @@ import * as misc from './node/types/misc';
 import * as opts from './node/types/options';
 import { FsCallbackApi } from './node/types/FsCallbackApi';
 import { FsPromises } from './node/FsPromises';
-import {ToTreeOptions, toTreeSync} from './print';
+import { ToTreeOptions, toTreeSync } from './print';
 import { ERRSTR, FLAGS, MODE } from './node/constants';
 import {
   getDefaultOpts,
@@ -606,7 +606,7 @@ export class Volume implements FsCallbackApi {
     this.fromJSON(flattenJSON(json), cwd);
   }
 
-  public toTree(opts: ToTreeOptions = {separator: <'/' | '\\'>sep}): string {
+  public toTree(opts: ToTreeOptions = { separator: <'/' | '\\'>sep }): string {
     return toTreeSync(this, opts);
   }
 

@@ -606,7 +606,7 @@ export class Volume implements FsCallbackApi {
     this.fromJSON(flattenJSON(json), cwd);
   }
 
-  public toTree(opts?: ToTreeOptions): string {
+  public toTree(opts: ToTreeOptions = {separator: <'/' | '\\'>sep}): string {
     return toTreeSync(this, opts);
   }
 

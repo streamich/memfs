@@ -1880,6 +1880,7 @@ export class Volume implements FsCallbackApi {
   public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
   public writevSync: FsSynchronousApi['writevSync'] = notImplemented;
   public readvSync: FsSynchronousApi['readvSync'] = notImplemented;
+  public opendirSync: FsSynchronousApi['opendirSync'] = notImplemented;
 
   public cp: FsCallbackApi['cp'] = notImplemented;
   public lutimes: FsCallbackApi['lutimes'] = notImplemented;

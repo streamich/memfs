@@ -1,0 +1,50 @@
+import { toTreeSync } from '..';
+import { memfs } from '../..';
+
+test('can print a single file', () => {
+  const { fs } = memfs({
+    '/file.txt': '...',
+  });
+  expect(toTreeSync(fs, { dir: '/' })).toMatchInlineSnapshot(`
+    "/
+    └─ file.txt"
+  `);
+});
+
+test('can a one level deep directory tree', () => {
+  const { fs } = memfs({
+    '/file.txt': '...',
+    '/foo/bar.txt': '...',
+    '/foo/index.php': '...',
+  });
+  expect(toTreeSync(fs, { dir: '/' })).toMatchInlineSnapshot(`
+    "/
+    ├─ file.txt
+    └─ foo/
+       ├─ bar.txt
+       └─ index.php"
+  `);
+});
+
+test('can print two-levels of folders', () => {
+  const { fs } = memfs({
+    '/level1/level2/file.txt': '...',
+  });
+  expect(toTreeSync(fs, { dir: '/' })).toMatchInlineSnapshot(`
+    "/
+    └─ level1/
+       └─ level2/
+          └─ file.txt"
+  `);
+});
+
+test('can stop recursion at specified depth', () => {
+  const { fs } = memfs({
+    '/dir1/dir2/dir3/file.txt': '...',
+  });
+  expect(toTreeSync(fs, { dir: '/', depth: 2 })).toMatchInlineSnapshot(`
+    "/
+    └─ dir1/
+       └─ dir2/ (...)"
+  `);
+});

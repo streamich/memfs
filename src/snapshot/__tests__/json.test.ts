@@ -1,5 +1,6 @@
 import { memfs } from '../..';
-import * as binary from '../binary';
+import {SnapshotNodeType} from '../constants';
+import * as json from '../json';
 
 const data = {
   '/start': {
@@ -20,28 +21,38 @@ const data = {
   },
 };
 
+test('snapshot is a valid JSON', () => {
+  const { fs } = memfs(data);
+  fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
+  fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
+  const snapshot = json.toJsonSnapshotSync({ fs, path: '/start' })!;
+  const pojo = JSON.parse(Buffer.from(snapshot).toString());
+  expect(Array.isArray(pojo)).toBe(true);
+  expect(pojo[0]).toBe(SnapshotNodeType.Folder);
+});
+
 test('sync and async snapshots are equivalent', async () => {
   const { fs } = memfs(data);
   fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
   fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
-  const snapshot1 = binary.toBinarySnapshotSync({ fs: fs, path: '/start' })!;
-  const snapshot2 = await binary.toBinarySnapshot({ fs: fs.promises, path: '/start' })!;
+  const snapshot1 = await json.toJsonSnapshotSync({ fs: fs, path: '/start' })!;
+  const snapshot2 = await json.toJsonSnapshot({ fs: fs.promises, path: '/start' })!;;
   expect(snapshot1).toStrictEqual(snapshot2);
-}); 
+});
 
 describe('synchronous', () => {
   test('can create a binary snapshot and un-snapshot it back', () => {
     const { fs } = memfs(data);
     fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
     fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
-    const snapshot = binary.toBinarySnapshotSync({ fs, path: '/start' })!;
+    const snapshot = json.toJsonSnapshotSync({ fs, path: '/start' })!;
     const { fs: fs2, vol: vol2 } = memfs();
     fs2.mkdirSync('/start', { recursive: true });
-    binary.fromBinarySnapshotSync(snapshot, { fs: fs2, path: '/start' });
+    json.fromJsonSnapshotSync(snapshot, { fs: fs2, path: '/start' });
     expect(fs2.readFileSync('/start/binary')).toStrictEqual(Buffer.from([1, 2, 3]));
-    const snapshot2 = binary.toBinarySnapshotSync({ fs: fs2, path: '/start' })!;
+    const snapshot2 = json.toJsonSnapshotSync({ fs: fs2, path: '/start' })!;
     expect(snapshot2).toStrictEqual(snapshot);
-  });  
+  });
 });
 
 describe('asynchronous', () => {
@@ -49,12 +60,12 @@ describe('asynchronous', () => {
     const { fs } = memfs(data);
     fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
     fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
-    const snapshot = await binary.toBinarySnapshot({ fs: fs.promises, path: '/start' })!;
+    const snapshot = await json.toJsonSnapshot({ fs: fs.promises, path: '/start' })!;
     const { fs: fs2, vol: vol2 } = memfs();
     fs2.mkdirSync('/start', { recursive: true });
-    await binary.fromBinarySnapshot(snapshot, { fs: fs2.promises, path: '/start' });
+    await json.fromJsonSnapshot(snapshot, { fs: fs2.promises, path: '/start' });
     expect(fs2.readFileSync('/start/binary')).toStrictEqual(Buffer.from([1, 2, 3]));
-    const snapshot2 = await binary.toBinarySnapshot({ fs: fs2.promises, path: '/start' })!;
+    const snapshot2 = await json.toJsonSnapshot({ fs: fs2.promises, path: '/start' })!;
     expect(snapshot2).toStrictEqual(snapshot);
-  });  
+  });
 });

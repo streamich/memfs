@@ -2,10 +2,11 @@ import {CborEncoder} from 'json-joy/es6/json-pack/cbor/CborEncoder';
 import {CborDecoder} from 'json-joy/es6/json-pack/cbor/CborDecoder';
 import {fromSnapshotSync, toSnapshotSync} from './sync';
 import {fromSnapshot, toSnapshot} from './async';
+import {writer} from './shared';
 import type {CborUint8Array} from 'json-joy/es6/json-pack/cbor/types';
 import type {AsyncSnapshotOptions, SnapshotNode, SnapshotOptions} from './types';
 
-const encoder = new CborEncoder();
+const encoder = new CborEncoder(writer);
 const decoder = new CborDecoder();
 
 export const toBinarySnapshotSync = (options: SnapshotOptions): CborUint8Array<SnapshotNode> => {

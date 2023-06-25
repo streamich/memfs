@@ -1,3 +1,18 @@
+# [4.1.0-next.5](https://github.com/streamich/memfs/compare/v4.1.0-next.4...v4.1.0-next.5) (2023-06-25)
+
+
+### Bug Fixes
+
+* 🐛 add support for unknown nodes ([77786f1](https://github.com/streamich/memfs/commit/77786f16ca77a2658d73c3bdb29d5018a1fe9ecc))
+
+
+### Features
+
+* 🎸 add binary serialization to snapshots ([c1cd615](https://github.com/streamich/memfs/commit/c1cd615d7172023c2c7a40b61767d8a3470c9b33))
+* 🎸 add json encoding for snapshots ([41f9b8c](https://github.com/streamich/memfs/commit/41f9b8ceeb185b928ab7c2b5d3c1dc21ca1e49ae))
+* 🎸 add snapshot creation utilities ([9fc8f13](https://github.com/streamich/memfs/commit/9fc8f13581b69791f6e5b0a47146fa2ef4160371))
+* 🎸 implement async verions of snapshotting ([18912bf](https://github.com/streamich/memfs/commit/18912bfe9fd1f08bf0e2103b6d041a9a40937505))
+
 # [4.1.0-next.4](https://github.com/streamich/memfs/compare/v4.1.0-next.3...v4.1.0-next.4) (2023-06-25)
 
 

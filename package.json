@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "4.1.0-next.4",
+  "version": "4.1.0-next.5",
   "description": "In-memory file-system with Node's fs API.",
   "author": {
     "name": "streamich",

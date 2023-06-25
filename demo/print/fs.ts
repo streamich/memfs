@@ -3,7 +3,7 @@
 import * as fs from 'fs';
 import {toTreeSync} from '../../src/print';
 
-console.log(toTreeSync(<any>fs, {dir: process.cwd() + '/src'}));
+console.log(toTreeSync(<any>fs, {dir: process.cwd() + '/src/fsa-to-node'}));
 
 // Output:
 // src/

@@ -27,7 +27,7 @@ test('sync and async snapshots are equivalent', async () => {
   const snapshot1 = binary.toBinarySnapshotSync({ fs: fs, path: '/start' })!;
   const snapshot2 = await binary.toBinarySnapshot({ fs: fs.promises, path: '/start' })!;
   expect(snapshot1).toStrictEqual(snapshot2);
-}); 
+});
 
 describe('synchronous', () => {
   test('can create a binary snapshot and un-snapshot it back', () => {
@@ -41,7 +41,7 @@ describe('synchronous', () => {
     expect(fs2.readFileSync('/start/binary')).toStrictEqual(Buffer.from([1, 2, 3]));
     const snapshot2 = binary.toBinarySnapshotSync({ fs: fs2, path: '/start' })!;
     expect(snapshot2).toStrictEqual(snapshot);
-  });  
+  });
 });
 
 describe('asynchronous', () => {
@@ -56,5 +56,5 @@ describe('asynchronous', () => {
     expect(fs2.readFileSync('/start/binary')).toStrictEqual(Buffer.from([1, 2, 3]));
     const snapshot2 = await binary.toBinarySnapshot({ fs: fs2.promises, path: '/start' })!;
     expect(snapshot2).toStrictEqual(snapshot);
-  });  
+  });
 });

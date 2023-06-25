@@ -1,5 +1,5 @@
 import { memfs } from '../..';
-import {SnapshotNodeType} from '../constants';
+import { SnapshotNodeType } from '../constants';
 import * as json from '../json';
 
 const data = {
@@ -36,7 +36,7 @@ test('sync and async snapshots are equivalent', async () => {
   fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
   fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
   const snapshot1 = await json.toJsonSnapshotSync({ fs: fs, path: '/start' })!;
-  const snapshot2 = await json.toJsonSnapshot({ fs: fs.promises, path: '/start' })!;;
+  const snapshot2 = await json.toJsonSnapshot({ fs: fs.promises, path: '/start' })!;
   expect(snapshot1).toStrictEqual(snapshot2);
 });
 

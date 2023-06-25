@@ -1,12 +1,12 @@
-import {JsonEncoder} from 'json-joy/es6/json-pack/json/JsonEncoder';
-import {JsonDecoder} from 'json-joy/es6/json-pack/json/JsonDecoder';
-import {fromSnapshotSync, toSnapshotSync} from './sync';
-import {fromSnapshot, toSnapshot} from './async';
-import {writer} from './shared';
-import type {AsyncSnapshotOptions, SnapshotNode, SnapshotOptions} from './types';
+import { JsonEncoder } from 'json-joy/es6/json-pack/json/JsonEncoder';
+import { JsonDecoder } from 'json-joy/es6/json-pack/json/JsonDecoder';
+import { fromSnapshotSync, toSnapshotSync } from './sync';
+import { fromSnapshot, toSnapshot } from './async';
+import { writer } from './shared';
+import type { AsyncSnapshotOptions, SnapshotNode, SnapshotOptions } from './types';
 
 /** @todo Import this type from `json-joy` once it is available. */
-export type JsonUint8Array<T> = Uint8Array & {__BRAND__: 'json'; __TYPE__: T};
+export type JsonUint8Array<T> = Uint8Array & { __BRAND__: 'json'; __TYPE__: T };
 
 const encoder = new JsonEncoder(writer);
 const decoder = new JsonDecoder();
@@ -26,7 +26,10 @@ export const toJsonSnapshot = async (options: AsyncSnapshotOptions): Promise<Jso
   return encoder.encode(snapshot) as JsonUint8Array<SnapshotNode>;
 };
 
-export const fromJsonSnapshot = async (uint8: JsonUint8Array<SnapshotNode>, options: AsyncSnapshotOptions): Promise<void> => {
+export const fromJsonSnapshot = async (
+  uint8: JsonUint8Array<SnapshotNode>,
+  options: AsyncSnapshotOptions,
+): Promise<void> => {
   const snapshot = decoder.read(uint8) as SnapshotNode;
   await fromSnapshot(snapshot, options);
 };

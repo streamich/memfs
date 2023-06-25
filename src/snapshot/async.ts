@@ -13,14 +13,14 @@ export const toSnapshot = async ({ fs, path = '/', separator = '/' }: AsyncSnaps
     }
     return [SnapshotNodeType.Folder, {}, entries];
   } else if (stats.isFile()) {
-    const buf = await fs.readFile(path) as Buffer;
+    const buf = (await fs.readFile(path)) as Buffer;
     const uint8 = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
     return [SnapshotNodeType.File, {}, uint8];
   } else if (stats.isSymbolicLink()) {
     return [
       SnapshotNodeType.Symlink,
       {
-        target: await fs.readlink(path, {encoding: 'utf8'}) as string,
+        target: (await fs.readlink(path, { encoding: 'utf8' })) as string,
       },
     ];
   }

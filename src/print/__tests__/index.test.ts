@@ -48,3 +48,33 @@ test('can stop recursion at specified depth', () => {
        └─ dir2/ (...)"
   `);
 });
+
+test('can print symlinks', () => {
+  const { fs } = memfs({
+    '/a/b/c/file.txt': '...',
+    '/a/b/main.rb': '...',
+  });
+  fs.symlinkSync('/a/b/c/file.txt', '/goto');
+  expect(toTreeSync(fs)).toMatchInlineSnapshot(`
+    "/
+    ├─ a/
+    │  └─ b/
+    │     ├─ c/
+    │     │  └─ file.txt
+    │     └─ main.rb
+    └─ goto → /a/b/c/file.txt"
+  `);
+});
+
+test('can print starting from subfolder', () => {
+  const { fs } = memfs({
+    '/a/b/c/file.txt': '...',
+    '/a/b/main.rb': '...',
+  });
+  expect(toTreeSync(fs, { dir: '/a/b' })).toMatchInlineSnapshot(`
+    "b/
+    ├─ c/
+    │  └─ file.txt
+    └─ main.rb"
+  `);
+});

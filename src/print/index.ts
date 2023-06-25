@@ -17,6 +17,8 @@ export const toTreeSync = (fs: FsSynchronousApi, opts: ToTreeOptions = {}) => {
         const isDir = entry.isDirectory();
         if (isDir) {
           return toTreeSync(fs, {dir: dir + entry.name, depth: depth - 1, tab});
+        } else if (entry.isSymbolicLink()) {
+          return '' + entry.name + ' → ' + fs.readlinkSync(dir + entry.name);
         } else {
           return '' + entry.name;
         }

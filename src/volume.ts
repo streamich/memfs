@@ -1,5 +1,4 @@
 import * as pathModule from 'path';
-import { PathLike, symlink } from 'fs';
 import { Node, Link, File } from './node';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -10,10 +9,54 @@ import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
 import { Readable, Writable } from 'stream';
 import { constants } from './constants';
 import { EventEmitter } from 'events';
-import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
-import * as errors from './internal/errors';
-import util = require('util');
-import createPromisesApi from './promises';
+import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from './encoding';
+import { FileHandle } from './node/FileHandle';
+import * as util from 'util';
+import * as misc from './node/types/misc';
+import * as opts from './node/types/options';
+import { FsCallbackApi } from './node/types/FsCallbackApi';
+import { FsPromises } from './node/FsPromises';
+import { ToTreeOptions, toTreeSync } from './print';
+import { ERRSTR, FLAGS, MODE } from './node/constants';
+import {
+  getDefaultOpts,
+  getDefaultOptsAndCb,
+  getMkdirOptions,
+  getOptions,
+  getReadFileOptions,
+  getReaddirOptions,
+  getReaddirOptsAndCb,
+  getRmOptsAndCb,
+  getRmdirOptions,
+  optsAndCbGenerator,
+  getAppendFileOptsAndCb,
+  getAppendFileOpts,
+  getStatOptsAndCb,
+  getStatOptions,
+  getRealpathOptsAndCb,
+  getRealpathOptions,
+  getWriteFileOptions,
+  writeFileDefaults,
+} from './node/options';
+import {
+  validateCallback,
+  modeToNumber,
+  pathToFilename,
+  nullCheck,
+  createError,
+  genRndStr6,
+  flagsToNumber,
+  validateFd,
+  isFd,
+  isWin,
+  dataToBuffer,
+  getWriteArgs,
+  bufferToEncoding,
+  getWriteSyncArgs,
+  unixify,
+} from './node/util';
+import type { PathLike, symlink } from 'fs';
+import type { FsPromisesApi, FsSynchronousApi } from './node/types';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -24,7 +67,6 @@ const {
   O_EXCL,
   O_TRUNC,
   O_APPEND,
-  O_SYNC,
   O_DIRECTORY,
   F_OK,
   COPYFILE_EXCL,
@@ -32,8 +74,6 @@ const {
 } = constants;
 
 const { sep, relative, join, dirname } = pathModule.posix ? pathModule.posix : pathModule;
-
-const isWin = process.platform === 'win32';
 
 // ---------------------------------------- Types
 
@@ -43,55 +83,21 @@ export interface IError extends Error {
 }
 
 export type TFileId = PathLike | number; // Number is used as a file descriptor.
-export type TData = TDataOut | Uint8Array; // Data formats users can give us.
+export type TData = TDataOut | ArrayBufferView | DataView; // Data formats users can give us.
 export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
 export type TTime = number | string | Date;
 export type TCallback<TData> = (error?: IError | null, data?: TData) => void;
-// type TCallbackWrite = (err?: IError, bytesWritten?: number, source?: Buffer) => void;
-// type TCallbackWriteStr = (err?: IError, written?: number, str?: string) => void;
 
 // ---------------------------------------- Constants
 
-// Default modes for opening files.
-const enum MODE {
-  FILE = 0o666,
-  DIR = 0o777,
-  DEFAULT = MODE.FILE,
-}
-
 const kMinPoolSpace = 128;
-// const kMaxLength = require('buffer').kMaxLength;
 
 // ---------------------------------------- Error messages
-
-// TODO: Use `internal/errors.js` in the future.
-
-const ERRSTR = {
-  PATH_STR: 'path must be a string or Buffer',
-  // FD:             'file descriptor must be a unsigned 32-bit integer',
-  FD: 'fd must be a file descriptor',
-  MODE_INT: 'mode must be an int',
-  CB: 'callback must be a function',
-  UID: 'uid must be an unsigned int',
-  GID: 'gid must be an unsigned int',
-  LEN: 'len must be an integer',
-  ATIME: 'atime must be an integer',
-  MTIME: 'mtime must be an integer',
-  PREFIX: 'filename prefix is required',
-  BUFFER: 'buffer must be an instance of Buffer or StaticBuffer',
-  OFFSET: 'offset must be an integer',
-  LENGTH: 'length must be an integer',
-  POSITION: 'position must be an integer',
-};
-const ERRSTR_OPTS = tipeof => `Expected options to be either an object or a string, but got ${tipeof} instead`;
-// const ERRSTR_FLAG = flag => `Unknown file open flag: ${flag}`;
 
 const ENOENT = 'ENOENT';
 const EBADF = 'EBADF';
 const EINVAL = 'EINVAL';
-const EPERM = 'EPERM';
-const EPROTO = 'EPROTO';
 const EEXIST = 'EEXIST';
 const ENOTDIR = 'ENOTDIR';
 const EMFILE = 'EMFILE';
@@ -101,198 +107,17 @@ const ENOTEMPTY = 'ENOTEMPTY';
 const ENOSYS = 'ENOSYS';
 const ERR_FS_EISDIR = 'ERR_FS_EISDIR';
 
-function formatError(errorCode: string, func = '', path = '', path2 = '') {
-  let pathFormatted = '';
-  if (path) pathFormatted = ` '${path}'`;
-  if (path2) pathFormatted += ` -> '${path2}'`;
-
-  switch (errorCode) {
-    case ENOENT:
-      return `ENOENT: no such file or directory, ${func}${pathFormatted}`;
-    case EBADF:
-      return `EBADF: bad file descriptor, ${func}${pathFormatted}`;
-    case EINVAL:
-      return `EINVAL: invalid argument, ${func}${pathFormatted}`;
-    case EPERM:
-      return `EPERM: operation not permitted, ${func}${pathFormatted}`;
-    case EPROTO:
-      return `EPROTO: protocol error, ${func}${pathFormatted}`;
-    case EEXIST:
-      return `EEXIST: file already exists, ${func}${pathFormatted}`;
-    case ENOTDIR:
-      return `ENOTDIR: not a directory, ${func}${pathFormatted}`;
-    case EISDIR:
-      return `EISDIR: illegal operation on a directory, ${func}${pathFormatted}`;
-    case EACCES:
-      return `EACCES: permission denied, ${func}${pathFormatted}`;
-    case ENOTEMPTY:
-      return `ENOTEMPTY: directory not empty, ${func}${pathFormatted}`;
-    case EMFILE:
-      return `EMFILE: too many open files, ${func}${pathFormatted}`;
-    case ENOSYS:
-      return `ENOSYS: function not implemented, ${func}${pathFormatted}`;
-    case ERR_FS_EISDIR:
-      return `[ERR_FS_EISDIR]: Path is a directory: ${func} returned EISDIR (is a directory) ${path}`;
-    default:
-      return `${errorCode}: error occurred, ${func}${pathFormatted}`;
-  }
-}
-
-function createError(errorCode: string, func = '', path = '', path2 = '', Constructor = Error) {
-  const error = new Constructor(formatError(errorCode, func, path, path2));
-  (error as any).code = errorCode;
-
-  if (path) {
-    (error as any).path = path;
-  }
-
-  return error;
-}
-
 // ---------------------------------------- Flags
-
-// List of file `flags` as defined by Node.
-export enum FLAGS {
-  // Open file for reading. An exception occurs if the file does not exist.
-  r = O_RDONLY,
-  // Open file for reading and writing. An exception occurs if the file does not exist.
-  'r+' = O_RDWR,
-  // Open file for reading in synchronous mode. Instructs the operating system to bypass the local file system cache.
-  rs = O_RDONLY | O_SYNC,
-  sr = FLAGS.rs,
-  // Open file for reading and writing, telling the OS to open it synchronously. See notes for 'rs' about using this with caution.
-  'rs+' = O_RDWR | O_SYNC,
-  'sr+' = FLAGS['rs+'],
-  // Open file for writing. The file is created (if it does not exist) or truncated (if it exists).
-  w = O_WRONLY | O_CREAT | O_TRUNC,
-  // Like 'w' but fails if path exists.
-  wx = O_WRONLY | O_CREAT | O_TRUNC | O_EXCL,
-  xw = FLAGS.wx,
-  // Open file for reading and writing. The file is created (if it does not exist) or truncated (if it exists).
-  'w+' = O_RDWR | O_CREAT | O_TRUNC,
-  // Like 'w+' but fails if path exists.
-  'wx+' = O_RDWR | O_CREAT | O_TRUNC | O_EXCL,
-  'xw+' = FLAGS['wx+'],
-  // Open file for appending. The file is created if it does not exist.
-  a = O_WRONLY | O_APPEND | O_CREAT,
-  // Like 'a' but fails if path exists.
-  ax = O_WRONLY | O_APPEND | O_CREAT | O_EXCL,
-  xa = FLAGS.ax,
-  // Open file for reading and appending. The file is created if it does not exist.
-  'a+' = O_RDWR | O_APPEND | O_CREAT,
-  // Like 'a+' but fails if path exists.
-  'ax+' = O_RDWR | O_APPEND | O_CREAT | O_EXCL,
-  'xa+' = FLAGS['ax+'],
-}
 
 export type TFlagsCopy =
   | typeof constants.COPYFILE_EXCL
   | typeof constants.COPYFILE_FICLONE
   | typeof constants.COPYFILE_FICLONE_FORCE;
 
-export function flagsToNumber(flags: TFlags | undefined): number {
-  if (typeof flags === 'number') return flags;
-
-  if (typeof flags === 'string') {
-    const flagsNum = FLAGS[flags];
-    if (typeof flagsNum !== 'undefined') return flagsNum;
-  }
-
-  // throw new TypeError(formatError(ERRSTR_FLAG(flags)));
-  throw new errors.TypeError('ERR_INVALID_OPT_VALUE', 'flags', flags);
-}
-
 // ---------------------------------------- Options
 
-function getOptions<T extends IOptions>(defaults: T, options?: T | string): T {
-  let opts: T;
-  if (!options) return defaults;
-  else {
-    const tipeof = typeof options;
-    switch (tipeof) {
-      case 'string':
-        opts = Object.assign({}, defaults, { encoding: options as string });
-        break;
-      case 'object':
-        opts = Object.assign({}, defaults, options);
-        break;
-      default:
-        throw TypeError(ERRSTR_OPTS(tipeof));
-    }
-  }
-
-  if (opts.encoding !== 'buffer') assertEncoding(opts.encoding);
-
-  return opts;
-}
-
-function optsGenerator<TOpts>(defaults: TOpts): (opts) => TOpts {
-  return options => getOptions(defaults, options);
-}
-
-type AssertCallback<T> = T extends () => void ? T : never;
-
-function validateCallback<T>(callback: T): AssertCallback<T> {
-  if (typeof callback !== 'function') throw TypeError(ERRSTR.CB);
-  return callback as AssertCallback<T>;
-}
-
-function optsAndCbGenerator<TOpts, TResult>(getOpts): (options, callback?) => [TOpts, TCallback<TResult>] {
-  return (options, callback?) =>
-    typeof options === 'function' ? [getOpts(), options] : [getOpts(options), validateCallback(callback)];
-}
-
-// General options with optional `encoding` property that most commands accept.
-export interface IOptions {
-  encoding?: BufferEncoding | TEncodingExtended;
-}
-
-export interface IFileOptions extends IOptions {
-  mode?: TMode;
-  flag?: TFlags;
-}
-
-const optsDefaults: IOptions = {
-  encoding: 'utf8',
-};
-const getDefaultOpts = optsGenerator<IOptions>(optsDefaults);
-const getDefaultOptsAndCb = optsAndCbGenerator<IOptions, any>(getDefaultOpts);
-
-// Options for `fs.readFile` and `fs.readFileSync`.
-export interface IReadFileOptions extends IOptions {
-  flag?: string;
-}
-const readFileOptsDefaults: IReadFileOptions = {
-  flag: 'r',
-};
-const getReadFileOptions = optsGenerator<IReadFileOptions>(readFileOptsDefaults);
-
-// Options for `fs.writeFile` and `fs.writeFileSync`
-export interface IWriteFileOptions extends IFileOptions {}
-const writeFileDefaults: IWriteFileOptions = {
-  encoding: 'utf8',
-  mode: MODE.DEFAULT,
-  flag: FLAGS[FLAGS.w],
-};
-const getWriteFileOptions = optsGenerator<IWriteFileOptions>(writeFileDefaults);
-
 // Options for `fs.appendFile` and `fs.appendFileSync`
-export interface IAppendFileOptions extends IFileOptions {}
-const appendFileDefaults: IAppendFileOptions = {
-  encoding: 'utf8',
-  mode: MODE.DEFAULT,
-  flag: FLAGS[FLAGS.a],
-};
-const getAppendFileOpts = optsGenerator<IAppendFileOptions>(appendFileDefaults);
-const getAppendFileOptsAndCb = optsAndCbGenerator<IAppendFileOptions, void>(getAppendFileOpts);
-
-// Options for `fs.realpath` and `fs.realpathSync`
-export interface IRealpathOptions {
-  encoding?: TEncodingExtended;
-}
-const realpathDefaults: IReadFileOptions = optsDefaults;
-const getRealpathOptions = optsGenerator<IRealpathOptions>(realpathDefaults);
-const getRealpathOptsAndCb = optsAndCbGenerator<IRealpathOptions, TDataOut>(getRealpathOptions);
+export interface IAppendFileOptions extends opts.IFileOptions {}
 
 // Options for `fs.watchFile`
 export interface IWatchFileOptions {
@@ -300,139 +125,18 @@ export interface IWatchFileOptions {
   interval?: number;
 }
 
-// Options for `fs.createReadStream`
-export interface IReadStreamOptions {
-  flags?: TFlags;
-  encoding?: BufferEncoding;
-  fd?: number;
-  mode?: TMode;
-  autoClose?: boolean;
-  start?: number;
-  end?: number;
-}
-
-// Options for `fs.createWriteStream`
-export interface IWriteStreamOptions {
-  flags?: TFlags;
-  defaultEncoding?: BufferEncoding;
-  fd?: number;
-  mode?: TMode;
-  autoClose?: boolean;
-  start?: number;
-}
-
 // Options for `fs.watch`
-export interface IWatchOptions extends IOptions {
+export interface IWatchOptions extends opts.IOptions {
   persistent?: boolean;
   recursive?: boolean;
 }
 
-// Options for `fs.mkdir` and `fs.mkdirSync`
-export interface IMkdirOptions {
-  mode?: TMode;
-  recursive?: boolean;
-}
-const mkdirDefaults: IMkdirOptions = {
-  mode: MODE.DIR,
-  recursive: false,
-};
-const getMkdirOptions = (options): IMkdirOptions => {
-  if (typeof options === 'number') return Object.assign({}, mkdirDefaults, { mode: options });
-  return Object.assign({}, mkdirDefaults, options);
-};
-
-// Options for `fs.rmdir` and `fs.rmdirSync`
-export interface IRmdirOptions {
-  recursive?: boolean;
-}
-const rmdirDefaults: IRmdirOptions = {
-  recursive: false,
-};
-const getRmdirOptions = (options): IRmdirOptions => {
-  return Object.assign({}, rmdirDefaults, options);
-};
-
-export interface IRmOptions {
-  force?: boolean;
-  maxRetries?: number;
-  recursive?: boolean;
-  retryDelay?: number;
-}
-const getRmOpts = optsGenerator<IOptions>(optsDefaults);
-const getRmOptsAndCb = optsAndCbGenerator<IRmOptions, any>(getRmOpts);
-
-// Options for `fs.readdir` and `fs.readdirSync`
-export interface IReaddirOptions extends IOptions {
-  withFileTypes?: boolean;
-}
-const readdirDefaults: IReaddirOptions = {
-  encoding: 'utf8',
-  withFileTypes: false,
-};
-const getReaddirOptions = optsGenerator<IReaddirOptions>(readdirDefaults);
-const getReaddirOptsAndCb = optsAndCbGenerator<IReaddirOptions, TDataOut[] | Dirent[]>(getReaddirOptions);
-
-// Options for `fs.lstat`, `fs.lstatSync`, `fs.stat`, and `fs.statSync`
-export interface IStatOptions {
-  bigint?: boolean;
-  throwIfNoEntry?: boolean;
-}
-
-// Options for `fs.fstat`, fs.fstatSync
-export interface IFStatOptions {
-  bigint?: boolean;
-}
-
-const statDefaults: IStatOptions = {
-  bigint: false,
-};
-const getStatOptions: (options?: any) => IStatOptions = (options = {}) => Object.assign({}, statDefaults, options);
-const getStatOptsAndCb: (options: any, callback?: TCallback<Stats>) => [IStatOptions, TCallback<Stats>] = (
-  options,
-  callback?,
-) =>
-  typeof options === 'function' ? [getStatOptions(), options] : [getStatOptions(options), validateCallback(callback)];
-
 // ---------------------------------------- Utility functions
-
-function getPathFromURLPosix(url): string {
-  if (url.hostname !== '') {
-    throw new errors.TypeError('ERR_INVALID_FILE_URL_HOST', process.platform);
-  }
-  const pathname = url.pathname;
-  for (let n = 0; n < pathname.length; n++) {
-    if (pathname[n] === '%') {
-      const third = pathname.codePointAt(n + 2) | 0x20;
-      if (pathname[n + 1] === '2' && third === 102) {
-        throw new errors.TypeError('ERR_INVALID_FILE_URL_PATH', 'must not include encoded / characters');
-      }
-    }
-  }
-  return decodeURIComponent(pathname);
-}
-
-export function pathToFilename(path: PathLike): string {
-  if (typeof path !== 'string' && !Buffer.isBuffer(path)) {
-    try {
-      if (!(path instanceof require('url').URL)) throw new TypeError(ERRSTR.PATH_STR);
-    } catch (err) {
-      throw new TypeError(ERRSTR.PATH_STR);
-    }
-
-    path = getPathFromURLPosix(path);
-  }
-
-  const pathString = String(path);
-  nullCheck(pathString);
-  // return slash(pathString);
-  return pathString;
-}
 
 type TResolve = (filename: string, base?: string) => string;
 let resolve: TResolve = (filename, base = process.cwd()) => resolveCrossPlatform(base, filename);
 if (isWin) {
   const _resolve = resolve;
-  const { unixify } = require('fs-monkey/lib/correctPath');
   resolve = (filename, base) => unixify(_resolve(filename, base));
 }
 
@@ -451,49 +155,6 @@ export function dataToStr(data: TData, encoding: string = ENCODING_UTF8): string
   if (Buffer.isBuffer(data)) return data.toString(encoding);
   else if (data instanceof Uint8Array) return bufferFrom(data).toString(encoding);
   else return String(data);
-}
-
-export function dataToBuffer(data: TData, encoding: string = ENCODING_UTF8): Buffer {
-  if (Buffer.isBuffer(data)) return data;
-  else if (data instanceof Uint8Array) return bufferFrom(data);
-  else return bufferFrom(String(data), encoding);
-}
-
-export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): TDataOut {
-  if (!encoding || encoding === 'buffer') return buffer;
-  else return buffer.toString(encoding);
-}
-
-function nullCheck(path, callback?) {
-  if (('' + path).indexOf('\u0000') !== -1) {
-    const er = new Error('Path must be a string without null bytes');
-    (er as any).code = ENOENT;
-    if (typeof callback !== 'function') throw er;
-    process.nextTick(callback, er);
-    return false;
-  }
-  return true;
-}
-
-function _modeToNumber(mode: TMode | undefined, def?): number | undefined {
-  if (typeof mode === 'number') return mode;
-  if (typeof mode === 'string') return parseInt(mode, 8);
-  if (def) return modeToNumber(def);
-  return undefined;
-}
-
-function modeToNumber(mode: TMode | undefined, def?): number {
-  const result = _modeToNumber(mode, def);
-  if (typeof result !== 'number' || isNaN(result)) throw new TypeError(ERRSTR.MODE_INT);
-  return result;
-}
-
-function isFd(path): boolean {
-  return path >>> 0 === path;
-}
-
-function validateFd(fd) {
-  if (!isFd(fd)) throw TypeError(ERRSTR.FD);
 }
 
 // converts Date or number to a fractional UNIX timestamp
@@ -560,10 +221,14 @@ function flattenJSON(nestedJSON: NestedDirectoryJSON): DirectoryJSON {
   return flatJSON;
 }
 
+const notImplemented: (...args: any[]) => any = () => {
+  throw new Error('Not implemented');
+};
+
 /**
  * `Volume` represents a file system.
  */
-export class Volume {
+export class Volume implements FsCallbackApi {
   static fromJSON(json: DirectoryJSON, cwd?: string): Volume {
     const vol = new Volume();
     vol.fromJSON(json, cwd);
@@ -615,7 +280,7 @@ export class Volume {
   openFiles = 0;
 
   StatWatcher: new () => StatWatcher;
-  ReadStream: new (...args) => IReadStream;
+  ReadStream: new (...args) => misc.IReadStream;
   WriteStream: new (...args) => IWriteStream;
   FSWatcher: new () => FSWatcher;
 
@@ -625,9 +290,9 @@ export class Volume {
     File: new (...args) => File;
   };
 
-  private promisesApi = createPromisesApi(this);
+  private promisesApi = new FsPromises(this, FileHandle);
 
-  get promises() {
+  get promises(): FsPromisesApi {
     if (this.promisesApi === null) throw new Error('Promise is not supported in this environment.');
     return this.promisesApi;
   }
@@ -646,12 +311,12 @@ export class Volume {
       }
     };
 
-    const _ReadStream: new (...args) => IReadStream = FsReadStream as any;
+    const _ReadStream: new (...args) => misc.IReadStream = FsReadStream as any;
     this.ReadStream = class extends _ReadStream {
       constructor(...args) {
         super(self, ...args);
       }
-    } as any as new (...args) => IReadStream;
+    } as any as new (...args) => misc.IReadStream;
 
     const _WriteStream: new (...args) => IWriteStream = FsWriteStream as any;
     this.WriteStream = class extends _WriteStream {
@@ -721,21 +386,10 @@ export class Volume {
     return node;
   }
 
-  private getNode(ino: number) {
-    return this.inodes[ino];
-  }
-
   private deleteNode(node: Node) {
     node.del();
     delete this.inodes[node.ino];
     this.releasedInos.push(node.ino);
-  }
-
-  // Generates 6 character long random string, used by `mkdtemp`.
-  genRndStr() {
-    const str = (Math.random() + 1).toString(36).substring(2, 8);
-    if (str.length === 6) return str;
-    else return this.genRndStr();
   }
 
   // Returns a `Link` (hard link) referenced by path "split" into steps.
@@ -930,6 +584,7 @@ export class Volume {
     return json;
   }
 
+  // TODO: `cwd` should probably not invoke `process.cwd()`.
   fromJSON(json: DirectoryJSON, cwd: string = process.cwd()) {
     for (let filename in json) {
       const data = json[filename];
@@ -949,6 +604,10 @@ export class Volume {
 
   fromNestedJSON(json: NestedDirectoryJSON, cwd?: string) {
     this.fromJSON(flattenJSON(json), cwd);
+  }
+
+  public toTree(opts: ToTreeOptions = { separator: <'/' | '\\'>sep }): string {
+    return toTreeSync(this, opts);
   }
 
   reset() {
@@ -1095,23 +754,35 @@ export class Volume {
     }
   }
 
-  private readBase(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number): number {
+  private readBase(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    position: number,
+  ): number {
     const file = this.getFileByFdOrThrow(fd);
     return file.read(buffer, Number(offset), Number(length), position);
   }
 
-  readSync(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, position: number): number {
+  readSync(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    position: number,
+  ): number {
     validateFd(fd);
     return this.readBase(fd, buffer, offset, length, position);
   }
 
   read(
     fd: number,
-    buffer: Buffer | Uint8Array,
+    buffer: Buffer | ArrayBufferView | DataView,
     offset: number,
     length: number,
     position: number,
-    callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | Uint8Array) => void,
+    callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | ArrayBufferView | DataView) => void,
   ) {
     validateCallback(callback);
 
@@ -1164,65 +835,56 @@ export class Volume {
     return result;
   }
 
-  readFileSync(file: TFileId, options?: IReadFileOptions | string): TDataOut {
+  readFileSync(file: TFileId, options?: opts.IReadFileOptions | string): TDataOut {
     const opts = getReadFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     return this.readFileBase(file, flagsNum, opts.encoding as BufferEncoding);
   }
 
   readFile(id: TFileId, callback: TCallback<TDataOut>);
-  readFile(id: TFileId, options: IReadFileOptions | string, callback: TCallback<TDataOut>);
-  readFile(id: TFileId, a: TCallback<TDataOut> | IReadFileOptions | string, b?: TCallback<TDataOut>) {
-    const [opts, callback] = optsAndCbGenerator<IReadFileOptions, TCallback<TDataOut>>(getReadFileOptions)(a, b);
+  readFile(id: TFileId, options: opts.IReadFileOptions | string, callback: TCallback<TDataOut>);
+  readFile(id: TFileId, a: TCallback<TDataOut> | opts.IReadFileOptions | string, b?: TCallback<TDataOut>) {
+    const [opts, callback] = optsAndCbGenerator<opts.IReadFileOptions, TCallback<TDataOut>>(getReadFileOptions)(a, b);
     const flagsNum = flagsToNumber(opts.flag);
     this.wrapAsync(this.readFileBase, [id, flagsNum, opts.encoding], callback);
   }
 
-  private writeBase(fd: number, buf: Buffer, offset?: number, length?: number, position?: number): number {
+  private writeBase(fd: number, buf: Buffer, offset?: number, length?: number, position?: number | null): number {
     const file = this.getFileByFdOrThrow(fd, 'write');
     return file.write(buf, offset, length, position);
   }
 
-  writeSync(fd: number, buffer: Buffer | Uint8Array, offset?: number, length?: number, position?: number): number;
+  writeSync(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset?: number,
+    length?: number,
+    position?: number,
+  ): number;
   writeSync(fd: number, str: string, position?: number, encoding?: BufferEncoding): number;
-  writeSync(fd: number, a: string | Buffer | Uint8Array, b?: number, c?: number | BufferEncoding, d?: number): number {
-    validateFd(fd);
-
-    let encoding: BufferEncoding | undefined;
-    let offset: number | undefined;
-    let length: number | undefined;
-    let position: number | undefined;
-
-    const isBuffer = typeof a !== 'string';
-    if (isBuffer) {
-      offset = (b || 0) | 0;
-      length = c as number;
-      position = d;
-    } else {
-      position = b;
-      encoding = c as BufferEncoding;
-    }
-
-    const buf: Buffer = dataToBuffer(a, encoding);
-
-    if (isBuffer) {
-      if (typeof length === 'undefined') {
-        length = buf.length;
-      }
-    } else {
-      offset = 0;
-      length = buf.length;
-    }
-
+  writeSync(
+    fd: number,
+    a: string | Buffer | ArrayBufferView | DataView,
+    b?: number,
+    c?: number | BufferEncoding,
+    d?: number,
+  ): number {
+    const [, buf, offset, length, position] = getWriteSyncArgs(fd, a, b, c, d);
     return this.writeBase(fd, buf, offset, length, position);
   }
 
-  write(fd: number, buffer: Buffer | Uint8Array, callback: (...args) => void);
-  write(fd: number, buffer: Buffer | Uint8Array, offset: number, callback: (...args) => void);
-  write(fd: number, buffer: Buffer | Uint8Array, offset: number, length: number, callback: (...args) => void);
+  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, callback: (...args) => void);
+  write(fd: number, buffer: Buffer | ArrayBufferView | DataView, offset: number, callback: (...args) => void);
   write(
     fd: number,
-    buffer: Buffer | Uint8Array,
+    buffer: Buffer | ArrayBufferView | DataView,
+    offset: number,
+    length: number,
+    callback: (...args) => void,
+  );
+  write(
+    fd: number,
+    buffer: Buffer | ArrayBufferView | DataView,
     offset: number,
     length: number,
     position: number,
@@ -1232,63 +894,11 @@ export class Volume {
   write(fd: number, str: string, position: number, callback: (...args) => void);
   write(fd: number, str: string, position: number, encoding: BufferEncoding, callback: (...args) => void);
   write(fd: number, a?, b?, c?, d?, e?) {
-    validateFd(fd);
-
-    let offset: number;
-    let length: number | undefined;
-    let position: number;
-    let encoding: BufferEncoding | undefined;
-    let callback: ((...args) => void) | undefined;
-
-    const tipa = typeof a;
-    const tipb = typeof b;
-    const tipc = typeof c;
-    const tipd = typeof d;
-
-    if (tipa !== 'string') {
-      if (tipb === 'function') {
-        callback = b;
-      } else if (tipc === 'function') {
-        offset = b | 0;
-        callback = c;
-      } else if (tipd === 'function') {
-        offset = b | 0;
-        length = c;
-        callback = d;
-      } else {
-        offset = b | 0;
-        length = c;
-        position = d;
-        callback = e;
-      }
-    } else {
-      if (tipb === 'function') {
-        callback = b;
-      } else if (tipc === 'function') {
-        position = b;
-        callback = c;
-      } else if (tipd === 'function') {
-        position = b;
-        encoding = c;
-        callback = d;
-      }
-    }
-
-    const buf: Buffer = dataToBuffer(a, encoding);
-
-    if (tipa !== 'string') {
-      if (typeof length === 'undefined') length = buf.length;
-    } else {
-      offset = 0;
-      length = buf.length;
-    }
-
-    const cb = validateCallback(callback);
-
+    const [, asStr, buf, offset, length, position, cb] = getWriteArgs(fd, a, b, c, d, e);
     setImmediate(() => {
       try {
         const bytes = this.writeBase(fd, buf, offset, length, position);
-        if (tipa !== 'string') {
+        if (!asStr) {
           cb(null, bytes, buf);
         } else {
           cb(null, bytes, a);
@@ -1328,7 +938,7 @@ export class Volume {
     }
   }
 
-  writeFileSync(id: TFileId, data: TData, options?: IWriteFileOptions) {
+  writeFileSync(id: TFileId, data: TData, options?: opts.IWriteFileOptions): void {
     const opts = getWriteFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     const modeNum = modeToNumber(opts.mode);
@@ -1337,18 +947,15 @@ export class Volume {
   }
 
   writeFile(id: TFileId, data: TData, callback: TCallback<void>);
-  writeFile(id: TFileId, data: TData, options: IWriteFileOptions | string, callback: TCallback<void>);
-  writeFile(id: TFileId, data: TData, a: TCallback<void> | IWriteFileOptions | string, b?: TCallback<void>) {
-    let options: IWriteFileOptions | string = a as IWriteFileOptions;
+  writeFile(id: TFileId, data: TData, options: opts.IWriteFileOptions | string, callback: TCallback<void>);
+  writeFile(id: TFileId, data: TData, a: TCallback<void> | opts.IWriteFileOptions | string, b?: TCallback<void>) {
+    let options: opts.IWriteFileOptions | string = a as opts.IWriteFileOptions;
     let callback: TCallback<void> | undefined = b;
-
     if (typeof a === 'function') {
       options = writeFileDefaults;
       callback = a;
     }
-
     const cb = validateCallback(callback);
-
     const opts = getWriteFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
     const modeNum = modeToNumber(opts.mode);
@@ -1506,13 +1113,13 @@ export class Volume {
     return strToEncoding(realLink.getPath() || '/', encoding);
   }
 
-  realpathSync(path: PathLike, options?: IRealpathOptions | string): TDataOut {
+  realpathSync(path: PathLike, options?: opts.IRealpathOptions | string): TDataOut {
     return this.realpathBase(pathToFilename(path), getRealpathOptions(options).encoding);
   }
 
   realpath(path: PathLike, callback: TCallback<TDataOut>);
-  realpath(path: PathLike, options: IRealpathOptions | string, callback: TCallback<TDataOut>);
-  realpath(path: PathLike, a: TCallback<TDataOut> | IRealpathOptions | string, b?: TCallback<TDataOut>) {
+  realpath(path: PathLike, options: opts.IRealpathOptions | string, callback: TCallback<TDataOut>);
+  realpath(path: PathLike, a: TCallback<TDataOut> | opts.IRealpathOptions | string, b?: TCallback<TDataOut>) {
     const [opts, callback] = getRealpathOptsAndCb(a, b);
     const pathFilename = pathToFilename(path);
     this.wrapAsync(this.realpathBase, [pathFilename, opts.encoding], callback);
@@ -1541,15 +1148,14 @@ export class Volume {
   lstatSync(path: PathLike, options: { throwIfNoEntry: false }): Stats<number> | undefined;
   lstatSync(path: PathLike, options: { bigint: false; throwIfNoEntry: false }): Stats<number> | undefined;
   lstatSync(path: PathLike, options: { bigint: true; throwIfNoEntry: false }): Stats<bigint> | undefined;
-  lstatSync(path: PathLike, options?: IStatOptions): Stats | undefined {
+  lstatSync(path: PathLike, options?: opts.IStatOptions): Stats | undefined {
     const { throwIfNoEntry = true, bigint = false } = getStatOptions(options);
-
     return this.lstatBase(pathToFilename(path), bigint as any, throwIfNoEntry as any);
   }
 
   lstat(path: PathLike, callback: TCallback<Stats>): void;
-  lstat(path: PathLike, options: IStatOptions, callback: TCallback<Stats>): void;
-  lstat(path: PathLike, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>): void {
+  lstat(path: PathLike, options: opts.IStatOptions, callback: TCallback<Stats>): void;
+  lstat(path: PathLike, a: TCallback<Stats> | opts.IStatOptions, b?: TCallback<Stats>): void {
     const [{ throwIfNoEntry = true, bigint = false }, callback] = getStatOptsAndCb(a, b);
     this.wrapAsync(this.lstatBase, [pathToFilename(path), bigint, throwIfNoEntry], callback);
   }
@@ -1561,7 +1167,6 @@ export class Volume {
   private statBase(filename: string, bigint: false, throwIfNoEntry: false): Stats<number> | undefined;
   private statBase(filename: string, bigint = false, throwIfNoEntry = true): Stats | undefined {
     const link = this.getResolvedLink(filenameToSteps(filename));
-
     if (link) {
       return Stats.build(link.getNode(), bigint);
     } else if (!throwIfNoEntry) {
@@ -1578,15 +1183,15 @@ export class Volume {
   statSync(path: PathLike, options: { bigint: true; throwIfNoEntry?: true }): Stats<bigint>;
   statSync(path: PathLike, options: { bigint: false; throwIfNoEntry: false }): Stats<number> | undefined;
   statSync(path: PathLike, options: { bigint: true; throwIfNoEntry: false }): Stats<bigint> | undefined;
-  statSync(path: PathLike, options?: IStatOptions): Stats | undefined {
+  statSync(path: PathLike, options?: opts.IStatOptions): Stats | undefined {
     const { bigint = true, throwIfNoEntry = true } = getStatOptions(options);
 
     return this.statBase(pathToFilename(path), bigint as any, throwIfNoEntry as any);
   }
 
   stat(path: PathLike, callback: TCallback<Stats>): void;
-  stat(path: PathLike, options: IStatOptions, callback: TCallback<Stats>): void;
-  stat(path: PathLike, a: TCallback<Stats> | IStatOptions, b?: TCallback<Stats>): void {
+  stat(path: PathLike, options: opts.IStatOptions, callback: TCallback<Stats>): void;
+  stat(path: PathLike, a: TCallback<Stats> | opts.IStatOptions, b?: TCallback<Stats>): void {
     const [{ bigint = false, throwIfNoEntry = true }, callback] = getStatOptsAndCb(a, b);
 
     this.wrapAsync(this.statBase, [pathToFilename(path), bigint, throwIfNoEntry], callback);
@@ -1604,13 +1209,13 @@ export class Volume {
   fstatSync(fd: number): Stats<number>;
   fstatSync(fd: number, options: { bigint: false }): Stats<number>;
   fstatSync(fd: number, options: { bigint: true }): Stats<bigint>;
-  fstatSync(fd: number, options?: IFStatOptions): Stats {
+  fstatSync(fd: number, options?: opts.IFStatOptions): Stats {
     return this.fstatBase(fd, getStatOptions(options).bigint as any);
   }
 
   fstat(fd: number, callback: TCallback<Stats>): void;
-  fstat(fd: number, options: IFStatOptions, callback: TCallback<Stats>): void;
-  fstat(fd: number, a: TCallback<Stats> | IFStatOptions, b?: TCallback<Stats>): void {
+  fstat(fd: number, options: opts.IFStatOptions, callback: TCallback<Stats>): void;
+  fstat(fd: number, a: TCallback<Stats> | opts.IFStatOptions, b?: TCallback<Stats>): void {
     const [opts, callback] = getStatOptsAndCb(a, b);
     this.wrapAsync(this.fstatBase, [fd, opts.bigint], callback);
   }
@@ -1711,7 +1316,7 @@ export class Volume {
     this.wrapAsync(this.accessBase, [filename, mode], callback);
   }
 
-  appendFileSync(id: TFileId, data: TData, options: IAppendFileOptions | string = appendFileDefaults) {
+  appendFileSync(id: TFileId, data: TData, options?: IAppendFileOptions | string) {
     const opts = getAppendFileOpts(options);
 
     // force append behavior when using a supplied file descriptor
@@ -1731,7 +1336,7 @@ export class Volume {
     this.writeFile(id, data, opts, callback);
   }
 
-  private readdirBase(filename: string, options: IReaddirOptions): TDataOut[] | Dirent[] {
+  private readdirBase(filename: string, options: opts.IReaddirOptions): TDataOut[] | Dirent[] {
     const steps = filenameToSteps(filename);
     const link: Link | null = this.getResolvedLink(steps);
     if (!link) throw createError(ENOENT, 'readdir', filename);
@@ -1772,14 +1377,14 @@ export class Volume {
     return list;
   }
 
-  readdirSync(path: PathLike, options?: IReaddirOptions | string): TDataOut[] | Dirent[] {
+  readdirSync(path: PathLike, options?: opts.IReaddirOptions | string): TDataOut[] | Dirent[] {
     const opts = getReaddirOptions(options);
     const filename = pathToFilename(path);
     return this.readdirBase(filename, opts);
   }
 
   readdir(path: PathLike, callback: TCallback<TDataOut[] | Dirent[]>);
-  readdir(path: PathLike, options: IReaddirOptions | string, callback: TCallback<TDataOut[] | Dirent[]>);
+  readdir(path: PathLike, options: opts.IReaddirOptions | string, callback: TCallback<TDataOut[] | Dirent[]>);
   readdir(path: PathLike, a?, b?) {
     const [options, callback] = getReaddirOptsAndCb(a, b);
     const filename = pathToFilename(path);
@@ -1796,15 +1401,15 @@ export class Volume {
     return strToEncoding(str, encoding);
   }
 
-  readlinkSync(path: PathLike, options?: IOptions): TDataOut {
+  readlinkSync(path: PathLike, options?: opts.IOptions): TDataOut {
     const opts = getDefaultOpts(options);
     const filename = pathToFilename(path);
     return this.readlinkBase(filename, opts.encoding);
   }
 
   readlink(path: PathLike, callback: TCallback<TDataOut>);
-  readlink(path: PathLike, options: IOptions, callback: TCallback<TDataOut>);
-  readlink(path: PathLike, a: TCallback<TDataOut> | IOptions, b?: TCallback<TDataOut>) {
+  readlink(path: PathLike, options: opts.IOptions, callback: TCallback<TDataOut>);
+  readlink(path: PathLike, a: TCallback<TDataOut> | opts.IOptions, b?: TCallback<TDataOut>) {
     const [opts, callback] = getDefaultOptsAndCb(a, b);
     const filename = pathToFilename(path);
     this.wrapAsync(this.readlinkBase, [filename, opts.encoding], callback);
@@ -1861,6 +1466,10 @@ export class Volume {
     }
   }
 
+  /**
+   * `id` should be a file descriptor or a path. `id` as file descriptor will
+   * not be supported soon.
+   */
   truncateSync(id: TFileId, len?: number) {
     if (isFd(id)) return this.ftruncateSync(id as number, len);
 
@@ -1955,10 +1564,10 @@ export class Volume {
     return created ? fullPath : undefined;
   }
 
-  mkdirSync(path: PathLike, options: IMkdirOptions & { recursive: true }): string | undefined;
-  mkdirSync(path: PathLike, options?: TMode | (IMkdirOptions & { recursive?: false })): void;
-  mkdirSync(path: PathLike, options?: TMode | IMkdirOptions): string | undefined;
-  mkdirSync(path: PathLike, options?: TMode | IMkdirOptions) {
+  mkdirSync(path: PathLike, options: opts.IMkdirOptions & { recursive: true }): string | undefined;
+  mkdirSync(path: PathLike, options?: TMode | (opts.IMkdirOptions & { recursive?: false })): void;
+  mkdirSync(path: PathLike, options?: TMode | opts.IMkdirOptions): string | undefined;
+  mkdirSync(path: PathLike, options?: TMode | opts.IMkdirOptions) {
     const opts = getMkdirOptions(options);
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
@@ -1967,11 +1576,11 @@ export class Volume {
   }
 
   mkdir(path: PathLike, callback: TCallback<void>);
-  mkdir(path: PathLike, mode: TMode | (IMkdirOptions & { recursive?: false }), callback: TCallback<void>);
-  mkdir(path: PathLike, mode: IMkdirOptions & { recursive: true }, callback: TCallback<string>);
-  mkdir(path: PathLike, mode: TMode | IMkdirOptions, callback: TCallback<string>);
-  mkdir(path: PathLike, a: TCallback<void> | TMode | IMkdirOptions, b?: TCallback<string> | TCallback<void>) {
-    const opts: TMode | IMkdirOptions = getMkdirOptions(a);
+  mkdir(path: PathLike, mode: TMode | (opts.IMkdirOptions & { recursive?: false }), callback: TCallback<void>);
+  mkdir(path: PathLike, mode: opts.IMkdirOptions & { recursive: true }, callback: TCallback<string>);
+  mkdir(path: PathLike, mode: TMode | opts.IMkdirOptions, callback: TCallback<string>);
+  mkdir(path: PathLike, a: TCallback<void> | TMode | opts.IMkdirOptions, b?: TCallback<string> | TCallback<void>) {
+    const opts: TMode | opts.IMkdirOptions = getMkdirOptions(a);
     const callback = validateCallback(typeof a === 'function' ? a : b!);
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
@@ -1979,21 +1588,8 @@ export class Volume {
     else this.wrapAsync(this.mkdirBase, [filename, modeNum], callback);
   }
 
-  // legacy interface
-  mkdirpSync(path: PathLike, mode?: TMode) {
-    return this.mkdirSync(path, { mode, recursive: true });
-  }
-
-  mkdirp(path: PathLike, callback: TCallback<string>);
-  mkdirp(path: PathLike, mode: TMode, callback: TCallback<string>);
-  mkdirp(path: PathLike, a: TCallback<string> | TMode, b?: TCallback<string>) {
-    const mode: TMode | undefined = typeof a === 'function' ? undefined : a;
-    const callback = validateCallback(typeof a === 'function' ? a : b);
-    this.mkdir(path, { mode, recursive: true }, callback);
-  }
-
   private mkdtempBase(prefix: string, encoding?: TEncodingExtended, retry: number = 5): TDataOut {
-    const filename = prefix + this.genRndStr();
+    const filename = prefix + genRndStr6();
     try {
       this.mkdirBase(filename, MODE.DIR);
       return strToEncoding(filename, encoding);
@@ -2005,7 +1601,7 @@ export class Volume {
     }
   }
 
-  mkdtempSync(prefix: string, options?: IOptions): TDataOut {
+  mkdtempSync(prefix: string, options?: opts.IOptions): TDataOut {
     const { encoding } = getDefaultOpts(options);
 
     if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
@@ -2015,9 +1611,9 @@ export class Volume {
     return this.mkdtempBase(prefix, encoding);
   }
 
-  mkdtemp(prefix: string, callback: TCallback<void>);
-  mkdtemp(prefix: string, options: IOptions, callback: TCallback<void>);
-  mkdtemp(prefix: string, a: TCallback<void> | IOptions, b?: TCallback<void>) {
+  mkdtemp(prefix: string, callback: TCallback<string>);
+  mkdtemp(prefix: string, options: opts.IOptions, callback: TCallback<string>);
+  mkdtemp(prefix: string, a: TCallback<string> | opts.IOptions, b?: TCallback<string>) {
     const [{ encoding }, callback] = getDefaultOptsAndCb(a, b);
 
     if (!prefix || typeof prefix !== 'string') throw new TypeError('filename prefix is required');
@@ -2027,7 +1623,7 @@ export class Volume {
     this.wrapAsync(this.mkdtempBase, [prefix, encoding], callback);
   }
 
-  private rmdirBase(filename: string, options?: IRmdirOptions) {
+  private rmdirBase(filename: string, options?: opts.IRmdirOptions) {
     const opts = getRmdirOptions(options);
     const link = this.getLinkAsDirOrThrow(filename, 'rmdir');
 
@@ -2037,19 +1633,19 @@ export class Volume {
     this.deleteLink(link);
   }
 
-  rmdirSync(path: PathLike, options?: IRmdirOptions) {
+  rmdirSync(path: PathLike, options?: opts.IRmdirOptions) {
     this.rmdirBase(pathToFilename(path), options);
   }
 
   rmdir(path: PathLike, callback: TCallback<void>);
-  rmdir(path: PathLike, options: IRmdirOptions, callback: TCallback<void>);
-  rmdir(path: PathLike, a: TCallback<void> | IRmdirOptions, b?: TCallback<void>) {
-    const opts: IRmdirOptions = getRmdirOptions(a);
+  rmdir(path: PathLike, options: opts.IRmdirOptions, callback: TCallback<void>);
+  rmdir(path: PathLike, a: TCallback<void> | opts.IRmdirOptions, b?: TCallback<void>) {
+    const opts: opts.IRmdirOptions = getRmdirOptions(a);
     const callback: TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
     this.wrapAsync(this.rmdirBase, [pathToFilename(path), opts], callback);
   }
 
-  private rmBase(filename: string, options: IRmOptions = {}): void {
+  private rmBase(filename: string, options: opts.IRmOptions = {}): void {
     const link = this.getResolvedLink(filename);
     if (!link) {
       // "stat" is used to match Node's native error message.
@@ -2064,13 +1660,13 @@ export class Volume {
     this.deleteLink(link);
   }
 
-  public rmSync(path: PathLike, options?: IRmOptions): void {
+  public rmSync(path: PathLike, options?: opts.IRmOptions): void {
     this.rmBase(pathToFilename(path), options);
   }
 
   public rm(path: PathLike, callback: TCallback<void>): void;
-  public rm(path: PathLike, options: IRmOptions, callback: TCallback<void>): void;
-  public rm(path: PathLike, a: TCallback<void> | IRmOptions, b?: TCallback<void>): void {
+  public rm(path: PathLike, options: opts.IRmOptions, callback: TCallback<void>): void;
+  public rm(path: PathLike, a: TCallback<void> | opts.IRmOptions, b?: TCallback<void>): void {
     const [opts, callback] = getRmOptsAndCb(a, b);
     this.wrapAsync(this.rmBase, [pathToFilename(path), opts], callback);
   }
@@ -2244,11 +1840,11 @@ export class Volume {
     }
   }
 
-  createReadStream(path: PathLike, options?: IReadStreamOptions | string): IReadStream {
+  createReadStream(path: misc.PathLike, options?: opts.IReadStreamOptions | string): misc.IReadStream {
     return new this.ReadStream(path, options);
   }
 
-  createWriteStream(path: PathLike, options?: IWriteStreamOptions | string): IWriteStream {
+  createWriteStream(path: PathLike, options?: opts.IWriteStreamOptions | string): IWriteStream {
     return new this.WriteStream(path, options);
   }
 
@@ -2281,6 +1877,21 @@ export class Volume {
 
     return watcher;
   }
+
+  public cpSync: FsSynchronousApi['cpSync'] = notImplemented;
+  public lutimesSync: FsSynchronousApi['lutimesSync'] = notImplemented;
+  public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
+  public writevSync: FsSynchronousApi['writevSync'] = notImplemented;
+  public readvSync: FsSynchronousApi['readvSync'] = notImplemented;
+  public opendirSync: FsSynchronousApi['opendirSync'] = notImplemented;
+
+  public cp: FsCallbackApi['cp'] = notImplemented;
+  public lutimes: FsCallbackApi['lutimes'] = notImplemented;
+  public statfs: FsCallbackApi['statfs'] = notImplemented;
+  public writev: FsCallbackApi['writev'] = notImplemented;
+  public readv: FsCallbackApi['readv'] = notImplemented;
+  public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
+  public opendir: FsCallbackApi['opendir'] = notImplemented;
 }
 
 function emitStop(self) {
@@ -2341,14 +1952,6 @@ export class StatWatcher extends EventEmitter {
 
 /* tslint:disable no-var-keyword prefer-const */
 // ---------------------------------------- ReadStream
-
-export interface IReadStream extends Readable {
-  new (path: PathLike, options: IReadStreamOptions);
-  open();
-  close(callback: TCallback<void>);
-  bytesRead: number;
-  path: string;
-}
 
 var pool;
 
@@ -2523,7 +2126,8 @@ function closeOnOpen(fd) {
 export interface IWriteStream extends Writable {
   bytesWritten: number;
   path: string;
-  new (path: PathLike, options: IWriteStreamOptions);
+  pending: boolean;
+  new (path: PathLike, options: opts.IWriteStreamOptions);
   open();
   close();
 }
@@ -2547,6 +2151,7 @@ function FsWriteStream(vol, path, options) {
   this.autoClose = options.autoClose === undefined ? true : !!options.autoClose;
   this.pos = undefined;
   this.bytesWritten = 0;
+  this.pending = true;
 
   if (this.start !== undefined) {
     if (typeof this.start !== 'number') {
@@ -2586,6 +2191,7 @@ FsWriteStream.prototype.open = function () {
       }
 
       this.fd = fd;
+      this.pending = false;
       this.emit('open', fd);
     }.bind(this),
   );

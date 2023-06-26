@@ -5,3 +5,6 @@ node_modules
 coverage
 package-lock.json
 /lib/
+/gh-pages
+/dist
+/fs-test/

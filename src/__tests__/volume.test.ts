@@ -1126,6 +1126,21 @@ describe('volume', () => {
         }
       });
 
+      it('handles directories being renamed', () => {
+        const vol = Volume.fromJSON({ '/1': null });
+
+        const mockCallback = jest.fn();
+        const watcher = vol.watch('/', mockCallback as any);
+
+        try {
+          expect(() => vol.renameSync('/1', '/2')).not.toThrow();
+          expect(mockCallback).toHaveBeenCalledWith('rename', '1');
+          expect(mockCallback).toHaveBeenCalledWith('rename', '2');
+        } finally {
+          watcher.close();
+        }
+      });
+
       it('Calls listener on .watch when renaming with recursive=true', done => {
         const vol = new Volume();
         vol.mkdirSync('/test');

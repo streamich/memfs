@@ -2406,8 +2406,8 @@ export class FSWatcher extends EventEmitter {
             removers.forEach(r => r());
             this._listenerRemovers.delete(ino);
           }
-          Object.values(curLink.children).forEach(childLink => {
-            if (childLink) {
+          Object.entries(curLink.children).forEach(([name, childLink]) => {
+            if (childLink && name !== '.' && name !== '..') {
               removeLinkNodeListeners(childLink);
             }
           });

@@ -1,3 +1,10 @@
+## [4.2.1](https://github.com/streamich/memfs/compare/v4.2.0...v4.2.1) (2023-08-07)
+
+
+### Bug Fixes
+
+* don't error when watched directory gets renamed ([#939](https://github.com/streamich/memfs/issues/939)) ([b431b08](https://github.com/streamich/memfs/commit/b431b089636619113e2dd39e9dc4a2c02048270a))
+
 # [4.1.0](https://github.com/streamich/memfs/compare/v4.0.0...v4.1.0) (2023-06-26)
 
 

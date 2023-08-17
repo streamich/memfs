@@ -8,7 +8,6 @@ export interface IProcess {
   cwd(): string;
 
   platform: string;
-  nextTick: (callback: (...args) => void, ...args) => void;
   emitWarning: (message: string, type: string) => void;
   env: {};
 }
@@ -39,7 +38,6 @@ export function createProcess(): IProcess {
   const p: IProcess = maybeReturnProcess() || ({} as IProcess);
 
   if (!p.cwd) p.cwd = () => '/';
-  if (!p.nextTick) p.nextTick = require('./setImmediate').default;
   if (!p.emitWarning)
     p.emitWarning = (message, type) => {
       // tslint:disable-next-line:no-console

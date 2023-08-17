@@ -9,7 +9,7 @@ import { FsaNodeDirent } from './FsaNodeDirent';
 import { AMODE } from '../consts/AMODE';
 import { constants } from '../constants';
 import { FsaNodeStats } from './FsaNodeStats';
-import process from '../process';
+import queueMicrotask from '../queueMicrotask';
 import { FsSynchronousApi } from '../node/types/FsSynchronousApi';
 import { FsaNodeWriteStream } from './FsaNodeWriteStream';
 import { FsaNodeReadStream } from './FsaNodeReadStream';
@@ -84,7 +84,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     util.validateCallback(callback);
     // This `if` branch is from Node.js
     if (length === 0) {
-      return process.nextTick(() => {
+      return queueMicrotask(() => {
         if (callback) callback(null, 0, buffer);
       });
     }

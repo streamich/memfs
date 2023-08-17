@@ -6,6 +6,7 @@ import { Volume, filenameToSteps, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
 import { tryGetChild, tryGetChildNode } from './util';
 import { genRndStr6 } from '../node/util';
+import queueMicrotask from '../queueMicrotask';
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
@@ -1215,7 +1216,7 @@ describe('volume', () => {
         vol.writeFileSync('/lol.txt', '1');
         setTimeout(() => {
           vol.watchFile('/lol.txt', { interval: 1 }, (curr, prev) => {
-            process.nextTick(() => {
+            queueMicrotask(() => {
               vol.unwatchFile('/lol.txt');
               done();
             });

@@ -68,6 +68,7 @@ const {
   O_TRUNC,
   O_APPEND,
   O_DIRECTORY,
+  O_SYMLINK,
   F_OK,
   COPYFILE_EXCL,
   COPYFILE_FICLONE_FORCE,
@@ -95,6 +96,7 @@ const kMinPoolSpace = 128;
 
 // ---------------------------------------- Error messages
 
+const EPERM = 'EPERM';
 const ENOENT = 'ENOENT';
 const EBADF = 'EBADF';
 const EINVAL = 'EINVAL';
@@ -703,7 +705,7 @@ export class Volume implements FsCallbackApi {
     const modeNum = modeToNumber(mode);
     const fileName = pathToFilename(path);
     const flagsNum = flagsToNumber(flags);
-    return this.openBase(fileName, flagsNum, modeNum);
+    return this.openBase(fileName, flagsNum, modeNum, !(flagsNum & O_SYMLINK));
   }
 
   open(path: PathLike, flags: TFlags, /* ... */ callback: TCallback<number>);
@@ -722,7 +724,7 @@ export class Volume implements FsCallbackApi {
     const fileName = pathToFilename(path);
     const flagsNum = flagsToNumber(flags);
 
-    this.wrapAsync(this.openBase, [fileName, flagsNum, modeNum], callback);
+    this.wrapAsync(this.openBase, [fileName, flagsNum, modeNum, !(flagsNum & O_SYMLINK)], callback);
   }
 
   private closeFile(file: File) {
@@ -762,6 +764,9 @@ export class Volume implements FsCallbackApi {
     position: number,
   ): number {
     const file = this.getFileByFdOrThrow(fd);
+    if (file.node.isSymlink()) {
+      throw createError(EPERM, 'read', file.link.getPath());
+    }
     return file.read(buffer, Number(offset), Number(length), position);
   }
 
@@ -851,6 +856,9 @@ export class Volume implements FsCallbackApi {
 
   private writeBase(fd: number, buf: Buffer, offset?: number, length?: number, position?: number | null): number {
     const file = this.getFileByFdOrThrow(fd, 'write');
+    if (file.node.isSymlink()) {
+      throw createError(EBADF, 'write', file.link.getPath());
+    }
     return file.write(buf, offset, length, position);
   }
 

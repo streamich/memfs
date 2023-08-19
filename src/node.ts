@@ -308,7 +308,7 @@ export class Link extends EventEmitter {
 
   parent: Link;
 
-  children: { [child: string]: Link | undefined } = {};
+  children = new Map<string, Link | undefined>();
 
   // Path to this node as Array: ['usr', 'bin', 'node'].
   private _steps: string[] = [];
@@ -331,7 +331,7 @@ export class Link extends EventEmitter {
   // Recursively sync children steps, e.g. in case of dir rename
   set steps(val) {
     this._steps = val;
-    for (const [child, link] of Object.entries(this.children)) {
+    for (const [child, link] of this.children.entries()) {
       if (child === '.' || child === '..') {
         continue;
       }
@@ -361,7 +361,7 @@ export class Link extends EventEmitter {
     link.setNode(node);
 
     if (node.isDirectory()) {
-      link.children['.'] = link;
+      link.children.set('.', link);
       link.getNode().nlink++;
     }
 
@@ -371,13 +371,13 @@ export class Link extends EventEmitter {
   }
 
   setChild(name: string, link: Link = new Link(this.vol, this, name)): Link {
-    this.children[name] = link;
+    this.children.set(name, link);
     link.parent = this;
     this.length++;
 
     const node = link.getNode();
     if (node.isDirectory()) {
-      link.children['..'] = this;
+      link.children.set('..', this);
       this.getNode().nlink++;
     }
 
@@ -390,10 +390,10 @@ export class Link extends EventEmitter {
   deleteChild(link: Link) {
     const node = link.getNode();
     if (node.isDirectory()) {
-      delete link.children['..'];
+      link.children.delete('..');
       this.getNode().nlink--;
     }
-    delete this.children[link.getName()];
+    this.children.delete(link.getName());
     this.length--;
 
     this.getNode().mtime = new Date();
@@ -402,9 +402,7 @@ export class Link extends EventEmitter {
 
   getChild(name: string): Link | undefined {
     this.getNode().mtime = new Date();
-    if (Object.hasOwnProperty.call(this.children, name)) {
-      return this.children[name];
-    }
+    return this.children.get(name);
   }
 
   getPath(): string {
@@ -446,7 +444,7 @@ export class Link extends EventEmitter {
     return {
       steps: this.steps,
       ino: this.ino,
-      children: Object.keys(this.children),
+      children: Array.from(this.children.keys()),
     };
   }
 

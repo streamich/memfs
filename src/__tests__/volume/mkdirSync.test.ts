@@ -1,4 +1,5 @@
 import { create } from '../util';
+import type Stats from '../../Stats';
 
 describe('mkdirSync', () => {
   it('can create a directory', () => {
@@ -49,5 +50,23 @@ describe('mkdirSync', () => {
 
     expect(error).toBeInstanceOf(Error);
     expect(error.message).toMatchSnapshot();
+  });
+
+  /**
+   * See issue #938
+   * https://github.com/streamich/memfs/issues/938
+   */
+  it('can create a directory with name "__proto__"', () => {
+    const vol = create();
+
+    vol.mkdirSync('/__proto__');
+    let isDirectory = false;
+    try {
+      isDirectory = vol.statSync('/__proto__').isDirectory();
+    } catch {
+      // ignore
+    }
+
+    expect(isDirectory).toBe(true);
   });
 });

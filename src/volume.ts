@@ -528,11 +528,13 @@ export class Volume implements FsCallbackApi {
     let children = link.children;
 
     if (link.getNode().isFile()) {
-      children = { [link.getName()]: link.parent.getChild(link.getName()) };
+      children = new Map([
+        [link.getName(), link.parent.getChild(link.getName())]
+      ]);
       link = link.parent;
     }
 
-    for (const name in children) {
+    for (const name of children.keys()) {
       if (name === '.' || name === '..') {
         continue;
       }
@@ -568,7 +570,7 @@ export class Volume implements FsCallbackApi {
     const links: Link[] = [];
 
     if (paths) {
-      if (!(paths instanceof Array)) paths = [paths];
+      if (!Array.isArray(paths)) paths = [paths];
       for (const path of paths) {
         const filename = pathToFilename(path);
         const link = this.getResolvedLink(filename);
@@ -1346,7 +1348,7 @@ export class Volume implements FsCallbackApi {
 
     if (options.withFileTypes) {
       const list: Dirent[] = [];
-      for (const name in link.children) {
+      for (const name of link.children.keys()) {
         const child = link.getChild(name);
 
         if (!child || name === '.' || name === '..') {
@@ -1365,7 +1367,7 @@ export class Volume implements FsCallbackApi {
     }
 
     const list: TDataOut[] = [];
-    for (const name in link.children) {
+    for (const name of link.children.keys()) {
       if (name === '.' || name === '..') {
         continue;
       }
@@ -2406,11 +2408,11 @@ export class FSWatcher extends EventEmitter {
             removers.forEach(r => r());
             this._listenerRemovers.delete(ino);
           }
-          Object.entries(curLink.children).forEach(([name, childLink]) => {
+          for (const [name, childLink] of curLink.children.entries()) {
             if (childLink && name !== '.' && name !== '..') {
               removeLinkNodeListeners(childLink);
             }
-          });
+          };
         };
         removeLinkNodeListeners(l);
 
@@ -2418,11 +2420,11 @@ export class FSWatcher extends EventEmitter {
       };
 
       // children nodes changed
-      Object.entries(link.children).forEach(([name, childLink]) => {
+      for (const [name, childLink] of link.children.entries()) {
         if (childLink && name !== '.' && name !== '..') {
           watchLinkNodeChanged(childLink);
         }
-      });
+      };
       // link children add/remove
       link.on('child:add', onLinkChildAdd);
       link.on('child:delete', onLinkChildDelete);
@@ -2434,11 +2436,11 @@ export class FSWatcher extends EventEmitter {
       });
 
       if (recursive) {
-        Object.entries(link.children).forEach(([name, childLink]) => {
+        for (const [name, childLink] of link.children.entries()) {
           if (childLink && name !== '.' && name !== '..') {
             watchLinkChildrenChanged(childLink);
           }
-        });
+        };
       }
     };
     watchLinkNodeChanged(this._link);

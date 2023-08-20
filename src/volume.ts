@@ -812,6 +812,57 @@ export class Volume implements FsCallbackApi {
     });
   }
 
+  private readvBase(fd: number, buffers: ArrayBufferView[], position: number | null): number {
+    const file = this.getFileByFdOrThrow(fd);
+    let p = position ?? undefined;
+    let bytesRead = 0;
+    for (const buffer of buffers) {
+      const bytes = file.read(buffer, 0, buffer.byteLength, p);
+      p = undefined;
+      bytesRead += bytes;
+      if (bytes < buffer.byteLength) break;
+    }
+    return bytesRead;
+  }
+
+  readv(fd: number, buffers: ArrayBufferView[], callback: misc.TCallback2<number, ArrayBufferView[]>): void;
+  readv(
+    fd: number,
+    buffers: ArrayBufferView[],
+    position: number | null,
+    callback: misc.TCallback2<number, ArrayBufferView[]>,
+  ): void;
+  readv(
+    fd: number,
+    buffers: ArrayBufferView[],
+    a: number | null | misc.TCallback2<number, ArrayBufferView[]>,
+    b?: misc.TCallback2<number, ArrayBufferView[]>,
+  ): void {
+    let position: number | null = a as number | null;
+    let callback: misc.TCallback2<number, ArrayBufferView[]> = b as misc.TCallback2<number, ArrayBufferView[]>;
+
+    if (typeof a === 'function') {
+      position = null;
+      callback = a;
+    }
+
+    validateCallback(callback);
+
+    setImmediate(() => {
+      try {
+        const bytes = this.readvBase(fd, buffers, position);
+        callback(null, bytes, buffers);
+      } catch (err) {
+        callback(err);
+      }
+    });
+  }
+
+  readvSync(fd: number, buffers: ArrayBufferView[], position: number | null): number {
+    validateFd(fd);
+    return this.readvBase(fd, buffers, position);
+  }
+
   private readFileBase(id: TFileId, flagsNum: number, encoding: BufferEncoding): Buffer | string {
     let result: Buffer | string;
 
@@ -1891,14 +1942,12 @@ export class Volume implements FsCallbackApi {
   public lutimesSync: FsSynchronousApi['lutimesSync'] = notImplemented;
   public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
   public writevSync: FsSynchronousApi['writevSync'] = notImplemented;
-  public readvSync: FsSynchronousApi['readvSync'] = notImplemented;
   public opendirSync: FsSynchronousApi['opendirSync'] = notImplemented;
 
   public cp: FsCallbackApi['cp'] = notImplemented;
   public lutimes: FsCallbackApi['lutimes'] = notImplemented;
   public statfs: FsCallbackApi['statfs'] = notImplemented;
   public writev: FsCallbackApi['writev'] = notImplemented;
-  public readv: FsCallbackApi['readv'] = notImplemented;
   public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
   public opendir: FsCallbackApi['opendir'] = notImplemented;
 }

@@ -96,6 +96,7 @@ const EISDIR = 'EISDIR';
 const ENOTEMPTY = 'ENOTEMPTY';
 const ENOSYS = 'ENOSYS';
 const ERR_FS_EISDIR = 'ERR_FS_EISDIR';
+const ERR_OUT_OF_RANGE = 'ERR_OUT_OF_RANGE';
 
 function formatError(errorCode: string, func = '', path = '', path2 = '') {
   let pathFormatted = '';
@@ -129,6 +130,8 @@ function formatError(errorCode: string, func = '', path = '', path2 = '') {
       return `ENOSYS: function not implemented, ${func}${pathFormatted}`;
     case ERR_FS_EISDIR:
       return `[ERR_FS_EISDIR]: Path is a directory: ${func} returned EISDIR (is a directory) ${path}`;
+    case ERR_OUT_OF_RANGE:
+      return `[ERR_OUT_OF_RANGE]: value out of range, ${func}${pathFormatted}`;
     default:
       return `${errorCode}: error occurred, ${func}${pathFormatted}`;
   }

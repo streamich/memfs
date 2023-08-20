@@ -103,8 +103,8 @@ describe('Promises API', () => {
       });
       it('Read data from an existing file', async () => {
         const fileHandle = await promises.open('/foo', 'r+');
-        const buff = Buffer.from('foo');
-        const { bytesRead, buffer } = await fileHandle.read(buff, 0, 42, 0);
+        const buff = Buffer.from('foofoo');
+        const { bytesRead, buffer } = await fileHandle.read(buff, 0, 6, 0);
         expect(bytesRead).toEqual(3);
         expect(buffer).toBe(buff);
         await fileHandle.close();

@@ -106,6 +106,7 @@ const EISDIR = 'EISDIR';
 const ENOTEMPTY = 'ENOTEMPTY';
 const ENOSYS = 'ENOSYS';
 const ERR_FS_EISDIR = 'ERR_FS_EISDIR';
+const ERR_OUT_OF_RANGE = 'ERR_OUT_OF_RANGE';
 
 // ---------------------------------------- Flags
 
@@ -759,10 +760,18 @@ export class Volume implements FsCallbackApi {
     buffer: Buffer | ArrayBufferView | DataView,
     offset: number,
     length: number,
-    position: number,
+    position: number | null,
   ): number {
+    if (buffer.byteLength < length) {
+      throw createError(ERR_OUT_OF_RANGE, 'read', undefined, undefined, RangeError);
+    }
     const file = this.getFileByFdOrThrow(fd);
-    return file.read(buffer, Number(offset), Number(length), position);
+    return file.read(
+      buffer,
+      Number(offset),
+      Number(length),
+      position === -1 || typeof position !== 'number' ? undefined : position,
+    );
   }
 
   readSync(
@@ -770,7 +779,7 @@ export class Volume implements FsCallbackApi {
     buffer: Buffer | ArrayBufferView | DataView,
     offset: number,
     length: number,
-    position: number,
+    position: number | null,
   ): number {
     validateFd(fd);
     return this.readBase(fd, buffer, offset, length, position);
@@ -781,7 +790,7 @@ export class Volume implements FsCallbackApi {
     buffer: Buffer | ArrayBufferView | DataView,
     offset: number,
     length: number,
-    position: number,
+    position: number | null,
     callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | ArrayBufferView | DataView) => void,
   ) {
     validateCallback(callback);

@@ -14,7 +14,7 @@ import { FileHandle } from './node/FileHandle';
 import * as util from 'util';
 import * as misc from './node/types/misc';
 import * as opts from './node/types/options';
-import { FsCallbackApi } from './node/types/FsCallbackApi';
+import { FsCallbackApi, WritevCallback } from './node/types/FsCallbackApi';
 import { FsPromises } from './node/FsPromises';
 import { ToTreeOptions, toTreeSync } from './print';
 import { ERRSTR, FLAGS, MODE } from './node/constants';
@@ -57,6 +57,7 @@ import {
 } from './node/util';
 import type { PathLike, symlink } from 'fs';
 import type { FsPromisesApi, FsSynchronousApi } from './node/types';
+import { fsSynchronousApiList } from './node/lists/fsSynchronousApiList';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -229,7 +230,7 @@ const notImplemented: (...args: any[]) => any = () => {
 /**
  * `Volume` represents a file system.
  */
-export class Volume implements FsCallbackApi {
+export class Volume implements FsCallbackApi, FsSynchronousApi {
   static fromJSON(json: DirectoryJSON, cwd?: string): Volume {
     const vol = new Volume();
     vol.fromJSON(json, cwd);
@@ -967,6 +968,48 @@ export class Volume implements FsCallbackApi {
         cb(err);
       }
     });
+  }
+
+  private writevBase(fd: number, buffers: ArrayBufferView[], position: number | null): number {
+    const file = this.getFileByFdOrThrow(fd);
+    let p = position ?? undefined;
+    let bytesWritten = 0;
+    for (const buffer of buffers) {
+      const nodeBuf = Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+      const bytes = file.write(nodeBuf, 0, nodeBuf.byteLength, p);
+      p = undefined;
+      bytesWritten += bytes;
+      if (bytes < nodeBuf.byteLength) break;
+    }
+    return bytesWritten;
+  }
+
+  writev(fd: number, buffers: ArrayBufferView[], callback: WritevCallback): void;
+  writev(fd: number, buffers: ArrayBufferView[], position: number | null, callback: WritevCallback): void;
+  writev(fd: number, buffers: ArrayBufferView[], a: number | null | WritevCallback, b?: WritevCallback): void {
+    let position: number | null = a as number | null;
+    let callback: WritevCallback = b as WritevCallback;
+
+    if (typeof a === 'function') {
+      position = null;
+      callback = a;
+    }
+
+    validateCallback(callback);
+
+    setImmediate(() => {
+      try {
+        const bytes = this.writevBase(fd, buffers, position);
+        callback(null, bytes, buffers);
+      } catch (err) {
+        callback(err);
+      }
+    });
+  }
+
+  writevSync(fd: number, buffers: ArrayBufferView[], position: number | null): number {
+    validateFd(fd);
+    return this.writevBase(fd, buffers, position);
   }
 
   private writeFileBase(id: TFileId, buf: Buffer, flagsNum: number, modeNum: number) {
@@ -1941,13 +1984,11 @@ export class Volume implements FsCallbackApi {
   public cpSync: FsSynchronousApi['cpSync'] = notImplemented;
   public lutimesSync: FsSynchronousApi['lutimesSync'] = notImplemented;
   public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
-  public writevSync: FsSynchronousApi['writevSync'] = notImplemented;
   public opendirSync: FsSynchronousApi['opendirSync'] = notImplemented;
 
   public cp: FsCallbackApi['cp'] = notImplemented;
   public lutimes: FsCallbackApi['lutimes'] = notImplemented;
   public statfs: FsCallbackApi['statfs'] = notImplemented;
-  public writev: FsCallbackApi['writev'] = notImplemented;
   public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
   public opendir: FsCallbackApi['opendir'] = notImplemented;
 }

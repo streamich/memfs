@@ -655,6 +655,22 @@ describe('volume', () => {
         });
       });
     });
+    describe('.writev(fd, buffers, position, callback)', () => {
+      it('Simple write to a file descriptor', done => {
+        const vol = new Volume();
+        const fd = vol.openSync('/test.txt', 'w+');
+        const data1 = 'Hello';
+        const data2 = ', ';
+        const data3 = 'world!';
+        vol.writev(fd, [Buffer.from(data1), Buffer.from(data2), Buffer.from(data3)], 0, (err, bytes) => {
+          expect(err).toBe(null);
+          expect(bytes).toBe(data1.length + data2.length + data3.length);
+          vol.closeSync(fd);
+          expect(vol.readFileSync('/test.txt', 'utf8')).toBe(data1 + data2 + data3);
+          done();
+        });
+      });
+    });
     describe('.writeFile(path, data[, options], callback)', () => {
       const vol = new Volume();
       const data = 'asdfasidofjasdf';

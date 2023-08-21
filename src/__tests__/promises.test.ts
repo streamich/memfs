@@ -115,6 +115,30 @@ describe('Promises API', () => {
         return expect(fileHandle.read(Buffer.from('foo'), 0, 42, 0)).rejects.toBeInstanceOf(Error);
       });
     });
+    describe('readv(buffers, position)', () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      vol.fromJSON({
+        '/foo': 'Hello, world!',
+      });
+      it('Read data from an existing file', async () => {
+        const fileHandle = await promises.open('/foo', 'r+');
+        const buf1 = Buffer.alloc(5);
+        const buf2 = Buffer.alloc(5);
+        const { bytesRead, buffers } = await fileHandle.readv([buf1, buf2], 0);
+        expect(bytesRead).toEqual(10);
+        expect(buffers).toEqual([buf1, buf2]);
+        expect(buf1.toString()).toEqual('Hello');
+        expect(buf2.toString()).toEqual(', wor');
+        await fileHandle.close();
+      });
+      it('Reject when the file handle was closed', async () => {
+        const fileHandle = await promises.open('/foo', 'r+');
+        await fileHandle.close();
+        return expect(fileHandle.readv([Buffer.alloc(10)], 0)).rejects.toBeInstanceOf(Error);
+      });
+    });
+
     describe('readFile([options])', () => {
       const vol = new Volume();
       const { promises } = vol;
@@ -241,6 +265,28 @@ describe('Promises API', () => {
         const fileHandle = await promises.open('/foo', 'w');
         await fileHandle.close();
         return expect(fileHandle.write(Buffer.from('foo'))).rejects.toBeInstanceOf(Error);
+      });
+    });
+    describe('writev(buffers[, position])', () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      vol.fromJSON({
+        '/foo': 'Hello, world!',
+      });
+      it('Write data to an existing file', async () => {
+        const fileHandle = await promises.open('/foo', 'w');
+        const buf1 = Buffer.from('foo');
+        const buf2 = Buffer.from('bar');
+        const { bytesWritten, buffers } = await fileHandle.writev([buf1, buf2], 0);
+        expect(vol.readFileSync('/foo').toString()).toEqual('foobar');
+        expect(bytesWritten).toEqual(6);
+        expect(buffers).toEqual([buf1, buf2]);
+        await fileHandle.close();
+      });
+      it('Reject when the file handle was closed', async () => {
+        const fileHandle = await promises.open('/foo', 'w');
+        await fileHandle.close();
+        return expect(fileHandle.writev([Buffer.from('foo')], 0)).rejects.toBeInstanceOf(Error);
       });
     });
     describe('writeFile(data[, options])', () => {

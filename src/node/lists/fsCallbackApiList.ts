@@ -25,6 +25,7 @@ export const fsCallbackApiList: Array<keyof FsCallbackApi> = [
   'mkdtemp',
   'open',
   'read',
+  'readv',
   'readdir',
   'readFile',
   'readlink',
@@ -41,5 +42,6 @@ export const fsCallbackApiList: Array<keyof FsCallbackApi> = [
   'watch',
   'watchFile',
   'write',
+  'writev',
   'writeFile',
 ];

@@ -816,6 +816,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   private readvBase(fd: number, buffers: ArrayBufferView[], position: number | null): number {
     const file = this.getFileByFdOrThrow(fd);
     let p = position ?? undefined;
+    if (p === -1) {
+      p = undefined;
+    }
     let bytesRead = 0;
     for (const buffer of buffers) {
       const bytes = file.read(buffer, 0, buffer.byteLength, p);
@@ -912,7 +915,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   private writeBase(fd: number, buf: Buffer, offset?: number, length?: number, position?: number | null): number {
     const file = this.getFileByFdOrThrow(fd, 'write');
-    return file.write(buf, offset, length, position);
+    return file.write(buf, offset, length, position === -1 || typeof position !== 'number' ? undefined : position);
   }
 
   writeSync(
@@ -973,6 +976,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   private writevBase(fd: number, buffers: ArrayBufferView[], position: number | null): number {
     const file = this.getFileByFdOrThrow(fd);
     let p = position ?? undefined;
+    if (p === -1) {
+      p = undefined;
+    }
     let bytesWritten = 0;
     for (const buffer of buffers) {
       const nodeBuf = Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);

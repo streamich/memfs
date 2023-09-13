@@ -60,13 +60,7 @@ describe('mkdirSync', () => {
     const vol = create();
 
     vol.mkdirSync('/__proto__');
-    let isDirectory = false;
-    try {
-      isDirectory = vol.statSync('/__proto__').isDirectory();
-    } catch {
-      // ignore
-    }
 
-    expect(isDirectory).toBe(true);
+    expect(vol.statSync('/__proto__').isDirectory()).toBe(true);
   });
 });

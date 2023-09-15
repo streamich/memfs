@@ -764,6 +764,10 @@ describe('volume', () => {
         if (hasBigInt) {
           const stats = vol.lstatSync('/dojo.js', { bigint: true });
           expect(typeof stats.ino).toBe('bigint');
+          expect(typeof stats.atimeNs).toBe('bigint');
+          expect(typeof stats.mtimeNs).toBe('bigint');
+          expect(typeof stats.ctimeNs).toBe('bigint');
+          expect(typeof stats.birthtimeNs).toBe('bigint');
         } else {
           expect(() => vol.lstatSync('/dojo.js', { bigint: true })).toThrowError();
         }
@@ -795,6 +799,10 @@ describe('volume', () => {
         if (hasBigInt) {
           const stats = vol.statSync('/dojo.js', { bigint: true });
           expect(typeof stats.ino).toBe('bigint');
+          expect(typeof stats.atimeNs).toBe('bigint');
+          expect(typeof stats.mtimeNs).toBe('bigint');
+          expect(typeof stats.ctimeNs).toBe('bigint');
+          expect(typeof stats.birthtimeNs).toBe('bigint');
         } else {
           expect(() => vol.statSync('/dojo.js', { bigint: true })).toThrowError();
         }
@@ -839,6 +847,10 @@ describe('volume', () => {
         if (hasBigInt) {
           const stats = vol.fstatSync(fd, { bigint: true });
           expect(typeof stats.ino).toBe('bigint');
+          expect(typeof stats.atimeNs).toBe('bigint');
+          expect(typeof stats.mtimeNs).toBe('bigint');
+          expect(typeof stats.ctimeNs).toBe('bigint');
+          expect(typeof stats.birthtimeNs).toBe('bigint');
         } else {
           expect(() => vol.fstatSync(fd, { bigint: true })).toThrowError();
         }

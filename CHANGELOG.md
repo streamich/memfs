@@ -1,3 +1,10 @@
+## [4.2.3](https://github.com/streamich/memfs/compare/v4.2.2...v4.2.3) (2023-09-15)
+
+
+### Bug Fixes
+
+* add missing nanosecond-precision properties to Stats ([#943](https://github.com/streamich/memfs/issues/943)) ([b9d4c6d](https://github.com/streamich/memfs/commit/b9d4c6daf19f75784ade8ebb8ac17afefe6442e9))
+
 ## [4.2.2](https://github.com/streamich/memfs/compare/v4.2.1...v4.2.2) (2023-09-15)
 
 

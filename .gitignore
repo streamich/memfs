@@ -8,3 +8,11 @@ package-lock.json
 /gh-pages
 /dist
 /fs-test/
+
+.yarn/*
+!.yarn/releases
+!.yarn/patches
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*

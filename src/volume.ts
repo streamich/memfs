@@ -528,9 +528,7 @@ export class Volume implements FsCallbackApi {
     let children = link.children;
 
     if (link.getNode().isFile()) {
-      children = new Map([
-        [link.getName(), link.parent.getChild(link.getName())]
-      ]);
+      children = new Map([[link.getName(), link.parent.getChild(link.getName())]]);
       link = link.parent;
     }
 
@@ -2412,7 +2410,7 @@ export class FSWatcher extends EventEmitter {
             if (childLink && name !== '.' && name !== '..') {
               removeLinkNodeListeners(childLink);
             }
-          };
+          }
         };
         removeLinkNodeListeners(l);
 
@@ -2424,7 +2422,7 @@ export class FSWatcher extends EventEmitter {
         if (childLink && name !== '.' && name !== '..') {
           watchLinkNodeChanged(childLink);
         }
-      };
+      }
       // link children add/remove
       link.on('child:add', onLinkChildAdd);
       link.on('child:delete', onLinkChildDelete);
@@ -2440,7 +2438,7 @@ export class FSWatcher extends EventEmitter {
           if (childLink && name !== '.' && name !== '..') {
             watchLinkChildrenChanged(childLink);
           }
-        };
+        }
       }
     };
     watchLinkNodeChanged(this._link);

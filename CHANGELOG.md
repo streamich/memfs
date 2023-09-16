@@ -1,3 +1,24 @@
+# [4.3.0](https://github.com/streamich/memfs/compare/v4.2.3...v4.3.0) (2023-09-15)
+
+
+### Features
+
+* add support for `O_SYMLINK` ([#944](https://github.com/streamich/memfs/issues/944)) ([96cbce4](https://github.com/streamich/memfs/commit/96cbce4145891af9d943d00868b3357969508330))
+
+## [4.2.3](https://github.com/streamich/memfs/compare/v4.2.2...v4.2.3) (2023-09-15)
+
+
+### Bug Fixes
+
+* add missing nanosecond-precision properties to Stats ([#943](https://github.com/streamich/memfs/issues/943)) ([b9d4c6d](https://github.com/streamich/memfs/commit/b9d4c6daf19f75784ade8ebb8ac17afefe6442e9))
+
+## [4.2.2](https://github.com/streamich/memfs/compare/v4.2.1...v4.2.2) (2023-09-15)
+
+
+### Bug Fixes
+
+* support directories named `__proto__` ([#945](https://github.com/streamich/memfs/issues/945)) ([8d92a0b](https://github.com/streamich/memfs/commit/8d92a0b0501eab18622febb7c4e551026b515c3b)), closes [#938](https://github.com/streamich/memfs/issues/938)
+
 ## [4.2.1](https://github.com/streamich/memfs/compare/v4.2.0...v4.2.1) (2023-08-07)
 
 

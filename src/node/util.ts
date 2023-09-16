@@ -45,7 +45,9 @@ export function nullCheck(path, callback?) {
     const er = new Error('Path must be a string without null bytes');
     (er as any).code = 'ENOENT';
     if (typeof callback !== 'function') throw er;
-    queueMicrotask(() => { callback(er); });
+    queueMicrotask(() => {
+      callback(er);
+    });
     return false;
   }
   return true;

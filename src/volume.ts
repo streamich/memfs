@@ -69,6 +69,7 @@ const {
   O_TRUNC,
   O_APPEND,
   O_DIRECTORY,
+  O_SYMLINK,
   F_OK,
   COPYFILE_EXCL,
   COPYFILE_FICLONE_FORCE,
@@ -96,6 +97,7 @@ const kMinPoolSpace = 128;
 
 // ---------------------------------------- Error messages
 
+const EPERM = 'EPERM';
 const ENOENT = 'ENOENT';
 const EBADF = 'EBADF';
 const EINVAL = 'EINVAL';
@@ -530,11 +532,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let children = link.children;
 
     if (link.getNode().isFile()) {
-      children = { [link.getName()]: link.parent.getChild(link.getName()) };
+      children = new Map([[link.getName(), link.parent.getChild(link.getName())]]);
       link = link.parent;
     }
 
-    for (const name in children) {
+    for (const name of children.keys()) {
       if (name === '.' || name === '..') {
         continue;
       }
@@ -570,7 +572,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const links: Link[] = [];
 
     if (paths) {
-      if (!(paths instanceof Array)) paths = [paths];
+      if (!Array.isArray(paths)) paths = [paths];
       for (const path of paths) {
         const filename = pathToFilename(path);
         const link = this.getResolvedLink(filename);
@@ -705,7 +707,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const modeNum = modeToNumber(mode);
     const fileName = pathToFilename(path);
     const flagsNum = flagsToNumber(flags);
-    return this.openBase(fileName, flagsNum, modeNum);
+    return this.openBase(fileName, flagsNum, modeNum, !(flagsNum & O_SYMLINK));
   }
 
   open(path: PathLike, flags: TFlags, /* ... */ callback: TCallback<number>);
@@ -724,7 +726,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const fileName = pathToFilename(path);
     const flagsNum = flagsToNumber(flags);
 
-    this.wrapAsync(this.openBase, [fileName, flagsNum, modeNum], callback);
+    this.wrapAsync(this.openBase, [fileName, flagsNum, modeNum, !(flagsNum & O_SYMLINK)], callback);
   }
 
   private closeFile(file: File) {
@@ -767,6 +769,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       throw createError(ERR_OUT_OF_RANGE, 'read', undefined, undefined, RangeError);
     }
     const file = this.getFileByFdOrThrow(fd);
+    if (file.node.isSymlink()) {
+      throw createError(EPERM, 'read', file.link.getPath());
+    }
     return file.read(
       buffer,
       Number(offset),
@@ -915,6 +920,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   private writeBase(fd: number, buf: Buffer, offset?: number, length?: number, position?: number | null): number {
     const file = this.getFileByFdOrThrow(fd, 'write');
+    if (file.node.isSymlink()) {
+      throw createError(EBADF, 'write', file.link.getPath());
+    }
     return file.write(buf, offset, length, position === -1 || typeof position !== 'number' ? undefined : position);
   }
 
@@ -1455,7 +1463,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     if (options.withFileTypes) {
       const list: Dirent[] = [];
-      for (const name in link.children) {
+      for (const name of link.children.keys()) {
         const child = link.getChild(name);
 
         if (!child || name === '.' || name === '..') {
@@ -1474,7 +1482,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     }
 
     const list: TDataOut[] = [];
-    for (const name in link.children) {
+    for (const name of link.children.keys()) {
       if (name === '.' || name === '..') {
         continue;
       }
@@ -2511,11 +2519,11 @@ export class FSWatcher extends EventEmitter {
             removers.forEach(r => r());
             this._listenerRemovers.delete(ino);
           }
-          Object.entries(curLink.children).forEach(([name, childLink]) => {
+          for (const [name, childLink] of curLink.children.entries()) {
             if (childLink && name !== '.' && name !== '..') {
               removeLinkNodeListeners(childLink);
             }
-          });
+          }
         };
         removeLinkNodeListeners(l);
 
@@ -2523,11 +2531,11 @@ export class FSWatcher extends EventEmitter {
       };
 
       // children nodes changed
-      Object.entries(link.children).forEach(([name, childLink]) => {
+      for (const [name, childLink] of link.children.entries()) {
         if (childLink && name !== '.' && name !== '..') {
           watchLinkNodeChanged(childLink);
         }
-      });
+      }
       // link children add/remove
       link.on('child:add', onLinkChildAdd);
       link.on('child:delete', onLinkChildDelete);
@@ -2539,11 +2547,11 @@ export class FSWatcher extends EventEmitter {
       });
 
       if (recursive) {
-        Object.entries(link.children).forEach(([name, childLink]) => {
+        for (const [name, childLink] of link.children.entries()) {
           if (childLink && name !== '.' && name !== '..') {
             watchLinkChildrenChanged(childLink);
           }
-        });
+        }
       }
     };
     watchLinkNodeChanged(this._link);

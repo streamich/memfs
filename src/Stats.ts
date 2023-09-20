@@ -42,6 +42,14 @@ export class Stats<T = TStatNumber> {
     stats.ctimeMs = ctimeMs;
     stats.birthtimeMs = ctimeMs;
 
+    if (bigint) {
+      stats.atimeNs = BigInt(atime.getTime()) * BigInt(1000000);
+      stats.mtimeNs = BigInt(mtime.getTime()) * BigInt(1000000);
+      const ctimeNs = BigInt(ctime.getTime()) * BigInt(1000000);
+      stats.ctimeNs = ctimeNs;
+      stats.birthtimeNs = ctimeNs;
+    }
+
     stats.dev = getStatNumber(0);
     stats.mode = getStatNumber(node.mode);
     stats.nlink = getStatNumber(node.nlink);
@@ -67,6 +75,12 @@ export class Stats<T = TStatNumber> {
   mtimeMs: T;
   ctimeMs: T;
   birthtimeMs: T;
+
+  // additional properties that exist when bigint is true
+  atimeNs: T extends bigint ? T : undefined;
+  mtimeNs: T extends bigint ? T : undefined;
+  ctimeNs: T extends bigint ? T : undefined;
+  birthtimeNs: T extends bigint ? T : undefined;
 
   dev: T;
   mode: T;

@@ -6,6 +6,9 @@ import { Volume, filenameToSteps, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
 import { tryGetChild, tryGetChildNode } from './util';
 import { genRndStr6 } from '../node/util';
+import { constants } from '../constants';
+
+const { O_RDWR, O_SYMLINK } = constants;
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
@@ -484,7 +487,19 @@ describe('volume', () => {
       });
     });
     describe('.read(fd, buffer, offset, length, position, callback)', () => {
-      xit('...', () => {});
+      const vol = new Volume();
+      const data = 'trololo';
+      const fileNode = (vol as any).createLink(vol.root, 'text.txt').getNode();
+      fileNode.setString(data);
+      vol.symlinkSync('/text.txt', '/link.txt');
+
+      it('Attempt to read from a symlink should throw EPERM', () => {
+        const fd = vol.openSync('/link.txt', O_SYMLINK);
+        expect(vol.fstatSync(fd).isSymbolicLink()).toBe(true);
+        const buf = Buffer.alloc(10);
+        const fn = () => vol.readSync(fd, buf, 0, 10, 0);
+        expect(fn).toThrowError('EPERM');
+      });
     });
     describe('.readv(fd, buffers, position, callback)', () => {
       it('Simple read', done => {
@@ -548,6 +563,7 @@ describe('volume', () => {
       const data = 'trololo';
       const fileNode = (vol as any).createLink(vol.root, 'text.txt').getNode();
       fileNode.setString(data);
+
       it('Read file at root (/text.txt)', () => {
         const buf = vol.readFileSync('/text.txt');
         const str = buf.toString();
@@ -640,6 +656,16 @@ describe('volume', () => {
         vol.writeSync(fd, 'Armagedon', 1, 'utf8');
         vol.closeSync(fd);
         expect(vol.readFileSync('/overwrite.txt', 'utf8')).toBe('mArmagedon');
+      });
+      it('Attempt to write to a symlink should throw EBADF', () => {
+        const data = 'asdfasdf asdfasdf asdf';
+        vol.writeFileSync('/file.txt', data);
+        vol.symlinkSync('/file.txt', '/link.txt');
+
+        const fd = vol.openSync('/link.txt', O_SYMLINK | O_RDWR);
+        expect(vol.fstatSync(fd).isSymbolicLink()).toBe(true);
+        const fn = () => vol.writeSync(fd, 'hello');
+        expect(fn).toThrowError('EBADF');
       });
     });
     describe('.write(fd, buffer, offset, length, position, callback)', () => {
@@ -837,6 +863,10 @@ describe('volume', () => {
         if (hasBigInt) {
           const stats = vol.lstatSync('/dojo.js', { bigint: true });
           expect(typeof stats.ino).toBe('bigint');
+          expect(typeof stats.atimeNs).toBe('bigint');
+          expect(typeof stats.mtimeNs).toBe('bigint');
+          expect(typeof stats.ctimeNs).toBe('bigint');
+          expect(typeof stats.birthtimeNs).toBe('bigint');
         } else {
           expect(() => vol.lstatSync('/dojo.js', { bigint: true })).toThrowError();
         }
@@ -868,6 +898,10 @@ describe('volume', () => {
         if (hasBigInt) {
           const stats = vol.statSync('/dojo.js', { bigint: true });
           expect(typeof stats.ino).toBe('bigint');
+          expect(typeof stats.atimeNs).toBe('bigint');
+          expect(typeof stats.mtimeNs).toBe('bigint');
+          expect(typeof stats.ctimeNs).toBe('bigint');
+          expect(typeof stats.birthtimeNs).toBe('bigint');
         } else {
           expect(() => vol.statSync('/dojo.js', { bigint: true })).toThrowError();
         }
@@ -899,6 +933,8 @@ describe('volume', () => {
       const data = '(function(){})();';
       dojo.getNode().setString(data);
 
+      vol.symlinkSync('/dojo.js', '/link.js');
+
       it('Returns basic file stats', () => {
         const fd = vol.openSync('/dojo.js', 'r');
         const stats = vol.fstatSync(fd);
@@ -912,9 +948,28 @@ describe('volume', () => {
         if (hasBigInt) {
           const stats = vol.fstatSync(fd, { bigint: true });
           expect(typeof stats.ino).toBe('bigint');
+          expect(typeof stats.atimeNs).toBe('bigint');
+          expect(typeof stats.mtimeNs).toBe('bigint');
+          expect(typeof stats.ctimeNs).toBe('bigint');
+          expect(typeof stats.birthtimeNs).toBe('bigint');
         } else {
           expect(() => vol.fstatSync(fd, { bigint: true })).toThrowError();
         }
+      });
+      it('Returns stats about regular file for fd opened without O_SYMLINK', () => {
+        const fd = vol.openSync('/link.js', 0);
+        const stats = vol.fstatSync(fd);
+        expect(stats).toBeInstanceOf(Stats);
+        expect(stats.size).toBe(data.length);
+        expect(stats.isFile()).toBe(true);
+        expect(stats.isDirectory()).toBe(false);
+      });
+      it('Returns stats about symlink itself for fd opened with O_SYMLINK', () => {
+        const fd = vol.openSync('/link.js', O_SYMLINK);
+        const stats = vol.fstatSync(fd);
+        expect(stats.isSymbolicLink()).toBe(true);
+        expect(stats.isFile()).toBe(false);
+        expect(stats.size).toBe(0);
       });
     });
     describe('.fstat(fd, callback)', () => {

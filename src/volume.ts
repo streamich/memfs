@@ -526,7 +526,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     });
   }
 
-  private _toJSON(link = this.root, json = {}, path?: string): DirectoryJSON {
+  private _toJSON(link = this.root, json = {}, path?: string, asBuffer?: boolean): DirectoryJSON {
     let isEmpty = true;
 
     let children = link.children;
@@ -551,7 +551,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       if (node.isFile()) {
         let filename = child.getPath();
         if (path) filename = relative(path, filename);
-        json[filename] = node.getString();
+        json[filename] = asBuffer ? node.getBuffer() : node.getString();
       } else if (node.isDirectory()) {
         this._toJSON(child, json, path);
       }
@@ -568,7 +568,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return json;
   }
 
-  toJSON(paths?: PathLike | PathLike[], json = {}, isRelative = false): DirectoryJSON {
+  toJSON(paths?: PathLike | PathLike[], json = {}, isRelative = false, asBuffer = false): DirectoryJSON {
     const links: Link[] = [];
 
     if (paths) {
@@ -584,7 +584,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     }
 
     if (!links.length) return json;
-    for (const link of links) this._toJSON(link, json, isRelative ? link.getPath() : '');
+    for (const link of links) this._toJSON(link, json, isRelative ? link.getPath() : '', asBuffer);
     return json;
   }
 

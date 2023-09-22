@@ -130,6 +130,7 @@ export interface IFileHandle {
   close(): Promise<void>;
   datasync(): Promise<void>;
   read(buffer: Buffer | Uint8Array, offset: number, length: number, position: number): Promise<TFileHandleReadResult>;
+  readv(buffers: ArrayBufferView[], position?: number | null): Promise<TFileHandleReadvResult>;
   readFile(options?: IReadFileOptions | string): Promise<TDataOut>;
   stat(options?: IStatOptions): Promise<IStats>;
   truncate(len?: number): Promise<void>;
@@ -140,6 +141,7 @@ export interface IFileHandle {
     length?: number,
     position?: number,
   ): Promise<TFileHandleWriteResult>;
+  writev(buffers: ArrayBufferView[], position?: number | null): Promise<TFileHandleWritevResult>;
   writeFile(data: TData, options?: IWriteFileOptions): Promise<void>;
 }
 
@@ -153,6 +155,16 @@ export interface TFileHandleReadResult {
 export interface TFileHandleWriteResult {
   bytesWritten: number;
   buffer: Buffer | Uint8Array;
+}
+
+export interface TFileHandleReadvResult {
+  bytesRead: number;
+  buffers: ArrayBufferView[];
+}
+
+export interface TFileHandleWritevResult {
+  bytesWritten: number;
+  buffers: ArrayBufferView[];
 }
 
 export type AssertCallback<T> = T extends () => void ? T : never;

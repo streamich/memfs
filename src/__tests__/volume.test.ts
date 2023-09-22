@@ -501,6 +501,63 @@ describe('volume', () => {
         expect(fn).toThrowError('EPERM');
       });
     });
+    describe('.readv(fd, buffers, position, callback)', () => {
+      it('Simple read', done => {
+        const vol = new Volume();
+        vol.writeFileSync('/test.txt', 'hello');
+        const fd = vol.openSync('/test.txt', 'r');
+
+        const buf1 = Buffer.alloc(2);
+        const buf2 = Buffer.alloc(2);
+        const buf3 = Buffer.alloc(2);
+        vol.readv(fd, [buf1, buf2, buf3], 0, (err, bytesRead, buffers) => {
+          expect(err).toBe(null);
+          expect(bytesRead).toBe(5);
+          expect(buffers).toEqual([buf1, buf2, buf3]);
+          expect(buf1.toString()).toBe('he');
+          expect(buf2.toString()).toBe('ll');
+          expect(buf3.toString()).toBe('o\0');
+          done();
+        });
+      });
+      it('Read from position', done => {
+        const vol = new Volume();
+        vol.writeFileSync('/test.txt', 'hello');
+        const fd = vol.openSync('/test.txt', 'r');
+
+        const buf1 = Buffer.alloc(2);
+        const buf2 = Buffer.alloc(2);
+        const buf3 = Buffer.alloc(2, 0);
+        vol.readv(fd, [buf1, buf2, buf3], 1, (err, bytesRead, buffers) => {
+          expect(err).toBe(null);
+          expect(bytesRead).toBe(4);
+          expect(buffers).toEqual([buf1, buf2, buf3]);
+          expect(buf1.toString()).toBe('el');
+          expect(buf2.toString()).toBe('lo');
+          expect(buf3.toString()).toBe('\0\0');
+          done();
+        });
+      });
+      it('Read from current position', done => {
+        const vol = new Volume();
+        vol.writeFileSync('/test.txt', 'hello, world!');
+        const fd = vol.openSync('/test.txt', 'r');
+        vol.readSync(fd, Buffer.alloc(3), 0, 3, null);
+
+        const buf1 = Buffer.alloc(2);
+        const buf2 = Buffer.alloc(2);
+        const buf3 = Buffer.alloc(2);
+        vol.readv(fd, [buf1, buf2, buf3], (err, bytesRead, buffers) => {
+          expect(err).toBe(null);
+          expect(bytesRead).toBe(6);
+          expect(buffers).toEqual([buf1, buf2, buf3]);
+          expect(buf1.toString()).toBe('lo');
+          expect(buf2.toString()).toBe(', ');
+          expect(buf3.toString()).toBe('wo');
+          done();
+        });
+      });
+    });
     describe('.readFileSync(path[, options])', () => {
       const vol = new Volume();
       const data = 'trololo';
@@ -620,6 +677,22 @@ describe('volume', () => {
           vol.closeSync(fd);
           expect(err).toBe(null);
           expect(vol.readFileSync('/test.txt', 'utf8')).toBe(data);
+          done();
+        });
+      });
+    });
+    describe('.writev(fd, buffers, position, callback)', () => {
+      it('Simple write to a file descriptor', done => {
+        const vol = new Volume();
+        const fd = vol.openSync('/test.txt', 'w+');
+        const data1 = 'Hello';
+        const data2 = ', ';
+        const data3 = 'world!';
+        vol.writev(fd, [Buffer.from(data1), Buffer.from(data2), Buffer.from(data3)], 0, (err, bytes) => {
+          expect(err).toBe(null);
+          expect(bytes).toBe(data1.length + data2.length + data3.length);
+          vol.closeSync(fd);
+          expect(vol.readFileSync('/test.txt', 'utf8')).toBe(data1 + data2 + data3);
           done();
         });
       });

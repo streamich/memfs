@@ -37,6 +37,10 @@ export class FileHandle implements IFileHandle {
     return promisify(this.fs, 'read', bytesRead => ({ bytesRead, buffer }))(this.fd, buffer, offset, length, position);
   }
 
+  readv(buffers: ArrayBufferView[], position?: number | null | undefined): Promise<TFileHandleReadvResult> {
+    return promisify(this.fs, 'readv', bytesRead => ({ bytesRead, buffers }))(this.fd, buffers, position);
+  }
+
   readFile(options?: opts.IReadFileOptions | string): Promise<TDataOut> {
     return promisify(this.fs, 'readFile')(this.fd, options);
   }
@@ -72,6 +76,10 @@ export class FileHandle implements IFileHandle {
     );
   }
 
+  writev(buffers: ArrayBufferView[], position?: number | null | undefined): Promise<TFileHandleWritevResult> {
+    return promisify(this.fs, 'writev', bytesWritten => ({ bytesWritten, buffers }))(this.fd, buffers, position);
+  }
+
   writeFile(data: TData, options?: opts.IWriteFileOptions): Promise<void> {
     return promisify(this.fs, 'writeFile')(this.fd, data, options);
   }
@@ -85,4 +93,14 @@ export interface TFileHandleReadResult {
 export interface TFileHandleWriteResult {
   bytesWritten: number;
   buffer: Buffer | Uint8Array;
+}
+
+export interface TFileHandleReadvResult {
+  bytesRead: number;
+  buffers: ArrayBufferView[];
+}
+
+export interface TFileHandleWritevResult {
+  bytesWritten: number;
+  buffers: ArrayBufferView[];
 }

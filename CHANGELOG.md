@@ -1,3 +1,11 @@
+# [4.4.0](https://github.com/streamich/memfs/compare/v4.3.0...v4.4.0) (2023-09-22)
+
+
+### Features
+
+* **volume:** `toJSON` now accepts the `asBuffer` parameter ([#952](https://github.com/streamich/memfs/issues/952)) ([91a3742](https://github.com/streamich/memfs/commit/91a3742276f00bfb2dda245c364780682c0b1784))
+* **volume:** implement readv and writev ([#946](https://github.com/streamich/memfs/issues/946)) ([966e17e](https://github.com/streamich/memfs/commit/966e17ef5a00c041be88d9b2fd60cfdd83dffac7))
+
 # [4.3.0](https://github.com/streamich/memfs/compare/v4.2.3...v4.3.0) (2023-09-15)
 
 

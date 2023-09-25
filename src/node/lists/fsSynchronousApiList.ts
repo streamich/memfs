@@ -26,6 +26,7 @@ export const fsSynchronousApiList: Array<keyof FsSynchronousApi> = [
   'readFileSync',
   'readlinkSync',
   'readSync',
+  'readvSync',
   'realpathSync',
   'renameSync',
   'rmdirSync',
@@ -37,9 +38,9 @@ export const fsSynchronousApiList: Array<keyof FsSynchronousApi> = [
   'utimesSync',
   'writeFileSync',
   'writeSync',
+  'writevSync',
 
   // 'cpSync',
   // 'lutimesSync',
   // 'statfsSync',
-  // 'writevSync',
 ];

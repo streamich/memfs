@@ -1,3 +1,10 @@
+# [4.5.0](https://github.com/streamich/memfs/compare/v4.4.0...v4.5.0) (2023-09-25)
+
+
+### Features
+
+* **volume:** `fromJSON` now accepts `Buffer` as volume content ([#880](https://github.com/streamich/memfs/issues/880)) ([9c0a6ff](https://github.com/streamich/memfs/commit/9c0a6ffbc2bd1f1ffdfd2c8ec3c75e382713e698))
+
 # [4.4.0](https://github.com/streamich/memfs/compare/v4.3.0...v4.4.0) (2023-09-22)
 
 

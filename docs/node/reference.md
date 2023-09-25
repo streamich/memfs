@@ -71,6 +71,7 @@ vol.fromJSON(
   {
     './index.js': '...',
     './package.json': '...',
+    './index.node': new Buffer(),
   },
   '/app',
 );

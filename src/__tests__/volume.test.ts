@@ -274,6 +274,16 @@ describe('volume', () => {
         expect(stat.isDirectory()).toBe(true);
         expect(vol.readdirSync('/dir')).toEqual([]);
       });
+
+      it('supports using buffers for file content', () => {
+        const vol = new Volume();
+        const text = 'bip-boup';
+        const buffer = Buffer.from(text, 'utf-8');
+        vol.fromJSON({ '/buffer': buffer });
+        expect(vol.toJSON()).toStrictEqual({ '/buffer': text });
+        expect(vol.readFileSync('/buffer')).toStrictEqual(buffer);
+        expect(vol.readFileSync('/buffer', 'utf-8')).toStrictEqual(text);
+      });
     });
 
     describe('.fromNestedJSON(nestedJSON[, cwd])', () => {

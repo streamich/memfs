@@ -1,3 +1,10 @@
+# [4.6.0](https://github.com/streamich/memfs/compare/v4.5.0...v4.6.0) (2023-10-07)
+
+
+### Features
+
+* add `queueMicrotask` implementation ([45d1784](https://github.com/streamich/memfs/commit/45d1784021be3d35519431da32540cfff03f9e7c))
+
 # [4.5.0](https://github.com/streamich/memfs/compare/v4.4.0...v4.5.0) (2023-09-25)
 
 

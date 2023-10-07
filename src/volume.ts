@@ -4,6 +4,7 @@ import Stats from './Stats';
 import Dirent from './Dirent';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from './internal/buffer';
 import setImmediate from './setImmediate';
+import queueMicrotask from './queueMicrotask';
 import process from './process';
 import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
 import { Readable, Writable } from 'stream';
@@ -803,7 +804,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     // This `if` branch is from Node.js
     if (length === 0) {
-      return process.nextTick(() => {
+      return queueMicrotask(() => {
         if (callback) callback(null, 0, buffer);
       });
     }
@@ -2059,7 +2060,9 @@ export class StatWatcher extends EventEmitter {
 
   stop() {
     clearTimeout(this.timeoutRef);
-    process.nextTick(emitStop, this);
+    queueMicrotask(() => {
+      emitStop.call(this, this);
+    });
   }
 }
 
@@ -2208,7 +2211,7 @@ FsReadStream.prototype.close = function (cb) {
       this.once('open', closeOnOpen);
       return;
     }
-    return process.nextTick(() => this.emit('close'));
+    return queueMicrotask(() => this.emit('close'));
   }
 
   // Since Node 18, there is only a getter for '.closed'.
@@ -2374,7 +2377,7 @@ FsWriteStream.prototype.close = function (cb) {
       this.once('open', closeOnOpen);
       return;
     }
-    return process.nextTick(() => this.emit('close'));
+    return queueMicrotask(() => this.emit('close'));
   }
 
   // Since Node 18, there is only a getter for '.closed'.

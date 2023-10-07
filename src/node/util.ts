@@ -4,6 +4,7 @@ import type { FsCallbackApi } from './types';
 import type * as misc from './types/misc';
 import { ENCODING_UTF8, TEncodingExtended } from '../encoding';
 import { bufferFrom } from '../internal/buffer';
+import queueMicrotask from '../queueMicrotask';
 
 export const isWin = process.platform === 'win32';
 
@@ -44,7 +45,9 @@ export function nullCheck(path, callback?) {
     const er = new Error('Path must be a string without null bytes');
     (er as any).code = 'ENOENT';
     if (typeof callback !== 'function') throw er;
-    process.nextTick(callback, er);
+    queueMicrotask(() => {
+      callback(er);
+    });
     return false;
   }
   return true;

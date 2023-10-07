@@ -4,6 +4,7 @@ import { concurrency } from 'thingies/es6/concurrency';
 import { flagsToNumber } from '../node/util';
 import { FLAG } from '../consts/FLAG';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
+import queueMicrotask from '../queueMicrotask';
 import type { IFileSystemWritableFileStream } from '../fsa/types';
 import type { IWriteStream } from '../node/types/misc';
 import type { IWriteStreamOptions } from '../node/types/options';
@@ -86,7 +87,7 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
     const emitClose = this.options.emitClose;
     await this.__mutex__(async () => {
       if (this.__closed__ && emitClose) {
-        process.nextTick(() => this.emit('close'));
+        queueMicrotask(() => this.emit('close'));
         return;
       }
       try {

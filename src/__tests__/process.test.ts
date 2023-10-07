@@ -9,10 +9,6 @@ describe('process', () => {
     it('.cwd()', () => {
       expect(typeof proc.cwd()).toBe('string');
     });
-    it('.nextTick()', done => {
-      expect(typeof proc.nextTick).toBe('function');
-      proc.nextTick(done);
-    });
     it('.env', () => {
       expect(typeof proc.env).toBe('object');
     });

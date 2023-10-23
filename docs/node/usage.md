@@ -52,6 +52,8 @@ vol2.readFileSync('/foo'); // bar 2
 Use `memfs` together with [`unionfs`][unionfs] to create one filesystem
 from your in-memory volumes and the real disk filesystem:
 
+[unionfs]: https://github.com/streamich/unionfs
+
 ```js
 import * as fs from 'fs';
 import { ufs } from 'unionfs';

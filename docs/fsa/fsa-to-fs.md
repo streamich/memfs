@@ -1,7 +1,7 @@
 # File System Access API to Node `fs` API
 
 This adapter implements Node's `fs`-like filesystem API on top of the web
-web [File System Access (FSA) API][fsa].
+[File System Access (FSA) API][fsa].
 
 This allows you to run Node.js code in browser, for example, run any Node.js
 package that uses `fs` module.

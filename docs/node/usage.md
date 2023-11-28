@@ -1,5 +1,7 @@
 # Usage
 
+> See [demo](https://runkit.com/streamich/memfs-getting-started) on RunKit.
+
 ```js
 import { fs } from 'memfs';
 

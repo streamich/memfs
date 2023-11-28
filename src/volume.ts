@@ -122,7 +122,7 @@ export type TFlagsCopy =
 // ---------------------------------------- Options
 
 // Options for `fs.appendFile` and `fs.appendFileSync`
-export interface IAppendFileOptions extends opts.IFileOptions {}
+export interface IAppendFileOptions extends opts.IFileOptions { }
 
 // Options for `fs.watchFile`
 export interface IWatchFileOptions {
@@ -284,6 +284,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   // Current number of open files.
   openFiles = 0;
 
+  caseSensitive: boolean;
+
   StatWatcher: new () => StatWatcher;
   ReadStream: new (...args) => misc.IReadStream;
   WriteStream: new (...args) => IWriteStream;
@@ -302,9 +304,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return this.promisesApi;
   }
 
-  constructor(props = {}) {
+  constructor(props = {}, caseSensitive = true) {
     this.props = Object.assign({ Node, Link, File }, props);
 
+    this.caseSensitive = caseSensitive;
     const root = this.createLink();
     root.setNode(this.createNode(true));
 
@@ -1487,7 +1490,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       if (name === '.' || name === '..') {
         continue;
       }
-      list.push(strToEncoding(name, options.encoding));
+      list.push(strToEncoding(link.children[name]?.getName() ?? name, options.encoding));
     }
 
     if (!isWin && options.encoding !== 'buffer') list.sort();
@@ -2243,7 +2246,7 @@ export interface IWriteStream extends Writable {
   bytesWritten: number;
   path: string;
   pending: boolean;
-  new (path: PathLike, options: opts.IWriteStreamOptions);
+  new(path: PathLike, options: opts.IWriteStreamOptions);
   open();
   close();
 }

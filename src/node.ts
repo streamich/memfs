@@ -371,7 +371,7 @@ export class Link extends EventEmitter {
   }
 
   setChild(name: string, link: Link = new Link(this.vol, this, name)): Link {
-    this.children.set(name, link);
+    this.children.set(this.vol.caseSensitive ? name : name.toLowerCase(), link)
     link.parent = this;
     this.length++;
 
@@ -393,7 +393,9 @@ export class Link extends EventEmitter {
       link.children.delete('..');
       this.getNode().nlink--;
     }
-    this.children.delete(link.getName());
+    let name = link.getName();
+
+    this.children.delete(this.vol.caseSensitive ? name : name.toLowerCase());
     this.length--;
 
     this.getNode().mtime = new Date();
@@ -401,8 +403,9 @@ export class Link extends EventEmitter {
   }
 
   getChild(name: string): Link | undefined {
+    const tmp = !this.vol.caseSensitive ? name = name.toLowerCase() : name;
     this.getNode().mtime = new Date();
-    return this.children.get(name);
+    return this.children.get(tmp);
   }
 
   getPath(): string {

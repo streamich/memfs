@@ -786,7 +786,7 @@ describe('volume', () => {
       });
     });
     describe('.symlink(target, path[, type], callback)', () => {
-      xit('...', () => {});
+      xit('...', () => { });
     });
     describe('.realpathSync(path[, options])', () => {
       const vol = new Volume();
@@ -899,7 +899,7 @@ describe('volume', () => {
       });
     });
     describe('.lstat(path, callback)', () => {
-      xit('...', () => {});
+      xit('...', () => { });
     });
     describe('.statSync(path)', () => {
       const vol = new Volume();
@@ -944,7 +944,7 @@ describe('volume', () => {
       });
     });
     describe('.stat(path, callback)', () => {
-      xit('...', () => {});
+      xit('...', () => { });
     });
     describe('.fstatSync(fd)', () => {
       const vol = new Volume();
@@ -992,7 +992,7 @@ describe('volume', () => {
       });
     });
     describe('.fstat(fd, callback)', () => {
-      xit('...', () => {});
+      xit('...', () => { });
     });
     describe('.linkSync(existingPath, newPath)', () => {
       const vol = new Volume();
@@ -1012,7 +1012,7 @@ describe('volume', () => {
       });
     });
     describe('.link(existingPath, newPath, callback)', () => {
-      xit('...', () => {});
+      xit('...', () => { });
     });
     describe('.readdirSync(path)', () => {
       it('Returns simple list', () => {
@@ -1039,7 +1039,7 @@ describe('volume', () => {
       });
     });
     describe('.readdir(path, callback)', () => {
-      xit('...', () => {});
+      xit('...', () => { });
     });
     describe('.readlinkSync(path[, options])', () => {
       it('Simple symbolic link to one file', () => {
@@ -1087,7 +1087,7 @@ describe('volume', () => {
       });
     });
     describe('.ftruncate(fd[, len], callback)', () => {
-      xit('...', () => {});
+      xit('...', () => { });
     });
     describe('.truncateSync(path[, len])', () => {
       const vol = new Volume();
@@ -1114,7 +1114,7 @@ describe('volume', () => {
       });
     });
     describe('.truncate(path[, len], callback)', () => {
-      xit('...', () => {});
+      xit('...', () => { });
     });
     describe('.utimesSync(path, atime, mtime)', () => {
       const vol = new Volume();
@@ -1134,7 +1134,7 @@ describe('volume', () => {
       });
     });
     describe('.utimes(path, atime, mtime, callback)', () => {
-      xit('...', () => {});
+      xit('...', () => { });
     });
     describe('.mkdirSync(path[, options])', () => {
       it('Create dir at root', () => {
@@ -1180,8 +1180,8 @@ describe('volume', () => {
       });
     });
     describe('.mkdir(path[, mode], callback)', () => {
-      xit('...', () => {});
-      xit('Create /dir1/dir2/dir3', () => {});
+      xit('...', () => { });
+      xit('Create /dir1/dir2/dir3', () => { });
     });
     describe('.mkdtempSync(prefix[, options])', () => {
       it('Create temp dir at root', () => {
@@ -1200,14 +1200,14 @@ describe('volume', () => {
       });
     });
     describe('.mkdtemp(prefix[, options], callback)', () => {
-      xit('Create temp dir at root', () => {});
+      xit('Create temp dir at root', () => { });
       it('throws when prefix is not a string', () => {
         const vol = new Volume();
-        expect(() => vol.mkdtemp({} as string, () => {})).toThrow(TypeError);
+        expect(() => vol.mkdtemp({} as string, () => { })).toThrow(TypeError);
       });
       it('throws when prefix contains null bytes', () => {
         const vol = new Volume();
-        expect(() => vol.mkdtemp('/tmp-\u0000', () => {})).toThrow(/path.+string.+null bytes/i);
+        expect(() => vol.mkdtemp('/tmp-\u0000', () => { })).toThrow(/path.+string.+null bytes/i);
       });
     });
     describe('.rmdirSync(path)', () => {
@@ -1226,7 +1226,7 @@ describe('volume', () => {
       });
     });
     describe('.rmdir(path, callback)', () => {
-      xit('Remove single dir', () => {});
+      xit('Remove single dir', () => { });
       it('Async remove dir /dir1/dir2/dir3 recursively', done => {
         const vol = new Volume();
         vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
@@ -1370,7 +1370,7 @@ describe('volume', () => {
           vol.writeFileSync('/lol.txt', '2');
         }, 1);
       });
-      xit('Multiple listeners for one file', () => {});
+      xit('Multiple listeners for one file', () => { });
     });
     describe('.unwatchFile(path[, listener])', () => {
       it('Stops watching before .writeFile', done => {
@@ -1419,6 +1419,31 @@ describe('volume', () => {
     it('.vol points to current volume', () => {
       const vol = new Volume();
       expect(new StatWatcher(vol).vol).toBe(vol);
+    });
+  });
+  describe('caseSensitive: false', () => {
+    it('is case insensitive', () => {
+      const vol = new Volume(undefined, false);
+      vol.mkdirSync('/dir');
+      vol.writeFileSync('/Dir/Foo.txt', 'foo');
+      expect(vol.readFileSync('/dir/foo.TXT', { encoding: 'utf8' })).toBe('foo');
+      vol.unlinkSync('/dir/foo.txt');
+      expect(vol.existsSync('/Dir/Foo.txt')).toBe(false)
+    });
+    xit('preserve original filename casing', () => {
+      const vol = new Volume(undefined, false);
+      vol.fromJSON({
+        '/Dir': null,
+        '/dir': null,
+        '/fileA.txt': '1',
+        '/filea.txt': '2',
+        '/FileB.txt': '1',
+        '/fileb.txt': '2',
+      });
+      expect(vol.readdirSync('/', { encoding: 'utf8' })).toEqual(['Dir', 'fileA.txt', 'FileB.txt']);
+      expect((vol.readdirSync('/', { encoding: 'utf8', withFileTypes: true }) as Dirent[]).map(({ name }) => name)).toEqual(['Dir', 'fileA.txt', 'FileB.txt']);
+      expect(vol.readFileSync('/fileA.txt', { encoding: 'utf8' })).toBe('2');
+      expect(vol.readFileSync('/FileB.txt', { encoding: 'utf8' })).toBe('2');
     });
   });
 });

@@ -1462,37 +1462,43 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const node = link.getNode();
     if (!node.isDirectory()) throw createError(ENOTDIR, 'scandir', filename);
 
-    if (options.withFileTypes) {
-      const list: Dirent[] = [];
-      for (const name of link.children.keys()) {
-        const child = link.getChild(name);
+    const list: Dirent[] = []; // output list
 
-        if (!child || name === '.' || name === '..') {
-          continue;
-        }
-
-        list.push(Dirent.build(child, options.encoding));
-      }
-      if (!isWin && options.encoding !== 'buffer')
-        list.sort((a, b) => {
-          if (a.name < b.name) return -1;
-          if (a.name > b.name) return 1;
-          return 0;
-        });
-      return list;
-    }
-
-    const list: TDataOut[] = [];
     for (const name of link.children.keys()) {
-      if (name === '.' || name === '..') {
-        continue;
+      const child = link.getChild(name);
+      
+      if (!child || name === '.' || name === '..') continue;
+      
+      list.push(Dirent.build(child, options.encoding));
+
+      // recursion
+      if (options.recursive && child.getNode().isDirectory()) {
+        // console.log("child", child)
+        // console.log('child.getNode()', child.getNode())
+        const childFilename = join(child.getPath(), child.getName())
+        console.log('child.getNode().isDirectory()', child.getNode().isDirectory(), childFilename)
+        const childList = this.readdirBase(childFilename, { recursive: true, withFileTypes: true }) as Dirent[]
+        list.push(...childList)
       }
-      list.push(strToEncoding(name, options.encoding));
     }
 
-    if (!isWin && options.encoding !== 'buffer') list.sort();
+    if (!isWin && options.encoding !== 'buffer')
+    list.sort((a, b) => {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    });
 
-    return list;
+    if (options.withFileTypes) return list;
+
+    const ret: TDataOut[] = [];
+    for (const name of link.children.keys()) {
+      if (name === '.' || name === '..') continue;
+      ret.push(strToEncoding(name, options.encoding));
+    }
+
+    if (!isWin && options.encoding !== 'buffer') ret.sort();
+    return ret;
   }
 
   readdirSync(path: PathLike, options?: opts.IReaddirOptions | string): TDataOut[] | Dirent[] {

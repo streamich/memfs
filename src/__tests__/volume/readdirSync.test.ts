@@ -58,14 +58,14 @@ describe('readdirSync()', () => {
 
   it('accepts option {withFileTypes: true}', () => {
     const vol = create({
-      '/x/a': 'a',
-      '/x/b/b': 'b',
-      '/x/c/c/c': 'c',
+      '/x/af': 'a',
+      '/x/b/bf': 'b',
+      '/x/c/c/cf': 'c',
     });
     const all = vol.readdirSync('/x', { withFileTypes: true });
     const mapped = all.map((dirent) => { return {...dirent} })
     expect(mapped).toEqual([
-      { mode: 33206, name: 'a', path: '/x/a' },
+      { mode: 33206, name: 'af', path: '/x/af' },
       { mode: 16895, name: 'b', path: '/x/b' },
       { mode: 16895, name: 'c', path: '/x/c' },
     ]);
@@ -73,24 +73,31 @@ describe('readdirSync()', () => {
   
   it('accepts option {recursive: true}', () => {
     const vol = create({
-      '/y/a': 'a',
-      '/y/b/b': 'b',
-      '/y/c/c/c': 'c',
+      '/y/af': 'a',
+      '/y/b/bf': 'b',
+      '/y/c/c/cf': 'c',
     });
     const all = vol.readdirSync('/y', { recursive: true });
     (all as any).sort();
-    expect(all).toEqual(['a', 'b', 'b/b', 'c', 'c/c', 'c/c/c']);
+    expect(all).toEqual(['af', 'b', 'b/bf', 'c', 'c/c', 'c/c/cf']);
   });
 
   it('accepts option {recursive: true, withFileTypes: true}', () => {
     const vol = create({
-      '/z/a': 'a',
-      '/z/b/b': 'b',
-      '/z/c/c/c': 'c',
+      '/z/af': 'a',
+      '/z/b/bf': 'b',
+      '/z/c/c/cf': 'c',
     });
-    const all = vol.readdirSync('/z', { recursive: true });
-    (all as any).sort();
-    expect(all).toEqual(['a/a', 'a/b', 'a/b/b', 'a/c', 'a/c/c', 'a/c/c/c']);
+    const all = vol.readdirSync('/z', { recursive: true, withFileTypes: true });
+    const mapped = all.map((dirent) => { return {...dirent} })
+    expect(mapped).toEqual([
+      { mode: 33206, name: 'af', path: '/z/af' },
+      { mode: 16895, name: 'b', path: '/z/b' },
+      { mode: 33206, name: 'bf', path: '/z/b/bf' },
+      { mode: 16895, name: 'c', path: '/z/c' },
+      { mode: 16895, name: 'c', path: '/z/c/c' },
+      { mode: 33206, name: 'cf', path: '/z/c/c/cf' },
+    ]);
   });
 
 });

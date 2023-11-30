@@ -21,7 +21,7 @@ export class Dirent implements IDirent {
   }
 
   name: TDataOut = '';
-  path: TDataOut = '';
+  path = '';
   private mode: number = 0;
 
   private _checkModeProperty(property: number): boolean {

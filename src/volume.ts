@@ -1473,7 +1473,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
       // recursion
       if (options.recursive && child.children.size) {
-        const recurseOptions = { ...options, ecursive: true, withFileTypes: true }
+        const recurseOptions = { ...options, recursive: true, withFileTypes: true }
         const childList = this.readdirBase(child.getPath(), recurseOptions) as Dirent[]
         list.push(...childList)
       }

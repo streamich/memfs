@@ -73,30 +73,42 @@ describe('readdirSync()', () => {
   
   it('accepts option {recursive: true}', () => {
     const vol = create({
-      '/y/af': 'a',
-      '/y/b/bf': 'b',
-      '/y/c/c/cf': 'c',
+      '/y/af1': 'a',
+      '/y/af2': 'a',
+      '/y/b/bf1': 'b',
+      '/y/b/bf2': 'b',
+      '/y/c/c/.cf0': 'c',
+      '/y/c/c/cf1': 'c',
+      '/y/c/c/cf2': 'c',
     });
     const all = vol.readdirSync('/y', { recursive: true });
     (all as any).sort();
-    expect(all).toEqual(['af', 'b', 'b/bf', 'c', 'c/c', 'c/c/cf']);
+    expect(all).toEqual(['af1', 'af2', 'b', 'b/bf1', 'b/bf2', 'c', 'c/c', 'c/c/.cf0', 'c/c/cf1', 'c/c/cf2']);
   });
 
   it('accepts option {recursive: true, withFileTypes: true}', () => {
     const vol = create({
-      '/z/af': 'a',
-      '/z/b/bf': 'b',
-      '/z/c/c/cf': 'c',
+      '/z/af1': 'a',
+      '/z/af2': 'a',
+      '/z/b/bf1': 'b',
+      '/z/b/bf2': 'b',
+      '/z/c/c/.cf0': 'c',
+      '/z/c/c/cf1': 'c',
+      '/z/c/c/cf2': 'c',
     });
     const all = vol.readdirSync('/z', { recursive: true, withFileTypes: true });
     const mapped = all.map((dirent) => { return {...dirent} })
     expect(mapped).toEqual([
-      { mode: 33206, name: 'af', path: '/z/af' },
+      { mode: 33206, name: '.cf0', path: '/z/c/c/.cf0' },
+      { mode: 33206, name: 'af1', path: '/z/af1' },
+      { mode: 33206, name: 'af2', path: '/z/af2' },
       { mode: 16895, name: 'b', path: '/z/b' },
-      { mode: 33206, name: 'bf', path: '/z/b/bf' },
+      { mode: 33206, name: 'bf1', path: '/z/b/bf1' },
+      { mode: 33206, name: 'bf2', path: '/z/b/bf2' },
       { mode: 16895, name: 'c', path: '/z/c' },
       { mode: 16895, name: 'c', path: '/z/c/c' },
-      { mode: 33206, name: 'cf', path: '/z/c/c/cf' },
+      { mode: 33206, name: 'cf1', path: '/z/c/c/cf1' },
+      { mode: 33206, name: 'cf2', path: '/z/c/c/cf2' },
     ]);
   });
 

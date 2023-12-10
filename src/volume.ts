@@ -1491,7 +1491,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
         continue;
       }
 
-      list.push(strToEncoding(this.caseSensitive ? childLink.getName() : childName, options.encoding));
+      list.push(strToEncoding(this.caseSensitive ? childName : childLink.getName(), options.encoding));
     }
 
     if (!isWin && options.encoding !== 'buffer') list.sort();

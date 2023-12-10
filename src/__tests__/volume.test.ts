@@ -1430,20 +1430,20 @@ describe('volume', () => {
       vol.unlinkSync('/dir/foo.txt');
       expect(vol.existsSync('/Dir/Foo.txt')).toBe(false)
     });
-    xit('preserve original filename casing', () => {
+    it('preserve original filename casing', () => {
       const vol = new Volume(undefined, false);
-      vol.fromJSON({
-        '/Dir': null,
-        '/dir': null,
-        '/fileA.txt': '1',
-        '/filea.txt': '2',
-        '/FileB.txt': '1',
-        '/fileb.txt': '2',
-      });
-      expect(vol.readdirSync('/', { encoding: 'utf8' })).toEqual(['Dir', 'fileA.txt', 'FileB.txt']);
-      expect((vol.readdirSync('/', { encoding: 'utf8', withFileTypes: true }) as Dirent[]).map(({ name }) => name)).toEqual(['Dir', 'fileA.txt', 'FileB.txt']);
-      expect(vol.readFileSync('/fileA.txt', { encoding: 'utf8' })).toBe('2');
-      expect(vol.readFileSync('/FileB.txt', { encoding: 'utf8' })).toBe('2');
+      vol.mkdirSync('/dir/lchild', { recursive: true });
+      vol.mkdirSync('/Dir/UCHILD', { recursive: true });
+
+      expect(vol.readdirSync('/', { encoding: 'utf8' })).toEqual(['dir']);
+      expect(vol.readdirSync('/DIR/lChIlD', { encoding: 'utf8' })).toEqual([]);
+      expect(vol.readdirSync('/DIR/uChIld', { encoding: 'utf8' })).toEqual([]);
+
+      vol.writeFileSync('/Dir/lChIlD/foo.txt', 'lfoo');
+      vol.writeFileSync('/Dir/uChIlD/FOO.txt', 'UFOO');
+
+      expect(vol.readdirSync('/DIR/lChIlD', { encoding: 'utf8' })).toEqual(["foo.txt"]);
+      expect(vol.readdirSync('/DIR/uChIld', { encoding: 'utf8' })).toEqual(["foo.txt"]);
     });
   });
 });

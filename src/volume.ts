@@ -1486,11 +1486,12 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     }
 
     const list: TDataOut[] = [];
-    for (const name of link.children.keys()) {
-      if (name === '.' || name === '..') {
+    for (const [childName, childLink] of link.children.entries()) {
+      if (childLink === undefined || childName === '.' || childName === '..') {
         continue;
       }
-      list.push(strToEncoding(link.children[name]?.getName() ?? name, options.encoding));
+
+      list.push(strToEncoding(childLink.getName(), options.encoding));
     }
 
     if (!isWin && options.encoding !== 'buffer') list.sort();

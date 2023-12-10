@@ -61,7 +61,7 @@
     "demo:webfs": "webpack serve --config ./src/webfs/webpack.config.js",
     "prettier": "prettier --ignore-path .gitignore --write \"src/**/*.{ts,js}\"",
     "prettier:diff": "prettier -l \"src/**/*.{ts,js}\"",
-    "test": "jest --maxWorkers 2",
+    "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "tslint": "tslint \"src/**/*.ts\" -t verbose",

@@ -1436,14 +1436,17 @@ describe('volume', () => {
       vol.mkdirSync('/Dir/UCHILD', { recursive: true });
 
       expect(vol.readdirSync('/', { encoding: 'utf8' })).toEqual(['dir']);
-      expect(vol.readdirSync('/DIR/lChIlD', { encoding: 'utf8' })).toEqual([]);
-      expect(vol.readdirSync('/DIR/uChIld', { encoding: 'utf8' })).toEqual([]);
+      expect(vol.readdirSync('/dIr/lChIlD', { encoding: 'utf8' })).toEqual([]);
+      expect(vol.readdirSync('/DiR/uChIld', { encoding: 'utf8' })).toEqual([]);
 
-      vol.writeFileSync('/Dir/lChIlD/foo.txt', 'lfoo');
-      vol.writeFileSync('/Dir/uChIlD/FOO.txt', 'UFOO');
+      vol.writeFileSync('/DiR/lChIlD/foo.txt', 'lfoo');
+      vol.writeFileSync('/dIr/uChIlD/FOO.txt', 'UFOO');
 
-      expect(vol.readdirSync('/DIR/lChIlD', { encoding: 'utf8' })).toEqual(["foo.txt"]);
-      expect(vol.readdirSync('/DIR/uChIld', { encoding: 'utf8' })).toEqual(["foo.txt"]);
+      expect(vol.readdirSync('/dIr/lChIlD', { encoding: 'utf8' })).toEqual(["foo.txt"]);
+      expect(vol.readdirSync('/DiR/uChIld', { encoding: 'utf8' })).toEqual(["FOO.txt"]);
+
+      expect(vol.readFileSync('/DiR/lChIlD/FoO.TXT', { encoding: 'utf8' })).toBe('lfoo');
+      expect(vol.readFileSync('/dIr/UcHiLd/fOo.TXT', { encoding: 'utf8' })).toBe('UFOO');
     });
   });
 });

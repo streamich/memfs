@@ -1,5 +1,5 @@
 import process from './process';
-import { bufferAllocUnsafe, bufferFrom } from './internal/buffer';
+import { Buffer, bufferAllocUnsafe, bufferFrom } from './internal/buffer';
 import { constants, S } from './constants';
 import { Volume } from './volume';
 import { EventEmitter } from 'events';

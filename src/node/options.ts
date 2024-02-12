@@ -73,6 +73,7 @@ export const getReadFileOptions = optsGenerator<opts.IReadFileOptions>(readFileO
 
 const readdirDefaults: opts.IReaddirOptions = {
   encoding: 'utf8',
+  recursive: false,
   withFileTypes: false,
 };
 export const getReaddirOptions = optsGenerator<opts.IReaddirOptions>(readdirDefaults);

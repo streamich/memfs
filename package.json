@@ -121,7 +121,7 @@
     }
   },
   "dependencies": {
-    "json-joy": "^9.2.0",
+    "json-joy": "^11.0.0",
     "thingies": "^1.11.1"
   },
   "devDependencies": {

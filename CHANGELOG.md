@@ -1,3 +1,10 @@
+## [4.6.1](https://github.com/streamich/memfs/compare/v4.6.0...v4.6.1) (2024-02-12)
+
+
+### Bug Fixes
+
+* **deps:** update dependency json-joy to v11 ([#966](https://github.com/streamich/memfs/issues/966)) ([91909ff](https://github.com/streamich/memfs/commit/91909ff7d3a82bbb33e044f6e220205628d5554d))
+
 # [4.6.0](https://github.com/streamich/memfs/compare/v4.5.0...v4.6.0) (2023-10-07)
 
 

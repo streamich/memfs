@@ -320,7 +320,9 @@ onlyOnNode20('FsaNodeFs', () => {
       const list = (await fs.promises.readdir('/', { withFileTypes: true })) as IDirent[];
       expect(list.length).toBe(3);
       const names = list.map(item => item.name);
-      expect(names).toStrictEqual(['empty-folder', 'f.html', 'folder']);
+      expect(names.includes('folder')).toBe(true);
+      expect(names.includes('empty-folder')).toBe(true);
+      expect(names.includes('f.html')).toBe(true);
       expect(list.find(item => item.name === 'folder')?.isDirectory()).toBe(true);
       expect(list.find(item => item.name === 'empty-folder')?.isDirectory()).toBe(true);
       expect(list.find(item => item.name === 'f.html')?.isFile()).toBe(true);

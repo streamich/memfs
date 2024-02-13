@@ -1,3 +1,15 @@
+# [4.7.0](https://github.com/streamich/memfs/compare/v4.6.1...v4.7.0) (2024-02-13)
+
+
+### Bug Fixes
+
+* ensure consistent file path formatting when reading directories recursively ([#990](https://github.com/streamich/memfs/issues/990)) ([36def27](https://github.com/streamich/memfs/commit/36def27516d6186427ee5dfc3a9d2c81a482d99c))
+
+
+### Features
+
+* add support for `recursive` to `readdir` ([#972](https://github.com/streamich/memfs/issues/972)) ([919ddfc](https://github.com/streamich/memfs/commit/919ddfcb857773e1acb1b8e5f2f87de0d1e491a2))
+
 ## [4.6.1](https://github.com/streamich/memfs/compare/v4.6.0...v4.6.1) (2024-02-12)
 
 

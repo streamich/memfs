@@ -63,14 +63,16 @@ describe('readdirSync()', () => {
       '/x/c/c/cf': 'c',
     });
     const all = vol.readdirSync('/x', { withFileTypes: true });
-    const mapped = all.map((dirent) => { return {...dirent} })
+    const mapped = all.map(dirent => {
+      return { ...dirent };
+    });
     expect(mapped).toEqual([
       { mode: 33206, name: 'af', path: '/x/af' },
       { mode: 16895, name: 'b', path: '/x/b' },
       { mode: 16895, name: 'c', path: '/x/c' },
     ]);
   });
-  
+
   it('accepts option {recursive: true}', () => {
     const vol = create({
       '/y/af1': 'a',
@@ -97,7 +99,9 @@ describe('readdirSync()', () => {
       '/z/c/c/cf2': 'c',
     });
     const all = vol.readdirSync('/z', { recursive: true, withFileTypes: true });
-    const mapped = all.map((dirent) => { return {...dirent} })
+    const mapped = all.map(dirent => {
+      return { ...dirent };
+    });
     expect(mapped).toEqual([
       { mode: 33206, name: '.cf0', path: '/z/c/c/.cf0' },
       { mode: 33206, name: 'af1', path: '/z/af1' },
@@ -111,5 +115,4 @@ describe('readdirSync()', () => {
       { mode: 33206, name: 'cf2', path: '/z/c/c/cf2' },
     ]);
   });
-
 });

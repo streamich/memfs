@@ -1488,8 +1488,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     if (options.withFileTypes) return list;
 
-    const ret: TDataOut[] = [];
-
     return list.map(dirent => {
       if (options.recursive) {
         return dirent.path.replace(filename + pathModule.sep, '');

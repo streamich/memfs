@@ -1466,25 +1466,25 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     for (const name of link.children.keys()) {
       const child = link.getChild(name);
-      
+
       if (!child || name === '.' || name === '..') continue;
-      
+
       list.push(Dirent.build(child, options.encoding));
 
       // recursion
       if (options.recursive && child.children.size) {
-        const recurseOptions = { ...options, recursive: true, withFileTypes: true }
-        const childList = this.readdirBase(child.getPath(), recurseOptions) as Dirent[]
-        list.push(...childList)
+        const recurseOptions = { ...options, recursive: true, withFileTypes: true };
+        const childList = this.readdirBase(child.getPath(), recurseOptions) as Dirent[];
+        list.push(...childList);
       }
     }
 
     if (!isWin && options.encoding !== 'buffer')
-    list.sort((a, b) => {
-      if (a.name < b.name) return -1;
-      if (a.name > b.name) return 1;
-      return 0;
-    });
+      list.sort((a, b) => {
+        if (a.name < b.name) return -1;
+        if (a.name > b.name) return 1;
+        return 0;
+      });
 
     if (options.withFileTypes) return list;
 
@@ -1492,10 +1492,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     return list.map(dirent => {
       if (options.recursive) {
-        return dirent.path.replace(filename + pathModule.sep, '')
+        return dirent.path.replace(filename + pathModule.sep, '');
       }
-      return dirent.name
-    })
+      return dirent.name;
+    });
   }
 
   readdirSync(path: PathLike, options?: opts.IReaddirOptions | string): TDataOut[] | Dirent[] {

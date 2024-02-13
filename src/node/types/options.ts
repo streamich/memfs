@@ -33,7 +33,7 @@ export interface IFStatOptions {
 export interface IAppendFileOptions extends IFileOptions {}
 
 export interface IReaddirOptions extends IOptions {
-  recursive?: boolean
+  recursive?: boolean;
   withFileTypes?: boolean;
 }
 

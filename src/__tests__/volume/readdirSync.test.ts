@@ -99,11 +99,12 @@ describe('readdirSync()', () => {
       '/z/c/c/cf2': 'c',
     });
     const all = vol.readdirSync('/z', { recursive: true, withFileTypes: true });
-    const mapped = all.map(dirent => {
-      return { ...dirent };
-    });
+    const mapped = all
+      .map(dirent => {
+        return { ...dirent };
+      })
+      .sort((a, b) => a.path.localeCompare(b.path));
     expect(mapped).toEqual([
-      { mode: 33206, name: '.cf0', path: '/z/c/c/.cf0' },
       { mode: 33206, name: 'af1', path: '/z/af1' },
       { mode: 33206, name: 'af2', path: '/z/af2' },
       { mode: 16895, name: 'b', path: '/z/b' },
@@ -111,6 +112,7 @@ describe('readdirSync()', () => {
       { mode: 33206, name: 'bf2', path: '/z/b/bf2' },
       { mode: 16895, name: 'c', path: '/z/c' },
       { mode: 16895, name: 'c', path: '/z/c/c' },
+      { mode: 33206, name: '.cf0', path: '/z/c/c/.cf0' },
       { mode: 33206, name: 'cf1', path: '/z/c/c/cf1' },
       { mode: 33206, name: 'cf2', path: '/z/c/c/cf2' },
     ]);

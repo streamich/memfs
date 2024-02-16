@@ -1,5 +1,6 @@
 import * as optHelpers from '../node/options';
 import * as util from '../node/util';
+import { Buffer } from '../internal/buffer';
 import { FsPromises } from '../node/FsPromises';
 import { pathToLocation, testDirectoryIsWritable } from './util';
 import { ERRSTR, MODE } from '../node/constants';

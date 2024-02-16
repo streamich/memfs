@@ -1,5 +1,6 @@
 import { ERRSTR, FLAGS } from './constants';
 import * as errors from '../internal/errors';
+import { Buffer } from '../internal/buffer';
 import type { FsCallbackApi } from './types';
 import type * as misc from './types/misc';
 import { ENCODING_UTF8, TEncodingExtended } from '../encoding';

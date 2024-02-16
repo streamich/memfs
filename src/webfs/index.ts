@@ -1,5 +1,4 @@
 (<any>self).process = require('process/browser');
-(<any>self).Buffer = require('buffer').Buffer;
 
 import { FsaNodeFs, FsaNodeSyncAdapterWorker } from '../fsa-to-node';
 import { FsaNodeSyncWorker } from '../../src/fsa-to-node/worker/FsaNodeSyncWorker';

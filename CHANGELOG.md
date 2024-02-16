@@ -1,3 +1,10 @@
+## [4.7.1](https://github.com/streamich/memfs/compare/v4.7.0...v4.7.1) (2024-02-16)
+
+
+### Bug Fixes
+
+* use internal buffer instead of global Buffer ([#977](https://github.com/streamich/memfs/issues/977)) ([02249f7](https://github.com/streamich/memfs/commit/02249f7afccb4c4cdec06041e9ee55521b60cc73))
+
 # [4.7.0](https://github.com/streamich/memfs/compare/v4.6.1...v4.7.0) (2024-02-13)
 
 

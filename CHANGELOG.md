@@ -1,3 +1,10 @@
+## [4.7.5-next.1](https://github.com/streamich/memfs/compare/v4.7.4...v4.7.5-next.1) (2024-02-17)
+
+
+### Bug Fixes
+
+* inline `thingies` ([#1001](https://github.com/streamich/memfs/issues/1001)) ([ed265f0](https://github.com/streamich/memfs/commit/ed265f0212b09f04ffbef9430f4f863f0cfc7674))
+
 ## [4.7.4](https://github.com/streamich/memfs/compare/v4.7.3...v4.7.4) (2024-02-17)
 
 

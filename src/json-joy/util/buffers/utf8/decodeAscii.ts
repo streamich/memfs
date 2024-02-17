@@ -25,7 +25,7 @@ const fromCharCode = String.fromCharCode;
 // SOFTWARE.
 
 export const decodeAscii = (src: Uint8Array, position: number, length: number): string | undefined => {
-  const bytes = [];
+  const bytes: number[] = [];
   for (let i = 0; i < length; i++) {
     const byte = src[position++];
     if (byte & 0x80) return;

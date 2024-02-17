@@ -4,6 +4,13 @@ import {IWriterGrowable, IWriter} from './types';
 const EMPTY_UINT8 = new Uint8Array([]);
 const EMPTY_VIEW = new DataView(EMPTY_UINT8.buffer);
 
+declare global {
+  interface Uint8Array {
+    utf8Write(str: string, pos: number, maxLength: number): number
+    write(str: string, pos: number, maxLength: number, encoding: string): number;
+  }
+}
+
 const hasBuffer = typeof Buffer === 'function';
 const utf8Write = hasBuffer
   ? (Buffer.prototype.utf8Write as (this: Uint8Array, str: string, pos: number, maxLength: number) => number)

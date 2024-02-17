@@ -1,3 +1,10 @@
+declare global {
+  interface Uint8Array {
+    utf8Write(str: string, pos: number, maxLength: number): number
+    write(str: string, pos: number, maxLength: number, encoding: string): number;
+  }
+}
+
 const hasBuffer = typeof Buffer !== undefined;
 const utf8Write = hasBuffer
   ? (Buffer.prototype.utf8Write as (this: Uint8Array, str: string, pos: number, maxLength: number) => number)

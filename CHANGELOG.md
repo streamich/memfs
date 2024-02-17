@@ -1,3 +1,10 @@
+## [4.7.4](https://github.com/streamich/memfs/compare/v4.7.3...v4.7.4) (2024-02-17)
+
+
+### Bug Fixes
+
+* inline `hyperdyperid` ([#1000](https://github.com/streamich/memfs/issues/1000)) ([f26c244](https://github.com/streamich/memfs/commit/f26c2447e2d62e4a309e3fb52d39e1c5973db9c2))
+
 ## [4.7.3](https://github.com/streamich/memfs/compare/v4.7.2...v4.7.3) (2024-02-17)
 
 

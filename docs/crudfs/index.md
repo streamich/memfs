@@ -5,11 +5,9 @@ real file system, which allows to perform CRUD operations on files and folders.
 It is intended to be light (so can be efficiently bundled for browser),
 have small API surface but cover most of the useful file manipulation scenarios.
 
-Folder are referred to as *collections* or *types*; and files are referred to as *resources*.
-
+Folder are referred to as _collections_ or _types_; and files are referred to as _resources_.
 
 ## Usage
-
 
 ### `crudfs` from File System Access API
 
@@ -55,7 +53,6 @@ Drop all resources in a collection:
 await crud.drop(['user', 'files']);
 ```
 
-
 ### `crudfs` from Node.js `fs` module
 
 You can run `crudfs` on top of Node.js `fs` module like so:
@@ -64,20 +61,19 @@ You can run `crudfs` on top of Node.js `fs` module like so:
 import * as fs from 'fs';
 import { NodeCrud } from 'memfs/lib/node-to-crud';
 
-const crud = new NodeCrud({fs: fs.promises, dir: '/path/to/folder'});
+const crud = new NodeCrud({ fs: fs.promises, dir: '/path/to/folder' });
 ```
-
 
 #### Indirectly with FAS in-between
 
 You can run `crudfs` on top of Node.js `fs` module by using File System Access API
-adapter on top of the  Node.js `fs` module:
+adapter on top of the Node.js `fs` module:
 
 ```js
 import * as fs from 'fs';
 import { nodeToFsa } from 'memfs/lib/node-to-fsa';
 import { FsaCrud } from 'memfs/lib/fsa-to-crud';
 
-const dir = nodeToFsa(fs, '/path/to/folder', {mode: 'readwrite'});
+const dir = nodeToFsa(fs, '/path/to/folder', { mode: 'readwrite' });
 const crud = new FsaCrud(dir);
 ```

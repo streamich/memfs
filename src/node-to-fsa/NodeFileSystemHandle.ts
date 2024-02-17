@@ -8,7 +8,10 @@ import type { IFileSystemHandle, FileSystemHandlePermissionDescriptor } from '..
  * @see [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle)
  */
 export abstract class NodeFileSystemHandle implements IFileSystemHandle {
-  constructor(public readonly kind: 'file' | 'directory', public readonly name: string) {}
+  constructor(
+    public readonly kind: 'file' | 'directory',
+    public readonly name: string,
+  ) {}
 
   /**
    * Compares two handles to see if the associated entries (either a file or directory) match.

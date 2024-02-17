@@ -1,6 +1,6 @@
 # Synchronous `fs` in browser
 
-This demo executes tests of __synchronous__ Node.js API built on top of File
+This demo executes tests of **synchronous** Node.js API built on top of File
 System Access API in browser.
 
 There are two tests:

@@ -1,15 +1,13 @@
 # `casfs`
 
 `casfs` is a Content Addressable Storage (CAS) abstraction over a file system.
-It has no folders nor files. Instead, it has *blobs* which are identified by their content.
+It has no folders nor files. Instead, it has _blobs_ which are identified by their content.
 
 Essentially, it provides two main operations: `put` and `get`. The `put` operation
 takes a blob and stores it in the underlying file system and returns the blob's hash digest.
 The `get` operation takes a hash and returns the blob, which matches the hash digest, if it exists.
 
-
 ## Usage
-
 
 ### `casfs` on top of Node.js `fs` module
 
@@ -21,9 +19,9 @@ import * as fs from 'fs';
 import { nodeToFsa } from 'memfs/lib/node-to-fsa';
 import { FsaCrud } from 'memfs/lib/fsa-to-crud';
 
-const fsa = nodeToFsa(fs, '/path/to/folder', {mode: 'readwrite'});
+const fsa = nodeToFsa(fs, '/path/to/folder', { mode: 'readwrite' });
 const crud = new FsaCrud(fsa);
-const cas = new CrudCas(crud, {hash});
+const cas = new CrudCas(crud, { hash });
 ```
 
 The `hash` is a function which computes a hash digest `string` from a `Uint8Array` blob.

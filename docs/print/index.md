@@ -7,9 +7,9 @@ Here is the [`/src` folder print demo of this project](../../demo/print/fs.ts):
 
 ```ts
 import * as fs from 'fs';
-import {toTreeSync} from 'memfs/lib/print';
+import { toTreeSync } from 'memfs/lib/print';
 
-console.log(toTreeSync(fs, {dir: process.cwd() + '/src/fsa-to-node'}));
+console.log(toTreeSync(fs, { dir: process.cwd() + '/src/fsa-to-node' }));
 
 // Output:
 // src/

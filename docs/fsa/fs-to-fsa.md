@@ -16,7 +16,7 @@ of any folder on your filesystem:
 ```js
 import { nodeToFsa } from 'memfs/lib/node-to-fsa';
 
-const dir = nodeToFsa(fs, '/path/to/folder', {mode: 'readwrite'});
+const dir = nodeToFsa(fs, '/path/to/folder', { mode: 'readwrite' });
 ```
 
 The `fs` Node filesystem API can be the real `fs` module or any `fs` like object, for example,

@@ -2,15 +2,15 @@
 (window as any).Buffer = require('buffer').Buffer;
 
 import type * as fsa from '../../src/fsa/types';
-import {FsaNodeFs} from '../../src/fsa-to-node';
+import { FsaNodeFs } from '../../src/fsa-to-node';
 const tar = require('tar-stream');
 
 const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
   const fs = new FsaNodeFs(dir);
   await fs.promises.writeFile('hello.txt', 'Hello World');
   await fs.promises.writeFile('cool.txt', 'Cool Worlds channel');
-  
-  const list = await fs.promises.readdir('/') as string[];
+
+  const list = (await fs.promises.readdir('/')) as string[];
 
   const pack = tar.pack();
   const tarball = fs.createWriteStream('backups.tar');
@@ -22,16 +22,16 @@ const demo = async (dir: fsa.IFileSystemDirectoryHandle) => {
     if (!stat.isFile()) continue;
     pack.entry({ name: '/backups/' + item }, await fs.promises.readFile('/' + item), () => {});
   }
-  
+
   pack.finalize();
 };
 
 const main = async () => {
-  const button = document.createElement("button");
-  button.textContent = "Select an empty folder";
+  const button = document.createElement('button');
+  button.textContent = 'Select an empty folder';
   document.body.appendChild(button);
   button.onclick = async () => {
-    const dir = await (window as any).showDirectoryPicker({id: 'demo', mode: 'readwrite'});
+    const dir = await (window as any).showDirectoryPicker({ id: 'demo', mode: 'readwrite' });
     await demo(dir);
   };
 };

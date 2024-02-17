@@ -1,6 +1,16 @@
 import {decodeAscii, decodeAsciiMax15} from '../decodeAscii';
 import v18 from './v18';
 
+declare global {
+  interface Buffer {
+    utf8Slice(buf: Uint8Array, start: number, length: number): string
+  }
+
+  interface Uint8Array {
+    toString(encoding?: string): string;
+  }
+}
+
 type Decoder = (buf: Uint8Array, start: number, length: number) => string;
 
 const hasBuffer = typeof Buffer !== 'undefined';

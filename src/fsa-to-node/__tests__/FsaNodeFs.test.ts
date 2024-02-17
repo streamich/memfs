@@ -3,9 +3,18 @@ import { AMODE } from '../../consts/AMODE';
 import { nodeToFsa } from '../../node-to-fsa';
 import { IDirent, IStats } from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
-import { tick, until, of } from '../../thingies';
+import { of } from '../../thingies';
 import { onlyOnNode20 } from '../../__tests__/util';
 import { FLAG } from '../../consts/FLAG';
+
+const tick = (ms: number = 1) => new Promise(r => setTimeout(r, ms));
+
+const until = async (check: () => boolean | Promise<boolean>, pollInterval: number = 1) => {
+  do {
+    if (await check()) return;
+    await tick(pollInterval);
+  } while (true);
+};
 
 const setup = (json: NestedDirectoryJSON | null = null, mode: 'read' | 'readwrite' = 'readwrite') => {
   const { fs: mfs, vol } = memfs({ mountpoint: json });

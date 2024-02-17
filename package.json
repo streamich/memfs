@@ -50,7 +50,7 @@
     "demo/runkit.js"
   ],
   "scripts": {
-    "build": "tsc -p .",
+    "build": "tsc -p . && rimraf --glob lib/__tests__ 'lib/**/__tests__'",
     "build:webfs": "NODE_ENV=production webpack --config ./src/webfs/webpack.config.js",
     "clean": "rimraf lib types",
     "demo:crud-and-cas": "webpack serve --config ./demo/crud-and-cas/webpack.config.js",

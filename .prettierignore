@@ -1,1 +1,13 @@
+.idea
+node_modules
+/.idea
+.nyc_output
+coverage
+package-lock.json
+/lib/
+/gh-pages
+/dist
+/fs-test/
+CHANGELOG.md
+
 src/json-joy

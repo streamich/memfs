@@ -45,7 +45,7 @@ jobs:
       - name: run typecheck
         run: yarn typecheck
       - name: run Prettier
-        run: yarn prettier:diff
+        run: yarn prettier:check
 
   test-node:
     name: Test on Node.js v${{ matrix.node-version }}

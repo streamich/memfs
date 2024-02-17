@@ -1,3 +1,10 @@
+## [4.7.6](https://github.com/streamich/memfs/compare/v4.7.5...v4.7.6) (2024-02-17)
+
+
+### Bug Fixes
+
+* remove tests from published package ([#1003](https://github.com/streamich/memfs/issues/1003)) ([d3b62dc](https://github.com/streamich/memfs/commit/d3b62dc3785a50776369aa47bc2244c896ff2bdc))
+
 ## [4.7.5](https://github.com/streamich/memfs/compare/v4.7.4...v4.7.5) (2024-02-17)
 
 

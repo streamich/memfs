@@ -1,3 +1,10 @@
+## [4.7.5](https://github.com/streamich/memfs/compare/v4.7.4...v4.7.5) (2024-02-17)
+
+
+### Bug Fixes
+
+* inline `thingies` dependency ([#1004](https://github.com/streamich/memfs/issues/1004)) ([6fc340d](https://github.com/streamich/memfs/commit/6fc340d83544d04c35f62bc0fa7aadf77266af12))
+
 ## [4.7.4](https://github.com/streamich/memfs/compare/v4.7.3...v4.7.4) (2024-02-17)
 
 

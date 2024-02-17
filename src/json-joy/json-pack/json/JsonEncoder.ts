@@ -157,10 +157,6 @@ export class JsonEncoder implements BinaryJsonEncoder, StreamingBinaryJsonEncode
     writer.u8(0x5d); // ]
   }
 
-  public writeArrSeparator(): void {
-    this.writer.u8(0x2c); // ,
-  }
-
   public writeObj(obj: Record<string, unknown>): void {
     const writer = this.writer;
     const keys = Object.keys(obj);
@@ -176,14 +172,6 @@ export class JsonEncoder implements BinaryJsonEncoder, StreamingBinaryJsonEncode
       writer.u8(0x2c); // ,
     }
     writer.uint8[writer.x - 1] = 0x7d; // }
-  }
-
-  public writeObjSeparator(): void {
-    this.writer.u8(0x2c); // ,
-  }
-
-  public writeObjKeySeparator(): void {
-    this.writer.u8(0x3a); // :
   }
 
   // ------------------------------------------------------- Streaming encoding

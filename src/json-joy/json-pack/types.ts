@@ -7,8 +7,6 @@ export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 type JsonArray = JsonValue[] | readonly JsonValue[];
 type JsonObject = {[key: string]: JsonValue} | Readonly<{[key: string]: JsonValue}>;
 
-export type TypedJsonValue<T> = T & JsonValue;
-
 export type PackPrimitive = JsonPrimitive | undefined | Uint8Array | JsonPackValue | JsonPackExtension | bigint;
 export type PackValue = PackPrimitive | PackArray | PackObject;
 type PackArray = PackValue[] | readonly PackValue[];

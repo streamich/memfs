@@ -5,8 +5,4 @@ export class Slice {
     public readonly start: number,
     public readonly end: number,
   ) {}
-
-  public subarray(): Uint8Array {
-    return this.uint8.subarray(this.start, this.end);
-  }
 }

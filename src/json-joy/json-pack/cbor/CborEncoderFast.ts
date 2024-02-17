@@ -2,7 +2,6 @@ import {Writer} from '../../util/buffers/Writer';
 import {CONST, MAJOR_OVERLAY} from './constants';
 import type {IWriter, IWriterGrowable} from '../../util/buffers';
 import type {BinaryJsonEncoder, StreamingBinaryJsonEncoder, TlvBinaryJsonEncoder} from '../types';
-import type {Slice} from '../../util/buffers/Slice';
 
 const isSafeInteger = Number.isSafeInteger;
 
@@ -18,11 +17,6 @@ export class CborEncoderFast<W extends IWriter & IWriterGrowable = IWriter & IWr
   public encode(value: unknown): Uint8Array {
     this.writeAny(value);
     return this.writer.flush();
-  }
-
-  public encodeToSlice(value: unknown): Slice {
-    this.writeAny(value);
-    return this.writer.flushSlice();
   }
 
   public writeAny(value: unknown): void {
@@ -44,14 +38,6 @@ export class CborEncoderFast<W extends IWriter & IWriterGrowable = IWriter & IWr
         }
       }
     }
-  }
-
-  public writeCbor(): void {
-    this.writer.u8u16(0xd9, 0xd9f7);
-  }
-
-  public writeEnd(): void {
-    this.writer.u8(CONST.END);
   }
 
   public writeNull(): void {
@@ -114,21 +100,6 @@ export class CborEncoderFast<W extends IWriter & IWriterGrowable = IWriter & IWr
       x += 8;
     }
     writer.x = x;
-  }
-
-  /** @deprecated Remove and use `writeNumber` instead. */
-  public encodeNumber(num: number): void {
-    this.writeNumber(num);
-  }
-
-  /** @deprecated Remove and use `writeInteger` instead. */
-  public encodeInteger(int: number): void {
-    this.writeInteger(int);
-  }
-
-  /** @deprecated */
-  public encodeUint(uint: number): void {
-    this.writeUInteger(uint);
   }
 
   public encodeNint(int: number): void {
@@ -257,10 +228,6 @@ export class CborEncoderFast<W extends IWriter & IWriterGrowable = IWriter & IWr
     this.writeObjHdr(length);
   }
 
-  public writeStartMap(): void {
-    this.writer.u8(0xbf);
-  }
-
   public writeTag(tag: number, value: unknown): void {
     this.writeTagHdr(tag);
     this.writeAny(value);
@@ -273,12 +240,6 @@ export class CborEncoderFast<W extends IWriter & IWriterGrowable = IWriter & IWr
     else if (tag <= 0xffff) writer.u8u16(0xd9, tag);
     else if (tag <= 0xffffffff) writer.u8u32(0xda, tag);
     else writer.u8u64(0xdb, tag);
-  }
-
-  public writeTkn(value: number): void {
-    const writer = this.writer;
-    if (value <= 23) writer.u8(MAJOR_OVERLAY.TKN + value);
-    else if (value <= 0xff) writer.u16((0xf8 << 8) + value);
   }
 
   // ------------------------------------------------------- Streaming encoding

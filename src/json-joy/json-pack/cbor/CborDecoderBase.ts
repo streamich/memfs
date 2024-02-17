@@ -152,15 +152,6 @@ export class CborDecoderBase<R extends IReader & IReaderResettable = IReader & I
 
   // ----------------------------------------------------------- String reading
 
-  public readAsStr(): string {
-    const reader = this.reader;
-    const octet = reader.u8();
-    const major = octet >> 5;
-    const minor = octet & CONST.MINOR_MASK;
-    if (major !== MAJOR.STR) throw ERROR.UNEXPECTED_STR_MAJOR;
-    return this.readStr(minor);
-  }
-
   public readStr(minor: number): string {
     const reader = this.reader;
     if (minor <= 23) return reader.utf8(minor);
@@ -259,17 +250,6 @@ export class CborDecoderBase<R extends IReader & IReaderResettable = IReader & I
       return obj;
     } else if (minor === 31) return this.readObjIndef();
     else throw ERROR.UNEXPECTED_MINOR;
-  }
-
-  /** Remove this? */
-  public readObjRaw(length: number): Record<string, unknown> {
-    const obj: Record<string, unknown> = {};
-    for (let i = 0; i < length; i++) {
-      const key = this.key();
-      const value = this.val();
-      obj[key] = value;
-    }
-    return obj;
   }
 
   public readObjIndef(): Record<string, unknown> {

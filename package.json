@@ -121,7 +121,7 @@
     }
   },
   "dependencies": {
-    "json-joy": "^11.0.0",
+    "hyperdyperid": "^1.2.0",
     "thingies": "^1.11.1",
     "tslib": "^2.0.0"
   },

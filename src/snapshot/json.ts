@@ -1,5 +1,5 @@
-import { JsonEncoder } from 'json-joy/es6/json-pack/json/JsonEncoder';
-import { JsonDecoder } from 'json-joy/es6/json-pack/json/JsonDecoder';
+import { JsonEncoder } from '../json-joy/json-pack/json/JsonEncoder';
+import { JsonDecoder } from '../json-joy/json-pack/json/JsonDecoder';
 import { fromSnapshotSync, toSnapshotSync } from './sync';
 import { fromSnapshot, toSnapshot } from './async';
 import { writer } from './shared';

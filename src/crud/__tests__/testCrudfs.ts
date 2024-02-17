@@ -1,4 +1,4 @@
-import { of } from 'thingies';
+import { of } from '../../thingies';
 import type { CrudApi } from '../types';
 
 export type Setup = () => {

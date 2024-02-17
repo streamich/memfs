@@ -1,4 +1,4 @@
-import { of } from 'thingies';
+import { of } from '../../thingies';
 import { createHash } from 'crypto';
 import { hashToLocation } from '../util';
 import type { CasApi } from '../../cas/types';

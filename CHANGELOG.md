@@ -4,6 +4,14 @@
 ### Features
 
 * inline `json-joy` dependency ([#992](https://github.com/streamich/memfs/issues/992)) ([da690fa](https://github.com/streamich/memfs/commit/da690fa9f1cbfa36b6e9ed1b5955824f4eb4545e))
+* inline `json-pointer` types ([#994](https://github.com/streamich/memfs/issues/994)) ([9b009b7](https://github.com/streamich/memfs/commit/9b009b792553756bc51210ff65dc2ff6da7ef8df))
+
+# [4.8.0-next.1](https://github.com/streamich/memfs/compare/v4.7.1...v4.8.0-next.1) (2024-02-17)
+
+
+### Features
+
+* inline `json-joy` dependency ([#992](https://github.com/streamich/memfs/issues/992)) ([da690fa](https://github.com/streamich/memfs/commit/da690fa9f1cbfa36b6e9ed1b5955824f4eb4545e))
 
 ## [4.7.1](https://github.com/streamich/memfs/compare/v4.7.0...v4.7.1) (2024-02-16)
 

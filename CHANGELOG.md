@@ -1,3 +1,10 @@
+## [4.7.3-next.1](https://github.com/streamich/memfs/compare/v4.7.2...v4.7.3-next.1) (2024-02-17)
+
+
+### Bug Fixes
+
+* inline `json-joy` dependency ([#998](https://github.com/streamich/memfs/issues/998)) ([bc5e570](https://github.com/streamich/memfs/commit/bc5e570567d2fd55a85e30d3199e33c06eb8434a))
+
 ## [4.7.2](https://github.com/streamich/memfs/compare/v4.7.1...v4.7.2) (2024-02-17)
 
 

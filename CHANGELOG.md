@@ -1,3 +1,10 @@
+# [4.8.0-next.1](https://github.com/streamich/memfs/compare/v4.7.1...v4.8.0-next.1) (2024-02-17)
+
+
+### Features
+
+* make `json-joy` and `thingies` dependencies optional ([#991](https://github.com/streamich/memfs/issues/991)) ([d9f9965](https://github.com/streamich/memfs/commit/d9f99655100bdf0b7247b7ef1ac9c562dea8e346))
+
 ## [4.7.1](https://github.com/streamich/memfs/compare/v4.7.0...v4.7.1) (2024-02-16)
 
 

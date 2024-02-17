@@ -1,4 +1,4 @@
-import { Defer } from 'thingies/es6/Defer';
+import { Defer } from '../../thingies/Defer';
 import { FsaNodeWorkerMessageCode } from './constants';
 import { SyncMessenger } from './SyncMessenger';
 import { decoder, encoder } from '../json';

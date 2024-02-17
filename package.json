@@ -121,7 +121,6 @@
     }
   },
   "dependencies": {
-    "thingies": "^1.11.1",
     "tslib": "^2.0.0"
   },
   "devDependencies": {

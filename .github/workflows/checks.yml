@@ -48,8 +48,7 @@ jobs:
         run: yarn prettier:diff
 
   test-node:
-    name:
-      Test on Node.js v${{ matrix.node-version }}
+    name: Test on Node.js v${{ matrix.node-version }}
     needs: prepare-yarn-cache
     strategy:
       fail-fast: false
@@ -92,8 +91,7 @@ jobs:
         env:
           CI: true
   release:
-    if:
-      ${{ github.event_name == 'push' && (github.event.ref == 'refs/heads/master' || github.event.ref == 'refs/heads/next') }}
+    if: ${{ github.event_name == 'push' && (github.event.ref == 'refs/heads/master' || github.event.ref == 'refs/heads/next') }}
     name: Release new version
     needs: [typecheck, test-node, test-os]
     runs-on: ubuntu-latest

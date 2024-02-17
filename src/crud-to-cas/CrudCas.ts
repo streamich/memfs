@@ -22,7 +22,10 @@ const normalizeErrors = async <T>(code: () => Promise<T>): Promise<T> => {
 };
 
 export class CrudCas implements CasApi {
-  constructor(protected readonly crud: CrudApi, protected readonly options: CrudCasOptions) {}
+  constructor(
+    protected readonly crud: CrudApi,
+    protected readonly options: CrudCasOptions,
+  ) {}
 
   public readonly put = async (blob: Uint8Array): Promise<string> => {
     const digest = await this.options.hash(blob);

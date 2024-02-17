@@ -9,13 +9,11 @@
 
 JavaScript file system utilities for Node.js and browser.
 
-
 ## Install
 
 ```shell
 npm i memfs
 ```
-
 
 ## Docs
 
@@ -27,7 +25,6 @@ npm i memfs
 - [Directory `snapshot` utility](./docs/snapshot/index.md)
 - [`print` directory tree to terminal](./docs/print/index.md)
 
-
 ## Demos
 
 - [Git in browser, which writes to a real folder](demo/git-fsa/README.md)
@@ -36,7 +33,6 @@ npm i memfs
 - [`fs` in browser, creates a `.tar` file in real folder](demo/fsa-to-node-zipfile/README.md)
 - [`fs` in browser, synchronous API, writes to real folder](demo/fsa-to-node-sync-tests/README.md)
 - [`crudfs` and `casfs` in browser and Node.js interoperability](demo/crud-and-cas/README.md)
-
 
 ## See also
 
@@ -49,7 +45,6 @@ npm i memfs
 [fs-monkey]: https://github.com/streamich/fs-monkey
 [linkfs]: https://github.com/streamich/linkfs
 [spyfs]: https://github.com/streamich/spyfs
-
 
 ## License
 

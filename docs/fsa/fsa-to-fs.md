@@ -8,7 +8,6 @@ package that uses `fs` module.
 
 [fsa]: https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API
 
-
 ## Usage
 
 You need to get hold of [`FileSystemDirectoryHandle`](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle) and then
@@ -29,7 +28,6 @@ await fs.promises.writeFile('/hello.txt', 'Hello World!');
 Out ouf the box most asynchronous API methods are supported, including callbacks API,
 promises API, write stream, and read stream.
 
-
 ## Synchronous API
 
 It is possible to use synchronous API, but it requires some extra setup. You need
@@ -45,7 +43,7 @@ const fs = new FsaNodeFs(dir, adapter);
 Where `'https://<path>/worker.js'` is a path to a worker file, which could look like this:
 
 ```js
-import {FsaNodeSyncWorker} from "../../src/fsa-to-node/worker/FsaNodeSyncWorker";
+import { FsaNodeSyncWorker } from '../../src/fsa-to-node/worker/FsaNodeSyncWorker';
 
 if (typeof window === 'undefined') {
   const worker = new FsaNodeSyncWorker();
@@ -71,7 +69,6 @@ Using Webpack dev server you can do it like this:
 ```
 
 Now most of the synchronous API should work, see the sync demo below.
-
 
 ## Demos
 

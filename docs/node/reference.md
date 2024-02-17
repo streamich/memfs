@@ -1,6 +1,5 @@
 # Reference
 
-
 ## `vol` vs `fs`
 
 This package exports `vol` and `fs` objects which both can be used for
@@ -20,7 +19,6 @@ All contents of the `fs` object are also exported individually, so you can use
 ```js
 import { readFileSync, F_OK, ReadStream } from 'memfs';
 ```
-
 
 ## `Volume` Constructor
 
@@ -54,9 +52,7 @@ const vol = Volume.fromJSON({
 
 It is just a shorthand for `vol.fromJSON`, see below.
 
-
 ## `Volume` instance `vol`
-
 
 #### `vol.fromJSON(json[, cwd])`
 
@@ -77,11 +73,9 @@ vol.fromJSON(
 );
 ```
 
-
 #### `vol.mountSync(cwd, json)`
 
 Legacy method, which is just an alias for `vol.fromJSON`.
-
 
 #### `vol.toJSON([paths[, json[, isRelative]]])`
 
@@ -95,7 +89,6 @@ an array of paths. A path can be a string, `Buffer` or an `URL` object.
 
 `isRelative` is boolean that specifies if returned paths should be relative.
 
-
 #### `vol.reset()`
 
 Removes all files from the volume.
@@ -106,7 +99,6 @@ vol.toJSON(); // {'/index.js': '...' }
 vol.reset();
 vol.toJSON(); // {}
 ```
-
 
 #### `vol.toTree()`
 
@@ -120,9 +112,9 @@ const { vol } = memfs({
     'package.json': '...',
     'tsconfig.json': '...',
     'index.ts': '...',
-    'util': {
+    util: {
       'index.ts': '...',
-      'print': {
+      print: {
         'index.ts': '...',
         'printTree.ts': '...',
       },
@@ -152,7 +144,6 @@ console.log(vol.toTree());
 
 The `.toTree()` method accepts options object, where one can specify a sub-folder,
 depth of the printed tree, and a separator.
-
 
 ## `createFsFromVolume(vol)`
 

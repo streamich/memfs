@@ -47,8 +47,8 @@ module.exports = {
     https: true,
     headers: {
       // These two headers are required for SharedArrayBuffer to work.
-      "Cross-Origin-Opener-Policy": "same-origin",
-      "Cross-Origin-Embedder-Policy": "require-corp",
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
     },
     port: 9876,
     hot: false,

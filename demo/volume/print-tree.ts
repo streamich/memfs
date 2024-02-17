@@ -7,9 +7,9 @@ const { vol } = memfs({
     'package.json': '...',
     'tsconfig.json': '...',
     'index.ts': '...',
-    'util': {
+    util: {
       'index.ts': '...',
-      'print': {
+      print: {
         'index.ts': '...',
         'printTree.ts': '...',
       },

@@ -1,5 +1,5 @@
 This demo showcase how to run Git in browser built-int OPFS file system. OPFS
-stands for (Origin Private File System) it is a virtual file system available 
+stands for (Origin Private File System) it is a virtual file system available
 in browser and it requires no permission to access.
 
 In this demo we use `memfs` to create a Node `fs`-like file system in browser

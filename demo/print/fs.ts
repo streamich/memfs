@@ -1,9 +1,9 @@
 // Run: npx ts-node demo/print/fs.ts
 
 import * as fs from 'fs';
-import {toTreeSync} from '../../src/print';
+import { toTreeSync } from '../../src/print';
 
-console.log(toTreeSync(<any>fs, {dir: process.cwd() + '/src/fsa-to-node'}));
+console.log(toTreeSync(<any>fs, { dir: process.cwd() + '/src/fsa-to-node' }));
 
 // Output:
 // src/

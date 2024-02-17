@@ -1,6 +1,6 @@
 import { Writable } from 'stream';
-import { Defer } from 'thingies/es6/Defer';
-import { concurrency } from 'thingies/es6/concurrency';
+import { Defer } from '../thingies/Defer';
+import { concurrency } from '../thingies/concurrency';
 import { flagsToNumber } from '../node/util';
 import { FLAG } from '../consts/FLAG';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';

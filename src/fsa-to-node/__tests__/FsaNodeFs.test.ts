@@ -3,7 +3,7 @@ import { AMODE } from '../../consts/AMODE';
 import { nodeToFsa } from '../../node-to-fsa';
 import { IDirent, IStats } from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
-import { tick, until, of } from 'thingies';
+import { tick, until, of } from '../../thingies';
 import { onlyOnNode20 } from '../../__tests__/util';
 import { FLAG } from '../../consts/FLAG';
 

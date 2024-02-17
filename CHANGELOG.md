@@ -1,3 +1,10 @@
+## [4.7.2](https://github.com/streamich/memfs/compare/v4.7.1...v4.7.2) (2024-02-17)
+
+
+### Bug Fixes
+
+* make `tslib` a direct dependency ([#996](https://github.com/streamich/memfs/issues/996)) ([c9606fb](https://github.com/streamich/memfs/commit/c9606fb07e055b3c3ef30ca65a9dd071d3b2ca7f))
+
 ## [4.7.1](https://github.com/streamich/memfs/compare/v4.7.0...v4.7.1) (2024-02-16)
 
 

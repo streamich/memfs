@@ -18,7 +18,7 @@ export const basename = (path: string, separator: string) => {
   return lastSlashIndex === -1 ? path : path.slice(lastSlashIndex + 1);
 };
 
-const nameRegex = /^(\.{1,2})|(.*(\/|\\).*)$/;
+const nameRegex = /^(\.{1,2})$|^(.*([\/\\]).*)$/;
 
 export const assertName = (name: string, method: string, klass: string) => {
   const isInvalid = !name || nameRegex.test(name);

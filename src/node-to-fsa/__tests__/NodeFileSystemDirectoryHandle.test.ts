@@ -303,6 +303,12 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
       });
     }
 
+    test(`accepts file names beginning with a .`, async () => {
+      const { dir } = setup({ '.hidden': 'contents' });
+      const fileHandle = await dir.getFileHandle('.hidden');
+      expect(fileHandle).toBeInstanceOf(NodeFileSystemFileHandle);
+    });
+
     test('can retrieve a child file', async () => {
       const { dir } = setup({ file: 'contents', subdir: null });
       const subdir = await dir.getFileHandle('file');

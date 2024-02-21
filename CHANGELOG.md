@@ -1,3 +1,10 @@
+## [4.7.7](https://github.com/streamich/memfs/compare/v4.7.6...v4.7.7) (2024-02-21)
+
+
+### Bug Fixes
+
+* accept file names beginning with a period ([#1005](https://github.com/streamich/memfs/issues/1005)) ([3c18dae](https://github.com/streamich/memfs/commit/3c18daeb7ee78813ae66df484070f51f3a16777e))
+
 ## [4.7.6](https://github.com/streamich/memfs/compare/v4.7.5...v4.7.6) (2024-02-17)
 
 

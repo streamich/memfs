@@ -16,7 +16,7 @@ const b = (str: string) => {
 };
 
 export type Setup = () => {
-  cas: CasApi;
+  cas: CasApi<string>;
   crud: CrudApi;
   snapshot: () => Record<string, string | null>;
 };

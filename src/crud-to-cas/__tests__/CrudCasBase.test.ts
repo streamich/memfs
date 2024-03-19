@@ -5,6 +5,7 @@ import { FsaCrud } from '../../fsa-to-crud/FsaCrud';
 import { createHash } from 'crypto';
 import { hashToLocation } from '../util';
 import { CrudCasBase } from '../CrudCasBase';
+import { FsLocation } from '../../fsa-to-node/types';
 
 onlyOnNode20('CrudCas on FsaCrud', () => {
   const setup = () => {
@@ -13,7 +14,7 @@ onlyOnNode20('CrudCas on FsaCrud', () => {
     const crud = new FsaCrud(fsa);
     return { fs, fsa, crud, snapshot: () => (<any>fs).__vol.toJSON() };
   };
-  
+
   test('can use a custom hashing digest type', async () => {
     const { crud } = setup();
     class Hash {
@@ -25,7 +26,12 @@ onlyOnNode20('CrudCas on FsaCrud', () => {
       const digest = shasum.digest('hex');
       return new Hash(digest);
     };
-    const cas = new CrudCasBase<Hash>(crud, hash, (id: Hash) => hashToLocation(id.digest), (h1: Hash, h2: Hash) => h1.digest === h2.digest);
+    const cas = new CrudCasBase<Hash>(
+      crud,
+      hash,
+      (id: Hash) => hashToLocation(id.digest),
+      (h1: Hash, h2: Hash) => h1.digest === h2.digest,
+    );
     const blob = Buffer.from('hello world');
     const id = await cas.put(blob);
     expect(id).toBeInstanceOf(Hash);
@@ -45,7 +51,13 @@ onlyOnNode20('CrudCas on FsaCrud', () => {
       shasum.update(blob);
       return shasum.digest('hex');
     };
-    const cas = new CrudCasBase<string>(crud, hash, (h: string) => [[h[0], h[1], h[2]], h[3]], (h1: string, h2: string) => h1 === h2);
+    const theCustomFolderShardingStrategy = (h: string): FsLocation => [[h[0], h[1], h[2]], h[3]];
+    const cas = new CrudCasBase<string>(
+      crud,
+      hash,
+      theCustomFolderShardingStrategy,
+      (h1: string, h2: string) => h1 === h2,
+    );
     const blob = Buffer.from('hello world');
     const id = await cas.put(blob);
     expect(typeof id).toBe('string');

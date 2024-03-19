@@ -1,3 +1,10 @@
+# [4.8.0](https://github.com/streamich/memfs/compare/v4.7.7...v4.8.0) (2024-03-19)
+
+
+### Features
+
+* 🎸 allow to customize CAS storage hash and location mappin ([e32a57d](https://github.com/streamich/memfs/commit/e32a57d07dc05c8275180e59cff59cd76cbd4841))
+
 ## [4.7.7](https://github.com/streamich/memfs/compare/v4.7.6...v4.7.7) (2024-02-21)
 
 

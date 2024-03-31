@@ -76,6 +76,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
         expect(file).toBeInstanceOf(NodeFileSystemFileHandle);
         expect(file.kind).toBe('file');
         expect(file.name).toBe('file.txt');
+        await expect((file as NodeFileSystemFileHandle).getFile()).resolves.toBeInstanceOf(File);
       }
     });
 

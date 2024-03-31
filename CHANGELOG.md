@@ -1,3 +1,10 @@
+## [4.8.1](https://github.com/streamich/memfs/compare/v4.8.0...v4.8.1) (2024-03-31)
+
+
+### Bug Fixes
+
+* fix handle paths in FSA entries iterator ([#1019](https://github.com/streamich/memfs/issues/1019)) ([b8905eb](https://github.com/streamich/memfs/commit/b8905eb0661d926f45e9a6012658210794e86d31))
+
 # [4.8.0](https://github.com/streamich/memfs/compare/v4.7.7...v4.8.0) (2024-03-19)
 
 

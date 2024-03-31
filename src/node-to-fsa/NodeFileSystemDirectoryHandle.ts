@@ -57,7 +57,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
     for (const d of list) {
       const dirent = d as Dirent;
       const name = dirent.name + '';
-      const newPath = path + ctx.separator! + name;
+      const newPath = path + name;
       if (dirent.isDirectory()) yield [name, new NodeFileSystemDirectoryHandle(fs, newPath, ctx)];
       else if (dirent.isFile()) yield [name, new NodeFileSystemFileHandle(fs, newPath, ctx)];
     }

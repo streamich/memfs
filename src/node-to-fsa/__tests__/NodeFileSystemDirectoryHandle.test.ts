@@ -64,6 +64,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
         expect(subdir).toBeInstanceOf(NodeFileSystemDirectoryHandle);
         expect(subdir.kind).toBe('directory');
         expect(subdir.name).toBe('My Documents');
+        expect((subdir as NodeFileSystemDirectoryHandle).__path).toBe('/My Documents/');
       }
     });
 

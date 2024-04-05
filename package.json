@@ -128,7 +128,7 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/npm": "^9.0.1",
     "@types/jest": "^29.0.0",
-    "@types/node": "^10.17.60",
+    "@types/node": "^20.0.0",
     "@types/mime": "^3.0.0",
     "app-root-path": "^3.1.0",
     "assert": "^2.0.0",

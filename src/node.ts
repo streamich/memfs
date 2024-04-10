@@ -409,6 +409,10 @@ export class Link extends EventEmitter {
     return this.steps.join(SEP);
   }
 
+  getParentPath(): string {
+    return this.steps.slice(0, -1).join(SEP);
+  }
+
   getName(): string {
     return this.steps[this.steps.length - 1];
   }

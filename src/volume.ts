@@ -1496,7 +1496,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     return list.map(dirent => {
       if (options.recursive) {
-        return dirent.path.replace(filename2 + pathModule.posix.sep, '');
+        return pathModule.join(dirent.path, dirent.name.toString()).replace(filename2 + pathModule.posix.sep, '');
       }
       return dirent.name;
     });

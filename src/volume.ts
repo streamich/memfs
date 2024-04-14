@@ -1498,7 +1498,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       if (options.recursive) {
         let fullPath = pathModule.join(dirent.path, dirent.name.toString());
         if (isWin) {
-          fullPath.replace(/\\/g, '/');
+          console.log("Is windows")
+          fullPath = fullPath.replace(/\\/g, '/');
         }
         return fullPath.replace(filename2 + pathModule.posix.sep, '');
       }

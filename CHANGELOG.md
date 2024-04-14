@@ -1,3 +1,10 @@
+## [4.8.2](https://github.com/streamich/memfs/compare/v4.8.1...v4.8.2) (2024-04-14)
+
+
+### Bug Fixes
+
+* don't include filename in `path` when calling `readdir` with `withFileTypes: true` ([#1024](https://github.com/streamich/memfs/issues/1024)) ([711c4bd](https://github.com/streamich/memfs/commit/711c4bd24667c88a45551f1bed7a5069d7170dc2))
+
 ## [4.8.1](https://github.com/streamich/memfs/compare/v4.8.0...v4.8.1) (2024-03-31)
 
 

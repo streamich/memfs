@@ -67,9 +67,9 @@ describe('readdirSync()', () => {
       return { ...dirent };
     });
     expect(mapped).toEqual([
-      { mode: 33206, name: 'af', path: '/x/af' },
-      { mode: 16895, name: 'b', path: '/x/b' },
-      { mode: 16895, name: 'c', path: '/x/c' },
+      { mode: 33206, name: 'af', path: '/x' },
+      { mode: 16895, name: 'b', path: '/x' },
+      { mode: 16895, name: 'c', path: '/x' },
     ]);
   });
 
@@ -105,16 +105,16 @@ describe('readdirSync()', () => {
       })
       .sort((a, b) => a.path.localeCompare(b.path));
     expect(mapped).toEqual([
-      { mode: 33206, name: 'af1', path: '/z/af1' },
-      { mode: 33206, name: 'af2', path: '/z/af2' },
-      { mode: 16895, name: 'b', path: '/z/b' },
-      { mode: 33206, name: 'bf1', path: '/z/b/bf1' },
-      { mode: 33206, name: 'bf2', path: '/z/b/bf2' },
+      { mode: 33206, name: 'af1', path: '/z' },
+      { mode: 33206, name: 'af2', path: '/z' },
+      { mode: 16895, name: 'b', path: '/z' },
+      { mode: 16895, name: 'c', path: '/z' },
+      { mode: 33206, name: 'bf1', path: '/z/b' },
+      { mode: 33206, name: 'bf2', path: '/z/b' },
       { mode: 16895, name: 'c', path: '/z/c' },
-      { mode: 16895, name: 'c', path: '/z/c/c' },
-      { mode: 33206, name: '.cf0', path: '/z/c/c/.cf0' },
-      { mode: 33206, name: 'cf1', path: '/z/c/c/cf1' },
-      { mode: 33206, name: 'cf2', path: '/z/c/c/cf2' },
+      { mode: 33206, name: '.cf0', path: '/z/c/c' },
+      { mode: 33206, name: 'cf1', path: '/z/c/c' },
+      { mode: 33206, name: 'cf2', path: '/z/c/c' },
     ]);
   });
 });

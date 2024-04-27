@@ -182,7 +182,9 @@ export class NodeCrud implements crud.CrudApi {
     }
   };
 
-  public readonly scan = async function* (collection: crud.CrudCollection): AsyncIterableIterator<crud.CrudCollectionEntry> {
+  public readonly scan = async function* (
+    collection: crud.CrudCollection,
+  ): AsyncIterableIterator<crud.CrudCollectionEntry> {
     assertType(collection, 'scan', 'crudfs');
     const dir = await this.checkDir(collection);
     const dirents = (await this.fs.readdir(dir, { withFileTypes: true })) as IDirent[];

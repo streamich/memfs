@@ -137,7 +137,9 @@ export class FsaCrud implements crud.CrudApi {
     }
   };
 
-  public readonly scan = async function* (collection: crud.CrudCollection): AsyncIterableIterator<crud.CrudCollectionEntry> {
+  public readonly scan = async function* (
+    collection: crud.CrudCollection,
+  ): AsyncIterableIterator<crud.CrudCollectionEntry> {
     assertType(collection, 'scan', 'crudfs');
     const [dir] = await this.getDir(collection, false);
     for await (const [id, handle] of dir.entries()) {

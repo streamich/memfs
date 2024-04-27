@@ -61,11 +61,7 @@ interface SwapFile {
 export class NodeFileSystemWritableFileStream extends WritableStream implements IFileSystemWritableFileStream {
   protected readonly swap: SwapFile;
 
-  constructor(
-    protected readonly fs: NodeFsaFs,
-    protected readonly path: string,
-    keepExistingData: boolean,
-  ) {
+  constructor(protected readonly fs: NodeFsaFs, protected readonly path: string, keepExistingData: boolean) {
     const swap: SwapFile = { handle: undefined, path: '', offset: 0 };
     super({
       async start() {

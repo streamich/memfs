@@ -6379,6 +6379,11 @@ socks@^2.6.2:
     ip-address "^9.0.5"
     smart-buffer "^4.2.0"
 
+sonic-forest@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/sonic-forest/-/sonic-forest-1.0.0.tgz#b0b77d9bca76434f4ef87b61042d041da63f3be5"
+  integrity sha512-yFO2N4uTUFtgKLw03WWFpN1iEwZySweMsa18XN3Kt0yYrlmVHunC2ZgM+437zDoKISAJHcH3Cg18U7d6tuSgSQ==
+
 source-map-support@0.5.13:
   version "0.5.13"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.13.tgz#31b24a9c2e73c2de85066c0feb7d44767ed52932"

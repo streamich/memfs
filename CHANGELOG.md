@@ -1,3 +1,12 @@
+# [4.9.0](https://github.com/streamich/memfs/compare/v4.8.2...v4.9.0) (2024-04-27)
+
+
+### Features
+
+* 🎸 define .scan() CRUD method ([921e05d](https://github.com/streamich/memfs/commit/921e05d26092f6dbf5a4a302c4ac251944d5d008))
+* 🎸 implement .scan() in Node.js CRUD ([3d973b7](https://github.com/streamich/memfs/commit/3d973b7dd4475c6a59443171795ef5449d11805b))
+* 🎸 implement .scan() method for FSA CRUD ([a148fb8](https://github.com/streamich/memfs/commit/a148fb89d0373442f5773c6656e433abdafdb2a0))
+
 ## [4.8.2](https://github.com/streamich/memfs/compare/v4.8.1...v4.8.2) (2024-04-14)
 
 

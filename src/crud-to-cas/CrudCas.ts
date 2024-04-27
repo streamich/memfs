@@ -9,7 +9,10 @@ export interface CrudCasOptions {
 const hashEqual = (h1: string, h2: string) => h1 === h2;
 
 export class CrudCas extends CrudCasBase<string> {
-  constructor(protected readonly crud: CrudApi, protected readonly options: CrudCasOptions) {
+  constructor(
+    protected readonly crud: CrudApi,
+    protected readonly options: CrudCasOptions,
+  ) {
     super(crud, options.hash, hashToLocation, hashEqual);
   }
 }

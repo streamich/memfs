@@ -27,7 +27,11 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
   /** Directory path with trailing slash. */
   public readonly __path: string;
 
-  public constructor(protected readonly fs: NodeFsaFs, path: string, ctx: Partial<NodeFsaContext> = {}) {
+  public constructor(
+    protected readonly fs: NodeFsaFs,
+    path: string,
+    ctx: Partial<NodeFsaContext> = {},
+  ) {
     super('directory', basename(path, ctx.separator || '/'));
     this.ctx = createCtx(ctx);
     this.__path = path[path.length - 1] === this.ctx.separator ? path : path + this.ctx.separator;

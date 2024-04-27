@@ -124,6 +124,9 @@
     }
   },
   "dependencies": {
+    "@jsonjoy.com/json-pack": "^1.0.2",
+    "@jsonjoy.com/util": "^1.1.0",
+    "sonic-forest": "^1.0.0",
     "tslib": "^2.0.0"
   },
   "devDependencies": {
@@ -131,8 +134,8 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/npm": "^9.0.1",
     "@types/jest": "^29.0.0",
-    "@types/node": "^10.17.60",
     "@types/mime": "^3.0.0",
+    "@types/node": "^10.17.60",
     "app-root-path": "^3.1.0",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",

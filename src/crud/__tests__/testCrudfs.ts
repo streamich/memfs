@@ -1,5 +1,5 @@
 import { of } from '../../thingies';
-import type { CrudApi } from '../types';
+import type { CrudApi, CrudCollectionEntry } from '../types';
 
 export type Setup = () => {
   crud: CrudApi;
@@ -271,12 +271,59 @@ export const testCrudfs = (setup: Setup) => {
     });
   });
 
+  describe('.scan()', () => {
+    test('throws if the collection is not valid', async () => {
+      const { crud } = setup();
+      try {
+        const iterable = crud.scan(['./..', 'foo']);
+        await iterable.next();
+        throw 'should not reach here';
+      } catch (err) {
+        expect(err).toBeInstanceOf(TypeError);
+        expect((<any>err).message).toBe("Failed to execute 'scan' on 'crudfs': Name is not allowed.");
+      }
+    });
+
+    test('can retrieve a list of resources and collections at root', async () => {
+      const { crud } = setup();
+      await crud.put(['foo'], 'bar', b('1'));
+      await crud.put([], 'baz', b('1'));
+      await crud.put([], 'qux', b('2'));
+      const list: CrudCollectionEntry[] = [];
+      for await (const entry of crud.scan([])) list.push(entry);
+      expect(list.length).toBe(3);
+      expect(list.find(x => x.id === 'baz')).toMatchObject({
+        type: 'resource',
+        id: 'baz',
+      });
+      expect(list.find(x => x.id === 'qux')).toMatchObject({
+        type: 'resource',
+        id: 'qux',
+      });
+      expect(list.find(x => x.id === 'foo')).toMatchObject({
+        type: 'collection',
+        id: 'foo',
+      });
+    });
+
+    test('throws when trying to list a non-existing collection', async () => {
+      const { crud } = setup();
+      await crud.put(['foo'], 'bar', b('1'));
+      await crud.put([], 'baz', b('1'));
+      await crud.put([], 'qux', b('2'));
+      const iterator = crud.scan(['gg']);
+      const [, err] = await of(iterator.next());
+      expect(err).toBeInstanceOf(DOMException);
+      expect((<any>err).name).toBe('CollectionNotFound');
+    });
+  });
+
   describe('.list()', () => {
     test('throws if the collection is not valid', async () => {
       const { crud } = setup();
       const [, err] = await of(crud.list(['./..', 'foo']));
       expect(err).toBeInstanceOf(TypeError);
-      expect((<any>err).message).toBe("Failed to execute 'drop' on 'crudfs': Name is not allowed.");
+      expect((<any>err).message).toBe("Failed to execute 'scan' on 'crudfs': Name is not allowed.");
     });
 
     test('can retrieve a list of resources and collections at root', async () => {
@@ -300,7 +347,7 @@ export const testCrudfs = (setup: Setup) => {
       });
     });
 
-    test('throws when try to list a non-existing collection', async () => {
+    test('throws when trying to list a non-existing collection', async () => {
       const { crud } = setup();
       await crud.put(['foo'], 'bar', b('1'));
       await crud.put([], 'baz', b('1'));

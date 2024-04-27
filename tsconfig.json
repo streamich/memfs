@@ -25,7 +25,7 @@
       "src/fsa-to-crud/index.ts",
       "src/fsa-to-node/index.ts",
       "src/node-to-crud/index.ts",
-      "src/node-to-fsa/index.ts",
+      "src/node-to-fsa/index.ts"
     ],
     "out": "typedocs"
   }

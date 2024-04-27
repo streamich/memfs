@@ -1,3 +1,10 @@
+## [4.9.1](https://github.com/streamich/memfs/compare/v4.9.0...v4.9.1) (2024-04-27)
+
+
+### Bug Fixes
+
+* 🐛 use latest json-pack implementation ([de54ab5](https://github.com/streamich/memfs/commit/de54ab53a5df3b857975094ce4c59d760240a6d6))
+
 # [4.9.0](https://github.com/streamich/memfs/compare/v4.8.2...v4.9.0) (2024-04-27)
 
 

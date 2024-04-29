@@ -1,3 +1,20 @@
+# [5.0.0-next.1](https://github.com/streamich/memfs/compare/v4.9.1...v5.0.0-next.1) (2024-04-29)
+
+
+### Bug Fixes
+
+* inline `thingies` ([#1001](https://github.com/streamich/memfs/issues/1001)) ([ed265f0](https://github.com/streamich/memfs/commit/ed265f0212b09f04ffbef9430f4f863f0cfc7674))
+
+
+### chore
+
+* 🤖 update build target and don't emit sourcemaps ([9d9bd01](https://github.com/streamich/memfs/commit/9d9bd0159de763b032066d99358a099c0825e2d2))
+
+
+### BREAKING CHANGES
+
+* 🧨 Build target was bumped to ES2020
+
 ## [4.9.1](https://github.com/streamich/memfs/compare/v4.9.0...v4.9.1) (2024-04-27)
 
 

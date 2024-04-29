@@ -2,9 +2,10 @@
 node_modules
 /.idea
 .nyc_output
-coverage
+/coverage/
 package-lock.json
 /lib/
-/gh-pages
+/gh-pages/
 /dist
 /fs-test/
+/typedocs/

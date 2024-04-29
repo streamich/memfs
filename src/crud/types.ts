@@ -47,6 +47,14 @@ export interface CrudApi {
   drop: (collection: CrudCollection, silent?: boolean) => Promise<void>;
 
   /**
+   * Iterates over all resources of a collection.
+   *
+   * @param collection Type of the resource, collection name.
+   * @returns Iterator of resources of the given type.
+   */
+  scan: (collection: CrudCollection) => AsyncIterableIterator<CrudCollectionEntry>;
+
+  /**
    * Fetches a list of resources of a collection, and sub-collections.
    *
    * @param collection Type of the resource, collection name.
@@ -83,9 +91,4 @@ export interface CrudResourceInfo extends CrudCollectionEntry {
   modified?: number;
   /** Timestamp when the resource was created. */
   created?: number;
-}
-
-export interface CrudScanResult {
-  cursor: string | '';
-  list: CrudCollectionEntry[];
 }

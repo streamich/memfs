@@ -64,6 +64,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
         expect(subdir).toBeInstanceOf(NodeFileSystemDirectoryHandle);
         expect(subdir.kind).toBe('directory');
         expect(subdir.name).toBe('My Documents');
+        expect((subdir as NodeFileSystemDirectoryHandle).__path).toBe('/My Documents/');
       }
     });
 
@@ -76,6 +77,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
         expect(file).toBeInstanceOf(NodeFileSystemFileHandle);
         expect(file.kind).toBe('file');
         expect(file.name).toBe('file.txt');
+        await expect((file as NodeFileSystemFileHandle).getFile()).resolves.toBeInstanceOf(File);
       }
     });
 
@@ -302,6 +304,12 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
         }
       });
     }
+
+    test('accepts file names beginning with a .', async () => {
+      const { dir } = setup({ '.hidden': 'contents' });
+      const fileHandle = await dir.getFileHandle('.hidden');
+      expect(fileHandle).toBeInstanceOf(NodeFileSystemFileHandle);
+    });
 
     test('can retrieve a child file', async () => {
       const { dir } = setup({ file: 'contents', subdir: null });

@@ -1,0 +1,22 @@
+name: Mirror
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  mirror:
+    name: Push To Gitlab
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push To Gitlab
+        env:
+          token: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          git config user.name "streamich"
+          git config user.email "memfs@users.noreply.github.com"
+          git remote add mirror "https://oauth2:${token}@gitlab.com/streamich/memfs.git"
+          git push mirror master

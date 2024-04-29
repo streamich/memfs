@@ -1,9 +1,60 @@
-## [4.7.5-next.1](https://github.com/streamich/memfs/compare/v4.7.4...v4.7.5-next.1) (2024-02-17)
+## [4.9.1](https://github.com/streamich/memfs/compare/v4.9.0...v4.9.1) (2024-04-27)
 
 
 ### Bug Fixes
 
-* inline `thingies` ([#1001](https://github.com/streamich/memfs/issues/1001)) ([ed265f0](https://github.com/streamich/memfs/commit/ed265f0212b09f04ffbef9430f4f863f0cfc7674))
+* 🐛 use latest json-pack implementation ([de54ab5](https://github.com/streamich/memfs/commit/de54ab53a5df3b857975094ce4c59d760240a6d6))
+
+# [4.9.0](https://github.com/streamich/memfs/compare/v4.8.2...v4.9.0) (2024-04-27)
+
+
+### Features
+
+* 🎸 define .scan() CRUD method ([921e05d](https://github.com/streamich/memfs/commit/921e05d26092f6dbf5a4a302c4ac251944d5d008))
+* 🎸 implement .scan() in Node.js CRUD ([3d973b7](https://github.com/streamich/memfs/commit/3d973b7dd4475c6a59443171795ef5449d11805b))
+* 🎸 implement .scan() method for FSA CRUD ([a148fb8](https://github.com/streamich/memfs/commit/a148fb89d0373442f5773c6656e433abdafdb2a0))
+
+## [4.8.2](https://github.com/streamich/memfs/compare/v4.8.1...v4.8.2) (2024-04-14)
+
+
+### Bug Fixes
+
+* don't include filename in `path` when calling `readdir` with `withFileTypes: true` ([#1024](https://github.com/streamich/memfs/issues/1024)) ([711c4bd](https://github.com/streamich/memfs/commit/711c4bd24667c88a45551f1bed7a5069d7170dc2))
+
+## [4.8.1](https://github.com/streamich/memfs/compare/v4.8.0...v4.8.1) (2024-03-31)
+
+
+### Bug Fixes
+
+* fix handle paths in FSA entries iterator ([#1019](https://github.com/streamich/memfs/issues/1019)) ([b8905eb](https://github.com/streamich/memfs/commit/b8905eb0661d926f45e9a6012658210794e86d31))
+
+# [4.8.0](https://github.com/streamich/memfs/compare/v4.7.7...v4.8.0) (2024-03-19)
+
+
+### Features
+
+* 🎸 allow to customize CAS storage hash and location mappin ([e32a57d](https://github.com/streamich/memfs/commit/e32a57d07dc05c8275180e59cff59cd76cbd4841))
+
+## [4.7.7](https://github.com/streamich/memfs/compare/v4.7.6...v4.7.7) (2024-02-21)
+
+
+### Bug Fixes
+
+* accept file names beginning with a period ([#1005](https://github.com/streamich/memfs/issues/1005)) ([3c18dae](https://github.com/streamich/memfs/commit/3c18daeb7ee78813ae66df484070f51f3a16777e))
+
+## [4.7.6](https://github.com/streamich/memfs/compare/v4.7.5...v4.7.6) (2024-02-17)
+
+
+### Bug Fixes
+
+* remove tests from published package ([#1003](https://github.com/streamich/memfs/issues/1003)) ([d3b62dc](https://github.com/streamich/memfs/commit/d3b62dc3785a50776369aa47bc2244c896ff2bdc))
+
+## [4.7.5](https://github.com/streamich/memfs/compare/v4.7.4...v4.7.5) (2024-02-17)
+
+
+### Bug Fixes
+
+* inline `thingies` dependency ([#1004](https://github.com/streamich/memfs/issues/1004)) ([6fc340d](https://github.com/streamich/memfs/commit/6fc340d83544d04c35f62bc0fa7aadf77266af12))
 
 ## [4.7.4](https://github.com/streamich/memfs/compare/v4.7.3...v4.7.4) (2024-02-17)
 

@@ -39,6 +39,16 @@ vol.writeFileSync('/foo', 'bar');
 expect(vol.toJSON()).toEqual({ '/foo': 'bar' });
 ```
 
+Construct new `memfs` volumes:
+
+```js
+import { memfs } from 'memfs';
+
+const { fs, vol } = memfs({ '/foo': 'bar' });
+
+fs.readFileSync('/foo', 'utf8'); // bar
+```
+
 Create as many filesystem volumes as you need:
 
 ```js

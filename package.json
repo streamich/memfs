@@ -50,9 +50,9 @@
     "demo/runkit.js"
   ],
   "scripts": {
-    "build": "tsc -p .",
+    "build": "tsc -p . && rimraf --glob lib/__tests__ 'lib/**/__tests__'",
     "build:webfs": "NODE_ENV=production webpack --config ./src/webfs/webpack.config.js",
-    "clean": "rimraf lib types",
+    "clean": "rimraf lib types typedocs gh-pages coverage",
     "demo:crud-and-cas": "webpack serve --config ./demo/crud-and-cas/webpack.config.js",
     "demo:fsa-to-node-sync-tests": "webpack serve --config ./demo/fsa-to-node-sync-tests/webpack.config.js",
     "demo:fsa-to-node-zipfile": "webpack serve --config ./demo/fsa-to-node-zipfile/webpack.config.js",
@@ -66,7 +66,10 @@
     "test:watch": "jest --watch",
     "tslint": "tslint \"src/**/*.ts\" -t verbose",
     "typecheck": "tsc -p .",
-    "watch": "watch \"npm run build\" ./src"
+    "watch": "watch \"npm run build\" ./src",
+    "coverage": "yarn test --collectCoverage",
+    "typedoc": "npx typedoc@0.25.13 --tsconfig tsconfig.json",
+    "build:pages": "npx rimraf@5.0.5 gh-pages && mkdir -p gh-pages && cp -r typedocs/* gh-pages && cp -r coverage gh-pages/coverage"
   },
   "commitlint": {
     "extends": [
@@ -121,6 +124,9 @@
     }
   },
   "dependencies": {
+    "@jsonjoy.com/json-pack": "^1.0.2",
+    "@jsonjoy.com/util": "^1.1.0",
+    "sonic-forest": "^1.0.0",
     "tslib": "^2.0.0"
   },
   "devDependencies": {
@@ -128,6 +134,7 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/npm": "^9.0.1",
     "@types/jest": "^29.0.0",
+    "@types/mime": "^3.0.0",
     "@types/node": "^10.17.60",
     "app-root-path": "^3.1.0",
     "assert": "^2.0.0",

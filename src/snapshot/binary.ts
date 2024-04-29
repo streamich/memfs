@@ -1,9 +1,9 @@
-import { CborEncoder } from '../json-joy/json-pack/cbor/CborEncoder';
-import { CborDecoder } from '../json-joy/json-pack/cbor/CborDecoder';
+import { CborEncoder } from '@jsonjoy.com/json-pack/lib/cbor/CborEncoder';
+import { CborDecoder } from '@jsonjoy.com/json-pack/lib/cbor/CborDecoder';
 import { fromSnapshotSync, toSnapshotSync } from './sync';
 import { fromSnapshot, toSnapshot } from './async';
 import { writer } from './shared';
-import type { CborUint8Array } from '../json-joy/json-pack/cbor/types';
+import type { CborUint8Array } from '@jsonjoy.com/json-pack/lib/cbor/types';
 import type { AsyncSnapshotOptions, SnapshotNode, SnapshotOptions } from './types';
 
 const encoder = new CborEncoder(writer);

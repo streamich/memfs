@@ -15,7 +15,7 @@ export class Dirent implements IDirent {
 
     dirent.name = strToEncoding(link.getName(), encoding);
     dirent.mode = mode;
-    dirent.path = link.getPath();
+    dirent.path = link.getParentPath();
 
     return dirent;
   }

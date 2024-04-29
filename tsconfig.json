@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es2020",
     "lib": ["ES2017", "dom"],
     "module": "commonjs",
     "removeComments": false,
     "noImplicitAny": false,
     "strictNullChecks": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "outDir": "lib",
     "declaration": true,
     "skipLibCheck": true,

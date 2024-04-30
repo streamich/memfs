@@ -125,7 +125,7 @@
   },
   "dependencies": {
     "@jsonjoy.com/json-pack": "^1.0.2",
-    "@jsonjoy.com/util": "^1.1.0",
+    "@jsonjoy.com/util": "^1.1.2",
     "sonic-forest": "^1.0.0",
     "tslib": "^2.0.0"
   },

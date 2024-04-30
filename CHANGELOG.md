@@ -1,3 +1,11 @@
+## [4.9.2](https://github.com/streamich/memfs/compare/v4.9.1...v4.9.2) (2024-04-30)
+
+
+### Bug Fixes
+
+* 🐛 bump [@jsonjoy](https://github.com/jsonjoy).com/util package ([eea3b42](https://github.com/streamich/memfs/commit/eea3b421f28698cff6800bfb8882faa340c0b344))
+* 🐛 bump json-pack ([32cc4da](https://github.com/streamich/memfs/commit/32cc4da5db9c0288574e4e539174c3d0f8816902))
+
 ## [4.9.1](https://github.com/streamich/memfs/compare/v4.9.0...v4.9.1) (2024-04-27)
 
 

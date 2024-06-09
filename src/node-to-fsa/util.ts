@@ -40,6 +40,10 @@ export const newNotFoundError = (filename?: string) =>
   );
 
 export const newTypeMismatchError = (path?: string) =>
-  new DOMException(`The path supplied exists, but was not an entry of requested type${path ? ': ' + path : ''}.`, 'TypeMismatchError');
+  new DOMException(
+    `The path supplied exists, but was not an entry of requested type${path ? ': ' + path : ''}.`,
+    'TypeMismatchError',
+  );
 
-export const newNotAllowedError = (path?: string) => new DOMException(`Permission not granted${path ? ': ' + path : ''}.`, 'NotAllowedError');
+export const newNotAllowedError = (path?: string) =>
+  new DOMException(`Permission not granted${path ? ': ' + path : ''}.`, 'NotAllowedError');

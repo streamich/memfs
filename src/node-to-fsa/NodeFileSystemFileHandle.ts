@@ -39,7 +39,7 @@ export class NodeFileSystemFileHandle extends NodeFileSystemHandle implements IF
         switch (error.code) {
           case 'EPERM':
           case 'EACCES':
-            throw newNotAllowedError();
+            throw newNotAllowedError(this.__path);
         }
       }
       throw error;

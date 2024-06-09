@@ -33,13 +33,17 @@ export const assertCanWrite = (mode: 'read' | 'readwrite') => {
     );
 };
 
-export const newNotFoundError = () =>
+export const newNotFoundError = (filename?: string) =>
   new DOMException(
-    'A requested file or directory could not be found at the time an operation was processed.',
+    `A requested file or directory could not be found at the time an operation was processed${filename ? ': ' + filename : ''}.`,
     'NotFoundError',
   );
 
-export const newTypeMismatchError = () =>
-  new DOMException('The path supplied exists, but was not an entry of requested type.', 'TypeMismatchError');
+export const newTypeMismatchError = (path?: string) =>
+  new DOMException(
+    `The path supplied exists, but was not an entry of requested type${path ? ': ' + path : ''}.`,
+    'TypeMismatchError',
+  );
 
-export const newNotAllowedError = () => new DOMException('Permission not granted.', 'NotAllowedError');
+export const newNotAllowedError = (path?: string) =>
+  new DOMException(`Permission not granted${path ? ': ' + path : ''}.`, 'NotAllowedError');

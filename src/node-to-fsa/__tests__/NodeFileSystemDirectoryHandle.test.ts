@@ -144,7 +144,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
         expect(error).toBeInstanceOf(DOMException);
         expect(error.name).toBe('NotFoundError');
         expect(error.message).toBe(
-          'A requested file or directory could not be found at the time an operation was processed.',
+          'A requested file or directory could not be found at the time an operation was processed: /b.',
         );
       }
     });
@@ -157,7 +157,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(DOMException);
         expect(error.name).toBe('TypeMismatchError');
-        expect(error.message).toBe('The path supplied exists, but was not an entry of requested type.');
+        expect(error.message).toBe('The path supplied exists, but was not an entry of requested type: /file.');
       }
     });
 
@@ -239,7 +239,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
         expect(error).toBeInstanceOf(DOMException);
         expect(error.name).toBe('NotFoundError');
         expect(error.message).toBe(
-          'A requested file or directory could not be found at the time an operation was processed.',
+          'A requested file or directory could not be found at the time an operation was processed: /b.',
         );
       }
     });
@@ -252,7 +252,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(DOMException);
         expect(error.name).toBe('TypeMismatchError');
-        expect(error.message).toBe('The path supplied exists, but was not an entry of requested type.');
+        expect(error.message).toBe('The path supplied exists, but was not an entry of requested type: /directory.');
       }
     });
 
@@ -341,7 +341,7 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
         expect(error).toBeInstanceOf(DOMException);
         expect(error.name).toBe('NotFoundError');
         expect(error.message).toBe(
-          'A requested file or directory could not be found at the time an operation was processed.',
+          'A requested file or directory could not be found at the time an operation was processed: /b.',
         );
       }
     });

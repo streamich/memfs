@@ -91,7 +91,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
     const filename = this.__path + name;
     try {
       const stats = await this.fs.promises.stat(filename);
-      if (!stats.isDirectory()) throw newTypeMismatchError();
+      if (!stats.isDirectory()) throw newTypeMismatchError(filename);
       return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
     } catch (error) {
       if (error instanceof DOMException) throw error;
@@ -103,7 +103,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
               await this.fs.promises.mkdir(filename);
               return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
             }
-            throw newNotFoundError();
+            throw newNotFoundError(filename);
           }
           case 'EPERM':
           case 'EACCES':
@@ -128,7 +128,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
     const filename = this.__path + name;
     try {
       const stats = await this.fs.promises.stat(filename);
-      if (!stats.isFile()) throw newTypeMismatchError();
+      if (!stats.isFile()) throw newTypeMismatchError(filename);
       return new NodeFileSystemFileHandle(this.fs, filename, this.ctx);
     } catch (error) {
       if (error instanceof DOMException) throw error;
@@ -140,7 +140,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
               await this.fs.promises.writeFile(filename, '');
               return new NodeFileSystemFileHandle(this.fs, filename, this.ctx);
             }
-            throw newNotFoundError();
+            throw newNotFoundError(filename);
           }
           case 'EPERM':
           case 'EACCES':
@@ -171,13 +171,13 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
         await promises.unlink(filename);
       } else if (stats.isDirectory()) {
         await promises.rmdir(filename, { recursive });
-      } else throw newTypeMismatchError();
+      } else throw newTypeMismatchError(filename);
     } catch (error) {
       if (error instanceof DOMException) throw error;
       if (error && typeof error === 'object') {
         switch (error.code) {
           case 'ENOENT': {
-            throw newNotFoundError();
+            throw newNotFoundError(filename);
           }
           case 'EPERM':
           case 'EACCES':

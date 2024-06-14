@@ -1,4 +1,4 @@
-import { printTree } from 'sonic-forest/lib/print/printTree';
+import { printTree } from 'tree-dump';
 import { basename } from '../node-to-fsa/util';
 import type { FsSynchronousApi } from '../node/types';
 import type { IDirent } from '../node/types/misc';

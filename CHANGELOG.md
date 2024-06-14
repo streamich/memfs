@@ -1,3 +1,10 @@
+## [4.9.3](https://github.com/streamich/memfs/compare/v4.9.2...v4.9.3) (2024-06-14)
+
+
+### Bug Fixes
+
+* replace `sonic-forest` with `tree-dump` ([#1038](https://github.com/streamich/memfs/issues/1038)) ([f989dcd](https://github.com/streamich/memfs/commit/f989dcd2e6457698b85491997ea073ae07c04724))
+
 ## [4.9.2](https://github.com/streamich/memfs/compare/v4.9.1...v4.9.2) (2024-04-30)
 
 

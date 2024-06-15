@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "4.9.2",
+  "version": "4.9.3",
   "description": "In-memory file-system with Node's fs API.",
   "keywords": [
     "fs",
@@ -126,7 +126,7 @@
   "dependencies": {
     "@jsonjoy.com/json-pack": "^1.0.3",
     "@jsonjoy.com/util": "^1.1.2",
-    "sonic-forest": "^1.0.0",
+    "tree-dump": "^1.0.1",
     "tslib": "^2.0.0"
   },
   "devDependencies": {

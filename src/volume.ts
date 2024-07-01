@@ -554,7 +554,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
         if (path) filename = relative(path, filename);
         json[filename] = asBuffer ? node.getBuffer() : node.getString();
       } else if (node.isDirectory()) {
-        this._toJSON(child, json, path);
+        this._toJSON(child, json, path, asBuffer);
       }
     }
 

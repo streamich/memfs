@@ -38,6 +38,8 @@ import {
   getRealpathOptions,
   getWriteFileOptions,
   writeFileDefaults,
+  getOpendirOptsAndCb,
+  getOpendirOptions,
 } from './node/options';
 import {
   validateCallback,
@@ -59,6 +61,7 @@ import {
 import type { PathLike, symlink } from 'fs';
 import type { FsPromisesApi, FsSynchronousApi } from './node/types';
 import { fsSynchronousApiList } from './node/lists/fsSynchronousApiList';
+import { Dir } from './Dir';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -2010,13 +2013,37 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   public cpSync: FsSynchronousApi['cpSync'] = notImplemented;
   public lutimesSync: FsSynchronousApi['lutimesSync'] = notImplemented;
   public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
-  public opendirSync: FsSynchronousApi['opendirSync'] = notImplemented;
 
   public cp: FsCallbackApi['cp'] = notImplemented;
   public lutimes: FsCallbackApi['lutimes'] = notImplemented;
   public statfs: FsCallbackApi['statfs'] = notImplemented;
   public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
-  public opendir: FsCallbackApi['opendir'] = notImplemented;
+
+  private opendirBase(filename: string, options: opts.IOpendirOptions): Dir {
+    const steps = filenameToSteps(filename);
+    const link: Link | null = this.getResolvedLink(steps);
+    if (!link) throw createError(ENOENT, 'opendir', filename);
+
+    const node = link.getNode();
+    if (!node.isDirectory()) throw createError(ENOTDIR, 'scandir', filename);
+
+    return Dir.build(link, options);
+  }
+
+  opendirSync(path: PathLike, options?: opts.IOpendirOptions | string): Dir {
+    const opts = getOpendirOptions(options);
+    const filename = pathToFilename(path);
+    return this.opendirBase(filename, opts);
+  }
+
+  opendir(path: PathLike, callback: TCallback<Dir>);
+  opendir(path: PathLike, options: opts.IOpendirOptions | string, callback: TCallback<Dir>);
+  opendir(path: PathLike, a?, b?) {
+    const [options, callback] = getOpendirOptsAndCb(a, b);
+    const filename = pathToFilename(path);
+    this.wrapAsync(this.opendirBase, [filename, options], callback);
+  }
+
 }
 
 function emitStop(self) {

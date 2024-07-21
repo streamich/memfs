@@ -787,7 +787,7 @@ describe('volume', () => {
       });
     });
     describe('.symlink(target, path[, type], callback)', () => {
-      xit('...', () => { });
+      xit('...', () => {});
     });
     describe('.realpathSync(path[, options])', () => {
       const vol = new Volume();
@@ -900,7 +900,7 @@ describe('volume', () => {
       });
     });
     describe('.lstat(path, callback)', () => {
-      xit('...', () => { });
+      xit('...', () => {});
     });
     describe('.statSync(path)', () => {
       const vol = new Volume();
@@ -945,7 +945,7 @@ describe('volume', () => {
       });
     });
     describe('.stat(path, callback)', () => {
-      xit('...', () => { });
+      xit('...', () => {});
     });
     describe('.fstatSync(fd)', () => {
       const vol = new Volume();
@@ -993,7 +993,7 @@ describe('volume', () => {
       });
     });
     describe('.fstat(fd, callback)', () => {
-      xit('...', () => { });
+      xit('...', () => {});
     });
     describe('.linkSync(existingPath, newPath)', () => {
       const vol = new Volume();
@@ -1013,7 +1013,7 @@ describe('volume', () => {
       });
     });
     describe('.link(existingPath, newPath, callback)', () => {
-      xit('...', () => { });
+      xit('...', () => {});
     });
     describe('.readdirSync(path)', () => {
       it('Returns simple list', () => {
@@ -1040,7 +1040,7 @@ describe('volume', () => {
       });
     });
     describe('.readdir(path, callback)', () => {
-      xit('...', () => { });
+      xit('...', () => {});
     });
     describe('.opendirSync(path, options)', () => {
       it('Using dir.readSync()', () => {
@@ -1050,55 +1050,55 @@ describe('volume', () => {
           '/2.js': '123',
           '/test/a.js': '123',
           '/test/b.js': '123',
-        })
+        });
 
-        const dir = vol.opendirSync("/");
+        const dir = vol.opendirSync('/');
 
         let de = dir.readSync();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("1.js");
+        expect(de!.name).toBe('1.js');
 
         de = dir.readSync();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("2.js");
+        expect(de!.name).toBe('2.js');
 
         de = dir.readSync();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("test");
+        expect(de!.name).toBe('test');
 
         de = dir.readSync();
         expect(de).toBeNull();
       });
-      it('With \'recursive=true\' and using dir.readSync()', () => {
+      it("With 'recursive=true' and using dir.readSync()", () => {
         const vol = new Volume();
         vol.fromJSON({
           '/1.js': '123',
           '/2.js': '123',
           '/test/a.js': '123',
           '/test/b.js': '123',
-        })
+        });
 
-        const dir = vol.opendirSync("/", { recursive: true });
+        const dir = vol.opendirSync('/', { recursive: true });
 
         let de = dir.readSync();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("1.js");
+        expect(de!.name).toBe('1.js');
 
         de = dir.readSync();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("2.js");
+        expect(de!.name).toBe('2.js');
 
         de = dir.readSync();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("test");
+        expect(de!.name).toBe('test');
 
         de = dir.readSync();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("a.js");
+        expect(de!.name).toBe('a.js');
 
         de = dir.readSync();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("b.js");
+        expect(de!.name).toBe('b.js');
 
         de = dir.readSync();
         expect(de).toBeNull();
@@ -1111,30 +1111,30 @@ describe('volume', () => {
           '/test/a.js': '123',
           '/test/b.js': '123',
           '/3.js': '123',
-        })
+        });
 
-        const dir = vol.opendirSync("/");
+        const dir = vol.opendirSync('/');
 
         let de = await dir.read();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("1.js");
+        expect(de!.name).toBe('1.js');
 
         de = await dir.read();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("2.js");
+        expect(de!.name).toBe('2.js');
 
         de = await dir.read();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("test");
+        expect(de!.name).toBe('test');
 
         de = await dir.read();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("3.js");
+        expect(de!.name).toBe('3.js');
 
         de = await dir.read();
         expect(de).toBeNull();
       });
-      it('With \'recursive=true\' and using dir.read()', async () => {
+      it("With 'recursive=true' and using dir.read()", async () => {
         const vol = new Volume();
         vol.fromJSON({
           '/1.js': '123',
@@ -1142,38 +1142,38 @@ describe('volume', () => {
           '/test/a.js': '123',
           '/test/b.js': '123',
           '/3.js': '123',
-        })
+        });
 
-        const dir = vol.opendirSync("/", { recursive: true });
+        const dir = vol.opendirSync('/', { recursive: true });
 
         let de = await dir.read();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("1.js");
+        expect(de!.name).toBe('1.js');
 
         de = await dir.read();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("2.js");
+        expect(de!.name).toBe('2.js');
 
         de = await dir.read();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("test");
+        expect(de!.name).toBe('test');
 
         de = await dir.read();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("a.js");
+        expect(de!.name).toBe('a.js');
 
         de = await dir.read();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("b.js");
+        expect(de!.name).toBe('b.js');
 
         de = await dir.read();
         expect(de).not.toBeNull();
-        expect(de!.name).toBe("3.js");
+        expect(de!.name).toBe('3.js');
 
         de = await dir.read();
         expect(de).toBeNull();
       });
-      it('Using dir.read(callback)', (done) => {
+      it('Using dir.read(callback)', done => {
         const vol = new Volume();
         vol.fromJSON({
           '/1.js': '123',
@@ -1181,13 +1181,13 @@ describe('volume', () => {
           '/test/a.js': '123',
           '/test/b.js': '123',
           '/3.js': '123',
-        })
+        });
 
-        const dir = vol.opendirSync("/");
+        const dir = vol.opendirSync('/');
 
         let de = dir.read((err: Error | null, dir?: IDirent | null): void => {
           expect(dir).not.toBeNull();
-          expect(dir!.name).toBe("1.js");
+          expect(dir!.name).toBe('1.js');
           done();
         });
       });
@@ -1199,13 +1199,13 @@ describe('volume', () => {
           '/test/a.js': '123',
           '/test/b.js': '123',
           '/3.js': '123',
-        })
+        });
 
-        const dir = vol.opendirSync("/");
+        const dir = vol.opendirSync('/');
         const expected = ['1.js', '2.js', 'test', '3.js'];
         let i = 0;
 
-        for await(const de of dir) {
+        for await (const de of dir) {
           expect(de.name).toBe(expected[i++]);
         }
       });
@@ -1256,7 +1256,7 @@ describe('volume', () => {
       });
     });
     describe('.ftruncate(fd[, len], callback)', () => {
-      xit('...', () => { });
+      xit('...', () => {});
     });
     describe('.truncateSync(path[, len])', () => {
       const vol = new Volume();
@@ -1283,7 +1283,7 @@ describe('volume', () => {
       });
     });
     describe('.truncate(path[, len], callback)', () => {
-      xit('...', () => { });
+      xit('...', () => {});
     });
     describe('.utimesSync(path, atime, mtime)', () => {
       const vol = new Volume();
@@ -1303,7 +1303,7 @@ describe('volume', () => {
       });
     });
     describe('.utimes(path, atime, mtime, callback)', () => {
-      xit('...', () => { });
+      xit('...', () => {});
     });
     describe('.mkdirSync(path[, options])', () => {
       it('Create dir at root', () => {
@@ -1349,8 +1349,8 @@ describe('volume', () => {
       });
     });
     describe('.mkdir(path[, mode], callback)', () => {
-      xit('...', () => { });
-      xit('Create /dir1/dir2/dir3', () => { });
+      xit('...', () => {});
+      xit('Create /dir1/dir2/dir3', () => {});
     });
     describe('.mkdtempSync(prefix[, options])', () => {
       it('Create temp dir at root', () => {
@@ -1369,14 +1369,14 @@ describe('volume', () => {
       });
     });
     describe('.mkdtemp(prefix[, options], callback)', () => {
-      xit('Create temp dir at root', () => { });
+      xit('Create temp dir at root', () => {});
       it('throws when prefix is not a string', () => {
         const vol = new Volume();
-        expect(() => vol.mkdtemp({} as string, () => { })).toThrow(TypeError);
+        expect(() => vol.mkdtemp({} as string, () => {})).toThrow(TypeError);
       });
       it('throws when prefix contains null bytes', () => {
         const vol = new Volume();
-        expect(() => vol.mkdtemp('/tmp-\u0000', () => { })).toThrow(/path.+string.+null bytes/i);
+        expect(() => vol.mkdtemp('/tmp-\u0000', () => {})).toThrow(/path.+string.+null bytes/i);
       });
     });
     describe('.rmdirSync(path)', () => {
@@ -1395,7 +1395,7 @@ describe('volume', () => {
       });
     });
     describe('.rmdir(path, callback)', () => {
-      xit('Remove single dir', () => { });
+      xit('Remove single dir', () => {});
       it('Async remove dir /dir1/dir2/dir3 recursively', done => {
         const vol = new Volume();
         vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
@@ -1539,7 +1539,7 @@ describe('volume', () => {
           vol.writeFileSync('/lol.txt', '2');
         }, 1);
       });
-      xit('Multiple listeners for one file', () => { });
+      xit('Multiple listeners for one file', () => {});
     });
     describe('.unwatchFile(path[, listener])', () => {
       it('Stops watching before .writeFile', done => {

@@ -2043,7 +2043,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const filename = pathToFilename(path);
     this.wrapAsync(this.opendirBase, [filename, options], callback);
   }
-
 }
 
 function emitStop(self) {

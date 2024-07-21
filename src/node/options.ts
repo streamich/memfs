@@ -87,9 +87,7 @@ const opendirDefaults: opts.IOpendirOptions = {
   recursive: false,
 };
 export const getOpendirOptions = optsGenerator<opts.IOpendirOptions>(opendirDefaults);
-export const getOpendirOptsAndCb = optsAndCbGenerator<opts.IOpendirOptions, misc.IDir>(
-  getOpendirOptions,
-);
+export const getOpendirOptsAndCb = optsAndCbGenerator<opts.IOpendirOptions, misc.IDir>(getOpendirOptions);
 
 const appendFileDefaults: opts.IAppendFileOptions = {
   encoding: 'utf8',

@@ -10,7 +10,10 @@ import type { IDir, IDirent, TCallback } from './node/types/misc';
 export class Dir implements IDir {
   private iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
 
-  constructor(protected readonly link: Link, protected options: opts.IOpendirOptions) {
+  constructor(
+    protected readonly link: Link,
+    protected options: opts.IOpendirOptions,
+  ) {
     this.path = link.getParentPath();
     this.iteratorInfo.push(link.children[Symbol.iterator]());
   }

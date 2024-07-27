@@ -2027,7 +2027,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const node = link.getNode();
     if (!node.isDirectory()) throw createError(ENOTDIR, 'scandir', filename);
 
-    return Dir.build(link, options);
+    return new Dir(link, options);
   }
 
   opendirSync(path: PathLike, options?: opts.IOpendirOptions | string): Dir {

@@ -1,3 +1,10 @@
+# [4.11.0](https://github.com/streamich/memfs/compare/v4.10.0...v4.11.0) (2024-07-27)
+
+
+### Features
+
+* volume implementation of .opendir() method ([7072fb7](https://github.com/streamich/memfs/commit/7072fb7545b6269c3f04f191a4853ad0f39ed15f))
+
 # [4.10.0](https://github.com/streamich/memfs/compare/v4.9.4...v4.10.0) (2024-07-27)
 
 

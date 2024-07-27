@@ -4,8 +4,8 @@ import type { EventEmitter } from 'events';
 import type { TSetTimeout } from '../../setTimeoutUnref';
 import type {
   IAppendFileOptions,
+  IReadableWebStreamOptions,
   IReadFileOptions,
-  IReadStreamOptions,
   IStatOptions,
   IWriteFileOptions,
 } from './options';
@@ -129,6 +129,7 @@ export interface IFileHandle {
   chown(uid: number, gid: number): Promise<void>;
   close(): Promise<void>;
   datasync(): Promise<void>;
+  readableWebStream(options?: IReadableWebStreamOptions): ReadableStream;
   read(buffer: Buffer | Uint8Array, offset: number, length: number, position: number): Promise<TFileHandleReadResult>;
   readv(buffers: ArrayBufferView[], position?: number | null): Promise<TFileHandleReadvResult>;
   readFile(options?: IReadFileOptions | string): Promise<TDataOut>;

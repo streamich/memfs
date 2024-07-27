@@ -1,5 +1,2 @@
-import { CborEncoder } from '@jsonjoy.com/json-pack/lib/cbor/CborEncoder';
-import { CborDecoder } from '@jsonjoy.com/json-pack/lib/cbor/CborDecoder';
-
-export const encoder = new CborEncoder();
-export const decoder = new CborDecoder();
+import { encoder, decoder } from '@jsonjoy.com/json-pack/lib/cbor/shared';
+export { encoder, decoder };

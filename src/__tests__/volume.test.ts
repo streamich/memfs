@@ -8,6 +8,7 @@ import { tryGetChild, tryGetChildNode } from './util';
 import { genRndStr6 } from '../node/util';
 import queueMicrotask from '../queueMicrotask';
 import { constants } from '../constants';
+import { IDirent } from '../node/types/misc';
 
 const { O_RDWR, O_SYMLINK } = constants;
 

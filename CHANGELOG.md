@@ -1,3 +1,18 @@
+# [4.10.0](https://github.com/streamich/memfs/compare/v4.9.4...v4.10.0) (2024-07-27)
+
+
+### Features
+
+* 🎸 add IReadableWebStreamOptions type ([99ebd64](https://github.com/streamich/memfs/commit/99ebd6491e4886dc9947d5b3c867241b7158357a))
+* 🎸 implement FileHandle.readableWebStream() ([c3ddc6c](https://github.com/streamich/memfs/commit/c3ddc6c21ea112056ee84e3c131f09f5b2582779))
+
+## [4.9.4](https://github.com/streamich/memfs/compare/v4.9.3...v4.9.4) (2024-07-23)
+
+
+### Bug Fixes
+
+* ensure files in subdirectories are returned as buffers when calling `toJSON` with `asBuffer` ([#1041](https://github.com/streamich/memfs/issues/1041)) ([c3d4cf3](https://github.com/streamich/memfs/commit/c3d4cf36e438f7fef2dab4639c08449ceada28a3))
+
 ## [4.9.3](https://github.com/streamich/memfs/compare/v4.9.2...v4.9.3) (2024-06-14)
 
 

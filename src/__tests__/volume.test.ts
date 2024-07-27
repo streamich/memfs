@@ -197,6 +197,15 @@ describe('volume', () => {
         const result = vol.toJSON('/', {}, false, true)['/file'];
         expect(result).toStrictEqual(buffer);
       });
+
+      it('Outputs files in subdirectories as buffers too', () => {
+        const buffer = Buffer.from('Hello');
+        const vol = new Volume();
+        vol.mkdirSync('/dir');
+        vol.writeFileSync('/dir/file', buffer);
+        const result = vol.toJSON('/', {}, false, true)['/dir/file'];
+        expect(result).toStrictEqual(buffer);
+      });
     });
 
     describe('.fromJSON(json[, cwd])', () => {

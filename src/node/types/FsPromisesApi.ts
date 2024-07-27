@@ -20,7 +20,6 @@ export interface FsPromisesApi {
   mkdtemp(prefix: string, options?: opts.IOptions): Promise<misc.TDataOut>;
   open(path: misc.PathLike, flags?: misc.TFlags, mode?: misc.TMode): Promise<misc.IFileHandle>;
   opendir(path: misc.PathLike, options?: opts.IOpendirOptions): Promise<misc.IDir>;
-  readableWebStream: (options?: opts.IReadableWebStreamOptions) => ReadableStream;
   readdir(path: misc.PathLike, options?: opts.IReaddirOptions | string): Promise<misc.TDataOut[] | misc.IDirent[]>;
   readFile(id: misc.TFileHandle, options?: opts.IReadFileOptions | string): Promise<misc.TDataOut>;
   readlink(path: misc.PathLike, options?: opts.IOptions): Promise<misc.TDataOut>;

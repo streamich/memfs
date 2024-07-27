@@ -35,13 +35,13 @@ export class FileHandle implements IFileHandle {
 
   readableWebStream(options?: opts.IReadableWebStreamOptions): ReadableStream {
     return new ReadableStream({
-      pull: async (controller) => {
+      pull: async controller => {
         const data = await this.readFile();
         controller.enqueue(data);
         controller.close();
       },
     });
-  };
+  }
 
   read(buffer: Buffer | Uint8Array, offset: number, length: number, position: number): Promise<TFileHandleReadResult> {
     return promisify(this.fs, 'read', bytesRead => ({ bytesRead, buffer }))(this.fd, buffer, offset, length, position);

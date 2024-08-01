@@ -1,3 +1,10 @@
+## [4.11.1](https://github.com/streamich/memfs/compare/v4.11.0...v4.11.1) (2024-08-01)
+
+
+### Bug Fixes
+
+* 🐛 declare ReadableStream global type ([#1048](https://github.com/streamich/memfs/issues/1048)) ([57fba2c](https://github.com/streamich/memfs/commit/57fba2c825b21e14645cdeeec6576fe44331ce7c))
+
 # [4.11.0](https://github.com/streamich/memfs/compare/v4.10.0...v4.11.0) (2024-07-27)
 
 

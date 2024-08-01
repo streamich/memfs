@@ -122,6 +122,15 @@ export interface IFSWatcher extends EventEmitter {
   close(): void;
 }
 
+/**
+ * Declare ReadableStream in case dom.d.ts is not added to the tsconfig lib causing
+ * ReadableStream interface is not defined. For developers with dom.d.ts added,
+ * the ReadableStream interface will be merged correctly.
+ */
+declare global {
+  export interface ReadableStream {}
+}
+
 export interface IFileHandle {
   fd: number;
   appendFile(data: TData, options?: IAppendFileOptions | string): Promise<void>;

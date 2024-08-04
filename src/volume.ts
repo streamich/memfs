@@ -911,8 +911,17 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   readFileSync(file: TFileId, options?: opts.IReadFileOptions | string): TDataOut {
     const opts = getReadFileOptions(options);
     const flagsNum = flagsToNumber(opts.flag);
-    return this.readFileBase(file, flagsNum, opts.encoding as BufferEncoding);
+
+    // Check if the path is a directory, and throw EISDIR error if so
+    if (typeof file === 'string') {
+        if (this.existsSync(file) && this.statSync(file).isDirectory()) {
+            throw createError('EISDIR', 'readFile', file);
+        }
+    }
+
+      return this.readFileBase(file, flagsNum, opts.encoding as BufferEncoding);
   }
+  
 
   readFile(id: TFileId, callback: TCallback<TDataOut>);
   readFile(id: TFileId, options: opts.IReadFileOptions | string, callback: TCallback<TDataOut>);
@@ -1064,8 +1073,15 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const flagsNum = flagsToNumber(opts.flag);
     const modeNum = modeToNumber(opts.mode);
     const buf = dataToBuffer(data, opts.encoding);
+
+    // Check if the parent path is a file, and throw ENOTDIR error if so
+    const parentPath = pathModule.dirname(id as string);
+    if (this.existsSync(parentPath) && !this.statSync(parentPath).isDirectory()) {
+        throw createError('ENOTDIR', 'writeFile', id as string);
+    }
+
     this.writeFileBase(id, buf, flagsNum, modeNum);
-  }
+}
 
   writeFile(id: TFileId, data: TData, callback: TCallback<void>);
   writeFile(id: TFileId, data: TData, options: opts.IWriteFileOptions | string, callback: TCallback<void>);

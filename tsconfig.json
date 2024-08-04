@@ -11,10 +11,11 @@
     "declaration": true,
     "skipLibCheck": true,
     "noEmitHelpers": true,
-    "importHelpers": true
+    "importHelpers": true,
+    "types": ["node", "jest"] 
   },
-  "include": ["src"],
-  "exclude": ["src/__tests__", "node_modules", "lib", "es6", "es2020", "esm", "docs", "README.md"],
+  "include": ["src", "src/__tests__"],
+  "exclude": ["node_modules", "lib", "es6", "es2020", "esm", "docs", "README.md"],
   "typedocOptions": {
     "entryPoints": [
       "src/index.ts",

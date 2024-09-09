@@ -774,6 +774,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let link: Link | null;
     try {
       link = resolveSymlinks ? this.getResolvedLinkOrThrow(filename, 'open') : this.getLinkOrThrow(filename, 'open');
+
+      // Check if file already existed when trying to create it exclusively (O_CREAT and O_EXCL flags are set).
+      // This is an error, see https://pubs.opengroup.org/onlinepubs/009695399/functions/open.html:
+      // "If O_CREAT and O_EXCL are set, open() shall fail if the file exists."
+      if (link && flagsNum & O_CREAT && flagsNum & O_EXCL) throw createError(EEXIST, 'open', filename);
     } catch(err) {
       // Try creating a new file, if it does not exist and O_CREAT flag is set. 
       // Note that this will still throw if the ENOENT came from one of the
@@ -790,12 +795,12 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
         // This is a difference to the original implementation, which would simply not create a file unless modeNum was specified.
         // However, current Node versions will default to 0o666.
         modeNum ??= 0o666;
+
+
         link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
       } else
         throw err;
-    }
-
-    if (link && flagsNum & O_EXCL) throw createError(EEXIST, 'open', filename);
+    }   
 
     if (link) return this.openLink(link, flagsNum, resolveSymlinks);
     throw createError(ENOENT, 'open', filename);

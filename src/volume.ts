@@ -1822,9 +1822,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
         if (link) {
           const node = link.getNode();
           // Check we have permissions for traversing
-          if (!node.canExecute()) throw createError(EACCES, 'mkdir', filename);
+          if (node.isDirectory() && !node.canExecute()) throw createError(EACCES, 'mkdir', filename);
           // Check it is, in fact, a directory
-          if (!node.isDirectory()) throw createError(ENOTDIR, 'mkdir', link.getPath());
+          if (!node.isDirectory()) throw createError(ENOTDIR, 'mkdir', filename);
         } else {
           const parentNode = parent.getNode();
           if (!parentNode.canWrite()) throw createError(EACCES, 'mkdir', filename);

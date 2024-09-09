@@ -39,4 +39,9 @@ describe('.readSync(fd, buffer, offset, length, position)', () => {
     expect(buf.equals(Buffer.from('675'))).toBe(true);
   });
   xit('Negative tests', () => {});
+
+  /* 
+   * No need for permissions tests, because readSync requires a file descriptor, which can only be 
+   * obtained from open or openSync.
+   */
 });

@@ -63,4 +63,19 @@ describe('mkdirSync', () => {
 
     expect(vol.statSync('/__proto__').isDirectory()).toBe(true);
   });
+
+  it('throws EACCES with insufficient permissions on containing directory', () => {
+    const perms = [
+      0o666, // rw across the board
+      0o555  // rx across the bord
+    ]
+    perms.forEach(perm => {
+      const vol = create({});
+      vol.mkdirSync('/foo');
+      vol.chmodSync('/foo', perm);
+      expect(() => {
+        vol.mkdirSync(`/foo/bar`);
+      }).toThrowError(/EACCES/)
+    });
+  });
 });

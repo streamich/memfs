@@ -71,4 +71,33 @@ describe('renameSync(fromPath, toPath)', () => {
       (vol as any).renameSync('/foo', 123);
     }).toThrowErrorMatchingSnapshot();
   });
+
+  it('throws EACCES when source directory has insufficient permissions', () => {
+    const perms = [
+      0o666, // rw
+      0o555  // rx - insufficient because the file will be removed from this directory during renaming
+    ];
+    perms.forEach(perm => {
+      const vol = create({ '/src/test': 'test' });
+      vol.mkdirSync('/dest');
+      vol.chmodSync('/src', perm);
+      expect(() => {
+        vol.renameSync('/src/test', '/dest/fail');
+      }).toThrowError(/EACCES/);
+    });
+  });
+
+  it('throws EACCES when destination directory has insufficient permissions', () => {
+    const perms = [
+      0o666, // rw
+      0o555  // rx
+    ];
+    perms.forEach(perm => {
+      const vol = create({ '/src/test': 'test' });
+      vol.mkdirSync('/dest', { mode: perm });
+      expect(() => {
+        vol.renameSync('/src/test', '/dest/fail');
+      }).toThrowError(/EACCES/);
+    });
+  });
 });

@@ -25,4 +25,9 @@ describe('.writeSync(fd, buffer, offset, length, position)', () => {
     fs.writeSync(fd, 'x', 1);
     expect(fs.readFileSync('/foo', 'utf8')).toBe('1x3');
   });
+
+  /* 
+   * No need for permissions tests, because write requires a file descriptor, which can only be 
+   * obtained from open or openSync.
+   */
 });

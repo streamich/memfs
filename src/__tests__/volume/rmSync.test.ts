@@ -114,4 +114,19 @@ describe('rmSync', () => {
       expect(vol.toJSON()).toEqual({});
     });
   });
+
+  it('throws EACCES when containing directory has insufficient permissions', () => {
+    const perms = [
+      0o666, // rw
+      0o555, // rx
+      0o111  // x
+    ];
+    perms.forEach(perm => {
+      const vol = create({ '/foo/test': 'test' });
+      vol.chmodSync('/foo', perm);
+      expect(() => {
+        vol.rmSync('/foo/test');
+      }).toThrowError(/EACCES/);
+    });
+  });
 });

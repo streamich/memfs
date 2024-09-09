@@ -15,4 +15,11 @@ describe('.realpathSync(...)', () => {
     const vol = create({ './a': 'a' });
     expect(vol.realpathSync('/')).toBe('/');
   });
+  it('throws EACCES when the containing directory does not have sufficient permissions', () => {
+    const vol = create({ '/foo/bar': 'bar' });
+    vol.chmodSync('/foo', 0o666); // rw
+    expect(() => {
+      vol.realpathSync('/foo/bar');
+    }).toThrow(/EACCES/);
+  });  
 });

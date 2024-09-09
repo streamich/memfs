@@ -14,4 +14,16 @@ describe('.readFile()', () => {
     expect(err).toBeInstanceOf(Error);
     expect((<any>err).code).toBe('ENOENT');
   });
+
+  it('throws EACCES if file has insufficient permissions', async () => {
+    const { fs } = memfs({ '/foo': 'test' });
+    fs.chmodSync('/foo', 0o333); // wx
+    return expect(fs.promises.readFile('/foo')).rejects.toThrow(/EACCES/);
+  });
+
+  it('throws EACCES if containing directory has insufficient permissions', async () => {
+    const { fs } = memfs({ '/foo/bar': 'test' });
+    fs.chmodSync('/foo', 0o666); // rw
+    return expect(fs.promises.readFile('/foo/bar')).rejects.toThrow(/EACCES/);
+  });
 });

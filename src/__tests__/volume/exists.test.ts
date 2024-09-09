@@ -31,4 +31,19 @@ describe('exists(path, callback)', () => {
       expect(err.message !== 'not_this').toEqual(true);
     }
   });
+  it('gives false if permissions on containing directory are insufficient', done => {
+    // Experimentally determined: fs.exists treats missing permissions as "file does not exist",
+    // presumably because due to the non-standard callback signature there is no way to signal
+    // that permissions were insufficient
+    const vol = create({ '/foo/bar': 'test' });
+    vol.chmodSync('/foo', 0o666); // rw across the board
+    vol.exists('/foo/bar', exists => {
+      try {
+        expect(exists).toEqual(false);
+        done();
+      } catch(err) {
+        done(err);
+      }
+    });
+  });
 });

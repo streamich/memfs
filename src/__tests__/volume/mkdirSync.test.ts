@@ -78,4 +78,38 @@ describe('mkdirSync', () => {
       }).toThrowError(/EACCES/)
     });
   });
+
+  describe('recursive', () => {
+    it('can create nested directories', () => {
+      const vol = create({});
+      const steps = [ 'a','b','c' ];
+      vol.mkdirSync('/a/b/c', { recursive: true });
+      expect(() => {
+        vol.statSync('/a/b/c');
+      }).not.toThrow();
+    });
+
+    it('throws ENOTDIR if trying to create under something that is not a directory', () => {
+      const vol = create({ '/a': 'I am a file' });
+      expect(() => {debugger
+        vol.mkdirSync('/a/b/c', { recursive: true });        
+      }).toThrow(/ENOTDIR/);
+    });
+
+    it('throws EACCES with insufficient permissions on containing directory', () => {
+      const perms = [
+        0o666, // rw
+        0o555, // rx
+        0o111, // x
+        0o222  // w
+      ]
+      perms.forEach(perm => {
+        const vol = create({});
+        vol.mkdirSync('/a', { mode: perm });
+        expect(() => {
+          vol.mkdirSync('/a/b/c', { recursive: true });
+        }).toThrow(/EACCES/);
+      });
+    });
+  });
 });

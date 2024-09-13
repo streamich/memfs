@@ -1995,19 +1995,16 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this.fchmodBase, [fd, modeToNumber(mode)], callback);
   }
 
-  private chmodBase(filename: string, modeNum: number) {
-    const fd = this.openSync(filename, 'r');
-    try {
-      this.fchmodBase(fd, modeNum);
-    } finally {
-      this.closeSync(fd);
-    }
+  private chmodBase(filename: string, modeNum: number, followSymlinks: boolean = true) {
+    const link = followSymlinks ? this.getResolvedLinkOrThrow(filename, 'chmod') : this.getLinkOrThrow(filename, 'chmod');
+    const node = link.getNode();
+    node.chmod(modeNum);
   }
 
   chmodSync(path: PathLike, mode: TMode) {
     const modeNum = modeToNumber(mode);
     const filename = pathToFilename(path);
-    this.chmodBase(filename, modeNum);
+    this.chmodBase(filename, modeNum, true);
   }
 
   chmod(path: PathLike, mode: TMode, callback: TCallback<void>) {
@@ -2017,12 +2014,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private lchmodBase(filename: string, modeNum: number) {
-    const fd = this.openBase(filename, O_RDWR, 0, false);
-    try {
-      this.fchmodBase(fd, modeNum);
-    } finally {
-      this.closeSync(fd);
-    }
+    this.chmodBase(filename, modeNum, false);
   }
 
   lchmodSync(path: PathLike, mode: TMode) {

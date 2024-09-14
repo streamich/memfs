@@ -472,61 +472,24 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   // Returns a `Link` (hard link) referenced by path "split" into steps.
   getLink(steps: string[]): Link | null {
     return this.walk(steps, false, false, false);
-    // return this.root.walk(steps);
   }
 
   // Just link `getLink`, but throws a correct user error, if link to found.
-  // 
   getLinkOrThrow(filename: string, funcName?: string): Link {
     return this.walk(filename, false, true, true, funcName)!;
-    // const steps = filenameToSteps(filename);
-    // const link = this.getLink(steps);
-    // if (!link) throw createError(ENOENT, funcName, filename);
-    // return link;
   }
 
   // Just like `getLink`, but also dereference/resolves symbolic links.
   getResolvedLink(filenameOrSteps: string | string[]): Link | null {
     return this.walk(filenameOrSteps, true, false, false);
-    // let steps: string[] = typeof filenameOrSteps === 'string' ? filenameToSteps(filenameOrSteps) : filenameOrSteps;
-
-    // let link: Link | undefined = this.root;
-    // let i = 0;
-    // while (i < steps.length) {
-    //   const step = steps[i];
-    //   link = link.getChild(step);
-    //   if (!link) return null;
-
-    //   const node = link.getNode();
-    //   if (node.isSymlink()) {
-    //     steps = node.symlink.concat(steps.slice(i + 1));
-    //     link = this.root;
-    //     i = 0;
-    //     continue;
-    //   }
-
-    //   i++;
-    // }
-
-    // return link;
   }
 
   // Just like `getLinkOrThrow`, but also dereference/resolves symbolic links.
   getResolvedLinkOrThrow(filename: string, funcName?: string): Link {
     return this.walk(filename, true, true, true, funcName)!;
-    // const link = this.getResolvedLink(filename);
-    // if (!link) throw createError(ENOENT, funcName, filename);
-    // return link;
   }
 
   resolveSymlinks(link: Link): Link | null {
-    // let node: Node = link.getNode();
-    // while(link && node.isSymlink()) {
-    //     link = this.getLink(node.symlink);
-    //     if(!link) return null;
-    //     node = link.getNode();
-    // }
-    // return link;
     return this.getResolvedLink(link.steps.slice(1));
   }
 
@@ -540,16 +503,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   // Get the immediate parent directory of the link.
   private getLinkParent(steps: string[]): Link | null {
     return this.getLink(steps.slice(0, -1));
-    // return this.walk(steps.slice(0, steps.length - 1), false, false, false);
-    // return this.root.walk(steps, steps.length - 1);
   }
 
   private getLinkParentAsDirOrThrow(filenameOrSteps: string | string[], funcName?: string): Link {
     const steps: string[] = (filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps)).slice(0, -1);
-    // const link = this.getLinkParent(steps);
-    // if (!link) throw createError(ENOENT, funcName, sep + steps.join(sep));
-
-    // const link = this.walk(steps, false, true, true, funcName)!;
     const filename: string = sep + steps.join(sep);
     const link = this.getLinkOrThrow(filename, funcName);
     if (!link.getNode().isDirectory()) throw createError(ENOTDIR, funcName, filename);
@@ -1804,8 +1761,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   /**
    * Creates directory tree recursively.
-   * @param filename
-   * @param modeNum
    */
   private mkdirpBase(filename: string, modeNum: number) {
     let created = false;
@@ -1842,49 +1797,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       curr = curr.createChild(steps[i], this.createNode(true, modeNum));
     }
     return created ? filename : undefined;
-
-    // const walker = new Walker(
-    //   (parent: Link, step: string): Link => {
-    //     let link = step === '' ? this.root : parent.getChild(step);
-
-    //     if (link) {
-    //       const node = link.getNode();
-    //       // Check we have permissions for traversing
-    //       if (node.isDirectory() && !node.canExecute()) throw createError(EACCES, 'mkdir', filename);
-    //       // Check it is, in fact, a directory
-    //       if (!node.isDirectory()) throw createError(ENOTDIR, 'mkdir', filename);
-    //     } else {
-    //       const parentNode = parent.getNode();
-    //       if (!parentNode.canWrite()) throw createError(EACCES, 'mkdir', filename);
-
-    //       created = true;
-    //       link = parent.createChild(step, this.createNode(true, modeNum));
-    //     }
-    //     return link;
-    //   });
-    // walker.walk(this.root, filenameToSteps(filename));
-    // return created ? filename : undefined;
-
-    // const fullPath = resolve(filename);
-    // const fullPathSansSlash = fullPath.substring(1);
-    // const steps = !fullPathSansSlash ? [] : fullPathSansSlash.split(sep);
-    // let link = this.root;
-    // let created = false;
-    // for (let i = 0; i < steps.length; i++) {
-    //   const step = steps[i];
-
-    //   if (!link.getNode().isDirectory()) throw createError(ENOTDIR, 'mkdir', link.getPath());
-
-    //   const child = link.getChild(step);
-    //   if (child) {
-    //     if (child.getNode().isDirectory()) link = child;
-    //     else throw createError(ENOTDIR, 'mkdir', child.getPath());
-    //   } else {
-    //     link = link.createChild(step, this.createNode(true, modeNum));
-    //     created = true;
-    //   }
-    // }
-    // return created ? fullPath : undefined;
   }
 
   mkdirSync(path: PathLike, options: opts.IMkdirOptions & { recursive: true }): string | undefined;
@@ -1985,18 +1897,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (!link.parent.getNode().canWrite()) throw createError(EACCES, 'rm', filename);
 
     this.deleteLink(link);
-
-    // if (!link) {
-    //   // "stat" is used to match Node's native error message.
-    //   if (!options.force) throw createError(ENOENT, 'stat', filename);
-    //   return;
-    // }
-    // if (link.getNode().isDirectory()) {
-    //   if (!options.recursive) {
-    //     throw createError(ERR_FS_EISDIR, 'rm', filename);
-    //   }
-    // }
-    // this.deleteLink(link);
   }
 
   public rmSync(path: PathLike, options?: opts.IRmOptions): void {

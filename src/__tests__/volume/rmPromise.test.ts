@@ -141,12 +141,14 @@ describe('rmSync', () => {
     const perms = [
       0o666, // rw
       0o555, // rx
-      0o111  // x
+      0o111, // x
     ];
-    return Promise.all(perms.map(perm => {
-      const vol = create({ '/foo/test': 'test' });
-      vol.chmodSync('/foo', perm);
-      return expect(vol.promises.rm('/foo/test')).rejects.toThrow(/EACCES/);
-    }));
+    return Promise.all(
+      perms.map(perm => {
+        const vol = create({ '/foo/test': 'test' });
+        vol.chmodSync('/foo', perm);
+        return expect(vol.promises.rm('/foo/test')).rejects.toThrow(/EACCES/);
+      }),
+    );
   });
 });

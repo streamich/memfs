@@ -111,10 +111,10 @@ describe('copyFileSync(src, dest[, flags])', () => {
 
     it('copying throws EACCES with insufficient permissions on the destination directory', () => {
       const perms = [
-        0o555,  // rx
-        0o666,  // rw
-        0o111,  // x
-        0o222   // w
+        0o555, // rx
+        0o666, // rw
+        0o111, // x
+        0o222, // w
       ];
       perms.forEach(perm => {
         const vol = create({ '/foo': 'foo' });
@@ -122,7 +122,7 @@ describe('copyFileSync(src, dest[, flags])', () => {
         vol.chmodSync('/bar', perm);
         expect(() => {
           vol.copyFileSync('/foo', '/bar/foo');
-        }).toThrowError(/EACCES/);      
+        }).toThrowError(/EACCES/);
       });
     });
   });

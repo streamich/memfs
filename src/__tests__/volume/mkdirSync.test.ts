@@ -67,15 +67,15 @@ describe('mkdirSync', () => {
   it('throws EACCES with insufficient permissions on containing directory', () => {
     const perms = [
       0o666, // rw across the board
-      0o555  // rx across the bord
-    ]
+      0o555, // rx across the bord
+    ];
     perms.forEach(perm => {
       const vol = create({});
       vol.mkdirSync('/foo');
       vol.chmodSync('/foo', perm);
       expect(() => {
         vol.mkdirSync(`/foo/bar`);
-      }).toThrowError(/EACCES/)
+      }).toThrowError(/EACCES/);
     });
   });
 
@@ -120,8 +120,9 @@ describe('mkdirSync', () => {
 
     it('throws ENOTDIR when trying to create under something that is not a directory', () => {
       const vol = create({ '/a': 'I am a file' });
-      expect(() => {debugger
-        vol.mkdirSync('/a/b/c', { recursive: true });        
+      expect(() => {
+        debugger;
+        vol.mkdirSync('/a/b/c', { recursive: true });
       }).toThrow(/ENOTDIR/);
     });
 
@@ -130,8 +131,8 @@ describe('mkdirSync', () => {
         0o666, // rw
         0o555, // rx
         0o111, // x
-        0o222  // w
-      ]
+        0o222, // w
+      ];
       perms.forEach(perm => {
         const vol = create({});
         vol.mkdirSync('/a', { mode: perm });

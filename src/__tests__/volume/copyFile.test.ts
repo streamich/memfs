@@ -72,12 +72,12 @@ describe('copyFile(src, dest[, flags], callback)', () => {
       });
     });
 
-    it('copying yields EACCES with insufficient permissions on the destination directory', _done => {      
+    it('copying yields EACCES with insufficient permissions on the destination directory', _done => {
       const perms = [
-        0o555,  // rx
-        0o666,  // rw
-        0o111,  // x
-        0o222   // w
+        0o555, // rx
+        0o666, // rw
+        0o111, // x
+        0o222, // w
       ];
       const done = multitest(_done, perms.length);
 
@@ -90,7 +90,7 @@ describe('copyFile(src, dest[, flags], callback)', () => {
             expect(err).toBeInstanceOf(Error);
             expect(err).toHaveProperty('code', 'EACCES');
             done();
-          } catch(err) {
+          } catch (err) {
             done(err);
           }
         });

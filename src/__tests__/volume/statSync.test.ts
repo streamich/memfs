@@ -30,7 +30,7 @@ describe('.statSync(...)', () => {
   it('throws EACCES when containing directory does not have sufficient permissions', () => {
     const vol = create({ '/foo/test': 'test' });
     vol.chmodSync('/foo', 0o666); // rw
-    
+
     expect(() => {
       vol.statSync('/foo/test');
     }).toThrowError(/EACCES/);

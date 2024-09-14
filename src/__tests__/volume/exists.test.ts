@@ -41,7 +41,7 @@ describe('exists(path, callback)', () => {
       try {
         expect(exists).toEqual(false);
         done();
-      } catch(err) {
+      } catch (err) {
         done(err);
       }
     });

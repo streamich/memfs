@@ -119,7 +119,7 @@ describe('rmSync', () => {
     const perms = [
       0o666, // rw
       0o555, // rx
-      0o111  // x
+      0o111, // x
     ];
     perms.forEach(perm => {
       const vol = create({ '/foo/test': 'test' });

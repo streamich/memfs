@@ -40,8 +40,8 @@ describe('.readSync(fd, buffer, offset, length, position)', () => {
   });
   xit('Negative tests', () => {});
 
-  /* 
-   * No need for permissions tests, because readSync requires a file descriptor, which can only be 
+  /*
+   * No need for permissions tests, because readSync requires a file descriptor, which can only be
    * obtained from open or openSync.
    */
 });

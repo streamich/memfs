@@ -10,8 +10,8 @@ export const multitest = (_done: (err?: Error) => void, times: number) => {
   return function done(_err?: Error) {
     err ??= _err;
     if (!--times) _done(_err);
-  }
-}
+  };
+};
 
 export const create = (json: { [s: string]: string } = { '/foo': 'bar' }) => {
   const vol = Volume.fromJSON(json);

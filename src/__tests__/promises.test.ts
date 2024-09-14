@@ -44,7 +44,7 @@ describe('Promises API', () => {
         vol.fromJSON({
           '/foo': 'bar',
         });
-      });      
+      });
       it('Change mode of existing file', async () => {
         const { promises } = vol;
         const fileHandle = await promises.open('/foo', 'a');

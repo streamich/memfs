@@ -401,33 +401,50 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.releasedInos.push(node.ino);
   }
 
-  private walk(steps: string[], resolveSymlinks: boolean, checkExistence: boolean, checkAccess: boolean, funcName?: string): Link | null
-  private walk(filename: string, resolveSymlinks: boolean, checkExistence: boolean, checkAccess: boolean, funcName?: string): Link | null
-  private walk(link: Link, resolveSymlinks: boolean, checkExistence: boolean, checkAccess: boolean, funcName?: string): Link | null
   private walk(
-      stepsOrFilenameOrLink: string[] | string | Link, 
-      resolveSymlinks: boolean, 
-      checkExistence: boolean,
-      checkAccess: boolean,
-      funcName?: string): Link | null;
+    steps: string[],
+    resolveSymlinks: boolean,
+    checkExistence: boolean,
+    checkAccess: boolean,
+    funcName?: string,
+  ): Link | null;
   private walk(
-      stepsOrFilenameOrLink: string[] | string | Link, 
-      resolveSymlinks: boolean = false, 
-      checkExistence: boolean = false,
-      checkAccess: boolean = false,
-      funcName?: string): Link | null {
-    
+    filename: string,
+    resolveSymlinks: boolean,
+    checkExistence: boolean,
+    checkAccess: boolean,
+    funcName?: string,
+  ): Link | null;
+  private walk(
+    link: Link,
+    resolveSymlinks: boolean,
+    checkExistence: boolean,
+    checkAccess: boolean,
+    funcName?: string,
+  ): Link | null;
+  private walk(
+    stepsOrFilenameOrLink: string[] | string | Link,
+    resolveSymlinks: boolean,
+    checkExistence: boolean,
+    checkAccess: boolean,
+    funcName?: string,
+  ): Link | null;
+  private walk(
+    stepsOrFilenameOrLink: string[] | string | Link,
+    resolveSymlinks: boolean = false,
+    checkExistence: boolean = false,
+    checkAccess: boolean = false,
+    funcName?: string,
+  ): Link | null {
     let steps: string[];
     let filename: string;
     if (stepsOrFilenameOrLink instanceof Link) {
       steps = stepsOrFilenameOrLink.steps;
       filename = sep + steps.join(sep);
-    }
-    else if (typeof stepsOrFilenameOrLink === 'string') {
-      steps = filenameToSteps(stepsOrFilenameOrLink)
+    } else if (typeof stepsOrFilenameOrLink === 'string') {
+      steps = filenameToSteps(stepsOrFilenameOrLink);
       filename = stepsOrFilenameOrLink;
-    }
-    else {
+    } else {
       steps = stepsOrFilenameOrLink;
       filename = sep + steps.join(sep);
     }
@@ -440,7 +457,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       if (node.isDirectory()) {
         if (checkAccess && !node.canExecute()) {
           throw createError(EACCES, funcName, filename);
-        } 
+        }
       } else {
         if (i < steps.length - 1) throw createError(ENOTDIR, funcName, filename);
       }
@@ -449,10 +466,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
       // Check existence of current link
       if (!curr)
-        if (checkExistence) 
-          throw createError(ENOENT, funcName, filename);
-        else
-          return null;
+        if (checkExistence) throw createError(ENOENT, funcName, filename);
+        else return null;
 
       node = curr?.getNode();
       // Resolve symlink
@@ -506,7 +521,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private getLinkParentAsDirOrThrow(filenameOrSteps: string | string[], funcName?: string): Link {
-    const steps: string[] = (filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps)).slice(0, -1);
+    const steps: string[] = (
+      filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps)
+    ).slice(0, -1);
     const filename: string = sep + steps.join(sep);
     const link = this.getLinkOrThrow(filename, funcName);
     if (!link.getNode().isDirectory()) throw createError(ENOTDIR, funcName, filename);
@@ -679,8 +696,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     }
 
     // Resolve symlinks.
-    // 
-    // @TODO: This should be superfluous. This method is only ever called by openFile(), which does its own symlink resolution 
+    //
+    // @TODO: This should be superfluous. This method is only ever called by openFile(), which does its own symlink resolution
     // prior to calling.
     let realLink: Link | null = link;
     if (resolveSymlinks) realLink = this.getResolvedLinkOrThrow(link.getPath(), 'open');
@@ -730,8 +747,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       // This is an error, see https://pubs.opengroup.org/onlinepubs/009695399/functions/open.html:
       // "If O_CREAT and O_EXCL are set, open() shall fail if the file exists."
       if (link && flagsNum & O_CREAT && flagsNum & O_EXCL) throw createError(EEXIST, 'open', filename);
-    } catch(err) {
-      // Try creating a new file, if it does not exist and O_CREAT flag is set. 
+    } catch (err) {
+      // Try creating a new file, if it does not exist and O_CREAT flag is set.
       // Note that this will still throw if the ENOENT came from one of the
       // intermediate directories instead of the file itself.
       if (err.code === ENOENT && flagsNum & O_CREAT) {
@@ -742,16 +759,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
         // Check that the place we create the new file is actually a directory and that we are allowed to do so:
         if (!dirNode.isDirectory()) throw createError(ENOTDIR, 'open', filename);
         if (!dirNode.canExecute() || !dirNode.canWrite()) throw createError(EACCES, 'open', filename);
-        
+
         // This is a difference to the original implementation, which would simply not create a file unless modeNum was specified.
         // However, current Node versions will default to 0o666.
         modeNum ??= 0o666;
 
-
         link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
-      } else
-        throw err;
-    }   
+      } else throw err;
+    }
 
     if (link) return this.openLink(link, flagsNum, resolveSymlinks);
     throw createError(ENOENT, 'open', filename);
@@ -1142,17 +1157,17 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let link1: Link;
     try {
       link1 = this.getLinkOrThrow(filename1, 'link');
-    } catch(err) {
+    } catch (err) {
       // Augment error with filename2
       if (err.code) err = createError(err.code, 'link', filename1, filename2);
       throw err;
     }
-    
+
     const dirname2 = pathModule.dirname(filename2);
     let dir2: Link;
     try {
       dir2 = this.getLinkOrThrow(dirname2, 'link');
-    } catch(err) {
+    } catch (err) {
       // Augment error with filename1
       if (err.code) err = createError(err.code, 'link', filename1, filename2);
       throw err;
@@ -1260,10 +1275,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let dirLink;
     try {
       dirLink = this.getLinkParentAsDirOrThrow(pathSteps);
-    } catch(err) {
+    } catch (err) {
       // Catch error to populate with the correct fields - getLinkParentAsDirOrThrow won't be aware of the second path
-      if (err.code)
-        err = createError(err.code, 'symlink', targetFilename, pathFilename);
+      if (err.code) err = createError(err.code, 'symlink', targetFilename, pathFilename);
       throw err;
     }
 
@@ -1273,7 +1287,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (dirLink.getChild(name)) throw createError(EEXIST, 'symlink', targetFilename, pathFilename);
 
     // Check permissions on the path where we are creating the symlink.
-    // Note we're not checking permissions on the target path: It is not an error to create a symlink to a 
+    // Note we're not checking permissions on the target path: It is not an error to create a symlink to a
     // non-existent or inaccessible target
     const node = dirLink.getNode();
     if (!node.canExecute() || !node.canWrite()) throw createError(EACCES, 'symlink', targetFilename, pathFilename);
@@ -1300,7 +1314,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this.symlinkBase, [targetFilename, pathFilename], callback);
   }
 
-  private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {debugger
+  private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
+    debugger;
     const realLink = this.getResolvedLinkOrThrow(filename, 'realpath');
 
     return strToEncoding(realLink.getPath() || '/', encoding);
@@ -1326,7 +1341,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let link: Link;
     try {
       link = this.getLinkOrThrow(filename, 'lstat');
-    } catch(err) {
+    } catch (err) {
       if (err.code === ENOENT && !throwIfNoEntry) return undefined;
       else throw err;
     }
@@ -1362,7 +1377,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let link: Link;
     try {
       link = this.getResolvedLinkOrThrow(filename, 'stat');
-    } catch(err) {
+    } catch (err) {
       if (err.code === ENOENT && !throwIfNoEntry) return undefined;
       else throw err;
     }
@@ -1417,7 +1432,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let link: Link;
     try {
       link = this.getResolvedLinkOrThrow(oldPathFilename);
-    } catch(err) {
+    } catch (err) {
       // Augment err with newPathFilename
       if (err.code) err = createError(err.code, 'rename', oldPathFilename, newPathFilename);
       throw err;
@@ -1429,7 +1444,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let newPathDirLink: Link;
     try {
       newPathDirLink = this.getLinkParentAsDirOrThrow(newPathFilename);
-    } catch(err) {
+    } catch (err) {
       // Augment error with oldPathFilename
       if (err.code) err = createError(err.code, 'rename', oldPathFilename, newPathFilename);
       throw err;
@@ -1444,8 +1459,13 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     // Check we have access and write permissions in both places
     const oldParentNode: Node = oldLinkParent.getNode();
     const newPathDirNode: Node = newPathDirLink.getNode();
-    if (!oldParentNode.canExecute() || !oldParentNode.canWrite() || !newPathDirNode.canExecute() || !newPathDirNode.canWrite()) {
-      throw createError(EACCES, 'rename', oldPathFilename, newPathFilename);    
+    if (
+      !oldParentNode.canExecute() ||
+      !oldParentNode.canWrite() ||
+      !newPathDirNode.canExecute() ||
+      !newPathDirNode.canWrite()
+    ) {
+      throw createError(EACCES, 'rename', oldPathFilename, newPathFilename);
     }
 
     oldLinkParent.deleteChild(link);
@@ -1783,7 +1803,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     curr = this.getResolvedLinkOrThrow(sep + steps.slice(0, i).join(sep), 'mkdir');
 
     // Start creating directories:
-    for (i; i < steps.length; i++) {      
+    for (i; i < steps.length; i++) {
       const node = curr.getNode();
 
       if (node.isDirectory()) {
@@ -1885,7 +1905,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let link: Link;
     try {
       link = this.getResolvedLinkOrThrow(filename, 'stat');
-    } catch(err) {
+    } catch (err) {
       // Silently ignore missing paths if force option is true
       if (err.code === ENOENT && options.force) return;
       else throw err;
@@ -1924,7 +1944,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private chmodBase(filename: string, modeNum: number, followSymlinks: boolean = true) {
-    const link = followSymlinks ? this.getResolvedLinkOrThrow(filename, 'chmod') : this.getLinkOrThrow(filename, 'chmod');
+    const link = followSymlinks
+      ? this.getResolvedLinkOrThrow(filename, 'chmod')
+      : this.getLinkOrThrow(filename, 'chmod');
     const node = link.getNode();
     node.chmod(modeNum);
   }

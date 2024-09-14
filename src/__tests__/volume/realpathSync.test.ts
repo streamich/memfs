@@ -21,5 +21,5 @@ describe('.realpathSync(...)', () => {
     expect(() => {
       vol.realpathSync('/foo/bar');
     }).toThrow(/EACCES/);
-  });  
+  });
 });

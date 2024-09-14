@@ -75,7 +75,7 @@ describe('renameSync(fromPath, toPath)', () => {
   it('throws EACCES when source directory has insufficient permissions', () => {
     const perms = [
       0o666, // rw
-      0o555  // rx - insufficient because the file will be removed from this directory during renaming
+      0o555, // rx - insufficient because the file will be removed from this directory during renaming
     ];
     perms.forEach(perm => {
       const vol = create({ '/src/test': 'test' });
@@ -90,7 +90,7 @@ describe('renameSync(fromPath, toPath)', () => {
   it('throws EACCES when destination directory has insufficient permissions', () => {
     const perms = [
       0o666, // rw
-      0o555  // rx
+      0o555, // rx
     ];
     perms.forEach(perm => {
       const vol = create({ '/src/test': 'test' });

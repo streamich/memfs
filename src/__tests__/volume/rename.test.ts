@@ -12,7 +12,7 @@ describe('renameSync(fromPath, toPath)', () => {
   it('gives EACCES when source directory has insufficient permissions', _done => {
     const perms = [
       0o666, // rw
-      0o555  // rx - insufficient because the file will be removed from this directory during renaming
+      0o555, // rx - insufficient because the file will be removed from this directory during renaming
     ];
     const done = multitest(_done, perms.length);
     perms.forEach(perm => {
@@ -24,7 +24,7 @@ describe('renameSync(fromPath, toPath)', () => {
           expect(err).toBeInstanceOf(Error);
           expect(err).toHaveProperty('code', 'EACCES');
           done();
-        } catch(x) {
+        } catch (x) {
           done(x);
         }
       });
@@ -34,7 +34,7 @@ describe('renameSync(fromPath, toPath)', () => {
   it('gives EACCES when destination directory has insufficient permissions', _done => {
     const perms = [
       0o666, // rw
-      0o555  // rx
+      0o555, // rx
     ];
     const done = multitest(_done, perms.length);
     perms.forEach(perm => {
@@ -45,7 +45,7 @@ describe('renameSync(fromPath, toPath)', () => {
           expect(err).toBeInstanceOf(Error);
           expect(err).toHaveProperty('code', 'EACCES');
           done();
-        } catch(x) {
+        } catch (x) {
           done(x);
         }
       });

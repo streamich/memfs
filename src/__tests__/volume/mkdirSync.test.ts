@@ -80,16 +80,45 @@ describe('mkdirSync', () => {
   });
 
   describe('recursive', () => {
-    it('can create nested directories', () => {
+    it('can create nested directories when none exist', () => {
       const vol = create({});
-      const steps = [ 'a','b','c' ];
       vol.mkdirSync('/a/b/c', { recursive: true });
       expect(() => {
         vol.statSync('/a/b/c');
       }).not.toThrow();
     });
 
-    it('throws ENOTDIR if trying to create under something that is not a directory', () => {
+    it('can create nested directories when some exist', () => {
+      const vol = create({});
+      vol.mkdirSync('/a');
+      vol.mkdirSync('/a/b/c', { recursive: true });
+      expect(() => {
+        vol.statSync('/a/b/c');
+      }).not.toThrow();
+    });
+
+    it('can create nested directories when all exist', () => {
+      const vol = create({});
+      vol.mkdirSync('/a');
+      vol.mkdirSync('/a/b');
+      vol.mkdirSync('/a/b/c');
+      vol.mkdirSync('/a/b/c', { recursive: true });
+      expect(() => {
+        vol.statSync('/a/b/c');
+      }).not.toThrow();
+    });
+
+    it('can create directories under symlinks', () => {
+      const vol = create({});
+      vol.mkdirSync('/target');
+      vol.symlinkSync('/target', '/a');
+      vol.mkdirSync('/a/b/c', { recursive: true });
+      expect(() => {
+        vol.statSync('/a/b/c');
+      }).not.toThrow();
+    });
+
+    it('throws ENOTDIR when trying to create under something that is not a directory', () => {
       const vol = create({ '/a': 'I am a file' });
       expect(() => {debugger
         vol.mkdirSync('/a/b/c', { recursive: true });        

@@ -58,7 +58,6 @@ import {
   getWriteSyncArgs,
   unixify,
 } from './node/util';
-import Walker from './walker';
 import type { PathLike, symlink } from 'fs';
 import type { FsPromisesApi, FsSynchronousApi } from './node/types';
 import { fsSynchronousApiList } from './node/lists/fsSynchronousApiList';
@@ -402,77 +401,84 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.releasedInos.push(node.ino);
   }
 
-  // private walk(
-  //     stepsOrFilenameOrLink: string[] | string | Link, 
-  //     resolveSymlinks: boolean = false, 
-  //     checkExistence: boolean = false,
-  //     checkAccess: boolean = false,
-  //     funcName?: string): Link | null {
+  private walk(steps: string[], resolveSymlinks: boolean, checkExistence: boolean, checkAccess: boolean, funcName?: string): Link | null
+  private walk(filename: string, resolveSymlinks: boolean, checkExistence: boolean, checkAccess: boolean, funcName?: string): Link | null
+  private walk(link: Link, resolveSymlinks: boolean, checkExistence: boolean, checkAccess: boolean, funcName?: string): Link | null
+  private walk(
+      stepsOrFilenameOrLink: string[] | string | Link, 
+      resolveSymlinks: boolean, 
+      checkExistence: boolean,
+      checkAccess: boolean,
+      funcName?: string): Link | null;
+  private walk(
+      stepsOrFilenameOrLink: string[] | string | Link, 
+      resolveSymlinks: boolean = false, 
+      checkExistence: boolean = false,
+      checkAccess: boolean = false,
+      funcName?: string): Link | null {
     
-  //   let steps: string[];
-  //   if (stepsOrFilenameOrLink instanceof Link)
-  //     steps = stepsOrFilenameOrLink.steps;
-  //   else if (typeof stepsOrFilenameOrLink === 'string')
-  //     steps = filenameToSteps(stepsOrFilenameOrLink)
-  //   else 
-  //     steps = stepsOrFilenameOrLink;
+    let steps: string[];
+    let filename: string;
+    if (stepsOrFilenameOrLink instanceof Link) {
+      steps = stepsOrFilenameOrLink.steps;
+      filename = sep + steps.join(sep);
+    }
+    else if (typeof stepsOrFilenameOrLink === 'string') {
+      steps = filenameToSteps(stepsOrFilenameOrLink)
+      filename = stepsOrFilenameOrLink;
+    }
+    else {
+      steps = stepsOrFilenameOrLink;
+      filename = sep + steps.join(sep);
+    }
 
-  //   // Preserve the original filename for errors.
-  //   // This is necessary because if we need to resolve symlinks,
-  //   // steps array will be changed
-  //   const originalFilename = steps.join(sep);
+    let curr: Link | null = this.root;
+    let i = 0;
+    while (i < steps.length) {
+      let node: Node = curr.getNode();
+      // Check access permissions if current link is a directory
+      if (node.isDirectory()) {
+        if (checkAccess && !node.canExecute()) {
+          throw createError(EACCES, funcName, filename);
+        } 
+      } else {
+        if (i < steps.length - 1) throw createError(ENOTDIR, funcName, filename);
+      }
 
-  //   let curr: Link | null = this.root;
-  //   let i = 0;
-  //   while (i < steps.length) {
-  //     curr = steps[i] === '' ? this.root : (curr.getChild(steps[i]) ?? null);
+      curr = curr.getChild(steps[i]) ?? null;
 
-  //     // Check existence of current link
-  //     if (!curr)
-  //       if (checkExistence) 
-  //         throw createError(ENOENT, funcName, originalFilename);
-  //       else
-  //         return null;
+      // Check existence of current link
+      if (!curr)
+        if (checkExistence) 
+          throw createError(ENOENT, funcName, filename);
+        else
+          return null;
 
-  //     const node = curr.getNode();
-      
-  //     // Check access permissions if current link is a directory
-  //     if (checkAccess && node.isDirectory() && !node.canExecute())
-  //       throw createError(EACCES, funcName, originalFilename);
+      node = curr?.getNode();
+      // Resolve symlink
+      if (resolveSymlinks && node.isSymlink()) {
+        steps = node.symlink.concat(steps.slice(i + 1));
+        curr = this.root;
+        i = 0;
+        continue;
+      }
 
-  //     // Resolve symlink
-  //     if (resolveSymlinks && node.isSymlink()) {
-  //       steps = node.symlink.concat(steps.slice(i + 1));
-  //       if (steps[0] !== '') steps.unshift('');
-  //       i = 0;
-  //       continue;
-  //     }
+      i++;
+    }
 
-  //     i++;
-  //   }
-
-  //   return curr;
-  // }
+    return curr;
+  }
 
   // Returns a `Link` (hard link) referenced by path "split" into steps.
   getLink(steps: string[]): Link | null {
-    return new Walker(Walker.step).walk(this.root, steps);
-    // return this.walk(steps, false, false, false);
+    return this.walk(steps, false, false, false);
     // return this.root.walk(steps);
   }
 
   // Just link `getLink`, but throws a correct user error, if link to found.
   // 
   getLinkOrThrow(filename: string, funcName?: string): Link {
-    const steps: string[] = filenameToSteps(filename);      
-    const walker = new Walker(
-      Walker.step, 
-      (link: Link | null): Link => Walker.checkExistence(link, filename, funcName),
-      (link: Link | null): Link => Walker.checkAccess(link!, filename, funcName));
-
-    // The result is known to be defined, because otherwise, checkExistence would have thrown
-    return walker.walk(this.root, steps)!;
-    // return this.walk(filename, false, true, true, funcName)!;
+    return this.walk(filename, false, true, true, funcName)!;
     // const steps = filenameToSteps(filename);
     // const link = this.getLink(steps);
     // if (!link) throw createError(ENOENT, funcName, filename);
@@ -481,10 +487,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   // Just like `getLink`, but also dereference/resolves symbolic links.
   getResolvedLink(filenameOrSteps: string | string[]): Link | null {
-    const steps: string[] = filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps);
-    const walker = new Walker(Walker.step, Walker.resolveSymlink);
-    return walker.walk(this.root, steps);
-    // return this.walk(filenameOrSteps, true, false, false);
+    return this.walk(filenameOrSteps, true, false, false);
     // let steps: string[] = typeof filenameOrSteps === 'string' ? filenameToSteps(filenameOrSteps) : filenameOrSteps;
 
     // let link: Link | undefined = this.root;
@@ -510,16 +513,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   // Just like `getLinkOrThrow`, but also dereference/resolves symbolic links.
   getResolvedLinkOrThrow(filename: string, funcName?: string): Link {
-    const steps: string[] = filenameToSteps(filename);
-    const walker = new Walker(
-      Walker.step,
-      (link: Link | null): Link => Walker.checkExistence(link, filename, funcName),
-      (link: Link | null): Link => Walker.checkAccess(link!, filename, funcName),
-      Walker.resolveSymlink);
-
-    // The result is known to be defined, because otherwise, checkExistence would have thrown
-    return walker.walk(this.root, steps)!; 
-    // return this.walk(filename, true, true, true, funcName)!;
+    return this.walk(filename, true, true, true, funcName)!;
     // const link = this.getResolvedLink(filename);
     // if (!link) throw createError(ENOENT, funcName, filename);
     // return link;
@@ -1349,7 +1343,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this.symlinkBase, [targetFilename, pathFilename], callback);
   }
 
-  private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
+  private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {debugger
     const realLink = this.getResolvedLinkOrThrow(filename, 'realpath');
 
     return strToEncoding(realLink.getPath() || '/', encoding);
@@ -1465,7 +1459,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   private renameBase(oldPathFilename: string, newPathFilename: string) {
     let link: Link;
     try {
-      link = this.getLinkOrThrow(oldPathFilename);
+      link = this.getResolvedLinkOrThrow(oldPathFilename);
     } catch(err) {
       // Augment err with newPathFilename
       if (err.code) err = createError(err.code, 'rename', oldPathFilename, newPathFilename);
@@ -1490,14 +1484,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     // Remove hard link from old folder.
     const oldLinkParent = link.parent;
 
-    // Check we have write permissions in both places
-    if (!oldLinkParent.getNode().canWrite() || !newPathDirLink.getNode().canWrite()) {
-      throw createError(EACCES, 'rename', oldPathFilename, newPathFilename);
+    // Check we have access and write permissions in both places
+    const oldParentNode: Node = oldLinkParent.getNode();
+    const newPathDirNode: Node = newPathDirLink.getNode();
+    if (!oldParentNode.canExecute() || !oldParentNode.canWrite() || !newPathDirNode.canExecute() || !newPathDirNode.canWrite()) {
+      throw createError(EACCES, 'rename', oldPathFilename, newPathFilename);    
     }
 
-    if (oldLinkParent) {
-      oldLinkParent.deleteChild(link);
-    }
+    oldLinkParent.deleteChild(link);
 
     // Rename should overwrite the new path, if that exists.
     const name = pathModule.basename(newPathFilename);
@@ -1815,27 +1809,61 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
    */
   private mkdirpBase(filename: string, modeNum: number) {
     let created = false;
-    const walker = new Walker(
-      (parent: Link, step: string): Link => {
-        let link = step === '' ? this.root : parent.getChild(step);
+    const steps = filenameToSteps(filename);
 
-        if (link) {
-          const node = link.getNode();
-          // Check we have permissions for traversing
-          if (node.isDirectory() && !node.canExecute()) throw createError(EACCES, 'mkdir', filename);
-          // Check it is, in fact, a directory
-          if (!node.isDirectory()) throw createError(ENOTDIR, 'mkdir', filename);
-        } else {
-          const parentNode = parent.getNode();
-          if (!parentNode.canWrite()) throw createError(EACCES, 'mkdir', filename);
+    let curr: Link | null = null;
+    let i = steps.length;
+    // Find the longest subpath of filename that still exists:
+    for (i = steps.length; i >= 0; i--) {
+      curr = this.getResolvedLink(steps.slice(0, i));
+      if (curr) break;
+    }
+    if (!curr) {
+      curr = this.root;
+      i = 0;
+    }
+    // curr is now the last directory that still exists.
+    // (If none of them existed, curr is the root.)
+    // Check access the lazy way:
+    curr = this.getResolvedLinkOrThrow(sep + steps.slice(0, i).join(sep), 'mkdir');
 
-          created = true;
-          link = parent.createChild(step, this.createNode(true, modeNum));
-        }
-        return link;
-      });
-    walker.walk(this.root, filenameToSteps(filename));
+    // Start creating directories:
+    for (i; i < steps.length; i++) {      
+      const node = curr.getNode();
+
+      if (node.isDirectory()) {
+        // Check we have permissions
+        if (!node.canExecute() || !node.canWrite()) throw createError(EACCES, 'mkdir', filename);
+      } else {
+        throw createError(ENOTDIR, 'mkdir', filename);
+      }
+
+      created = true;
+      curr = curr.createChild(steps[i], this.createNode(true, modeNum));
+    }
     return created ? filename : undefined;
+
+    // const walker = new Walker(
+    //   (parent: Link, step: string): Link => {
+    //     let link = step === '' ? this.root : parent.getChild(step);
+
+    //     if (link) {
+    //       const node = link.getNode();
+    //       // Check we have permissions for traversing
+    //       if (node.isDirectory() && !node.canExecute()) throw createError(EACCES, 'mkdir', filename);
+    //       // Check it is, in fact, a directory
+    //       if (!node.isDirectory()) throw createError(ENOTDIR, 'mkdir', filename);
+    //     } else {
+    //       const parentNode = parent.getNode();
+    //       if (!parentNode.canWrite()) throw createError(EACCES, 'mkdir', filename);
+
+    //       created = true;
+    //       link = parent.createChild(step, this.createNode(true, modeNum));
+    //     }
+    //     return link;
+    //   });
+    // walker.walk(this.root, filenameToSteps(filename));
+    // return created ? filename : undefined;
 
     // const fullPath = resolve(filename);
     // const fullPathSansSlash = fullPath.substring(1);

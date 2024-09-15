@@ -446,24 +446,6 @@ export class Link extends EventEmitter {
   //     this.vol = null;
   // }
 
-  /**
-   * Walk the tree path and return the `Link` at that location, if any.
-   * @param steps {string[]} Desired location.
-   * @param stop {number} Max steps to go into.
-   * @param i {number} Current step in the `steps` array.
-   *
-   * @return {Link|null}
-   */
-  // walk(steps: string[], stop: number = steps.length, i: number = 0): Link | null {
-  //   if (i >= steps.length) return this;
-  //   if (i >= stop) return this;
-
-  //   const step = steps[i];
-  //   const link = this.getChild(step);
-  //   if (!link) return null;
-  //   return link.walk(steps, stop, i + 1);
-  // }
-
   toJSON() {
     return {
       steps: this.steps,

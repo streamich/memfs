@@ -26,4 +26,10 @@ describe('.readFile()', () => {
     fs.chmodSync('/foo', 0o666); // rw
     return expect(fs.promises.readFile('/foo/bar')).rejects.toThrow(/EACCES/);
   });
+
+  it('throws EACCES if intermediate directory has insufficient permissions', async () => {
+    const { fs } = memfs({ '/foo/bar': 'test' });
+    fs.chmodSync('/', 0o666); // rw
+    return expect(fs.promises.readFile('/foo/bar')).rejects.toThrow(/EACCES/);
+  });
 });

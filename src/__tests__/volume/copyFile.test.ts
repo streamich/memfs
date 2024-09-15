@@ -66,13 +66,14 @@ describe('copyFile(src, dest[, flags], callback)', () => {
         try {
           expect(err).toBeInstanceOf(Error);
           expect(err).toHaveProperty('code', 'EACCES');
-        } finally {
           done();
+        } catch(failure) {
+          done(failure);
         }
       });
     });
 
-    it('copying yields EACCES with insufficient permissions on the destination directory', _done => {
+    it('copying gives EACCES with insufficient permissions on the destination directory', _done => {
       const perms = [
         0o555, // rx
         0o666, // rw
@@ -90,11 +91,26 @@ describe('copyFile(src, dest[, flags], callback)', () => {
             expect(err).toBeInstanceOf(Error);
             expect(err).toHaveProperty('code', 'EACCES');
             done();
-          } catch (err) {
-            done(err);
+          } catch (failure) {
+            done(failure);
           }
         });
       });
     });
+  });
+
+  it('copying gives EACCES with insufficient permissions on an intermediate directory', done => {
+    const vol = create({ '/foo/test': 'test' });
+    vol.mkdirSync('/bar');
+    vol.chmodSync('/', 0o666); // rw
+    vol.copyFile('/foo/test', '/bar/test', err => {
+      try {
+        expect(err).toBeInstanceOf(Error);
+        expect(err).toHaveProperty('code', 'EACCES');
+        done();
+      } catch (failure) {
+        done(failure);
+      }
+    });    
   });
 });

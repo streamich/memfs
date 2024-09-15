@@ -46,4 +46,18 @@ describe('ReadStream', () => {
         done(new Error("Expected ReadStream to emit EACCES but it didn't"));
       });
   });
+
+  it('should emit EACCES error when intermediate directory has insufficient permissions', done => {
+    const fs = createFs({ '/foo/test': 'test' });
+    fs.chmodSync('/', 0o666); // rw
+    new fs.ReadStream('/foo/test')
+      .on('error', err => {
+        expect(err).toBeInstanceOf(Error);
+        expect(err).toHaveProperty('code', 'EACCES');
+        done();
+      })
+      .on('open', () => {
+        done(new Error("Expected ReadStream to emit EACCES but it didn't"));
+      });
+  });
 });

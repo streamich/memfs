@@ -100,4 +100,13 @@ describe('renameSync(fromPath, toPath)', () => {
       }).toThrowError(/EACCES/);
     });
   });
+
+  it('throws EACCES when intermediate directory has insufficient permissions', () => {
+    const vol = create({ '/src/test': 'test' });
+    vol.mkdirSync('/dest');
+    vol.chmodSync('/', 0o666); // rw
+    expect(() => {
+      vol.renameSync('/src/test', '/dest/fail');
+    }).toThrow(/EACCES/);
+  });
 });

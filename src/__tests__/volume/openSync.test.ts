@@ -16,7 +16,7 @@ describe('openSync(path, mode[, flags])', () => {
   });
 
   describe('permissions', () => {
-    it('opening for writing throws EACCES without sufficient permissions', () => {
+    it('opening for writing throws EACCES without sufficient permissions on the file', () => {
       const flags = ['a', 'w', 'r+']; // append, write, read+write
       flags.forEach(intent => {
         const fs = createFs();
@@ -27,7 +27,7 @@ describe('openSync(path, mode[, flags])', () => {
       });
     });
 
-    it('opening for reading throws EACCES without sufficient permissions', () => {
+    it('opening for reading throws EACCES without sufficient permissions on the file', () => {
       const flags = ['a+', 'r', 'w+']; // append+read, read, write+read
       flags.forEach(intent => {
         const fs = createFs();
@@ -43,6 +43,17 @@ describe('openSync(path, mode[, flags])', () => {
       flags.forEach(intent => {
         const fs = createFs({ '/foo/bar': 'test' });
         fs.chmodSync('/foo', 0o666); // wr across the board
+        expect(() => {
+          fs.openSync('/foo/bar', intent);
+        }).toThrowError(/EACCES/);
+      });
+    });
+
+    it('opening for anything throws EACCES without sufficient permissions on an intermediate directory', () => {
+      const flags = ['a+', 'r', 'w']; // append+read, read, write
+      flags.forEach(intent => {
+        const fs = createFs({ '/foo/bar': 'test' });
+        fs.chmodSync('/', 0o666); // wr across the board
         expect(() => {
           fs.openSync('/foo/bar', intent);
         }).toThrowError(/EACCES/);

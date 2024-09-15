@@ -45,6 +45,14 @@ describe('writeFileSync(path, data[, options])', () => {
     }
   });
 
+  it('Write throws EACCES if file exists but has insufficient permissions', () => {
+    const vol = create({ '/foo/test': 'test' });
+    vol.chmodSync('/foo/test', 0o555); // rx
+    expect(() => {
+      vol.writeFileSync('/foo/test', 'test');
+    }).toThrowError(/EACCES/);
+  });
+
   it('Write throws EACCES without sufficient permissions on containing directory', () => {
     const perms = [
       0o666, // rw
@@ -67,9 +75,10 @@ describe('writeFileSync(path, data[, options])', () => {
     }).not.toThrowError();
   });
 
-  it('Write throws EACCES if file exists but has insufficient permissions', () => {
-    const vol = create({ '/foo/test': 'test' });
-    vol.chmodSync('/foo/test', 0o555); // rx
+  it('Write throws EACCES without sufficient permissions on intermediate directory', () => {
+    const vol = create({});
+    vol.mkdirSync('/foo');
+    vol.chmodSync('/', 0o666); // rw
     expect(() => {
       vol.writeFileSync('/foo/test', 'test');
     }).toThrowError(/EACCES/);

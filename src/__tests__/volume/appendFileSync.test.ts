@@ -11,7 +11,7 @@ describe('appendFileSync(file, data, options)', () => {
     vol.appendFileSync('/a', 'c');
     expect(vol.readFileSync('/a', 'utf8')).toEqual('bc');
   });
-  it('Appending throws EACCES without sufficient permissions', () => {
+  it('Appending throws EACCES without sufficient permissions on the file', () => {
     const vol = create({ '/foo': 'foo' });
     vol.chmodSync('/foo', 0o555); // rx across the board
     expect(() => {
@@ -32,5 +32,12 @@ describe('appendFileSync(file, data, options)', () => {
         vol.appendFileSync('/foo/test', 'bar');
       }).toThrowError(/EACCES/);
     });
+  });
+  it('Appending throws EACCES if intermediate directory has insufficient permissions', () => {
+    const vol = create({ '/foo/test': 'test' });
+    vol.chmodSync('/', 0o666); // rw
+    expect(() => {
+      vol.appendFileSync('/foo/test', 'bar');
+    }).toThrowError(/EACCES/);
   });
 });

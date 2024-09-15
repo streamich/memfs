@@ -22,4 +22,12 @@ describe('.realpathSync(...)', () => {
       vol.realpathSync('/foo/bar');
     }).toThrow(/EACCES/);
   });
+
+  it('throws EACCES when an intermediate directory does not have sufficient permissions', () => {
+    const vol = create({ '/foo/bar': 'bar' });
+    vol.chmodSync('/', 0o666); // rw
+    expect(() => {
+      vol.realpathSync('/foo/bar');
+    }).toThrow(/EACCES/);
+  });
 });

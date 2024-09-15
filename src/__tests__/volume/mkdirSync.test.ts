@@ -141,5 +141,14 @@ describe('mkdirSync', () => {
         }).toThrow(/EACCES/);
       });
     });
+
+    it('throws EACCES with insufficient permissions on intermediate directory', () => {
+      const vol = create({});
+      vol.mkdirSync('/a');
+      vol.chmodSync('/', 0o666); // rw
+      expect(() => {
+        vol.mkdirSync('/a/b/c', { recursive: true });
+      }).toThrow(/EACCES/);
+    });
   });
 });

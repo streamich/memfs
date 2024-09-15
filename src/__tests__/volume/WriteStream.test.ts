@@ -48,7 +48,21 @@ describe('WriteStream', () => {
       });
   });
 
-  it('should emit EACCES error for an non-existant file when containing directory has insufficient permissions', done => {
+  it('should emit EACCES error for when intermediate directory has insufficient permissions', done => {
+    const fs = createFs({ '/foo/test': 'test' });
+    fs.chmodSync('/', 0o666); // rw
+    new fs.WriteStream('/foo/test')
+      .on('error', err => {
+        expect(err).toBeInstanceOf(Error);
+        expect(err).toHaveProperty('code', 'EACCES');
+        done();
+      })
+      .on('open', () => {
+        done(new Error("Expected WriteStream to emit EACCES but it didn't"));
+      });
+  });
+
+  it('should emit EACCES error for a non-existent file when containing directory has insufficient permissions', done => {
     const fs = createFs({});
     fs.mkdirSync('/foo', { mode: 0o555 }); // rx
     new fs.WriteStream('/foo/test')

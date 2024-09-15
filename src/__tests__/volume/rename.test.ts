@@ -24,8 +24,8 @@ describe('renameSync(fromPath, toPath)', () => {
           expect(err).toBeInstanceOf(Error);
           expect(err).toHaveProperty('code', 'EACCES');
           done();
-        } catch (x) {
-          done(x);
+        } catch (failure) {
+          done(failure);
         }
       });
     });
@@ -45,10 +45,25 @@ describe('renameSync(fromPath, toPath)', () => {
           expect(err).toBeInstanceOf(Error);
           expect(err).toHaveProperty('code', 'EACCES');
           done();
-        } catch (x) {
-          done(x);
+        } catch (failure) {
+          done(failure);
         }
       });
+    });
+  });
+
+  it('gives EACCES when intermediate directory has insufficient permissions', done => {
+    const vol = create({ '/src/test': 'test' });
+    vol.mkdirSync('/dest');
+    vol.chmodSync('/', 0o666); // rw
+    vol.rename('/src/test', '/dest/fail', err => {
+      try {
+        expect(err).toBeInstanceOf(Error);
+        expect(err).toHaveProperty('code', 'EACCES');
+        done();
+      } catch (failure) {
+        done(failure);
+      }
     });
   });
 });

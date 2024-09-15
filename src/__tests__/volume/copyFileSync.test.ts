@@ -125,5 +125,14 @@ describe('copyFileSync(src, dest[, flags])', () => {
         }).toThrowError(/EACCES/);
       });
     });
+    it('copying throws EACCES with insufficient permissions an intermediate directory', () => {
+      const vol = create({ '/foo/test': 'test' });
+      vol.mkdirSync('/bar');
+      vol.chmodSync('/', 0o666); // rw across the board
+      expect(() => {
+        vol.copyFileSync('/foo/test', '/bar/test');
+      }).toThrowError(/EACCES/);
+    });
+
   });
 });

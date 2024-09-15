@@ -29,6 +29,17 @@ describe('chmodSync', () => {
     });
   });
 
+  it('should chmod the target of a symlink, not the symlink itself', () => {
+    const vol = create({ '/target': 'contents' });
+    vol.symlinkSync('/target', '/link');
+    const expectedLink = vol.lstatSync('/link').mode;
+    const expectedTarget = vol.statSync('/target').mode & ~0o777;
+    vol.chmodSync('/link', 0);
+
+    expect(vol.lstatSync('/link').mode).toEqual(expectedLink);
+    expect(vol.statSync('/target').mode).toEqual(expectedTarget);
+  });
+
   it.skip('should throw EPERM when trying to chmod targets not owned by the uid', () => {
     const uid = process.getuid() + 1;
     // Check for directories
@@ -47,14 +58,19 @@ describe('chmodSync', () => {
     }).toThrow(/ENOENT/);
   });
 
-  it('should chmod the target of a symlink, not the symlink itself', () => {
-    const vol = create({ '/target': 'contents' });
-    vol.symlinkSync('/target', '/link');
-    const expectedLink = vol.lstatSync('/link').mode;
-    const expectedTarget = vol.statSync('/target').mode & ~0o777;
-    vol.chmodSync('/link', 0);
+  it('should throw EACCES when containing directory has insufficient permissions', () => {
+    const vol = create({ '/foo/test': 'test' });
+    vol.chmodSync('/foo', 0o666); // rw
+    expect(() => {
+      vol.chmodSync('/foo/test', 0o777);
+    }).toThrow(/EACCES/);
+  });
 
-    expect(vol.lstatSync('/link').mode).toEqual(expectedLink);
-    expect(vol.statSync('/target').mode).toEqual(expectedTarget);
+  it('should throw EACCES when intermediate directory has insufficient permissions', () => {  
+    const vol = create({ '/foo/test': 'test' });
+    vol.chmodSync('/', 0o666); // rw
+    expect(() => {
+      vol.chmodSync('/foo/test', 0o777);
+    }).toThrow(/EACCES/);
   });
 });

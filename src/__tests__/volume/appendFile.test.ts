@@ -16,7 +16,7 @@ describe('appendFile(file, data[, options], callback)', () => {
     });
   });
 
-  it('Appending gives EACCES without sufficient permissions', done => {
+  it('Appending gives EACCES without sufficient permissions on the file', done => {
     const vol = create({ '/foo': 'foo' });
     vol.chmodSync('/foo', 0o555); // rx across the board
     vol.appendFile('/foo', 'bar', err => {
@@ -24,8 +24,8 @@ describe('appendFile(file, data[, options], callback)', () => {
         expect(err).toBeInstanceOf(Error);
         expect(err).toHaveProperty('code', 'EACCES');
         done();
-      } catch (x) {
-        done(x);
+      } catch (failure) {
+        done(failure);
       }
     });
   });
@@ -45,10 +45,25 @@ describe('appendFile(file, data[, options], callback)', () => {
           expect(err).toBeInstanceOf(Error);
           expect(err).toHaveProperty('code', 'EACCES');
           done();
-        } catch (x) {
-          done(x);
+        } catch (failure) {
+          done(failure);
         }
       });
+    });
+  });
+
+  it('Appending gives EACCES if intermediate directory has insufficient permissions', done => {
+    const vol = create({});
+    vol.mkdirSync('/foo');
+    vol.chmodSync('/', 0o666); // rw
+    vol.appendFile('/foo/test', 'bar', err => {
+      try {
+        expect(err).toBeInstanceOf(Error);
+        expect(err).toHaveProperty('code', 'EACCES');
+        done();
+      } catch (failure) {
+        done(failure);
+      }
     });
   });
 });

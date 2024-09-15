@@ -40,4 +40,13 @@ describe('.statSync(...)', () => {
       vol.statSync('/foo/test', { throwIfNoEntry: false });
     }).toThrowError(/EACCES/);
   });
+
+  it('throws EACCES when intermediate directory does not have sufficient permissions', () => {
+    const vol = create({ '/foo/test': 'test' });
+    vol.chmodSync('/', 0o666); // rw
+
+    expect(() => {
+      vol.statSync('/foo/test');
+    }).toThrowError(/EACCES/);
+  });
 });

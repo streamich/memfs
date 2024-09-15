@@ -129,4 +129,12 @@ describe('rmSync', () => {
       }).toThrowError(/EACCES/);
     });
   });
+
+  it('throws EACCES when intermediate directory has insufficient permissions', async () => {
+    const vol = create({ '/foo/test': 'test' });
+    vol.chmodSync('/foo', 0o666); // rw
+    expect(() => {
+      vol.rmSync('/foo/test');
+    }).toThrow(/EACCES/);
+  });
 });

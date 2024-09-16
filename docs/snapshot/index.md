@@ -30,15 +30,15 @@ import * as snapshot from 'memfs/lib/snapshot';
 You can convert any folder of an `fs`-like file system into a POJO snapshot.
 
 ```ts
-const snap = snapshot.toSnapshotSync({ fs, dir });
-const snap = await snapshot.toSnapshot({ fs: fs.promises, dir });
+const snap = snapshot.toSnapshotSync({ fs, path });
+const snap = await snapshot.toSnapshot({ fs: fs.promises, path });
 ```
 
 Then import it back from snapshot.
 
 ```ts
-snapshot.fromSnapshotSync(snap, { fs, dir });
-await snapshot.fromSnapshot(snap, { fs: fs.promises, dir });
+snapshot.fromSnapshotSync(snap, { fs, path });
+await snapshot.fromSnapshot(snap, { fs: fs.promises, path });
 ```
 
 ## Binary snapshot
@@ -47,15 +47,15 @@ Binary snapshots are encoded as CBOR `Uint8Array` buffers. You can convert any
 folder of an `fs`-like file system into a `Uint8Array` snapshot.
 
 ```ts
-const uint8 = snapshot.toBinarySnapshotSync({ fs, dir });
-const uint8 = await snapshot.toBinarySnapshot({ fs: fs.promises, dir });
+const uint8 = snapshot.toBinarySnapshotSync({ fs, path });
+const uint8 = await snapshot.toBinarySnapshot({ fs: fs.promises, path });
 ```
 
 Then import it back from `Uint8Array` snapshot.
 
 ```ts
-snapshot.fromBinarySnapshotSync(uint8, { fs, dir });
-await snapshot.fromBinarySnapshot(uint8, { fs: fs.promises, dir });
+snapshot.fromBinarySnapshotSync(uint8, { fs, path });
+await snapshot.fromBinarySnapshot(uint8, { fs: fs.promises, path });
 ```
 
 ## JSON snapshot
@@ -67,15 +67,15 @@ data is encoded as Base64 data URL strings. The resulting JSON is returned as
 You can convert any folder of an `fs`-like file system into a `Uint8Array` snapshot.
 
 ```ts
-const uint8 = snapshot.toJsonSnapshotSync({ fs, dir });
-const uint8 = await snapshot.toJsonSnapshot({ fs: fs.promises, dir });
+const uint8 = snapshot.toJsonSnapshotSync({ fs, path });
+const uint8 = await snapshot.toJsonSnapshot({ fs: fs.promises, path });
 ```
 
 Then import it back from `Uint8Array` snapshot.
 
 ```ts
-snapshot.fromJsonSnapshotSync(uint8, { fs, dir });
-await snapshot.fromJsonSnapshot(uint8, { fs: fs.promises, dir });
+snapshot.fromJsonSnapshotSync(uint8, { fs, path });
+await snapshot.fromJsonSnapshot(uint8, { fs: fs.promises, path });
 ```
 
 ## Encoding format

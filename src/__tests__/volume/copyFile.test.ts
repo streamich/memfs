@@ -67,7 +67,7 @@ describe('copyFile(src, dest[, flags], callback)', () => {
           expect(err).toBeInstanceOf(Error);
           expect(err).toHaveProperty('code', 'EACCES');
           done();
-        } catch(failure) {
+        } catch (failure) {
           done(failure);
         }
       });
@@ -111,6 +111,6 @@ describe('copyFile(src, dest[, flags], callback)', () => {
       } catch (failure) {
         done(failure);
       }
-    });    
+    });
   });
 });

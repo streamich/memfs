@@ -66,7 +66,7 @@ describe('chmodSync', () => {
     }).toThrow(/EACCES/);
   });
 
-  it('should throw EACCES when intermediate directory has insufficient permissions', () => {  
+  it('should throw EACCES when intermediate directory has insufficient permissions', () => {
     const vol = create({ '/foo/test': 'test' });
     vol.chmodSync('/', 0o666); // rw
     expect(() => {

@@ -155,6 +155,6 @@ describe('rmSync', () => {
   it('throws EACCES when intermediate directory has insufficient permissions', async () => {
     const vol = create({ '/foo/test': 'test' });
     vol.chmodSync('/foo', 0o666); // rw
-    return expect(vol.promises.rm('/foo/test')).rejects.toThrow(/EACCES/);    
+    return expect(vol.promises.rm('/foo/test')).rejects.toThrow(/EACCES/);
   });
 });

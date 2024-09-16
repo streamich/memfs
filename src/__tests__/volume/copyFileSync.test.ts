@@ -133,6 +133,5 @@ describe('copyFileSync(src, dest[, flags])', () => {
         vol.copyFileSync('/foo/test', '/bar/test');
       }).toThrowError(/EACCES/);
     });
-
   });
 });

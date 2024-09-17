@@ -1,3 +1,10 @@
+## [4.11.2](https://github.com/streamich/memfs/compare/v4.11.1...v4.11.2) (2024-09-17)
+
+
+### Bug Fixes
+
+* add `parentPath` to `Dirent` ([#1058](https://github.com/streamich/memfs/issues/1058)) ([9156c84](https://github.com/streamich/memfs/commit/9156c8466b530ad985b462890c7164dfeeaf472f)), closes [#735](https://github.com/streamich/memfs/issues/735) [#735](https://github.com/streamich/memfs/issues/735)
+
 ## [4.11.1](https://github.com/streamich/memfs/compare/v4.11.0...v4.11.1) (2024-08-01)
 
 

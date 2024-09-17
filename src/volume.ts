@@ -1743,12 +1743,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private utimesBase(filename: string, atime: number, mtime: number) {
-    const fd = this.openSync(filename, 'r');
-    try {
-      this.futimesBase(fd, atime, mtime);
-    } finally {
-      this.closeSync(fd);
-    }
+    const link = this.getResolvedLinkOrThrow(filename, 'utimes');
+    const node = link.getNode();
+    node.atime = new Date(atime * 1000);
+    node.mtime = new Date(mtime * 1000);
   }
 
   utimesSync(path: PathLike, atime: TTime, mtime: TTime) {

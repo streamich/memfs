@@ -16,12 +16,14 @@ export class Dirent implements IDirent {
     dirent.name = strToEncoding(link.getName(), encoding);
     dirent.mode = mode;
     dirent.path = link.getParentPath();
+    dirent.parentPath = dirent.path;
 
     return dirent;
   }
 
   name: TDataOut = '';
   path = '';
+  parentPath = '';
   private mode: number = 0;
 
   private _checkModeProperty(property: number): boolean {

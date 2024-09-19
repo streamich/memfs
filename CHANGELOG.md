@@ -1,3 +1,10 @@
+# [4.12.0](https://github.com/streamich/memfs/compare/v4.11.2...v4.12.0) (2024-09-19)
+
+
+### Features
+
+* improve permissions support ([#1059](https://github.com/streamich/memfs/issues/1059)) ([575a76b](https://github.com/streamich/memfs/commit/575a76b5f538f65ca5b8813073bc783f3d408a1b))
+
 ## [4.11.2](https://github.com/streamich/memfs/compare/v4.11.1...v4.11.2) (2024-09-17)
 
 

@@ -17,4 +17,9 @@ describe('write(fs, str, position, encoding, callback)', () => {
       done();
     });
   });
+
+  /*
+   * No need for permissions tests, because write requires a file descriptor, which can only be
+   * obtained from open or openSync.
+   */
 });

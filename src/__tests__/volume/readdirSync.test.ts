@@ -36,10 +36,9 @@ describe('readdirSync()', () => {
       '/a/aa': 'aa',
       '/b/b': 'b',
     });
+    vol.symlinkSync('/a', '/lnk');
 
-    vol.symlinkSync('/a', '/b/b/b');
-
-    const dirs = vol.readdirSync('/b/b/b');
+    const dirs = vol.readdirSync('/lnk');
 
     (dirs as any).sort();
 
@@ -116,5 +115,17 @@ describe('readdirSync()', () => {
       { mode: 33206, name: 'cf1', path: '/z/c/c', parentPath: '/z/c/c' },
       { mode: 33206, name: 'cf2', path: '/z/c/c', parentPath: '/z/c/c' },
     ]);
+  });
+
+  it('throws EACCES when trying to readdirSync a directory with insufficient permissions', () => {
+    const vol = create({});
+    vol.mkdirSync('/foo', { mode: 0o333 }); // wx across the board
+    expect(() => {
+      vol.readdirSync('/foo');
+    }).toThrowError(/EACCES/);
+    // Check that it also throws with one of the subdirs of a recursive scan
+    expect(() => {
+      vol.readdirSync('/', { recursive: true });
+    }).toThrowError(/EACCES/);
   });
 });

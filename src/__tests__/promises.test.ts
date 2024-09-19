@@ -38,18 +38,22 @@ describe('Promises API', () => {
       });
     });
     describe('chmod(mode)', () => {
-      const vol = new Volume();
-      const { promises } = vol;
-      vol.fromJSON({
-        '/foo': 'bar',
+      let vol;
+      beforeEach(() => {
+        vol = new Volume();
+        vol.fromJSON({
+          '/foo': 'bar',
+        });
       });
       it('Change mode of existing file', async () => {
+        const { promises } = vol;
         const fileHandle = await promises.open('/foo', 'a');
         await fileHandle.chmod(0o444);
         expect(vol.statSync('/foo').mode & 0o777).toEqual(0o444);
         await fileHandle.close();
       });
       it('Reject when the file handle was closed', async () => {
+        const { promises } = vol;
         const fileHandle = await promises.open('/foo', 'a');
         await fileHandle.close();
         return expect(fileHandle.chmod(0o666)).rejects.toBeInstanceOf(Error);

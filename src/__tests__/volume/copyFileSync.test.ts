@@ -91,4 +91,47 @@ describe('copyFileSync(src, dest[, flags])', () => {
       expect(vol.readFileSync('/foo', 'utf8')).toBe('hello world');
     });
   });
+
+  describe('permissions', () => {
+    it('copying throws EACCES with insufficient permissions on the source file', () => {
+      const vol = create({ '/foo': 'foo' });
+      vol.chmodSync('/foo', 0o333); // wx across the board
+      expect(() => {
+        vol.copyFileSync('/foo', '/bar');
+      }).toThrowError(/EACCES/);
+    });
+
+    it('copying throws EACCES with insufficient permissions on the source directory', () => {
+      const vol = create({ '/foo/bar': 'foo' });
+      vol.chmodSync('/foo', 0o666); // rw across the board
+      expect(() => {
+        vol.copyFileSync('/foo/bar', '/bar');
+      }).toThrowError(/EACCES/);
+    });
+
+    it('copying throws EACCES with insufficient permissions on the destination directory', () => {
+      const perms = [
+        0o555, // rx
+        0o666, // rw
+        0o111, // x
+        0o222, // w
+      ];
+      perms.forEach(perm => {
+        const vol = create({ '/foo': 'foo' });
+        vol.mkdirSync('/bar');
+        vol.chmodSync('/bar', perm);
+        expect(() => {
+          vol.copyFileSync('/foo', '/bar/foo');
+        }).toThrowError(/EACCES/);
+      });
+    });
+    it('copying throws EACCES with insufficient permissions an intermediate directory', () => {
+      const vol = create({ '/foo/test': 'test' });
+      vol.mkdirSync('/bar');
+      vol.chmodSync('/', 0o666); // rw across the board
+      expect(() => {
+        vol.copyFileSync('/foo/test', '/bar/test');
+      }).toThrowError(/EACCES/);
+    });
+  });
 });

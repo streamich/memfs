@@ -18,4 +18,46 @@ describe('ReadStream', () => {
       done();
     });
   });
+
+  it('should emit EACCES error when file has insufficient permissions', done => {
+    const fs = createFs({ '/test': 'test' });
+    fs.chmodSync('/test', 0o333); // wx
+    new fs.ReadStream('/test')
+      .on('error', err => {
+        expect(err).toBeInstanceOf(Error);
+        expect(err).toHaveProperty('code', 'EACCES');
+        done();
+      })
+      .on('open', () => {
+        done(new Error("Expected ReadStream to emit EACCES but it didn't"));
+      });
+  });
+
+  it('should emit EACCES error when containing directory has insufficient permissions', done => {
+    const fs = createFs({ '/foo/test': 'test' });
+    fs.chmodSync('/foo', 0o666); // rw
+    new fs.ReadStream('/foo/test')
+      .on('error', err => {
+        expect(err).toBeInstanceOf(Error);
+        expect(err).toHaveProperty('code', 'EACCES');
+        done();
+      })
+      .on('open', () => {
+        done(new Error("Expected ReadStream to emit EACCES but it didn't"));
+      });
+  });
+
+  it('should emit EACCES error when intermediate directory has insufficient permissions', done => {
+    const fs = createFs({ '/foo/test': 'test' });
+    fs.chmodSync('/', 0o666); // rw
+    new fs.ReadStream('/foo/test')
+      .on('error', err => {
+        expect(err).toBeInstanceOf(Error);
+        expect(err).toHaveProperty('code', 'EACCES');
+        done();
+      })
+      .on('open', () => {
+        done(new Error("Expected ReadStream to emit EACCES but it didn't"));
+      });
+  });
 });

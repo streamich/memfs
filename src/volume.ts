@@ -388,6 +388,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   createNode(isDirectory: boolean = false, perm?: number): Node {
+    perm ??= isDirectory ? 0o777 : 0o666;
     const node = new this.props.Node(this.newInoNumber(), perm);
     if (isDirectory) node.setIsDirectory();
     this.inodes[node.ino] = node;
@@ -400,34 +401,79 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.releasedInos.push(node.ino);
   }
 
-  // Returns a `Link` (hard link) referenced by path "split" into steps.
-  getLink(steps: string[]): Link | null {
-    return this.root.walk(steps);
-  }
+  private walk(
+    steps: string[],
+    resolveSymlinks: boolean,
+    checkExistence: boolean,
+    checkAccess: boolean,
+    funcName?: string,
+  ): Link | null;
+  private walk(
+    filename: string,
+    resolveSymlinks: boolean,
+    checkExistence: boolean,
+    checkAccess: boolean,
+    funcName?: string,
+  ): Link | null;
+  private walk(
+    link: Link,
+    resolveSymlinks: boolean,
+    checkExistence: boolean,
+    checkAccess: boolean,
+    funcName?: string,
+  ): Link | null;
+  private walk(
+    stepsOrFilenameOrLink: string[] | string | Link,
+    resolveSymlinks: boolean,
+    checkExistence: boolean,
+    checkAccess: boolean,
+    funcName?: string,
+  ): Link | null;
+  private walk(
+    stepsOrFilenameOrLink: string[] | string | Link,
+    resolveSymlinks: boolean = false,
+    checkExistence: boolean = false,
+    checkAccess: boolean = false,
+    funcName?: string,
+  ): Link | null {
+    let steps: string[];
+    let filename: string;
+    if (stepsOrFilenameOrLink instanceof Link) {
+      steps = stepsOrFilenameOrLink.steps;
+      filename = sep + steps.join(sep);
+    } else if (typeof stepsOrFilenameOrLink === 'string') {
+      steps = filenameToSteps(stepsOrFilenameOrLink);
+      filename = stepsOrFilenameOrLink;
+    } else {
+      steps = stepsOrFilenameOrLink;
+      filename = sep + steps.join(sep);
+    }
 
-  // Just link `getLink`, but throws a correct user error, if link to found.
-  getLinkOrThrow(filename: string, funcName?: string): Link {
-    const steps = filenameToSteps(filename);
-    const link = this.getLink(steps);
-    if (!link) throw createError(ENOENT, funcName, filename);
-    return link;
-  }
-
-  // Just like `getLink`, but also dereference/resolves symbolic links.
-  getResolvedLink(filenameOrSteps: string | string[]): Link | null {
-    let steps: string[] = typeof filenameOrSteps === 'string' ? filenameToSteps(filenameOrSteps) : filenameOrSteps;
-
-    let link: Link | undefined = this.root;
+    let curr: Link | null = this.root;
     let i = 0;
     while (i < steps.length) {
-      const step = steps[i];
-      link = link.getChild(step);
-      if (!link) return null;
+      let node: Node = curr.getNode();
+      // Check access permissions if current link is a directory
+      if (node.isDirectory()) {
+        if (checkAccess && !node.canExecute()) {
+          throw createError(EACCES, funcName, filename);
+        }
+      } else {
+        if (i < steps.length - 1) throw createError(ENOTDIR, funcName, filename);
+      }
 
-      const node = link.getNode();
-      if (node.isSymlink()) {
+      curr = curr.getChild(steps[i]) ?? null;
+
+      // Check existence of current link
+      if (!curr)
+        if (checkExistence) throw createError(ENOENT, funcName, filename);
+        else return null;
+
+      node = curr?.getNode();
+      // Resolve symlink
+      if (resolveSymlinks && node.isSymlink()) {
         steps = node.symlink.concat(steps.slice(i + 1));
-        link = this.root;
+        curr = this.root;
         i = 0;
         continue;
       }
@@ -435,44 +481,52 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       i++;
     }
 
-    return link;
+    return curr;
+  }
+
+  // Returns a `Link` (hard link) referenced by path "split" into steps.
+  getLink(steps: string[]): Link | null {
+    return this.walk(steps, false, false, false);
+  }
+
+  // Just link `getLink`, but throws a correct user error, if link to found.
+  getLinkOrThrow(filename: string, funcName?: string): Link {
+    return this.walk(filename, false, true, true, funcName)!;
+  }
+
+  // Just like `getLink`, but also dereference/resolves symbolic links.
+  getResolvedLink(filenameOrSteps: string | string[]): Link | null {
+    return this.walk(filenameOrSteps, true, false, false);
   }
 
   // Just like `getLinkOrThrow`, but also dereference/resolves symbolic links.
   getResolvedLinkOrThrow(filename: string, funcName?: string): Link {
-    const link = this.getResolvedLink(filename);
-    if (!link) throw createError(ENOENT, funcName, filename);
-    return link;
+    return this.walk(filename, true, true, true, funcName)!;
   }
 
   resolveSymlinks(link: Link): Link | null {
-    // let node: Node = link.getNode();
-    // while(link && node.isSymlink()) {
-    //     link = this.getLink(node.symlink);
-    //     if(!link) return null;
-    //     node = link.getNode();
-    // }
-    // return link;
     return this.getResolvedLink(link.steps.slice(1));
   }
 
   // Just like `getLinkOrThrow`, but also verifies that the link is a directory.
   private getLinkAsDirOrThrow(filename: string, funcName?: string): Link {
-    const link = this.getLinkOrThrow(filename, funcName);
+    const link = this.getLinkOrThrow(filename, funcName)!;
     if (!link.getNode().isDirectory()) throw createError(ENOTDIR, funcName, filename);
     return link;
   }
 
   // Get the immediate parent directory of the link.
   private getLinkParent(steps: string[]): Link | null {
-    return this.root.walk(steps, steps.length - 1);
+    return this.getLink(steps.slice(0, -1));
   }
 
   private getLinkParentAsDirOrThrow(filenameOrSteps: string | string[], funcName?: string): Link {
-    const steps = filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps);
-    const link = this.getLinkParent(steps);
-    if (!link) throw createError(ENOENT, funcName, sep + steps.join(sep));
-    if (!link.getNode().isDirectory()) throw createError(ENOTDIR, funcName, sep + steps.join(sep));
+    const steps: string[] = (
+      filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps)
+    ).slice(0, -1);
+    const filename: string = sep + steps.join(sep);
+    const link = this.getLinkOrThrow(filename, funcName);
+    if (!link.getNode().isDirectory()) throw createError(ENOTDIR, funcName, filename);
     return link;
   }
 
@@ -642,9 +696,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     }
 
     // Resolve symlinks.
+    //
+    // @TODO: This should be superfluous. This method is only ever called by openFile(), which does its own symlink resolution
+    // prior to calling.
     let realLink: Link | null = link;
-    if (resolveSymlinks) realLink = this.resolveSymlinks(link);
-    if (!realLink) throw createError(ENOENT, 'open', link.getPath());
+    if (resolveSymlinks) realLink = this.getResolvedLinkOrThrow(link.getPath(), 'open');
 
     const node = realLink.getNode();
 
@@ -661,7 +717,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
         throw createError(EACCES, 'open', link.getPath());
       }
     }
-    if (flagsNum & O_RDWR) {
+    if (!(flagsNum & O_RDONLY)) {
+      if (!node.canWrite()) {
+        throw createError(EACCES, 'open', link.getPath());
+      }
     }
 
     const file = new this.props.File(link, node, flagsNum, this.newFdNumber());
@@ -680,20 +739,33 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     resolveSymlinks: boolean = true,
   ): File {
     const steps = filenameToSteps(filename);
-    let link: Link | null = resolveSymlinks ? this.getResolvedLink(steps) : this.getLink(steps);
+    let link: Link | null;
+    try {
+      link = resolveSymlinks ? this.getResolvedLinkOrThrow(filename, 'open') : this.getLinkOrThrow(filename, 'open');
 
-    if (link && flagsNum & O_EXCL) throw createError(EEXIST, 'open', filename);
+      // Check if file already existed when trying to create it exclusively (O_CREAT and O_EXCL flags are set).
+      // This is an error, see https://pubs.opengroup.org/onlinepubs/009695399/functions/open.html:
+      // "If O_CREAT and O_EXCL are set, open() shall fail if the file exists."
+      if (link && flagsNum & O_CREAT && flagsNum & O_EXCL) throw createError(EEXIST, 'open', filename);
+    } catch (err) {
+      // Try creating a new file, if it does not exist and O_CREAT flag is set.
+      // Note that this will still throw if the ENOENT came from one of the
+      // intermediate directories instead of the file itself.
+      if (err.code === ENOENT && flagsNum & O_CREAT) {
+        const dirname: string = pathModule.dirname(filename);
+        const dirLink: Link = this.getResolvedLinkOrThrow(dirname);
+        const dirNode = dirLink.getNode();
 
-    // Try creating a new file, if it does not exist.
-    if (!link && flagsNum & O_CREAT) {
-      // const dirLink: Link = this.getLinkParent(steps);
-      const dirLink: Link | null = this.getResolvedLink(steps.slice(0, steps.length - 1));
-      // if(!dirLink) throw createError(ENOENT, 'open', filename);
-      if (!dirLink) throw createError(ENOENT, 'open', sep + steps.join(sep));
+        // Check that the place we create the new file is actually a directory and that we are allowed to do so:
+        if (!dirNode.isDirectory()) throw createError(ENOTDIR, 'open', filename);
+        if (!dirNode.canExecute() || !dirNode.canWrite()) throw createError(EACCES, 'open', filename);
 
-      if (flagsNum & O_CREAT && typeof modeNum === 'number') {
+        // This is a difference to the original implementation, which would simply not create a file unless modeNum was specified.
+        // However, current Node versions will default to 0o666.
+        modeNum ??= 0o666;
+
         link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
-      }
+      } else throw err;
     }
 
     if (link) return this.openLink(link, flagsNum, resolveSymlinks);
@@ -886,13 +958,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (userOwnsFd) fd = id as number;
     else {
       const filename = pathToFilename(id as PathLike);
-      const steps = filenameToSteps(filename);
-      const link: Link | null = this.getResolvedLink(steps);
+      const link: Link = this.getResolvedLinkOrThrow(filename, 'open');
 
-      if (link) {
-        const node = link.getNode();
-        if (node.isDirectory()) throw createError(EISDIR, 'open', link.getPath());
-      }
+      const node = link.getNode();
+      if (node.isDirectory()) throw createError(EISDIR, 'open', link.getPath());
 
       fd = this.openSync(id as PathLike, flagsNum);
     }
@@ -1085,17 +1154,26 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private linkBase(filename1: string, filename2: string) {
-    const steps1 = filenameToSteps(filename1);
-    const link1 = this.getLink(steps1);
-    if (!link1) throw createError(ENOENT, 'link', filename1, filename2);
+    let link1: Link;
+    try {
+      link1 = this.getLinkOrThrow(filename1, 'link');
+    } catch (err) {
+      // Augment error with filename2
+      if (err.code) err = createError(err.code, 'link', filename1, filename2);
+      throw err;
+    }
 
-    const steps2 = filenameToSteps(filename2);
+    const dirname2 = pathModule.dirname(filename2);
+    let dir2: Link;
+    try {
+      dir2 = this.getLinkOrThrow(dirname2, 'link');
+    } catch (err) {
+      // Augment error with filename1
+      if (err.code) err = createError(err.code, 'link', filename1, filename2);
+      throw err;
+    }
 
-    // Check new link directory exists.
-    const dir2 = this.getLinkParent(steps2);
-    if (!dir2) throw createError(ENOENT, 'link', filename1, filename2);
-
-    const name = steps2[steps2.length - 1];
+    const name = pathModule.basename(filename2);
 
     // Check if new file already exists.
     if (dir2.getChild(name)) throw createError(EEXIST, 'link', filename1, filename2);
@@ -1163,9 +1241,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private unlinkBase(filename: string) {
-    const steps = filenameToSteps(filename);
-    const link = this.getLink(steps);
-    if (!link) throw createError(ENOENT, 'unlink', filename);
+    const link: Link = this.getLinkOrThrow(filename, 'unlink');
 
     // TODO: Check if it is file, dir, other...
 
@@ -1196,13 +1272,25 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const pathSteps = filenameToSteps(pathFilename);
 
     // Check if directory exists, where we about to create a symlink.
-    const dirLink = this.getLinkParent(pathSteps);
-    if (!dirLink) throw createError(ENOENT, 'symlink', targetFilename, pathFilename);
+    let dirLink;
+    try {
+      dirLink = this.getLinkParentAsDirOrThrow(pathSteps);
+    } catch (err) {
+      // Catch error to populate with the correct fields - getLinkParentAsDirOrThrow won't be aware of the second path
+      if (err.code) err = createError(err.code, 'symlink', targetFilename, pathFilename);
+      throw err;
+    }
 
     const name = pathSteps[pathSteps.length - 1];
 
     // Check if new file already exists.
     if (dirLink.getChild(name)) throw createError(EEXIST, 'symlink', targetFilename, pathFilename);
+
+    // Check permissions on the path where we are creating the symlink.
+    // Note we're not checking permissions on the target path: It is not an error to create a symlink to a
+    // non-existent or inaccessible target
+    const node = dirLink.getNode();
+    if (!node.canExecute() || !node.canWrite()) throw createError(EACCES, 'symlink', targetFilename, pathFilename);
 
     // Create symlink.
     const symlink: Link = dirLink.createChild(name);
@@ -1227,9 +1315,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
-    const steps = filenameToSteps(filename);
-    const realLink = this.getResolvedLink(steps);
-    if (!realLink) throw createError(ENOENT, 'realpath', filename);
+    debugger;
+    const realLink = this.getResolvedLinkOrThrow(filename, 'realpath');
 
     return strToEncoding(realLink.getPath() || '/', encoding);
   }
@@ -1251,15 +1338,15 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   private lstatBase(filename: string, bigint: true, throwIfNoEntry: false): Stats<bigint> | undefined;
   private lstatBase(filename: string, bigint: false, throwIfNoEntry: false): Stats<number> | undefined;
   private lstatBase(filename: string, bigint = false, throwIfNoEntry = false): Stats | undefined {
-    const link = this.getLink(filenameToSteps(filename));
-
-    if (link) {
-      return Stats.build(link.getNode(), bigint);
-    } else if (!throwIfNoEntry) {
-      return undefined;
-    } else {
-      throw createError(ENOENT, 'lstat', filename);
+    let link: Link;
+    try {
+      link = this.getLinkOrThrow(filename, 'lstat');
+    } catch (err) {
+      if (err.code === ENOENT && !throwIfNoEntry) return undefined;
+      else throw err;
     }
+
+    return Stats.build(link.getNode(), bigint);
   }
 
   lstatSync(path: PathLike): Stats<number>;
@@ -1287,14 +1374,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   private statBase(filename: string, bigint: true, throwIfNoEntry: false): Stats<bigint> | undefined;
   private statBase(filename: string, bigint: false, throwIfNoEntry: false): Stats<number> | undefined;
   private statBase(filename: string, bigint = false, throwIfNoEntry = true): Stats | undefined {
-    const link = this.getResolvedLink(filenameToSteps(filename));
-    if (link) {
-      return Stats.build(link.getNode(), bigint);
-    } else if (!throwIfNoEntry) {
-      return undefined;
-    } else {
-      throw createError(ENOENT, 'stat', filename);
+    let link: Link;
+    try {
+      link = this.getResolvedLinkOrThrow(filename, 'stat');
+    } catch (err) {
+      if (err.code === ENOENT && !throwIfNoEntry) return undefined;
+      else throw err;
     }
+    return Stats.build(link.getNode(), bigint);
   }
 
   statSync(path: PathLike): Stats<number>;
@@ -1342,28 +1429,49 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private renameBase(oldPathFilename: string, newPathFilename: string) {
-    const link = this.getLink(filenameToSteps(oldPathFilename));
-    if (!link) throw createError(ENOENT, 'rename', oldPathFilename, newPathFilename);
+    let link: Link;
+    try {
+      link = this.getResolvedLinkOrThrow(oldPathFilename);
+    } catch (err) {
+      // Augment err with newPathFilename
+      if (err.code) err = createError(err.code, 'rename', oldPathFilename, newPathFilename);
+      throw err;
+    }
 
     // TODO: Check if it is directory, if non-empty, we cannot move it, right?
 
-    const newPathSteps = filenameToSteps(newPathFilename);
-
     // Check directory exists for the new location.
-    const newPathDirLink = this.getLinkParent(newPathSteps);
-    if (!newPathDirLink) throw createError(ENOENT, 'rename', oldPathFilename, newPathFilename);
+    let newPathDirLink: Link;
+    try {
+      newPathDirLink = this.getLinkParentAsDirOrThrow(newPathFilename);
+    } catch (err) {
+      // Augment error with oldPathFilename
+      if (err.code) err = createError(err.code, 'rename', oldPathFilename, newPathFilename);
+      throw err;
+    }
 
     // TODO: Also treat cases with directories and symbolic links.
     // TODO: See: http://man7.org/linux/man-pages/man2/rename.2.html
 
     // Remove hard link from old folder.
     const oldLinkParent = link.parent;
-    if (oldLinkParent) {
-      oldLinkParent.deleteChild(link);
+
+    // Check we have access and write permissions in both places
+    const oldParentNode: Node = oldLinkParent.getNode();
+    const newPathDirNode: Node = newPathDirLink.getNode();
+    if (
+      !oldParentNode.canExecute() ||
+      !oldParentNode.canWrite() ||
+      !newPathDirNode.canExecute() ||
+      !newPathDirNode.canWrite()
+    ) {
+      throw createError(EACCES, 'rename', oldPathFilename, newPathFilename);
     }
 
+    oldLinkParent.deleteChild(link);
+
     // Rename should overwrite the new path, if that exists.
-    const name = newPathSteps[newPathSteps.length - 1];
+    const name = pathModule.basename(newPathFilename);
     link.name = name;
     link.steps = [...newPathDirLink.steps, name];
     newPathDirLink.setChild(link.getName(), link);
@@ -1409,8 +1517,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   private accessBase(filename: string, mode: number) {
     const link = this.getLinkOrThrow(filename, 'access');
-
-    // TODO: Verify permissions
   }
 
   accessSync(path: PathLike, mode: number = F_OK) {
@@ -1459,11 +1565,13 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   private readdirBase(filename: string, options: opts.IReaddirOptions): TDataOut[] | Dirent[] {
     const steps = filenameToSteps(filename);
-    const link: Link | null = this.getResolvedLink(steps);
-    if (!link) throw createError(ENOENT, 'readdir', filename);
+    const link: Link = this.getResolvedLinkOrThrow(filename, 'scandir');
 
     const node = link.getNode();
     if (!node.isDirectory()) throw createError(ENOTDIR, 'scandir', filename);
+
+    // Check we have permissions
+    if (!node.canRead()) throw createError(EACCES, 'scandir', filename);
 
     const list: Dirent[] = []; // output list
 
@@ -1635,12 +1743,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private utimesBase(filename: string, atime: number, mtime: number) {
-    const fd = this.openSync(filename, 'r');
-    try {
-      this.futimesBase(fd, atime, mtime);
-    } finally {
-      this.closeSync(fd);
-    }
+    const link = this.getResolvedLinkOrThrow(filename, 'utimes');
+    const node = link.getNode();
+    node.atime = new Date(atime * 1000);
+    node.mtime = new Date(mtime * 1000);
   }
 
   utimesSync(path: PathLike, atime: TTime, mtime: TTime) {
@@ -1665,35 +1771,50 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const name = steps[steps.length - 1];
     if (dir.getChild(name)) throw createError(EEXIST, 'mkdir', filename);
 
+    const node = dir.getNode();
+    if (!node.canWrite() || !node.canExecute()) throw createError(EACCES, 'mkdir', filename);
+
     dir.createChild(name, this.createNode(true, modeNum));
   }
 
   /**
    * Creates directory tree recursively.
-   * @param filename
-   * @param modeNum
    */
   private mkdirpBase(filename: string, modeNum: number) {
-    const fullPath = resolve(filename);
-    const fullPathSansSlash = fullPath.substring(1);
-    const steps = !fullPathSansSlash ? [] : fullPathSansSlash.split(sep);
-    let link = this.root;
     let created = false;
-    for (let i = 0; i < steps.length; i++) {
-      const step = steps[i];
+    const steps = filenameToSteps(filename);
 
-      if (!link.getNode().isDirectory()) throw createError(ENOTDIR, 'mkdir', link.getPath());
-
-      const child = link.getChild(step);
-      if (child) {
-        if (child.getNode().isDirectory()) link = child;
-        else throw createError(ENOTDIR, 'mkdir', child.getPath());
-      } else {
-        link = link.createChild(step, this.createNode(true, modeNum));
-        created = true;
-      }
+    let curr: Link | null = null;
+    let i = steps.length;
+    // Find the longest subpath of filename that still exists:
+    for (i = steps.length; i >= 0; i--) {
+      curr = this.getResolvedLink(steps.slice(0, i));
+      if (curr) break;
     }
-    return created ? fullPath : undefined;
+    if (!curr) {
+      curr = this.root;
+      i = 0;
+    }
+    // curr is now the last directory that still exists.
+    // (If none of them existed, curr is the root.)
+    // Check access the lazy way:
+    curr = this.getResolvedLinkOrThrow(sep + steps.slice(0, i).join(sep), 'mkdir');
+
+    // Start creating directories:
+    for (i; i < steps.length; i++) {
+      const node = curr.getNode();
+
+      if (node.isDirectory()) {
+        // Check we have permissions
+        if (!node.canExecute() || !node.canWrite()) throw createError(EACCES, 'mkdir', filename);
+      } else {
+        throw createError(ENOTDIR, 'mkdir', filename);
+      }
+
+      created = true;
+      curr = curr.createChild(steps[i], this.createNode(true, modeNum));
+    }
+    return created ? filename : undefined;
   }
 
   mkdirSync(path: PathLike, options: opts.IMkdirOptions & { recursive: true }): string | undefined;
@@ -1778,17 +1899,21 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private rmBase(filename: string, options: opts.IRmOptions = {}): void {
-    const link = this.getResolvedLink(filename);
-    if (!link) {
-      // "stat" is used to match Node's native error message.
-      if (!options.force) throw createError(ENOENT, 'stat', filename);
-      return;
+    // "stat" is used to match Node's native error message.
+    let link: Link;
+    try {
+      link = this.getResolvedLinkOrThrow(filename, 'stat');
+    } catch (err) {
+      // Silently ignore missing paths if force option is true
+      if (err.code === ENOENT && options.force) return;
+      else throw err;
     }
-    if (link.getNode().isDirectory()) {
-      if (!options.recursive) {
-        throw createError(ERR_FS_EISDIR, 'rm', filename);
-      }
-    }
+
+    if (link.getNode().isDirectory() && !options.recursive) throw createError(ERR_FS_EISDIR, 'rm', filename);
+
+    // Check permissions
+    if (!link.parent.getNode().canWrite()) throw createError(EACCES, 'rm', filename);
+
     this.deleteLink(link);
   }
 
@@ -1816,19 +1941,18 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this.fchmodBase, [fd, modeToNumber(mode)], callback);
   }
 
-  private chmodBase(filename: string, modeNum: number) {
-    const fd = this.openSync(filename, 'r');
-    try {
-      this.fchmodBase(fd, modeNum);
-    } finally {
-      this.closeSync(fd);
-    }
+  private chmodBase(filename: string, modeNum: number, followSymlinks: boolean = true) {
+    const link = followSymlinks
+      ? this.getResolvedLinkOrThrow(filename, 'chmod')
+      : this.getLinkOrThrow(filename, 'chmod');
+    const node = link.getNode();
+    node.chmod(modeNum);
   }
 
   chmodSync(path: PathLike, mode: TMode) {
     const modeNum = modeToNumber(mode);
     const filename = pathToFilename(path);
-    this.chmodBase(filename, modeNum);
+    this.chmodBase(filename, modeNum, true);
   }
 
   chmod(path: PathLike, mode: TMode, callback: TCallback<void>) {
@@ -1838,12 +1962,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private lchmodBase(filename: string, modeNum: number) {
-    const fd = this.openBase(filename, O_RDWR, 0, false);
-    try {
-      this.fchmodBase(fd, modeNum);
-    } finally {
-      this.closeSync(fd);
-    }
+    this.chmodBase(filename, modeNum, false);
   }
 
   lchmodSync(path: PathLike, mode: TMode) {
@@ -2020,9 +2139,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
 
   private opendirBase(filename: string, options: opts.IOpendirOptions): Dir {
-    const steps = filenameToSteps(filename);
-    const link: Link | null = this.getResolvedLink(steps);
-    if (!link) throw createError(ENOENT, 'opendir', filename);
+    const link: Link = this.getResolvedLinkOrThrow(filename, 'scandir');
 
     const node = link.getNode();
     if (!node.isDirectory()) throw createError(ENOTDIR, 'scandir', filename);

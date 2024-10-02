@@ -1742,19 +1742,37 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this.futimesBase, [fd, toUnixTimestamp(atime), toUnixTimestamp(mtime)], callback);
   }
 
-  private utimesBase(filename: string, atime: number, mtime: number) {
-    const link = this.getResolvedLinkOrThrow(filename, 'utimes');
+  private utimesBase(filename: string, atime: number, mtime: number, followSymlinks: boolean = true) {
+    const link = followSymlinks
+      ? this.getResolvedLinkOrThrow(filename, 'utimes')
+      : this.getLinkOrThrow(filename, 'lutimes');
     const node = link.getNode();
     node.atime = new Date(atime * 1000);
     node.mtime = new Date(mtime * 1000);
   }
 
   utimesSync(path: PathLike, atime: TTime, mtime: TTime) {
-    this.utimesBase(pathToFilename(path), toUnixTimestamp(atime), toUnixTimestamp(mtime));
+    this.utimesBase(pathToFilename(path), toUnixTimestamp(atime), toUnixTimestamp(mtime), true);
   }
 
   utimes(path: PathLike, atime: TTime, mtime: TTime, callback: TCallback<void>) {
-    this.wrapAsync(this.utimesBase, [pathToFilename(path), toUnixTimestamp(atime), toUnixTimestamp(mtime)], callback);
+    this.wrapAsync(
+      this.utimesBase,
+      [pathToFilename(path), toUnixTimestamp(atime), toUnixTimestamp(mtime), true],
+      callback,
+    );
+  }
+
+  lutimesSync(path: PathLike, atime: TTime, mtime: TTime): void {
+    this.utimesBase(pathToFilename(path), toUnixTimestamp(atime), toUnixTimestamp(mtime), false);
+  }
+
+  lutimes(path: PathLike, atime: TTime, mtime: TTime, callback: TCallback<void>): void {
+    this.wrapAsync(
+      this.utimesBase,
+      [pathToFilename(path), toUnixTimestamp(atime), toUnixTimestamp(mtime), false],
+      callback,
+    );
   }
 
   private mkdirBase(filename: string, modeNum: number) {
@@ -2130,11 +2148,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   public cpSync: FsSynchronousApi['cpSync'] = notImplemented;
-  public lutimesSync: FsSynchronousApi['lutimesSync'] = notImplemented;
   public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
 
   public cp: FsCallbackApi['cp'] = notImplemented;
-  public lutimes: FsCallbackApi['lutimes'] = notImplemented;
   public statfs: FsCallbackApi['statfs'] = notImplemented;
   public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
 

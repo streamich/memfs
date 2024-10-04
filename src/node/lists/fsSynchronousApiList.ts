@@ -36,11 +36,11 @@ export const fsSynchronousApiList: Array<keyof FsSynchronousApi> = [
   'truncateSync',
   'unlinkSync',
   'utimesSync',
+  'lutimesSync',
   'writeFileSync',
   'writeSync',
   'writevSync',
 
   // 'cpSync',
-  // 'lutimesSync',
   // 'statfsSync',
 ];

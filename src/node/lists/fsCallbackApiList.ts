@@ -39,6 +39,7 @@ export const fsCallbackApiList: Array<keyof FsCallbackApi> = [
   'unlink',
   'unwatchFile',
   'utimes',
+  'lutimes',
   'watch',
   'watchFile',
   'write',

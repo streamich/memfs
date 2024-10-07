@@ -1,3 +1,10 @@
+# [4.13.0](https://github.com/streamich/memfs/compare/v4.12.0...v4.13.0) (2024-10-07)
+
+
+### Features
+
+* implement lutimes ([#1066](https://github.com/streamich/memfs/issues/1066)) ([a1772b2](https://github.com/streamich/memfs/commit/a1772b25fbd9ca5d29a5bce9c848206b42ff2652))
+
 # [4.12.0](https://github.com/streamich/memfs/compare/v4.11.2...v4.12.0) (2024-09-19)
 
 

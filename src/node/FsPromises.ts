@@ -1,4 +1,4 @@
-import { promisify } from './util';
+import { isReadableStream, promisify, streamToBuffer } from './util';
 import { constants } from '../constants';
 import type * as opts from './types/options';
 import type * as misc from './types/misc';
@@ -63,13 +63,12 @@ export class FsPromises implements FsPromisesApi {
 
   public readonly writeFile = (
     id: misc.TFileHandle,
-    data: misc.TData,
+    data: misc.TPromisesData,
     options?: opts.IWriteFileOptions,
   ): Promise<void> => {
-    return promisify(this.fs, 'writeFile')(
-      id instanceof this.FileHandle ? id.fd : (id as misc.PathLike),
-      data,
-      options,
+    const dataPromise = isReadableStream(data) ? streamToBuffer(data) : Promise.resolve(data);
+    return dataPromise.then(data =>
+      promisify(this.fs, 'writeFile')(id instanceof this.FileHandle ? id.fd : (id as misc.PathLike), data, options),
     );
   };
 

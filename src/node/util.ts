@@ -6,6 +6,7 @@ import type * as misc from './types/misc';
 import { ENCODING_UTF8, TEncodingExtended } from '../encoding';
 import { bufferFrom } from '../internal/buffer';
 import queueMicrotask from '../queueMicrotask';
+import { Readable } from 'stream';
 
 export const isWin = process.platform === 'win32';
 
@@ -178,6 +179,15 @@ export function validateFd(fd) {
   if (!isFd(fd)) throw TypeError(ERRSTR.FD);
 }
 
+export function streamToBuffer(stream: Readable) {
+  const chunks: any[] = [];
+  return new Promise<Buffer>((resolve, reject) => {
+    stream.on('data', chunk => chunks.push(chunk));
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+    stream.on('error', reject);
+  });
+}
+
 export function dataToBuffer(data: misc.TData, encoding: string = ENCODING_UTF8): Buffer {
   if (Buffer.isBuffer(data)) return data;
   else if (data instanceof Uint8Array) return bufferFrom(data);
@@ -287,6 +297,16 @@ export const getWriteSyncArgs = (
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): misc.TDataOut {
   if (!encoding || encoding === 'buffer') return buffer;
   else return buffer.toString(encoding);
+}
+
+export function isReadableStream(stream): stream is Readable {
+  return (
+    stream !== null &&
+    typeof stream === 'object' &&
+    typeof stream.pipe === 'function' &&
+    typeof stream.on === 'function' &&
+    stream.readable === true
+  );
 }
 
 const isSeparator = (str, i) => {

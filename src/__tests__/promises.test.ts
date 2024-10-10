@@ -1,4 +1,5 @@
 import { Volume } from '../volume';
+import { Readable } from 'stream';
 
 describe('Promises API', () => {
   describe('FileHandle', () => {
@@ -703,6 +704,22 @@ describe('Promises API', () => {
       await promises.writeFile(fileHandle, 'bar');
       expect(vol.readFileSync('/foo').toString()).toEqual('bar');
       await fileHandle.close();
+    });
+    it('Write data to an existing file using stream as source', async () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      vol.fromJSON({
+        '/foo': '',
+      });
+      const text = 'bar';
+      const stream = new Readable({
+        read() {
+          this.push(text);
+          this.push(null);
+        },
+      });
+      await promises.writeFile('/foo', stream);
+      expect(vol.readFileSync('/foo').toString()).toEqual(text);
     });
     it('Reject when trying to write on a directory', () => {
       const vol = new Volume();

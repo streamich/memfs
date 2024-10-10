@@ -17,6 +17,7 @@ export type TDataOut = string | Buffer; // Data formats we give back to users.
 export type TEncodingExtended = BufferEncoding | 'buffer';
 export type TFileId = PathLike | number; // Number is used as a file descriptor.
 export type TData = TDataOut | ArrayBufferView | DataView; // Data formats users can give us.
+export type TPromisesData = TData | Readable; // Data formats users can give us in the promises API.
 export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
 export type TTime = number | string | Date;

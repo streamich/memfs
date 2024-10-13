@@ -1,3 +1,10 @@
+# [4.14.0](https://github.com/streamich/memfs/compare/v4.13.0...v4.14.0) (2024-10-13)
+
+
+### Features
+
+* support stream as source in promises version of `writeFile` ([#1069](https://github.com/streamich/memfs/issues/1069)) ([11f8a36](https://github.com/streamich/memfs/commit/11f8a36d3a8daefe16ac8e7912743a60c47158a6))
+
 # [4.13.0](https://github.com/streamich/memfs/compare/v4.12.0...v4.13.0) (2024-10-07)
 
 

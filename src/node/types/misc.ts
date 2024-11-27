@@ -4,6 +4,8 @@ import type { EventEmitter } from 'events';
 import type { TSetTimeout } from '../../setTimeoutUnref';
 import type {
   IAppendFileOptions,
+  IFileHandleReadStreamOptions,
+  IFileHandleWriteStreamOptions,
   IReadableWebStreamOptions,
   IReadFileOptions,
   IStatOptions,
@@ -138,6 +140,8 @@ export interface IFileHandle {
   chmod(mode: TMode): Promise<void>;
   chown(uid: number, gid: number): Promise<void>;
   close(): Promise<void>;
+  createReadStream(options: IFileHandleReadStreamOptions): IReadStream;
+  createWriteStream(options: IFileHandleWriteStreamOptions): IWriteStream;
   datasync(): Promise<void>;
   readableWebStream(options?: IReadableWebStreamOptions): ReadableStream;
   read(buffer: Buffer | Uint8Array, offset: number, length: number, position: number): Promise<TFileHandleReadResult>;

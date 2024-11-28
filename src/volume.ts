@@ -2260,7 +2260,7 @@ function FsReadStream(vol, path, options) {
   Readable.call(this, options);
 
   this.path = pathToFilename(path);
-  this.fd = options.fd === undefined ? null : options.fd;
+  this.fd = options.fd === undefined ? null : typeof options.fd !== 'number' ? options.fd.fd : options.fd;
   this.flags = options.flags === undefined ? 'r' : options.flags;
   this.mode = options.mode === undefined ? 0o666 : options.mode;
 
@@ -2429,7 +2429,7 @@ function FsWriteStream(vol, path, options) {
   Writable.call(this, options);
 
   this.path = pathToFilename(path);
-  this.fd = options.fd === undefined ? null : options.fd;
+  this.fd = options.fd === undefined ? null : typeof options.fd !== 'number' ? options.fd.fd : options.fd;
   this.flags = options.flags === undefined ? 'w' : options.flags;
   this.mode = options.mode === undefined ? 0o666 : options.mode;
 

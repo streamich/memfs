@@ -1449,24 +1449,24 @@ describe('volume', () => {
       const vol = Volume.fromJSON({
         '/test.txt': 'Hello',
       });
-      vol.promises.open('/test.txt', 'r').then(fh => {
-        const readStream = vol.createReadStream(
-          '/this/should/be/ignored',
-          { fd: fh },
-        );
-        readStream.setEncoding('utf8');
-        let readData = '';
-        readStream.on('readable', () => {
-          const chunk = readStream.read();
-          if (chunk != null) readData += chunk;
+      vol.promises
+        .open('/test.txt', 'r')
+        .then(fh => {
+          const readStream = vol.createReadStream('/this/should/be/ignored', { fd: fh });
+          readStream.setEncoding('utf8');
+          let readData = '';
+          readStream.on('readable', () => {
+            const chunk = readStream.read();
+            if (chunk != null) readData += chunk;
+          });
+          readStream.on('end', () => {
+            expect(readData).toEqual('Hello');
+            done();
+          });
+        })
+        .catch(err => {
+          expect(err).toBeNull();
         });
-        readStream.on('end', () => {
-          expect(readData).toEqual('Hello');
-          done();
-        });
-      }).catch((err) => {
-        expect(err).toBeNull();
-      });
     });
   });
 });

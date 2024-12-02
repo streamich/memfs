@@ -1,3 +1,10 @@
+## [4.14.1](https://github.com/streamich/memfs/compare/v4.14.0...v4.14.1) (2024-12-02)
+
+
+### Bug Fixes
+
+* accept passing a `FileHandle` to `createReadStream` and `createWriteStream` ([#1077](https://github.com/streamich/memfs/issues/1077)) ([af163dc](https://github.com/streamich/memfs/commit/af163dc4fa198b022c631b02fca10445c37ca82e))
+
 # [4.14.0](https://github.com/streamich/memfs/compare/v4.13.0...v4.14.0) (2024-10-13)
 
 

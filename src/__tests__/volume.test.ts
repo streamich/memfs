@@ -1,3 +1,4 @@
+import { promisify } from 'util';
 import { URL } from 'url';
 import { Link } from '../node';
 import Stats from '../Stats';
@@ -1429,6 +1430,43 @@ describe('volume', () => {
     it('.vol points to current volume', () => {
       const vol = new Volume();
       expect(new StatWatcher(vol).vol).toBe(vol);
+    });
+  });
+  describe('.createWriteStream', () => {
+    it('accepts filehandle as fd option', async () => {
+      const vol = new Volume();
+      const fh = await vol.promises.open('/test.txt', 'wx', 0o600);
+      const writeStream = vol.createWriteStream('', { fd: fh });
+      await promisify(writeStream.write.bind(writeStream))(Buffer.from('Hello'));
+      await promisify(writeStream.close.bind(writeStream))();
+      expect(vol.toJSON()).toEqual({
+        '/test.txt': 'Hello',
+      });
+    });
+  });
+  describe('.createReadStream', () => {
+    it('accepts filehandle as fd option', done => {
+      const vol = Volume.fromJSON({
+        '/test.txt': 'Hello',
+      });
+      vol.promises
+        .open('/test.txt', 'r')
+        .then(fh => {
+          const readStream = vol.createReadStream('/this/should/be/ignored', { fd: fh });
+          readStream.setEncoding('utf8');
+          let readData = '';
+          readStream.on('readable', () => {
+            const chunk = readStream.read();
+            if (chunk != null) readData += chunk;
+          });
+          readStream.on('end', () => {
+            expect(readData).toEqual('Hello');
+            done();
+          });
+        })
+        .catch(err => {
+          expect(err).toBeNull();
+        });
     });
   });
 });

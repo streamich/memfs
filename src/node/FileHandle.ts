@@ -1,6 +1,6 @@
 import { promisify } from './util';
 import type * as opts from './types/options';
-import type { IFileHandle, IStats, TData, TDataOut, TMode, TTime } from './types/misc';
+import type { IFileHandle, IReadStream, IWriteStream, IStats, TData, TDataOut, TMode, TTime } from './types/misc';
 import type { FsCallbackApi } from './types';
 
 export class FileHandle implements IFileHandle {
@@ -31,6 +31,14 @@ export class FileHandle implements IFileHandle {
 
   datasync(): Promise<void> {
     return promisify(this.fs, 'fdatasync')(this.fd);
+  }
+
+  createReadStream(options: opts.IFileHandleReadStreamOptions): IReadStream {
+    return this.fs.createReadStream('', { ...options, fd: this });
+  }
+
+  createWriteStream(options: opts.IFileHandleWriteStreamOptions): IWriteStream {
+    return this.fs.createWriteStream('', { ...options, fd: this });
   }
 
   readableWebStream(options?: opts.IReadableWebStreamOptions): ReadableStream {

@@ -36,6 +36,26 @@ export interface IReadableWebStreamOptions {
   type?: 'bytes' | undefined;
 }
 
+export interface IFileHandleReadStreamOptions {
+  encoding?: BufferEncoding;
+  autoClose?: boolean;
+  emitClose?: boolean;
+  start?: number | undefined;
+  end?: number;
+  highWaterMark?: number;
+  flush?: boolean;
+  signal?: AbortSignal | undefined;
+}
+
+export interface IFileHandleWriteStreamOptions {
+  encoding?: BufferEncoding;
+  autoClose?: boolean;
+  emitClose?: boolean;
+  start?: number;
+  highWaterMark?: number;
+  flush?: boolean;
+}
+
 export interface IReaddirOptions extends IOptions {
   recursive?: boolean;
   withFileTypes?: boolean;

@@ -1,3 +1,4 @@
+import { promisify } from 'util';
 import { Volume } from '../volume';
 import { Readable } from 'stream';
 
@@ -82,6 +83,39 @@ describe('Promises API', () => {
       });
     });
     // close(): covered by all other tests
+    it('supports createReadStream()', done => {
+      const vol = Volume.fromJSON({
+        '/test.txt': 'Hello',
+      });
+      vol.promises
+        .open('/test.txt', 'r')
+        .then(fh => {
+          const readStream = fh.createReadStream({});
+          readStream.setEncoding('utf8');
+          let readData = '';
+          readStream.on('readable', () => {
+            const chunk = readStream.read();
+            if (chunk != null) readData += chunk;
+          });
+          readStream.on('end', () => {
+            expect(readData).toEqual('Hello');
+            done();
+          });
+        })
+        .catch(err => {
+          expect(err).toBeNull();
+        });
+    });
+    it('supports createWriteStream()', async () => {
+      const vol = new Volume();
+      const fh = await vol.promises.open('/test.txt', 'wx', 0o600);
+      const writeStream = fh.createWriteStream({});
+      await promisify(writeStream.write.bind(writeStream))(Buffer.from('Hello'));
+      await promisify(writeStream.close.bind(writeStream))();
+      expect(vol.toJSON()).toEqual({
+        '/test.txt': 'Hello',
+      });
+    });
     describe('datasync()', () => {
       const vol = new Volume();
       const { promises } = vol;

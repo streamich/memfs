@@ -1,3 +1,10 @@
+# [4.15.0](https://github.com/streamich/memfs/compare/v4.14.1...v4.15.0) (2024-12-09)
+
+
+### Features
+
+* implement `createReadStream` and `createWriteStream` on `FileHandle` ([#1076](https://github.com/streamich/memfs/issues/1076)) ([c413df5](https://github.com/streamich/memfs/commit/c413df5e3e151e446a944a8fba5cc02db46937a0)), closes [#1063](https://github.com/streamich/memfs/issues/1063)
+
 ## [4.14.1](https://github.com/streamich/memfs/compare/v4.14.0...v4.14.1) (2024-12-02)
 
 

@@ -795,6 +795,62 @@ describe('volume', () => {
           expect(vol.readFileSync('/c1/c2/c3/c4/c5/final/a3/a4/a5/hello.txt', 'utf8')).toBe('world a');
         });
       });
+      describe('Relative paths', () => {
+        it('Creates symlinks with relative paths correctly', () => {
+          const vol = Volume.fromJSON({
+            '/test/target': 'foo',
+            '/test/folder': null,
+          });
+
+          // Create symlink using relative path
+          vol.symlinkSync('../target', '/test/folder/link');
+
+          // Verify we can read through the symlink
+          expect(vol.readFileSync('/test/folder/link', 'utf8')).toBe('foo');
+
+          // Verify the symlink points to the correct location
+          const linkPath = vol.readlinkSync('/test/folder/link');
+          expect(linkPath).toBe('../target');
+        });
+
+        it('Handles nested relative symlinks', () => {
+          const vol = Volume.fromJSON({
+            '/a/b/target.txt': 'content',
+            '/a/c/d': null,
+          });
+
+          // Create symlink in nested directory using relative path
+          vol.symlinkSync('../../b/target.txt', '/a/c/d/link');
+
+          // Should be able to read through the symlink
+          expect(vol.readFileSync('/a/c/d/link', 'utf8')).toBe('content');
+
+          // Create another symlink pointing to the first symlink
+          vol.symlinkSync('./d/link', '/a/c/link2');
+
+          // Should be able to read through both symlinks
+          expect(vol.readFileSync('/a/c/link2', 'utf8')).toBe('content');
+        });
+
+        it('Maintains relative paths when reading symlinks', () => {
+          const vol = Volume.fromJSON({
+            '/x/y/file.txt': 'test content',
+            '/x/z': null,
+          });
+
+          // Create symlinks with different relative path patterns
+          vol.symlinkSync('../y/file.txt', '/x/z/link1');
+          vol.symlinkSync('../../x/y/file.txt', '/x/z/link2');
+
+          // Verify that readlink returns the original relative paths
+          expect(vol.readlinkSync('/x/z/link1')).toBe('../y/file.txt');
+          expect(vol.readlinkSync('/x/z/link2')).toBe('../../x/y/file.txt');
+
+          // Verify that all symlinks resolve correctly
+          expect(vol.readFileSync('/x/z/link1', 'utf8')).toBe('test content');
+          expect(vol.readFileSync('/x/z/link2', 'utf8')).toBe('test content');
+        });
+      });
     });
     describe('.symlink(target, path[, type], callback)', () => {
       xit('...', () => {});
@@ -806,7 +862,7 @@ describe('volume', () => {
       mootools.getNode().setString(data);
 
       const symlink = vol.root.createChild('mootools.link.js');
-      symlink.getNode().makeSymlink(['mootools.js']);
+      symlink.getNode().makeSymlink('mootools.js');
 
       it('Symlink works', () => {
         const resolved = vol.resolveSymlinks(symlink);
@@ -828,7 +884,7 @@ describe('volume', () => {
       mootools.getNode().setString(data);
 
       const symlink = vol.root.createChild('mootools.link.js');
-      symlink.getNode().makeSymlink(['mootools.js']);
+      symlink.getNode().makeSymlink('mootools.js');
 
       it('Basic one-jump symlink resolves', done => {
         vol.realpath('/mootools.link.js', (err, path) => {

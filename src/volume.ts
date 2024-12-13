@@ -472,7 +472,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       node = curr?.getNode();
       // Resolve symlink
       if (resolveSymlinks && node.isSymlink()) {
-        steps = node.symlink.concat(steps.slice(i + 1));
+        const resolvedPath = pathModule.isAbsolute(node.symlink)
+          ? node.symlink
+          : join(pathModule.dirname(curr.getPath()), node.symlink); // Relative to symlink's parent
+
+        steps = filenameToSteps(resolvedPath).concat(steps.slice(i + 1));
         curr = this.root;
         i = 0;
         continue;
@@ -1294,7 +1298,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     // Create symlink.
     const symlink: Link = dirLink.createChild(name);
-    symlink.getNode().makeSymlink(filenameToSteps(targetFilename));
+    symlink.getNode().makeSymlink(targetFilename);
+
     return symlink;
   }
 
@@ -1637,8 +1642,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     if (!node.isSymlink()) throw createError(EINVAL, 'readlink', filename);
 
-    const str = sep + node.symlink.join(sep);
-    return strToEncoding(str, encoding);
+    return strToEncoding(node.symlink, encoding);
   }
 
   readlinkSync(path: PathLike, options?: opts.IOptions): TDataOut {

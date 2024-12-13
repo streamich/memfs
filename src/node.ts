@@ -36,8 +36,8 @@ export class Node extends EventEmitter {
   // Number of hard links pointing at this Node.
   private _nlink = 1;
 
-  // Steps to another node, if this node is a symlink.
-  symlink: string[];
+  // Path to another node, if this is a symlink.
+  symlink: string;
 
   constructor(ino: number, perm: number = 0o666) {
     super();
@@ -163,9 +163,9 @@ export class Node extends EventEmitter {
     return (this.mode & S_IFMT) === S_IFLNK;
   }
 
-  makeSymlink(steps: string[]) {
-    this.symlink = steps;
-    this.setIsSymlink();
+  makeSymlink(symlink: string) {
+    this.mode = S_IFLNK;
+    this.symlink = symlink;
   }
 
   write(buf: Buffer, off: number = 0, len: number = buf.length, pos: number = 0): number {

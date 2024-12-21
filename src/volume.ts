@@ -570,9 +570,15 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
   */
 
+  private abortControllers: Set<AbortController> = new Set();
+
   private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
     validateCallback(callback);
+    const abortController = new AbortController();
+    this.abortControllers.add(abortController);
     setImmediate(() => {
+      this.abortControllers.delete(abortController);
+      if (abortController.signal.aborted) return;
       let result;
       try {
         result = method.apply(this, args);
@@ -673,6 +679,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   reset() {
+    for (const abortController of this.abortControllers) {
+      abortController.abort();
+    }
+    this.abortControllers.clear();
     this.ino = 0;
     this.inodes = {};
     this.releasedInos = [];

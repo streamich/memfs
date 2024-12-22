@@ -1,3 +1,10 @@
+## [4.15.1](https://github.com/streamich/memfs/compare/v4.15.0...v4.15.1) (2024-12-22)
+
+
+### Bug Fixes
+
+* resolve relative symlinks to the current directory ([#1079](https://github.com/streamich/memfs/issues/1079)) ([63e3873](https://github.com/streamich/memfs/commit/63e38735fe08b728da02b9328d16be4d132b9327)), closes [#725](https://github.com/streamich/memfs/issues/725)
+
 # [4.15.0](https://github.com/streamich/memfs/compare/v4.14.1...v4.15.0) (2024-12-09)
 
 

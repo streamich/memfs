@@ -361,6 +361,23 @@ describe('volume', () => {
           '/good': 'bye',
         });
       });
+      it('Open streams should not be affected', async () => {
+        const vol = new Volume();
+        const json = {
+          '/hello': 'world',
+        };
+        vol.fromJSON(json);
+        await new Promise((resolve, reject) => {
+          vol
+            .createReadStream('/hello')
+            .on('data', () => null)
+            .on('close', resolve)
+            .on('end', () => {
+              vol.reset();
+            })
+            .on('error', reject);
+        });
+      });
     });
     describe('.openSync(path, flags[, mode])', () => {
       const vol = new Volume();

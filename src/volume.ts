@@ -570,15 +570,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
   */
 
-  private abortControllers: Set<AbortController> = new Set();
-
   private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
     validateCallback(callback);
-    const abortController = new AbortController();
-    this.abortControllers.add(abortController);
     setImmediate(() => {
-      this.abortControllers.delete(abortController);
-      if (abortController.signal.aborted) return;
       let result;
       try {
         result = method.apply(this, args);
@@ -677,6 +671,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   public toTree(opts: ToTreeOptions = { separator: <'/' | '\\'>sep }): string {
     return toTreeSync(this, opts);
   }
+
+  private abortControllers = new Set<AbortController>();
 
   reset() {
     for (const abortController of this.abortControllers) {
@@ -831,7 +827,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   close(fd: number, callback: TCallback<void>) {
     validateFd(fd);
-    this.wrapAsync(this.closeSync, [fd], callback);
+    const abortController = new AbortController();
+    this.abortControllers.add(abortController);
+    const { signal } = abortController;
+    this.wrapAsync(this.closeSync, [fd], (err, ...rest) => {
+      // Don't throw error about bad file descriptor when closing a file if we've reset the volume.
+      if (signal.aborted && err?.code === EBADF) err = null;
+      callback(err, ...rest);
+    });
   }
 
   private openFileOrGetById(id: TFileId, flagsNum: number, modeNum?: number): File {

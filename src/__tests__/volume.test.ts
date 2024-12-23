@@ -430,6 +430,15 @@ describe('volume', () => {
           done();
         });
       });
+      it('Creates a character device at root (/null)', done => {
+        vol.open('/null', 'w', constants.S_IFCHR | 0o666, (err, fd) => {
+          expect(err).toBe(null);
+          expect(vol.root.getChild('null')?.getNode().isCharacterDevice()).toBe(true);
+          expect(typeof fd).toBe('number');
+          expect(fd).toBeGreaterThan(0);
+          done();
+        });
+      }, 100);
       it('Error on file not found', done => {
         vol.open('/non-existing-file.txt', 'r', (err, fd) => {
           expect(err).toHaveProperty('code', 'ENOENT');

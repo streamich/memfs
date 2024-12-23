@@ -309,7 +309,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.props = Object.assign({ Node, Link, File }, props);
 
     const root = this.createLink();
-    root.setNode(this.createNode(true));
+    root.setNode(this.createNode(constants.S_IFDIR | 0o777));
 
     const self = this; // tslint:disable-line no-this-assignment
 
@@ -349,8 +349,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   createLink(): Link;
-  createLink(parent: Link, name: string, isDirectory?: boolean, perm?: number): Link;
-  createLink(parent?: Link, name?: string, isDirectory: boolean = false, perm?: number): Link {
+  createLink(parent: Link, name: string, isDirectory?: boolean, mode?: number): Link;
+  createLink(parent?: Link, name?: string, isDirectory: boolean = false, mode?: number): Link {
     if (!parent) {
       return new this.props.Link(this, null, '');
     }
@@ -359,7 +359,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       throw new Error('createLink: name cannot be empty');
     }
 
-    return parent.createChild(name, this.createNode(isDirectory, perm));
+    // If no explicit permission is provided, use defaults based on type
+    const finalPerm = mode ?? (isDirectory ? 0o777 : 0o666);
+    // To prevent making a breaking change, `mode` can also just be a permission number
+    // and the file type is set based on `isDirectory`
+    const hasFileType = mode && mode & constants.S_IFMT;
+    const modeType = hasFileType ? mode & constants.S_IFMT : isDirectory ? constants.S_IFDIR : constants.S_IFREG;
+    const finalMode = (finalPerm & ~constants.S_IFMT) | modeType;
+    return parent.createChild(name, this.createNode(finalMode));
   }
 
   deleteLink(link: Link): boolean {
@@ -387,10 +394,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return typeof releasedFd === 'number' ? releasedFd : Volume.fd--;
   }
 
-  createNode(isDirectory: boolean = false, perm?: number): Node {
-    perm ??= isDirectory ? 0o777 : 0o666;
-    const node = new this.props.Node(this.newInoNumber(), perm);
-    if (isDirectory) node.setIsDirectory();
+  createNode(mode: number): Node {
+    const node = new this.props.Node(this.newInoNumber(), mode);
     this.inodes[node.ino] = node;
     return node;
   }
@@ -685,7 +690,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.openFiles = 0;
 
     this.root = this.createLink();
-    this.root.setNode(this.createNode(true));
+    this.root.setNode(this.createNode(constants.S_IFDIR | 0o777));
   }
 
   // Legacy interface
@@ -1796,7 +1801,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const node = dir.getNode();
     if (!node.canWrite() || !node.canExecute()) throw createError(EACCES, 'mkdir', filename);
 
-    dir.createChild(name, this.createNode(true, modeNum));
+    dir.createChild(name, this.createNode(constants.S_IFDIR | modeNum));
   }
 
   /**
@@ -1834,7 +1839,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       }
 
       created = true;
-      curr = curr.createChild(steps[i], this.createNode(true, modeNum));
+      curr = curr.createChild(steps[i], this.createNode(constants.S_IFDIR | modeNum));
     }
     return created ? filename : undefined;
   }

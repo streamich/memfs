@@ -5,7 +5,7 @@ describe('node.ts', () => {
   describe('Node', () => {
     const node = new Node(1);
     it('properly sets mode with permission respected', () => {
-      const node = new Node(1, 0o755);
+      const node = new Node(1, constants.S_IFREG | 0o755);
       expect(node.perm).toBe(0o755);
       expect(node.mode).toBe(constants.S_IFREG | 0o755);
       expect(node.isFile()).toBe(true); // Make sure we still know it's a file
@@ -72,7 +72,7 @@ describe('node.ts', () => {
       });
     });
     describe('.chmod(perm)', () => {
-      const node = new Node(1);
+      const node = new Node(1, constants.S_IFREG | 0o666);
       expect(node.perm).toBe(0o666);
       expect(node.isFile()).toBe(true);
       node.chmod(0o600);

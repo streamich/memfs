@@ -672,13 +672,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return toTreeSync(this, opts);
   }
 
-  private abortControllers = new Set<AbortController>();
-
   reset() {
-    for (const abortController of this.abortControllers) {
-      abortController.abort();
-    }
-    this.abortControllers.clear();
     this.ino = 0;
     this.inodes = {};
     this.releasedInos = [];
@@ -827,14 +821,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   close(fd: number, callback: TCallback<void>) {
     validateFd(fd);
-    const abortController = new AbortController();
-    this.abortControllers.add(abortController);
-    const { signal } = abortController;
-    this.wrapAsync(this.closeSync, [fd], (err, ...rest) => {
-      // Don't throw error about bad file descriptor when closing a file if we've reset the volume.
-      if (signal.aborted && err?.code === EBADF) err = null;
-      callback(err, ...rest);
-    });
+    const file = this.getFileByFdOrThrow(fd, 'close');
+    // NOTE: not calling closeSync because we can reset in between close and closeSync
+    this.wrapAsync(this.closeFile, [file], callback);
   }
 
   private openFileOrGetById(id: TFileId, flagsNum: number, modeNum?: number): File {

@@ -1,3 +1,10 @@
+## [4.15.2](https://github.com/streamich/memfs/compare/v4.15.1...v4.15.2) (2024-12-30)
+
+
+### Bug Fixes
+
+* don't fail on closing fd after reset has been called ([#550](https://github.com/streamich/memfs/issues/550)) ([#1081](https://github.com/streamich/memfs/issues/1081)) ([ede0f4f](https://github.com/streamich/memfs/commit/ede0f4ff774f8ceb0f5c0ba2650a7ce0bd39c118))
+
 ## [4.15.1](https://github.com/streamich/memfs/compare/v4.15.0...v4.15.1) (2024-12-22)
 
 

@@ -825,7 +825,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   close(fd: number, callback: TCallback<void>) {
     validateFd(fd);
-    this.wrapAsync(this.closeSync, [fd], callback);
+    const file = this.getFileByFdOrThrow(fd, 'close');
+    // NOTE: not calling closeSync because we can reset in between close and closeSync
+    this.wrapAsync(this.closeFile, [file], callback);
   }
 
   private openFileOrGetById(id: TFileId, flagsNum: number, modeNum?: number): File {

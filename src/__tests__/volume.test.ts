@@ -390,6 +390,12 @@ describe('volume', () => {
         expect(fd).toBeGreaterThan(0);
         expect(oldMtime).not.toBe(newMtime);
       });
+      it('Create new file with Uint8Array path', () => {
+        const path = new TextEncoder().encode('/test.txt');
+        const fd = vol.openSync(path, 'w');
+        expect(typeof fd).toBe('number');
+        expect(fd).toBeGreaterThan(0);
+      });
       it('Error on file not found', () => {
         try {
           vol.openSync('/non-existing-file.txt', 'r');
@@ -404,7 +410,7 @@ describe('volume', () => {
           throw Error('This should not throw');
         } catch (err) {
           expect(err).toBeInstanceOf(TypeError);
-          expect(err.message).toBe('path must be a string or Buffer');
+          expect(err.message).toBe('path must be a string, Buffer, or Uint8Array');
         }
       });
       it('Invalid flags correct error code', () => {
@@ -477,7 +483,7 @@ describe('volume', () => {
           throw Error('This should not throw');
         } catch (err) {
           expect(err).toBeInstanceOf(TypeError);
-          expect(err.message).toBe('path must be a string or Buffer');
+          expect(err.message).toBe('path must be a string, Buffer, or Uint8Array');
           done();
         }
       });

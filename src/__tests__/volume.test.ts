@@ -387,7 +387,7 @@ describe('volume', () => {
           throw Error('This should not throw');
         } catch (err) {
           expect(err).toBeInstanceOf(TypeError);
-          expect(err.message).toBe('path must be a string or Buffer');
+          expect(err.message).toBe('path must be a string, Buffer, or Uint8Array');
         }
       });
       it('Invalid flags correct error code', () => {
@@ -451,7 +451,7 @@ describe('volume', () => {
           throw Error('This should not throw');
         } catch (err) {
           expect(err).toBeInstanceOf(TypeError);
-          expect(err.message).toBe('path must be a string or Buffer');
+          expect(err.message).toBe('path must be a string, Buffer, or Uint8Array');
           done();
         }
       });

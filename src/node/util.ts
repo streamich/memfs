@@ -72,6 +72,9 @@ function getPathFromURLPosix(url): string {
 }
 
 export function pathToFilename(path: misc.PathLike): string {
+  if (path instanceof Uint8Array) {
+    path = bufferFrom(path);
+  }
   if (typeof path !== 'string' && !Buffer.isBuffer(path)) {
     try {
       if (!(path instanceof require('url').URL)) throw new TypeError(ERRSTR.PATH_STR);

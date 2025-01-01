@@ -1,3 +1,10 @@
+## [4.15.3](https://github.com/streamich/memfs/compare/v4.15.2...v4.15.3) (2025-01-01)
+
+
+### Bug Fixes
+
+* allow setting custom file types beyond S_IFREG and S_IFDIR ([#1082](https://github.com/streamich/memfs/issues/1082)) ([24da3e7](https://github.com/streamich/memfs/commit/24da3e73ade9f9fdc1bb7e2dbf898fab547150f4))
+
 ## [4.15.2](https://github.com/streamich/memfs/compare/v4.15.1...v4.15.2) (2024-12-30)
 
 

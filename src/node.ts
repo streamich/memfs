@@ -5,7 +5,7 @@ import { Volume } from './volume';
 import { EventEmitter } from 'events';
 import Stats from './Stats';
 
-const { S_IFMT, S_IFDIR, S_IFREG, S_IFLNK, O_APPEND } = constants;
+const { S_IFMT, S_IFDIR, S_IFREG, S_IFLNK, S_IFCHR, O_APPEND } = constants;
 const getuid = (): number => process.getuid?.() ?? 0;
 const getgid = (): number => process.getgid?.() ?? 0;
 
@@ -29,9 +29,7 @@ export class Node extends EventEmitter {
   // data: string = '';
   buf: Buffer;
 
-  private _perm = 0o666; // Permissions `chmod`, `fchmod`
-
-  mode = S_IFREG; // S_IFDIR, S_IFREG, etc.. (file by default?)
+  mode: number; // S_IFDIR, S_IFREG, etc..
 
   // Number of hard links pointing at this Node.
   private _nlink = 1;
@@ -39,10 +37,9 @@ export class Node extends EventEmitter {
   // Path to another node, if this is a symlink.
   symlink: string;
 
-  constructor(ino: number, perm: number = 0o666) {
+  constructor(ino: number, mode: number = 0o666) {
     super();
-    this._perm = perm;
-    this.mode |= perm;
+    this.mode = mode;
     this.ino = ino;
   }
 
@@ -90,13 +87,13 @@ export class Node extends EventEmitter {
     return this._mtime;
   }
 
-  public set perm(perm: number) {
-    this._perm = perm;
-    this.ctime = new Date();
+  public get perm(): number {
+    return this.mode & ~S_IFMT;
   }
 
-  public get perm(): number {
-    return this._perm;
+  public set perm(perm: number) {
+    this.mode = (this.mode & S_IFMT) | (perm & ~S_IFMT);
+    this.ctime = new Date();
   }
 
   public set nlink(nlink: number) {
@@ -135,19 +132,7 @@ export class Node extends EventEmitter {
   }
 
   setModeProperty(property: number) {
-    this.mode = (this.mode & ~S_IFMT) | property;
-  }
-
-  setIsFile() {
-    this.setModeProperty(S_IFREG);
-  }
-
-  setIsDirectory() {
-    this.setModeProperty(S_IFDIR);
-  }
-
-  setIsSymlink() {
-    this.setModeProperty(S_IFLNK);
+    this.mode = property;
   }
 
   isFile() {
@@ -163,8 +148,12 @@ export class Node extends EventEmitter {
     return (this.mode & S_IFMT) === S_IFLNK;
   }
 
+  isCharacterDevice() {
+    return (this.mode & S_IFMT) === S_IFCHR;
+  }
+
   makeSymlink(symlink: string) {
-    this.mode = S_IFLNK;
+    this.mode = S_IFLNK | 0o666;
     this.symlink = symlink;
   }
 
@@ -223,8 +212,7 @@ export class Node extends EventEmitter {
   }
 
   chmod(perm: number) {
-    this.perm = perm;
-    this.mode = (this.mode & ~0o777) | perm;
+    this.mode = (this.mode & S_IFMT) | (perm & ~S_IFMT);
     this.touch();
   }
 
@@ -376,7 +364,7 @@ export class Link extends EventEmitter {
     return this.node;
   }
 
-  createChild(name: string, node: Node = this.vol.createNode()): Link {
+  createChild(name: string, node: Node = this.vol.createNode(S_IFREG | 0o666)): Link {
     const link = new Link(this.vol, this, name);
     link.setNode(node);
 

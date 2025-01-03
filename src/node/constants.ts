@@ -8,7 +8,7 @@ export const enum MODE {
 }
 
 export const ERRSTR = {
-  PATH_STR: 'path must be a string or Buffer',
+  PATH_STR: 'path must be a string, Buffer, or Uint8Array',
   // FD:             'file descriptor must be a unsigned 32-bit integer',
   FD: 'fd must be a file descriptor',
   MODE_INT: 'mode must be an int',

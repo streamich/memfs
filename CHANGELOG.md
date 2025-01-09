@@ -1,3 +1,10 @@
+# [4.17.0](https://github.com/streamich/memfs/compare/v4.16.0...v4.17.0) (2025-01-09)
+
+
+### Features
+
+* allow setting rdev on node ([#1085](https://github.com/streamich/memfs/issues/1085)) ([2717334](https://github.com/streamich/memfs/commit/2717334372ee92b1892ef12cdc341d43312455f2))
+
 # [4.16.0](https://github.com/streamich/memfs/compare/v4.15.4...v4.16.0) (2025-01-09)
 
 

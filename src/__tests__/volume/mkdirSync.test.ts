@@ -121,7 +121,6 @@ describe('mkdirSync', () => {
     it('throws ENOTDIR when trying to create under something that is not a directory', () => {
       const vol = create({ '/a': 'I am a file' });
       expect(() => {
-        debugger;
         vol.mkdirSync('/a/b/c', { recursive: true });
       }).toThrow(/ENOTDIR/);
     });

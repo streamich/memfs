@@ -1327,7 +1327,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private realpathBase(filename: string, encoding: TEncodingExtended | undefined): TDataOut {
-    debugger;
     const realLink = this.getResolvedLinkOrThrow(filename, 'realpath');
 
     return strToEncoding(realLink.getPath() || '/', encoding);

@@ -58,9 +58,8 @@ import {
   getWriteSyncArgs,
   unixify,
 } from './node/util';
-import type { PathLike, symlink } from 'fs';
+import type { PathLike, symlink } from './node/types/misc';
 import type { FsPromisesApi, FsSynchronousApi } from './node/types';
-import { fsSynchronousApiList } from './node/lists/fsSynchronousApiList';
 import { Dir } from './Dir';
 
 const resolveCrossPlatform = pathModule.resolve;

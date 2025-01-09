@@ -1,4 +1,4 @@
-import type { PathLike, symlink } from 'fs';
+import type { PathLike as NodePathLike, symlink } from 'fs';
 import type { constants } from '../../constants';
 import type { EventEmitter } from 'events';
 import type { TSetTimeout } from '../../setTimeoutUnref';
@@ -13,8 +13,9 @@ import type {
 } from './options';
 import type { Readable, Writable } from 'stream';
 
-export { PathLike, symlink };
+export { symlink };
 
+export type PathLike = NodePathLike | Uint8Array; // For browser support we add Uint8Array.
 export type TDataOut = string | Buffer; // Data formats we give back to users.
 export type TEncodingExtended = BufferEncoding | 'buffer';
 export type TFileId = PathLike | number; // Number is used as a file descriptor.

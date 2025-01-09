@@ -28,6 +28,7 @@ export class Node extends EventEmitter {
 
   // data: string = '';
   buf: Buffer;
+  rdev: number = 0;
 
   mode: number; // S_IFDIR, S_IFREG, etc..
 

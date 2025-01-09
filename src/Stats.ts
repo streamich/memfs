@@ -25,7 +25,7 @@ export class Stats<T = TStatNumber> {
     stats.uid = getStatNumber(uid);
     stats.gid = getStatNumber(gid);
 
-    stats.rdev = getStatNumber(0);
+    stats.rdev = getStatNumber(node.rdev);
     stats.blksize = getStatNumber(4096);
     stats.ino = getStatNumber(node.ino);
     stats.size = getStatNumber(node.getSize());

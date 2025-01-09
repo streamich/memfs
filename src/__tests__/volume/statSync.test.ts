@@ -12,6 +12,14 @@ describe('.statSync(...)', () => {
     expect(stats.size).toBe(11);
   });
 
+  it('returns rdev', () => {
+    const vol = create({});
+    const fd = vol.openSync('/null', 'w');
+    vol.fds[fd].node.rdev = 1;
+    const stats = vol.statSync('/null');
+    expect(stats.rdev).toBe(1);
+  });
+
   it('returns undefined for non-existent targets with the throwIfNoEntry option set to false', () => {
     const vol = create({});
 

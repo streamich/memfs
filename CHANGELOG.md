@@ -1,3 +1,10 @@
+## [4.15.4](https://github.com/streamich/memfs/compare/v4.15.3...v4.15.4) (2025-01-09)
+
+
+### Bug Fixes
+
+* remove `debugger` statement ([#1086](https://github.com/streamich/memfs/issues/1086)) ([6489172](https://github.com/streamich/memfs/commit/648917202d0832908ec57b72400f4c772e15a624))
+
 ## [4.15.3](https://github.com/streamich/memfs/compare/v4.15.2...v4.15.3) (2025-01-01)
 
 

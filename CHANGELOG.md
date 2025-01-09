@@ -1,3 +1,10 @@
+# [4.16.0](https://github.com/streamich/memfs/compare/v4.15.4...v4.16.0) (2025-01-09)
+
+
+### Features
+
+* support `UInt8Array` in place of `Buffer` ([#1083](https://github.com/streamich/memfs/issues/1083)) ([0d3662a](https://github.com/streamich/memfs/commit/0d3662a75f09fee7bfc6b73f26c34e0e2922bf6f))
+
 ## [4.15.4](https://github.com/streamich/memfs/compare/v4.15.3...v4.15.4) (2025-01-09)
 
 

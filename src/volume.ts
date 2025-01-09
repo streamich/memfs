@@ -58,8 +58,7 @@ import {
   getWriteSyncArgs,
   unixify,
 } from './node/util';
-import type { symlink } from 'fs';
-import type { PathLike } from './node/types/misc';
+import type { PathLike, symlink } from './node/types/misc';
 import type { FsPromisesApi, FsSynchronousApi } from './node/types';
 import { Dir } from './Dir';
 

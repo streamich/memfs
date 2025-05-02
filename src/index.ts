@@ -1,7 +1,7 @@
 import Stats from './Stats';
 import Dirent from './Dirent';
 import {
-  Volume as _Volume,
+  Volume,
   StatWatcher,
   FSWatcher,
   toUnixTimestamp,
@@ -16,13 +16,12 @@ import { fsSynchronousApiList } from './node/lists/fsSynchronousApiList';
 import { fsCallbackApiList } from './node/lists/fsCallbackApiList';
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
-export { DirectoryJSON, NestedDirectoryJSON };
-export const Volume = _Volume;
+export { DirectoryJSON, NestedDirectoryJSON, Volume };
 
 // Default volume.
-export const vol = new _Volume();
+export const vol = new Volume();
 
-export interface IFs extends _Volume {
+export interface IFs extends Volume {
   constants: typeof constants;
   Stats: new (...args) => Stats;
   Dirent: new (...args) => Dirent;
@@ -34,7 +33,7 @@ export interface IFs extends _Volume {
   _toUnixTimestamp;
 }
 
-export function createFsFromVolume(vol: _Volume): IFs {
+export function createFsFromVolume(vol: Volume): IFs {
   const fs = { F_OK, R_OK, W_OK, X_OK, constants, Stats, Dirent } as any as IFs;
 
   // Bind FS methods.
@@ -65,13 +64,13 @@ export const fs: IFs = createFsFromVolume(vol);
  * @returns A `memfs` file system instance, which is a drop-in replacement for
  *          the `fs` module.
  */
-export const memfs = (json: NestedDirectoryJSON = {}, cwd: string = '/'): { fs: IFs; vol: _Volume } => {
+export const memfs = (json: NestedDirectoryJSON = {}, cwd: string = '/'): { fs: IFs; vol: Volume } => {
   const vol = Volume.fromNestedJSON(json, cwd);
   const fs = createFsFromVolume(vol);
   return { fs, vol };
 };
 
-export type IFsWithVolume = IFs & { __vol: _Volume };
+export type IFsWithVolume = IFs & { __vol: Volume };
 
 declare let module;
 module.exports = { ...module.exports, ...fs };

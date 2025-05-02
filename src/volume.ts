@@ -3,7 +3,6 @@ import { Node, Link, File } from './node';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from './internal/buffer';
-import setImmediate from './setImmediate';
 import queueMicrotask from './queueMicrotask';
 import process from './process';
 import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
@@ -580,7 +579,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
     validateCallback(callback);
-    setImmediate(() => {
+    Promise.resolve().then(() => {
       let result;
       try {
         result = method.apply(this, args);
@@ -894,7 +893,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       });
     }
 
-    setImmediate(() => {
+    Promise.resolve().then(() => {
       try {
         const bytes = this.readBase(fd, buffer, offset, length, position);
         callback(null, bytes, buffer);
@@ -943,7 +942,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     validateCallback(callback);
 
-    setImmediate(() => {
+    Promise.resolve().then(() => {
       try {
         const bytes = this.readvBase(fd, buffers, position);
         callback(null, bytes, buffers);
@@ -1050,7 +1049,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   write(fd: number, str: string, position: number, encoding: BufferEncoding, callback: (...args) => void);
   write(fd: number, a?, b?, c?, d?, e?) {
     const [, asStr, buf, offset, length, position, cb] = getWriteArgs(fd, a, b, c, d, e);
-    setImmediate(() => {
+    Promise.resolve().then(() => {
       try {
         const bytes = this.writeBase(fd, buf, offset, length, position);
         if (!asStr) {
@@ -1094,7 +1093,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     validateCallback(callback);
 
-    setImmediate(() => {
+    Promise.resolve().then(() => {
       try {
         const bytes = this.writevBase(fd, buffers, position);
         callback(null, bytes, buffers);
@@ -1516,7 +1515,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     if (typeof callback !== 'function') throw Error(ERRSTR.CB);
 
-    setImmediate(() => {
+    Promise.resolve().then(() => {
       try {
         callback(this.existsBase(filename));
       } catch (err) {

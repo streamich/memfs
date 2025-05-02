@@ -15,7 +15,6 @@ console.log(toTreeSync(<any>fs, { dir: process.cwd() + '/src/fsa-to-node' }));
 // │  ├─ node.test.ts
 // │  ├─ process.test.ts
 // │  ├─ promises.test.ts
-// │  ├─ setImmediate.test.ts
 // │  ├─ setTimeoutUnref.test.ts
 // │  ├─ util.ts
 // │  ├─ volume/
@@ -154,7 +153,6 @@ console.log(toTreeSync(<any>fs, { dir: process.cwd() + '/src/fsa-to-node' }));
 // │  │  └─ index.test.ts
 // │  └─ index.ts
 // ├─ process.ts
-// ├─ setImmediate.ts
 // ├─ setTimeoutUnref.ts
 // ├─ volume-localstorage.ts
 // ├─ volume.ts

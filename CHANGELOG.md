@@ -1,3 +1,10 @@
+## [4.17.1](https://github.com/streamich/memfs/compare/v4.17.0...v4.17.1) (2025-05-03)
+
+
+### Bug Fixes
+
+* export `Volume` class directly rather than as a `const` ([#1099](https://github.com/streamich/memfs/issues/1099)) ([9c99798](https://github.com/streamich/memfs/commit/9c99798f173df18f43670d7970fb669c2236af55))
+
 # [4.17.0](https://github.com/streamich/memfs/compare/v4.16.0...v4.17.0) (2025-01-09)
 
 

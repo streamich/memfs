@@ -1,3 +1,10 @@
+## [4.17.2](https://github.com/streamich/memfs/compare/v4.17.1...v4.17.2) (2025-05-15)
+
+
+### Performance Improvements
+
+* use promises rather than `setImmediate` so that I/O is executed within the current task stack ([#1100](https://github.com/streamich/memfs/issues/1100)) ([786072f](https://github.com/streamich/memfs/commit/786072f60e7c5e9fc37c235c23a56380a337d704))
+
 ## [4.17.1](https://github.com/streamich/memfs/compare/v4.17.0...v4.17.1) (2025-05-03)
 
 

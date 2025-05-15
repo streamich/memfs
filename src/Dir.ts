@@ -20,7 +20,7 @@ export class Dir implements IDir {
 
   private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
     validateCallback(callback);
-    setImmediate(() => {
+    Promise.resolve().then(() => {
       let result;
       try {
         result = method.apply(this, args);

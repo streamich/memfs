@@ -1,3 +1,21 @@
+# [4.19.0](https://github.com/streamich/memfs/compare/v4.18.0...v4.19.0) (2025-07-25)
+
+
+### Bug Fixes
+
+* improve cross-platform path validation in cp operations to prevent Windows infinite recursion ([77535d0](https://github.com/streamich/memfs/commit/77535d01fd1026efe6f1f08a84cde22a03e885db))
+* prevent infinite recursion in Windows path resolution for cp operations ([0f26418](https://github.com/streamich/memfs/commit/0f264184d62dd5aebf2fae47c4044ab888506059))
+
+
+### Features
+
+* implement cp, cpSync, and promises.cp APIs ([389f1f5](https://github.com/streamich/memfs/commit/389f1f574352602a7aabb86f1d0ca9423e9f1df8))
+
+
+### Performance Improvements
+
+* ⚡️ do not create a temporary function ([c8dbc24](https://github.com/streamich/memfs/commit/c8dbc24696e71735328f92cfbd9178e85b1d6852))
+
 # [4.18.0](https://github.com/streamich/memfs/compare/v4.17.2...v4.18.0) (2025-07-25)
 
 

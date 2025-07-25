@@ -6,6 +6,9 @@ import type { IDir, IDirent, TCallback } from './node/types/misc';
 import { Error as NodeError } from './internal/errors';
 import queueMicrotask from './queueMicrotask';
 
+// Polyfill Symbol.asyncIterator for ES2017 compatibility
+const asyncIteratorSymbol = (Symbol as any).asyncIterator || Symbol.for('Symbol.asyncIterator');
+
 /**
  * A directory stream, like `fs.Dir`.
  * Implements Node.js-style directory operations with buffering and operation queuing.
@@ -193,7 +196,7 @@ export class Dir implements IDir {
     return this.readBase(this.iteratorInfo);
   }
 
-  [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
+  [asyncIteratorSymbol](): any {
     const iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
     iteratorInfo.push(this.link.children[Symbol.iterator]());
     // auxiliary object so promisify() can be used
@@ -220,7 +223,7 @@ export class Dir implements IDir {
           return { done: true, value: undefined };
         }
       },
-      [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
+      [asyncIteratorSymbol](): any {
         throw new Error('Not implemented');
       },
     };

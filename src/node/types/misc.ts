@@ -133,6 +133,18 @@ export interface IFSWatcher extends EventEmitter {
  */
 declare global {
   export interface ReadableStream {}
+  
+  /**
+   * AsyncIterableIterator type for ES2017 compatibility
+   */
+  export interface AsyncIterableIterator<T> {
+    next(): Promise<IteratorResult<T>>;
+    [Symbol.asyncIterator](): AsyncIterableIterator<T>;
+  }
+  
+  namespace Symbol {
+    const asyncIterator: unique symbol;
+  }
 }
 
 export interface IFileHandle extends EventEmitter {

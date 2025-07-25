@@ -1243,8 +1243,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       return;
     }
 
-    // Get stats for both src and dest
-    const srcStat = this.lstatSync(src);
+    // Get stats for both src and dest - use stat if dereference, lstat otherwise
+    const statFunc = options.dereference ? this.statSync.bind(this) : this.lstatSync.bind(this);
+    const srcStat = statFunc(src);
     let destStat: Stats | null = null;
     
     try {
@@ -1286,7 +1287,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       this.cpDirSync(srcStat, destStat, src, dest, options);
     } else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) {
       this.cpFileSync(srcStat, destStat, src, dest, options);
-    } else if (srcStat.isSymbolicLink()) {
+    } else if (srcStat.isSymbolicLink() && !options.dereference) {
+      // Only handle as symlink if not dereferencing
       this.cpSymlinkSync(destStat, src, dest, options);
     } else {
       throw createError(EINVAL, 'cp', src);

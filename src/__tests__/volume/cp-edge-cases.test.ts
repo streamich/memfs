@@ -15,6 +15,20 @@ describe('cp edge cases', () => {
       expect(vol.readFileSync('/copy.txt', 'utf8')).toBe('original content');
     });
 
+    it('dereferences symlinks when dereference option is true', () => {
+      const vol = create({
+        '/original.txt': 'original content',
+      });
+      
+      vol.symlinkSync('/original.txt', '/link.txt');
+      vol.cpSync('/link.txt', '/copy.txt', { dereference: true });
+      
+      const copyStats = vol.lstatSync('/copy.txt');
+      expect(copyStats.isSymbolicLink()).toBe(false);
+      expect(copyStats.isFile()).toBe(true);
+      expect(vol.readFileSync('/copy.txt', 'utf8')).toBe('original content');
+    });
+
     it('handles verbatimSymlinks option', () => {
       const vol = create({
         '/dir/original.txt': 'original content',

@@ -1,3 +1,10 @@
+# [4.20.0](https://github.com/streamich/memfs/compare/v4.19.0...v4.20.0) (2025-07-25)
+
+
+### Features
+
+* improve `FileHandle` implementation ([4b39403](https://github.com/streamich/memfs/commit/4b39403783e012805f9956dd467a1b707db353b4))
+
 # [4.19.0](https://github.com/streamich/memfs/compare/v4.18.0...v4.19.0) (2025-07-25)
 
 

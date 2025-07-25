@@ -22,6 +22,7 @@ export const fsSynchronousApiList: Array<keyof FsSynchronousApi> = [
   'mkdirSync',
   'mkdtempSync',
   'openSync',
+  'opendirSync',
   'readdirSync',
   'readFileSync',
   'readlinkSync',

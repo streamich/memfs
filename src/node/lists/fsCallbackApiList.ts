@@ -24,6 +24,7 @@ export const fsCallbackApiList: Array<keyof FsCallbackApi> = [
   'mkdir',
   'mkdtemp',
   'open',
+  'opendir',
   'read',
   'readv',
   'readdir',

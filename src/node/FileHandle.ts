@@ -50,10 +50,12 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     if (this.refs === 0) {
       const currentFd = this.fd;
       this.fd = -1;
-      this.closePromise = promisify(this.fs, 'close')(currentFd)
-        .finally(() => { 
-          this.closePromise = null; 
-        });
+      this.closePromise = promisify(
+        this.fs,
+        'close',
+      )(currentFd).finally(() => {
+        this.closePromise = null;
+      });
     } else {
       this.closePromise = new Promise<void>((resolve, reject) => {
         this.closeResolve = resolve;
@@ -85,53 +87,53 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     const { type = 'bytes' } = options;
     let position = 0;
     let locked = false;
-    
+
     if (this.fd === -1) {
       throw new Error('The FileHandle is closed');
     }
-    
+
     if (this.closePromise) {
       throw new Error('The FileHandle is closing');
     }
-    
+
     if (locked) {
       throw new Error('The FileHandle is locked');
     }
-    
+
     locked = true;
     this.ref();
 
     return new ReadableStream({
       type: 'bytes',
       autoAllocateChunkSize: 16384,
-      
-      pull: async (controller) => {
+
+      pull: async controller => {
         try {
           const view = controller.byobRequest?.view;
           if (!view) {
             // Fallback for when BYOB is not available
             const buffer = new Uint8Array(16384);
             const result = await this.read(buffer, 0, buffer.length, position);
-            
+
             if (result.bytesRead === 0) {
               controller.close();
               this.unref();
               return;
             }
-            
+
             position += result.bytesRead;
             controller.enqueue(buffer.slice(0, result.bytesRead));
             return;
           }
-          
+
           const result = await this.read(view as Uint8Array, view.byteOffset, view.byteLength, position);
-          
+
           if (result.bytesRead === 0) {
             controller.close();
             this.unref();
             return;
           }
-          
+
           position += result.bytesRead;
           controller.byobRequest.respond(result.bytesRead);
         } catch (error) {
@@ -139,10 +141,10 @@ export class FileHandle extends EventEmitter implements IFileHandle {
           this.unref();
         }
       },
-      
+
       cancel: async () => {
         this.unref();
-      }
+      },
     });
   }
 
@@ -211,8 +213,7 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     if (this.refs === 0) {
       this.fd = -1;
       if (this.closeResolve) {
-        promisify(this.fs, 'close')(this.fd)
-          .then(this.closeResolve, this.closeReject);
+        promisify(this.fs, 'close')(this.fd).then(this.closeResolve, this.closeReject);
       }
     }
   }

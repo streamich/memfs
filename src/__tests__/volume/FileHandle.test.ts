@@ -21,10 +21,10 @@ describe('FileHandle', () => {
       fs.writeFileSync('/large', largeContent);
       const handle = await fs.promises.open('/large', 'r');
       const stream = handle.readableWebStream();
-      
+
       const chunks: Uint8Array[] = [];
       const reader = stream.getReader();
-      
+
       let done = false;
       while (!done) {
         const { value, done: readerDone } = await reader.read();
@@ -33,10 +33,10 @@ describe('FileHandle', () => {
           chunks.push(value);
         }
       }
-      
+
       // Should have multiple chunks for a large file
       expect(chunks.length).toBeGreaterThan(1);
-      
+
       // Reassemble the content
       const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
       const reassembled = new Uint8Array(totalLength);
@@ -45,7 +45,7 @@ describe('FileHandle', () => {
         reassembled.set(chunk, offset);
         offset += chunk.length;
       }
-      
+
       expect(Buffer.from(reassembled).toString()).toBe(largeContent);
     });
 
@@ -55,7 +55,7 @@ describe('FileHandle', () => {
       const handle = await fs.promises.open('/test', 'r');
       const stream = handle.readableWebStream({ type: 'bytes' });
       expect(stream).toBeInstanceOf(ReadableStream);
-      
+
       const data = fromStream(stream);
       const result = await data;
       expect(Buffer.from(result)).toEqual(Buffer.from('hello'));
@@ -67,7 +67,7 @@ describe('FileHandle', () => {
       const fs = createFs();
       fs.writeFileSync('/test', 'content');
       const handle = await fs.promises.open('/test', 'r');
-      
+
       // Check if it has EventEmitter methods
       expect(typeof handle.on).toBe('function');
       expect(typeof handle.emit).toBe('function');
@@ -78,12 +78,12 @@ describe('FileHandle', () => {
       const fs = createFs();
       fs.writeFileSync('/test', 'content');
       const handle = await fs.promises.open('/test', 'r');
-      
+
       let closeEventFired = false;
       handle.on('close', () => {
         closeEventFired = true;
       });
-      
+
       await handle.close();
       expect(closeEventFired).toBe(true);
     });
@@ -94,7 +94,7 @@ describe('FileHandle', () => {
       const fs = createFs();
       fs.writeFileSync('/test', 'content');
       const handle = await fs.promises.open('/test', 'r');
-      
+
       const asyncId = handle.getAsyncId();
       expect(typeof asyncId).toBe('number');
       expect(asyncId).toBe(handle.fd);
@@ -106,11 +106,11 @@ describe('FileHandle', () => {
       const fs = createFs();
       fs.writeFileSync('/test', 'content');
       const handle = await fs.promises.open('/test', 'r');
-      
+
       // Check if asyncDispose exists
       const asyncDispose = (handle as any)[(Symbol as any).asyncDispose];
       expect(typeof asyncDispose).toBe('function');
-      
+
       // Test that it closes the handle
       await asyncDispose.call(handle);
       // After disposal, fd should still be accessible but operations should not work as expected
@@ -123,13 +123,13 @@ describe('FileHandle', () => {
       const fs = createFs();
       fs.writeFileSync('/test', 'content');
       const handle = await fs.promises.open('/test', 'r');
-      
+
       // Multiple close calls should not throw
       const closePromise1 = handle.close();
       const closePromise2 = handle.close();
-      
+
       await Promise.all([closePromise1, closePromise2]);
-      
+
       // Third close should resolve immediately
       await handle.close();
     });

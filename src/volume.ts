@@ -1304,22 +1304,22 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   private isSrcSubdir(src: string, dest: string): boolean {
     // Use Node.js path utilities for cross-platform compatibility
     const { resolve, relative, normalize } = pathModule;
-    
+
     try {
       // Normalize paths using Node.js utilities
       // Convert to absolute paths to ensure consistent comparison
       const normalizedSrc = normalize(src.startsWith('/') ? src : '/' + src);
       const normalizedDest = normalize(dest.startsWith('/') ? dest : '/' + dest);
-      
+
       // Check if paths are identical
       if (normalizedSrc === normalizedDest) {
         return true;
       }
-      
+
       // Check if dest is under src by using relative path
       // If dest is under src, the relative path from src to dest won't start with '..'
       const relativePath = relative(normalizedSrc, normalizedDest);
-      
+
       // If relative path is empty or doesn't start with '..', dest is under src
       return relativePath === '' || (!relativePath.startsWith('..') && !pathModule.isAbsolute(relativePath));
     } catch (error) {

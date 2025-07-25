@@ -1302,23 +1302,30 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private isSrcSubdir(src: string, dest: string): boolean {
-    // Normalize paths without using resolve to avoid potential infinite recursion
-    const normalizePath = (p: string): string => {
-      // Convert to posix-style and remove trailing slashes, but keep root as '/'
-      const normalized = p.replace(/\\/g, '/').replace(/\/+$/, '');
-      return normalized || '/';
-    };
+    // Use Node.js path utilities for cross-platform compatibility
+    const { resolve, relative, normalize } = pathModule;
     
-    const normalizedSrc = normalizePath(src);
-    const normalizedDest = normalizePath(dest);
-    
-    // Check if dest is a subdirectory of src
-    if (normalizedSrc === '/') {
-      // Special case for root: everything except root itself is a subdirectory
-      return normalizedDest !== '/';
+    try {
+      // Normalize paths using Node.js utilities
+      // Convert to absolute paths to ensure consistent comparison
+      const normalizedSrc = normalize(src.startsWith('/') ? src : '/' + src);
+      const normalizedDest = normalize(dest.startsWith('/') ? dest : '/' + dest);
+      
+      // Check if paths are identical
+      if (normalizedSrc === normalizedDest) {
+        return true;
+      }
+      
+      // Check if dest is under src by using relative path
+      // If dest is under src, the relative path from src to dest won't start with '..'
+      const relativePath = relative(normalizedSrc, normalizedDest);
+      
+      // If relative path is empty or doesn't start with '..', dest is under src
+      return relativePath === '' || (!relativePath.startsWith('..') && !pathModule.isAbsolute(relativePath));
+    } catch (error) {
+      // If path operations fail, assume it's safe (don't block the copy)
+      return false;
     }
-    
-    return normalizedDest.startsWith(normalizedSrc + '/') || normalizedDest === normalizedSrc;
   }
 
   private ensureParentDir(dest: string): void {

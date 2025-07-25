@@ -135,8 +135,9 @@ declare global {
   export interface ReadableStream {}
 }
 
-export interface IFileHandle {
+export interface IFileHandle extends EventEmitter {
   fd: number;
+  getAsyncId(): number;
   appendFile(data: TData, options?: IAppendFileOptions | string): Promise<void>;
   chmod(mode: TMode): Promise<void>;
   chown(uid: number, gid: number): Promise<void>;

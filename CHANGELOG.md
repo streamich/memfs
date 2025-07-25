@@ -1,3 +1,10 @@
+# [4.18.0](https://github.com/streamich/memfs/compare/v4.17.2...v4.18.0) (2025-07-25)
+
+
+### Features
+
+* add missing opendir methods ([7412d71](https://github.com/streamich/memfs/commit/7412d71755e7bf6e9831f0e25fead5cef90f87fa))
+
 ## [4.17.2](https://github.com/streamich/memfs/compare/v4.17.1...v4.17.2) (2025-05-15)
 
 

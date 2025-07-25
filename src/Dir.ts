@@ -27,8 +27,6 @@ export class Dir implements IDir {
     this.iteratorInfo.push(link.children[Symbol.iterator]());
   }
 
-
-
   private closeBase(): void {
     this.closed = true;
   }

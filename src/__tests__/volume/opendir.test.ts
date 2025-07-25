@@ -15,7 +15,7 @@ describe('opendir', () => {
       expect(typeof dir.close).toBe('function');
       expect(typeof dir.readSync).toBe('function');
       expect(typeof dir.closeSync).toBe('function');
-      
+
       dir.close(err2 => {
         expect(err2).toBeFalsy();
         done();
@@ -41,11 +41,11 @@ describe('opendir', () => {
     while ((entry = dir.readSync()) !== null) {
       entries.push(entry.name);
     }
-    
+
     expect(entries).toContain('file1.txt');
     expect(entries).toContain('file2.txt');
     expect(entries.length).toBe(2);
-    
+
     dir.closeSync();
   });
 
@@ -67,11 +67,11 @@ describe('opendir', () => {
     while ((entry = await dir.read()) !== null) {
       entries.push(entry.name);
     }
-    
+
     expect(entries).toContain('file1.txt');
     expect(entries).toContain('file2.txt');
     expect(entries.length).toBe(2);
-    
+
     await dir.close();
   });
 
@@ -105,7 +105,7 @@ describe('opendir', () => {
 
   it('should work with memfs fs export', done => {
     const { fs } = require('../..');
-    
+
     // Clear any existing state
     fs.rmSync('/', { recursive: true, force: true });
     fs.mkdirSync('/test');
@@ -114,35 +114,35 @@ describe('opendir', () => {
 
     // Test that all three variants exist
     expect(typeof fs.opendir).toBe('function');
-    expect(typeof fs.opendirSync).toBe('function');  
+    expect(typeof fs.opendirSync).toBe('function');
     expect(typeof fs.promises.opendir).toBe('function');
 
     // Test callback version
     fs.opendir('/test', (err, dir) => {
       expect(err).toBeNull();
       expect(dir).toBeDefined();
-      
+
       const entries: string[] = [];
-      
+
       function readNext() {
         dir.read((err, entry) => {
           if (err) {
             done(err);
             return;
           }
-          
+
           if (entry === null) {
             expect(entries).toContain('file1.txt');
             expect(entries).toContain('file2.txt');
             dir.close(done);
             return;
           }
-          
+
           entries.push(entry.name);
           readNext();
         });
       }
-      
+
       readNext();
     });
   });

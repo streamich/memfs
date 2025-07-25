@@ -4,69 +4,45 @@ import * as opts from './node/types/options';
 import Dirent from './Dirent';
 import type { IDir, IDirent, TCallback } from './node/types/misc';
 import { Error as NodeError } from './internal/errors';
-import process from './process';
 import queueMicrotask from './queueMicrotask';
 
 /**
  * A directory stream, like `fs.Dir`.
- * Implements similar functionality to Node.js Dir class for in-memory filesystem
+ * Implements Node.js-style directory operations with buffering and operation queuing.
  */
 export class Dir implements IDir {
-  private readonly _path: string;
-  private readonly _link: Link;
-  private readonly _options: opts.IOpendirOptions;
-  private readonly _bufferedEntries: IDirent[] = [];
-  private _closed = false;
-  private _operationQueue: Array<() => void> | null = null;
-  private readonly _readPromisified: () => Promise<IDirent | null>;
-  private readonly _closePromisified: () => Promise<void>;
-  private readonly _iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
+  private iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
+  private bufferedEntries: IDirent[] = [];
+  private closed = false;
+  private operationQueue: Array<() => void> | null = null;
 
-  // Define async iterator property manually to ensure TypeScript recognizes it
-  public readonly [Symbol.asyncIterator]: () => any;
-
-  constructor(link: Link, options: opts.IOpendirOptions) {
-    this._link = link;
-    this._path = link.getParentPath();
-    this._options = {
-      bufferSize: 32,
-      ...options,
-    };
-    this._iteratorInfo.push(link.children[Symbol.iterator]());
-
-    // Bind promisified methods
-    this._readPromisified = promisify(this as any, '_readImpl').bind(this, false);
-    this._closePromisified = promisify(this as any, 'close').bind(this);
-
-    // Define async iterator implementation
-    this[Symbol.asyncIterator] = () => {
-      const self = this;
-      return {
-        async next() {
-          const result = await self._readPromisified();
-          if (result === null) {
-            return { done: true, value: undefined };
-          } else {
-            return { done: false, value: result };
-          }
-        },
-        [Symbol.asyncIterator]() {
-          return this;
-        }
-      };
-    };
+  constructor(
+    protected readonly link: Link,
+    protected options: opts.IOpendirOptions,
+  ) {
+    this.path = link.getParentPath();
+    this.iteratorInfo.push(link.children[Symbol.iterator]());
   }
 
-  get path(): string {
-    return this._path;
+
+
+  private closeBase(): void {
+    this.closed = true;
   }
 
-  private _readBase(iteratorInfo: IterableIterator<[string, Link | undefined]>[]): IDirent | null {
+  private processReadResult(): void {
+    // Process entries one at a time for in-memory filesystem
+    const entry = this.readBase(this.iteratorInfo);
+    if (entry) {
+      this.bufferedEntries.push(entry);
+    }
+  }
+
+  private readBase(iteratorInfo: IterableIterator<[string, Link | undefined]>[]): IDirent | null {
     let done: boolean | undefined;
     let value: [string, Link | undefined];
     let name: string;
     let link: Link | undefined;
-    
     do {
       do {
         ({ done, value } = iteratorInfo[iteratorInfo.length - 1].next());
@@ -76,7 +52,6 @@ export class Dir implements IDir {
           break;
         }
       } while (name === '.' || name === '..');
-      
       if (done) {
         iteratorInfo.pop();
         if (iteratorInfo.length === 0) {
@@ -85,145 +60,169 @@ export class Dir implements IDir {
           done = false;
         }
       } else {
-        if (this._options.recursive && link!.children.size) {
+        if (this.options.recursive && link!.children.size) {
           iteratorInfo.push(link!.children[Symbol.iterator]());
         }
-        return Dirent.build(link!, this._options.encoding);
+        return Dirent.build(link!, this.options.encoding);
       }
     } while (!done);
-    
     return null;
   }
 
-  private _processReadResult(): void {
-    // For in-memory filesystem, we read one entry at a time
-    // This method is a placeholder to match Node.js structure
-    const entry = this._readBase(this._iteratorInfo);
-    if (entry) {
-      this._bufferedEntries.push(entry);
-    }
-  }
+  // ------------------------------------------------------------- IDir
 
-  read(): Promise<IDirent | null>;
-  read(callback?: (err: Error | null, dir?: IDirent | null) => void): void;
-  read(callback?: (err: Error | null, dir?: IDirent | null) => void): void | Promise<IDirent | null> {
-    return this._readImpl(true, callback);
-  }
+  public readonly path: string;
 
-  private _readImpl(maybeSync: boolean, callback?: (err: Error | null, dir?: IDirent | null) => void): void | Promise<IDirent | null> {
-    if (this._closed === true) {
-      throw new NodeError('ERR_DIR_CLOSED');
-    }
-
-    if (callback === undefined) {
-      return this._readPromisified();
-    }
-
+  closeBaseAsync(callback: (err?: Error) => void): void {
     validateCallback(callback);
 
-    if (this._operationQueue !== null) {
-      this._operationQueue.push(() => {
-        this._readImpl(maybeSync, callback);
+    if (this.closed === true) {
+      queueMicrotask(() => callback(new NodeError('ERR_DIR_CLOSED') as any));
+      return;
+    }
+
+    if (this.operationQueue !== null) {
+      this.operationQueue.push(() => {
+        this.closeBaseAsync(callback);
       });
       return;
     }
 
-    if (this._bufferedEntries.length > 0) {
+    queueMicrotask(() => {
       try {
-        const dirent = this._bufferedEntries.shift()!;
-        
-        if (maybeSync) {
-          queueMicrotask(() => callback(null, dirent));
-        } else {
-          callback(null, dirent);
-        }
-        return;
-      } catch (error) {
-        return callback(error as Error);
+        this.closeBase();
+        callback();
+      } catch (err) {
+        callback(err);
       }
+    });
+  }
+
+  close(): Promise<void>;
+  close(callback?: (err?: Error) => void): void;
+  close(callback?: unknown): void | Promise<void> {
+    if (typeof callback === 'function') {
+      this.closeBaseAsync(callback as (err?: Error) => void);
+    } else {
+      if (this.closed === true) {
+        return Promise.reject(new NodeError('ERR_DIR_CLOSED'));
+      }
+      return promisify(this as any, 'closeBaseAsync')();
+    }
+  }
+
+  closeSync(): void {
+    if (this.closed === true) {
+      throw new NodeError('ERR_DIR_CLOSED');
+    }
+
+    if (this.operationQueue !== null) {
+      throw new NodeError('ERR_DIR_CONCURRENT_OPERATION');
+    }
+
+    this.closeBase();
+  }
+
+  readBaseAsync(callback: (err: Error | null, dir?: IDirent | null) => void): void {
+    if (this.closed === true) {
+      callback(new NodeError('ERR_DIR_CLOSED') as any);
+      return;
+    }
+
+    validateCallback(callback);
+
+    if (this.operationQueue !== null) {
+      this.operationQueue.push(() => {
+        this.readBaseAsync(callback);
+      });
+      return;
+    }
+
+    if (this.bufferedEntries.length > 0) {
+      const dirent = this.bufferedEntries.shift()!;
+      queueMicrotask(() => callback(null, dirent));
+      return;
     }
 
     // Simulate async operation for consistency with Node.js behavior
     const handleRead = () => {
       queueMicrotask(() => {
-        const queue = this._operationQueue;
-        this._operationQueue = null;
+        const queue = this.operationQueue;
+        this.operationQueue = null;
         if (queue) {
           for (const op of queue) op();
         }
       });
 
       try {
-        this._processReadResult();
-        const dirent = this._bufferedEntries.shift() || null;
+        this.processReadResult();
+        const dirent = this.bufferedEntries.shift() || null;
         callback(null, dirent);
       } catch (error) {
         callback(error as Error);
       }
     };
 
-    this._operationQueue = [];
-    // Use setTimeout to simulate async I/O
-    setTimeout(handleRead, 0);
+    this.operationQueue = [];
+    queueMicrotask(handleRead);
+  }
+
+  read(): Promise<IDirent | null>;
+  read(callback?: (err: Error | null, dir?: IDirent | null) => void): void;
+  read(callback?: unknown): void | Promise<IDirent | null> {
+    if (typeof callback === 'function') {
+      this.readBaseAsync(callback as (err: Error | null, dir?: IDirent | null) => void);
+    } else {
+      return promisify(this as any, 'readBaseAsync')();
+    }
   }
 
   readSync(): IDirent | null {
-    if (this._closed === true) {
+    if (this.closed === true) {
       throw new NodeError('ERR_DIR_CLOSED');
     }
 
-    if (this._operationQueue !== null) {
+    if (this.operationQueue !== null) {
       throw new NodeError('ERR_DIR_CONCURRENT_OPERATION');
     }
 
-    if (this._bufferedEntries.length > 0) {
-      const dirent = this._bufferedEntries.shift()!;
-      return dirent;
+    if (this.bufferedEntries.length > 0) {
+      return this.bufferedEntries.shift()!;
     }
 
-    return this._readBase(this._iteratorInfo);
+    return this.readBase(this.iteratorInfo);
   }
 
-  close(): Promise<void>;
-  close(callback?: (err?: Error) => void): void;
-  close(callback?: (err?: Error) => void): void | Promise<void> {
-    // Promise
-    if (callback === undefined) {
-      if (this._closed === true) {
-        return Promise.reject(new NodeError('ERR_DIR_CLOSED'));
-      }
-      return this._closePromisified();
-    }
+  [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
+    const iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
+    iteratorInfo.push(this.link.children[Symbol.iterator]());
+    // auxiliary object so promisify() can be used
+    const o = {
+      readBaseAsync: (callback: (err: Error | null, dir?: IDirent | null) => void): void => {
+        validateCallback(callback);
+        queueMicrotask(() => {
+          try {
+            const result = this.readBase(iteratorInfo);
+            callback(null, result);
+          } catch (err) {
+            callback(err);
+          }
+        });
+      },
+    };
+    return {
+      async next() {
+        const dirEnt = await promisify(o as any, 'readBaseAsync')();
 
-    // callback
-    validateCallback(callback);
-
-    if (this._closed === true) {
-      queueMicrotask(() => callback(new NodeError('ERR_DIR_CLOSED') as any));
-      return;
-    }
-
-    if (this._operationQueue !== null) {
-      this._operationQueue.push(() => {
-        this.close(callback);
-      });
-      return;
-    }
-
-    this._closed = true;
-    // Simulate async close operation
-    queueMicrotask(() => callback());
-  }
-
-  closeSync(): void {
-    if (this._closed === true) {
-      throw new NodeError('ERR_DIR_CLOSED');
-    }
-
-    if (this._operationQueue !== null) {
-      throw new NodeError('ERR_DIR_CONCURRENT_OPERATION');
-    }
-
-    this._closed = true;
+        if (dirEnt !== null) {
+          return { done: false, value: dirEnt };
+        } else {
+          return { done: true, value: undefined };
+        }
+      },
+      [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
+        throw new Error('Not implemented');
+      },
+    };
   }
 }

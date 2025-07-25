@@ -22,6 +22,9 @@ export class Dir implements IDir {
   private readonly _closePromisified: () => Promise<void>;
   private readonly _iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
 
+  // Define async iterator property manually to ensure TypeScript recognizes it
+  public readonly [Symbol.asyncIterator]: () => any;
+
   constructor(link: Link, options: opts.IOpendirOptions) {
     this._link = link;
     this._path = link.getParentPath();
@@ -34,6 +37,24 @@ export class Dir implements IDir {
     // Bind promisified methods
     this._readPromisified = promisify(this as any, '_readImpl').bind(this, false);
     this._closePromisified = promisify(this as any, 'close').bind(this);
+
+    // Define async iterator implementation
+    this[Symbol.asyncIterator] = () => {
+      const self = this;
+      return {
+        async next() {
+          const result = await self._readPromisified();
+          if (result === null) {
+            return { done: true, value: undefined };
+          } else {
+            return { done: false, value: result };
+          }
+        },
+        [Symbol.asyncIterator]() {
+          return this;
+        }
+      };
+    };
   }
 
   get path(): string {
@@ -204,25 +225,5 @@ export class Dir implements IDir {
     }
 
     this._closed = true;
-  }
-
-  // Note: using any to avoid AsyncGenerator typing issues with ES2017 target
-  async* entries(): any {
-    try {
-      while (true) {
-        const result = await this._readPromisified();
-        if (result === null) {
-          break;
-        }
-        yield result;
-      }
-    } finally {
-      await this._closePromisified();
-    }
-  }
-
-  // Note: using any to avoid AsyncIterableIterator typing issues with ES2017 target
-  [(Symbol as any).asyncIterator](): any {
-    return this.entries();
   }
 }

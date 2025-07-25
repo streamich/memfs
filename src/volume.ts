@@ -1302,9 +1302,23 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   private isSrcSubdir(src: string, dest: string): boolean {
-    const normalizedSrc = resolveCrossPlatform(src);
-    const normalizedDest = resolveCrossPlatform(dest);
-    return normalizedDest.startsWith(normalizedSrc + sep);
+    // Normalize paths without using resolve to avoid potential infinite recursion
+    const normalizePath = (p: string): string => {
+      // Convert to posix-style and remove trailing slashes, but keep root as '/'
+      const normalized = p.replace(/\\/g, '/').replace(/\/+$/, '');
+      return normalized || '/';
+    };
+    
+    const normalizedSrc = normalizePath(src);
+    const normalizedDest = normalizePath(dest);
+    
+    // Check if dest is a subdirectory of src
+    if (normalizedSrc === '/') {
+      // Special case for root: everything except root itself is a subdirectory
+      return normalizedDest !== '/';
+    }
+    
+    return normalizedDest.startsWith(normalizedSrc + '/') || normalizedDest === normalizedSrc;
   }
 
   private ensureParentDir(dest: string): void {

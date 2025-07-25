@@ -39,8 +39,9 @@ export class Dir implements IDir {
   private promisify<T>(obj: T, fn: keyof T): (...args: any[]) => Promise<any> {
     return (...args) =>
       new Promise<void>((resolve, reject) => {
-        if (this.isFunction(obj[fn])) {
-          obj[fn].bind(obj)(...args, (error: Error, result: any) => {
+        const method = obj[fn];
+        if (this.isFunction(method)) {
+          (method as Function).bind(obj)(...args, (error: Error, result: any) => {
             if (error) reject(error);
             resolve(result);
           });

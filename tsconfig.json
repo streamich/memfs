@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "lib": ["ES2017", "ES2018", "ES2020", "dom"],
+    "lib": ["ES2017", "dom"],
     "module": "commonjs",
-    "moduleResolution": "node",
     "removeComments": false,
     "noImplicitAny": false,
     "strictNullChecks": true,
@@ -12,11 +11,10 @@
     "declaration": true,
     "skipLibCheck": true,
     "noEmitHelpers": true,
-    "importHelpers": true,
-    "types": ["node"]
+    "importHelpers": true
   },
   "include": ["src"],
-  "exclude": ["**/__tests__/**", "node_modules", "lib", "es6", "es2020", "esm", "docs", "README.md"],
+  "exclude": ["src/__tests__", "node_modules", "lib", "es6", "es2020", "esm", "docs", "README.md"],
   "typedocOptions": {
     "entryPoints": [
       "src/index.ts",

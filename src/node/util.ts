@@ -157,9 +157,7 @@ export function createError(errorCode: string, func = '', path = '', path2 = '',
 }
 
 export function genRndStr6(): string {
-  const str = (Math.random() + 1).toString(36).substring(2, 8);
-  if (str.length === 6) return str;
-  else return genRndStr6();
+  return Math.random().toString(36).slice(2, 8).padEnd(6, '0');
 }
 
 export function flagsToNumber(flags: misc.TFlags | undefined): number {

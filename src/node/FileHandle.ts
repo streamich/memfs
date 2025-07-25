@@ -10,6 +10,7 @@ export class FileHandle extends EventEmitter implements IFileHandle {
   private closePromise: Promise<void> | null = null;
   private closeResolve?: () => void;
   private closeReject?: (error: Error) => void;
+  private position: number = 0;
 
   fd: number;
 
@@ -148,8 +149,17 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     });
   }
 
-  read(buffer: Buffer | Uint8Array, offset: number, length: number, position: number): Promise<TFileHandleReadResult> {
-    return promisify(this.fs, 'read', bytesRead => ({ bytesRead, buffer }))(this.fd, buffer, offset, length, position);
+  async read(buffer: Buffer | Uint8Array, offset: number, length: number, position?: number | null): Promise<TFileHandleReadResult> {
+    const readPosition = position !== null && position !== undefined ? position : this.position;
+    
+    const result = await promisify(this.fs, 'read', bytesRead => ({ bytesRead, buffer }))(this.fd, buffer, offset, length, readPosition);
+    
+    // Update internal position only if position was null/undefined
+    if (position === null || position === undefined) {
+      this.position += result.bytesRead;
+    }
+    
+    return result;
   }
 
   readv(buffers: ArrayBufferView[], position?: number | null | undefined): Promise<TFileHandleReadvResult> {
@@ -176,19 +186,28 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     return promisify(this.fs, 'futimes')(this.fd, atime, mtime);
   }
 
-  write(
+  async write(
     buffer: Buffer | Uint8Array,
     offset?: number,
     length?: number,
-    position?: number,
+    position?: number | null,
   ): Promise<TFileHandleWriteResult> {
-    return promisify(this.fs, 'write', bytesWritten => ({ bytesWritten, buffer }))(
+    const writePosition = position !== null && position !== undefined ? position : this.position;
+    
+    const result = await promisify(this.fs, 'write', bytesWritten => ({ bytesWritten, buffer }))(
       this.fd,
       buffer,
       offset,
       length,
-      position,
+      writePosition,
     );
+    
+    // Update internal position only if position was null/undefined
+    if (position === null || position === undefined) {
+      this.position += result.bytesWritten;
+    }
+    
+    return result;
   }
 
   writev(buffers: ArrayBufferView[], position?: number | null | undefined): Promise<TFileHandleWritevResult> {

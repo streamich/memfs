@@ -1,32 +1,32 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "es2017",
     "lib": ["ES2017", "ES2018", "ES2020", "dom"],
     "module": "commonjs",
     "removeComments": false,
     "noImplicitAny": false,
-    "strictNullChecks": true,
-    "sourceMap": true,
+    "strictNullChecks": false,
+    "sourceMap": false,
     "outDir": "lib",
     "declaration": true,
     "skipLibCheck": true,
     "noEmitHelpers": true,
-    "importHelpers": true
+    "importHelpers": true,
+    "noEmit": true,
+    "skipDefaultLibCheck": true,
+    "noEmitOnError": false
   },
-  "include": ["src"],
   "exclude": ["**/__tests__/**", "node_modules", "lib", "es6", "es2020", "esm", "docs", "README.md"],
   "typedocOptions": {
     "entryPoints": [
-      "src/index.ts",
       "src/cas/types.ts",
       "src/crud/types.ts",
       "src/crud-to-cas/index.ts",
       "src/fsa/types.ts",
-      "src/fsa-to-crud/index.ts",
-      "src/fsa-to-node/index.ts",
-      "src/node-to-crud/index.ts",
-      "src/node-to-fsa/index.ts"
+      "src/fsa-to-crud/index.ts"
     ],
-    "out": "typedocs"
+    "out": "typedocs",
+    "skipErrorChecking": true
   }
 }

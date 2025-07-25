@@ -98,9 +98,9 @@ describe('cpSync(src, dest[, options])', () => {
     });
 
     const srcStat = vol.statSync('/src.txt');
-    
+
     vol.cpSync('/src.txt', '/dest.txt', { preserveTimestamps: true });
-    
+
     const destStat = vol.statSync('/dest.txt');
     // Allow for small timestamp differences due to timing
     expect(Math.abs(destStat.atime.getTime() - srcStat.atime.getTime())).toBeLessThan(100);

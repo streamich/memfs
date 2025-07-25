@@ -16,7 +16,7 @@ describe('cp(src, dest[, options], callback)', () => {
       vol.readFileSync('/bar.txt', 'utf8');
     }).toThrow();
 
-    vol.cp('/foo.txt', '/bar.txt', (err) => {
+    vol.cp('/foo.txt', '/bar.txt', err => {
       expect(err).toBeFalsy();
 
       expect(vol.readFileSync('/foo.txt', 'utf8')).toBe('hello world');
@@ -32,7 +32,7 @@ describe('cp(src, dest[, options], callback)', () => {
       '/src/subdir/file3.txt': 'content3',
     });
 
-    vol.cp('/src', '/dest', { recursive: true }, (err) => {
+    vol.cp('/src', '/dest', { recursive: true }, err => {
       expect(err).toBeFalsy();
 
       expect(vol.readFileSync('/dest/file1.txt', 'utf8')).toBe('content1');
@@ -47,7 +47,7 @@ describe('cp(src, dest[, options], callback)', () => {
       '/src/file.txt': 'content',
     });
 
-    vol.cp('/src', '/dest', (err) => {
+    vol.cp('/src', '/dest', err => {
       expect(err).toBeInstanceOf(Error);
       expect(err).toHaveProperty('code', 'EISDIR');
       done();
@@ -62,7 +62,7 @@ describe('cp(src, dest[, options], callback)', () => {
 
     const filter = (src: string) => !src.includes('file2');
 
-    vol.cp('/src', '/dest', { recursive: true, filter }, (err) => {
+    vol.cp('/src', '/dest', { recursive: true, filter }, err => {
       expect(err).toBeFalsy();
 
       expect(vol.readFileSync('/dest/file1.txt', 'utf8')).toBe('content1');
@@ -79,7 +79,7 @@ describe('cp(src, dest[, options], callback)', () => {
       '/dest.txt': 'destination',
     });
 
-    vol.cp('/src.txt', '/dest.txt', { force: false }, (err) => {
+    vol.cp('/src.txt', '/dest.txt', { force: false }, err => {
       expect(err).toBeFalsy();
       expect(vol.readFileSync('/dest.txt', 'utf8')).toBe('destination');
       done();
@@ -92,7 +92,7 @@ describe('cp(src, dest[, options], callback)', () => {
       '/dest.txt': 'destination',
     });
 
-    vol.cp('/src.txt', '/dest.txt', { errorOnExist: true }, (err) => {
+    vol.cp('/src.txt', '/dest.txt', { errorOnExist: true }, err => {
       expect(err).toBeInstanceOf(Error);
       expect(err).toHaveProperty('code', 'EEXIST');
       done();

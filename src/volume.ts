@@ -1237,7 +1237,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this.copyFileBase, [srcFilename, destFilename, flags], callback);
   }
 
-  private cpSyncBase(src: string, dest: string, options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean }): void {
+  private cpSyncBase(
+    src: string,
+    dest: string,
+    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
+  ): void {
     // Apply filter if provided
     if (options.filter && !options.filter(src, dest)) {
       return;
@@ -1245,7 +1249,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     const srcStat = options.dereference ? this.statSync(src) : this.lstatSync(src);
     let destStat: Stats | null = null;
-    
+
     try {
       destStat = this.lstatSync(dest);
     } catch (err) {
@@ -1310,7 +1314,13 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     }
   }
 
-  private cpFileSync(srcStat: Stats, destStat: Stats | null, src: string, dest: string, options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean }): void {
+  private cpFileSync(
+    srcStat: Stats,
+    destStat: Stats | null,
+    src: string,
+    dest: string,
+    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
+  ): void {
     if (destStat) {
       if (options.errorOnExist) {
         throw createError(EEXIST, 'cp', dest);
@@ -1333,18 +1343,24 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.chmodSync(dest, Number(srcStat.mode));
   }
 
-  private cpDirSync(srcStat: Stats, destStat: Stats | null, src: string, dest: string, options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean }): void {
+  private cpDirSync(
+    srcStat: Stats,
+    destStat: Stats | null,
+    src: string,
+    dest: string,
+    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
+  ): void {
     if (!destStat) {
       this.mkdirSync(dest);
     }
 
     // Read directory contents
     const entries = this.readdirSync(src);
-    
+
     for (const entry of entries) {
       const srcItem = join(src, entry);
       const destItem = join(dest, entry);
-      
+
       // Apply filter to each item
       if (options.filter && !options.filter(srcItem, destItem)) {
         continue;
@@ -1357,9 +1373,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.chmodSync(dest, Number(srcStat.mode));
   }
 
-  private cpSymlinkSync(destStat: Stats | null, src: string, dest: string, options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean }): void {
+  private cpSymlinkSync(
+    destStat: Stats | null,
+    src: string,
+    dest: string,
+    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
+  ): void {
     let linkTarget = String(this.readlinkSync(src));
-    
+
     if (!options.verbatimSymlinks && !pathModule.isAbsolute(linkTarget)) {
       linkTarget = resolveCrossPlatform(dirname(src), linkTarget);
     }
@@ -2292,7 +2313,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   cpSync(src: string | URL, dest: string | URL, options?: opts.ICpOptions): void {
     const srcFilename = pathToFilename(src as misc.PathLike);
     const destFilename = pathToFilename(dest as misc.PathLike);
-    
+
     const opts_: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean } = {
       dereference: options?.dereference ?? false,
       errorOnExist: options?.errorOnExist ?? false,
@@ -2303,7 +2324,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       recursive: options?.recursive ?? false,
       verbatimSymlinks: options?.verbatimSymlinks ?? false,
     };
-    
+
     return this.cpSyncBase(srcFilename, destFilename, opts_);
   }
 

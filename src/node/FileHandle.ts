@@ -81,13 +81,68 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     return this.fs.createWriteStream('', { ...options, fd: this });
   }
 
-  readableWebStream(options?: opts.IReadableWebStreamOptions): ReadableStream {
+  readableWebStream(options: opts.IReadableWebStreamOptions = {}): ReadableStream {
+    const { type = 'bytes' } = options;
+    let position = 0;
+    let locked = false;
+    
+    if (this.fd === -1) {
+      throw new Error('The FileHandle is closed');
+    }
+    
+    if (this.closePromise) {
+      throw new Error('The FileHandle is closing');
+    }
+    
+    if (locked) {
+      throw new Error('The FileHandle is locked');
+    }
+    
+    locked = true;
+    this.ref();
+
     return new ReadableStream({
-      pull: async controller => {
-        const data = await this.readFile();
-        controller.enqueue(data);
-        controller.close();
+      type: 'bytes',
+      autoAllocateChunkSize: 16384,
+      
+      pull: async (controller) => {
+        try {
+          const view = controller.byobRequest?.view;
+          if (!view) {
+            // Fallback for when BYOB is not available
+            const buffer = new Uint8Array(16384);
+            const result = await this.read(buffer, 0, buffer.length, position);
+            
+            if (result.bytesRead === 0) {
+              controller.close();
+              this.unref();
+              return;
+            }
+            
+            position += result.bytesRead;
+            controller.enqueue(buffer.slice(0, result.bytesRead));
+            return;
+          }
+          
+          const result = await this.read(view as Uint8Array, view.byteOffset, view.byteLength, position);
+          
+          if (result.bytesRead === 0) {
+            controller.close();
+            this.unref();
+            return;
+          }
+          
+          position += result.bytesRead;
+          controller.byobRequest.respond(result.bytesRead);
+        } catch (error) {
+          controller.error(error);
+          this.unref();
+        }
       },
+      
+      cancel: async () => {
+        this.unref();
+      }
     });
   }
 

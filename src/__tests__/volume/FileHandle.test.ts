@@ -10,7 +10,55 @@ describe('FileHandle', () => {
       const stream = handle.readableWebStream();
       expect(stream).toBeInstanceOf(ReadableStream);
       const data = fromStream(stream);
-      expect(await data).toEqual(Buffer.from('bar'));
+      const result = await data;
+      // The new implementation returns a Uint8Array, which is correct for ReadableStream
+      expect(Buffer.from(result)).toEqual(Buffer.from('bar'));
+    });
+
+    it('can read larger files in chunks', async () => {
+      const fs = createFs();
+      const largeContent = 'x'.repeat(32768); // Larger than the 16KB chunk size
+      fs.writeFileSync('/large', largeContent);
+      const handle = await fs.promises.open('/large', 'r');
+      const stream = handle.readableWebStream();
+      
+      const chunks: Uint8Array[] = [];
+      const reader = stream.getReader();
+      
+      let done = false;
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          chunks.push(value);
+        }
+      }
+      
+      // Should have multiple chunks for a large file
+      expect(chunks.length).toBeGreaterThan(1);
+      
+      // Reassemble the content
+      const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+      const reassembled = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        reassembled.set(chunk, offset);
+        offset += chunk.length;
+      }
+      
+      expect(Buffer.from(reassembled).toString()).toBe(largeContent);
+    });
+
+    it('handles bytes type option', async () => {
+      const fs = createFs();
+      fs.writeFileSync('/test', 'hello');
+      const handle = await fs.promises.open('/test', 'r');
+      const stream = handle.readableWebStream({ type: 'bytes' });
+      expect(stream).toBeInstanceOf(ReadableStream);
+      
+      const data = fromStream(stream);
+      const result = await data;
+      expect(Buffer.from(result)).toEqual(Buffer.from('hello'));
     });
   });
 

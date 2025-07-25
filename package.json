@@ -68,7 +68,7 @@
     "typecheck": "tsc -p .",
     "watch": "watch \"npm run build\" ./src",
     "coverage": "yarn test --collectCoverage",
-    "typedoc": "npx typedoc@0.25.13 --entryPoints src/cas/types.ts src/crud/types.ts src/crud-to-cas/index.ts --out typedocs",
+    "typedoc": "npx typedoc@0.25.13 --tsconfig tsconfig.json",
     "build:pages": "npx rimraf@5.0.5 gh-pages && mkdir -p gh-pages && cp -r typedocs/* gh-pages && cp -r coverage gh-pages/coverage"
   },
   "commitlint": {

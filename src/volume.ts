@@ -1237,6 +1237,140 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this.copyFileBase, [srcFilename, destFilename, flags], callback);
   }
 
+  private cpSyncBase(src: string, dest: string, options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean }): void {
+    // Apply filter if provided
+    if (options.filter && !options.filter(src, dest)) {
+      return;
+    }
+
+    // Get stats for both src and dest
+    const srcStat = this.lstatSync(src);
+    let destStat: Stats | null = null;
+    
+    try {
+      destStat = this.lstatSync(dest);
+    } catch (err) {
+      if ((err as any).code !== 'ENOENT') {
+        throw err;
+      }
+    }
+
+    // Check if src and dest are the same (both exist and have same inode)
+    if (destStat && this.areIdentical(srcStat, destStat)) {
+      throw createError(EINVAL, 'cp', src, dest);
+    }
+
+    // Check type compatibility
+    if (destStat) {
+      if (srcStat.isDirectory() && !destStat.isDirectory()) {
+        throw createError(EISDIR, 'cp', src, dest);
+      }
+      if (!srcStat.isDirectory() && destStat.isDirectory()) {
+        throw createError(ENOTDIR, 'cp', src, dest);
+      }
+    }
+
+    // Check if trying to copy directory to subdirectory of itself
+    if (srcStat.isDirectory() && this.isSrcSubdir(src, dest)) {
+      throw createError(EINVAL, 'cp', src, dest);
+    }
+
+    // Ensure parent directory exists
+    this.ensureParentDir(dest);
+
+    // Handle different file types
+    if (srcStat.isDirectory()) {
+      if (!options.recursive) {
+        throw createError(EISDIR, 'cp', src);
+      }
+      this.cpDirSync(srcStat, destStat, src, dest, options);
+    } else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) {
+      this.cpFileSync(srcStat, destStat, src, dest, options);
+    } else if (srcStat.isSymbolicLink()) {
+      this.cpSymlinkSync(destStat, src, dest, options);
+    } else {
+      throw createError(EINVAL, 'cp', src);
+    }
+  }
+
+  private areIdentical(srcStat: Stats, destStat: Stats): boolean {
+    return srcStat.ino === destStat.ino && srcStat.dev === destStat.dev;
+  }
+
+  private isSrcSubdir(src: string, dest: string): boolean {
+    const normalizedSrc = resolveCrossPlatform(src);
+    const normalizedDest = resolveCrossPlatform(dest);
+    return normalizedDest.startsWith(normalizedSrc + sep);
+  }
+
+  private ensureParentDir(dest: string): void {
+    const parent = dirname(dest);
+    if (!this.existsSync(parent)) {
+      this.mkdirSync(parent, { recursive: true });
+    }
+  }
+
+  private cpFileSync(srcStat: Stats, destStat: Stats | null, src: string, dest: string, options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean }): void {
+    if (destStat) {
+      if (options.errorOnExist) {
+        throw createError(EEXIST, 'cp', dest);
+      }
+      if (!options.force) {
+        return;
+      }
+      this.unlinkSync(dest);
+    }
+
+    // Copy the file
+    this.copyFileSync(src, dest, options.mode);
+
+    // Preserve timestamps if requested
+    if (options.preserveTimestamps) {
+      this.utimesSync(dest, srcStat.atime, srcStat.mtime);
+    }
+
+    // Set file mode
+    this.chmodSync(dest, Number(srcStat.mode));
+  }
+
+  private cpDirSync(srcStat: Stats, destStat: Stats | null, src: string, dest: string, options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean }): void {
+    if (!destStat) {
+      this.mkdirSync(dest);
+    }
+
+    // Read directory contents
+    const entries = this.readdirSync(src);
+    
+    for (const entry of entries) {
+      const srcItem = join(src, entry);
+      const destItem = join(dest, entry);
+      
+      // Apply filter to each item
+      if (options.filter && !options.filter(srcItem, destItem)) {
+        continue;
+      }
+
+      this.cpSyncBase(srcItem, destItem, options);
+    }
+
+    // Set directory mode
+    this.chmodSync(dest, Number(srcStat.mode));
+  }
+
+  private cpSymlinkSync(destStat: Stats | null, src: string, dest: string, options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean }): void {
+    let linkTarget = String(this.readlinkSync(src));
+    
+    if (!options.verbatimSymlinks && !pathModule.isAbsolute(linkTarget)) {
+      linkTarget = resolveCrossPlatform(dirname(src), linkTarget);
+    }
+
+    if (destStat) {
+      this.unlinkSync(dest);
+    }
+
+    this.symlinkSync(linkTarget, dest);
+  }
+
   linkSync(existingPath: PathLike, newPath: PathLike) {
     const existingPathFilename = pathToFilename(existingPath);
     const newPathFilename = pathToFilename(newPath);
@@ -2155,10 +2289,58 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return watcher;
   }
 
-  public cpSync: FsSynchronousApi['cpSync'] = notImplemented;
+  cpSync(src: string | URL, dest: string | URL, options?: opts.ICpOptions): void {
+    const srcFilename = pathToFilename(src as misc.PathLike);
+    const destFilename = pathToFilename(dest as misc.PathLike);
+    
+    const opts_: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean } = {
+      dereference: options?.dereference ?? false,
+      errorOnExist: options?.errorOnExist ?? false,
+      filter: options?.filter,
+      force: options?.force ?? true,
+      mode: options?.mode ?? 0,
+      preserveTimestamps: options?.preserveTimestamps ?? false,
+      recursive: options?.recursive ?? false,
+      verbatimSymlinks: options?.verbatimSymlinks ?? false,
+    };
+    
+    return this.cpSyncBase(srcFilename, destFilename, opts_);
+  }
+
+  cp(src: string | URL, dest: string | URL, callback: TCallback<void>);
+  cp(src: string | URL, dest: string | URL, options: opts.ICpOptions, callback: TCallback<void>);
+  cp(src: string | URL, dest: string | URL, a?: opts.ICpOptions | TCallback<void>, b?: TCallback<void>) {
+    const srcFilename = pathToFilename(src as misc.PathLike);
+    const destFilename = pathToFilename(dest as misc.PathLike);
+
+    let options: Partial<opts.ICpOptions>;
+    let callback: TCallback<void>;
+
+    if (typeof a === 'function') {
+      options = {};
+      callback = a;
+    } else {
+      options = a || {};
+      callback = b!;
+    }
+
+    validateCallback(callback);
+
+    const opts_: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean } = {
+      dereference: options?.dereference ?? false,
+      errorOnExist: options?.errorOnExist ?? false,
+      filter: options?.filter,
+      force: options?.force ?? true,
+      mode: options?.mode ?? 0,
+      preserveTimestamps: options?.preserveTimestamps ?? false,
+      recursive: options?.recursive ?? false,
+      verbatimSymlinks: options?.verbatimSymlinks ?? false,
+    };
+
+    this.wrapAsync(this.cpSyncBase, [srcFilename, destFilename, opts_], callback);
+  }
   public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
 
-  public cp: FsCallbackApi['cp'] = notImplemented;
   public statfs: FsCallbackApi['statfs'] = notImplemented;
   public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
 

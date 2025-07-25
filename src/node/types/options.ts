@@ -165,16 +165,16 @@ export interface ICpOptions {
    * Integer, modifiers for copy operation. Default: 0. See mode flag of
    * `fs.copyFileSync()`.
    */
-  mode: number;
+  mode?: number;
 
   /** When true timestamps from src will be preserved. Default: false. */
-  preserveTimestamps: boolean;
+  preserveTimestamps?: boolean;
 
   /** Copy directories recursively Default: false. */
-  recursive: boolean;
+  recursive?: boolean;
 
   /** When true, path resolution for symlinks will be skipped. Default: false. */
-  verbatimSymlinks: boolean;
+  verbatimSymlinks?: boolean;
 }
 
 export interface IStafsOptions {

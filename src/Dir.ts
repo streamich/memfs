@@ -1,8 +1,9 @@
 import { Link } from './node';
-import { validateCallback } from './node/util';
+import { validateCallback, promisify } from './node/util';
 import * as opts from './node/types/options';
 import Dirent from './Dirent';
 import type { IDir, IDirent, TCallback } from './node/types/misc';
+import queueMicrotask from './queueMicrotask';
 
 /**
  * A directory stream, like `fs.Dir`.
@@ -18,38 +19,7 @@ export class Dir implements IDir {
     this.iteratorInfo.push(link.children[Symbol.iterator]());
   }
 
-  private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
-    validateCallback(callback);
-    Promise.resolve().then(() => {
-      let result;
-      try {
-        result = method.apply(this, args);
-      } catch (err) {
-        callback(err);
-        return;
-      }
-      callback(null, result);
-    });
-  }
 
-  private isFunction(x: any): x is Function {
-    return typeof x === 'function';
-  }
-
-  private promisify<T>(obj: T, fn: keyof T): (...args: any[]) => Promise<any> {
-    return (...args) =>
-      new Promise<void>((resolve, reject) => {
-        const method = obj[fn];
-        if (this.isFunction(method)) {
-          (method as Function).bind(obj)(...args, (error: Error, result: any) => {
-            if (error) reject(error);
-            resolve(result);
-          });
-        } else {
-          reject('Not a function');
-        }
-      });
-  }
 
   private closeBase(): void {}
 
@@ -89,7 +59,15 @@ export class Dir implements IDir {
   public readonly path: string;
 
   closeBaseAsync(callback: (err?: Error) => void): void {
-    this.wrapAsync(this.closeBase, [], callback);
+    validateCallback(callback);
+    queueMicrotask(() => {
+      try {
+        this.closeBase();
+        callback();
+      } catch (err) {
+        callback(err);
+      }
+    });
   }
 
   close(): Promise<void>;
@@ -98,7 +76,7 @@ export class Dir implements IDir {
     if (typeof callback === 'function') {
       this.closeBaseAsync(callback as (err?: Error) => void);
     } else {
-      return this.promisify(this, 'closeBaseAsync')();
+      return promisify(this as any, 'closeBaseAsync')();
     }
   }
 
@@ -107,7 +85,15 @@ export class Dir implements IDir {
   }
 
   readBaseAsync(callback: (err: Error | null, dir?: IDirent | null) => void): void {
-    this.wrapAsync(this.readBase, [this.iteratorInfo], callback);
+    validateCallback(callback);
+    queueMicrotask(() => {
+      try {
+        const result = this.readBase(this.iteratorInfo);
+        callback(null, result);
+      } catch (err) {
+        callback(err);
+      }
+    });
   }
 
   read(): Promise<IDirent | null>;
@@ -116,7 +102,7 @@ export class Dir implements IDir {
     if (typeof callback === 'function') {
       this.readBaseAsync(callback as (err: Error | null, dir?: IDirent | null) => void);
     } else {
-      return this.promisify(this, 'readBaseAsync')();
+      return promisify(this as any, 'readBaseAsync')();
     }
   }
 
@@ -126,17 +112,24 @@ export class Dir implements IDir {
 
   [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
     const iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
-    const _this = this;
-    iteratorInfo.push(_this.link.children[Symbol.iterator]());
+    iteratorInfo.push(this.link.children[Symbol.iterator]());
     // auxiliary object so promisify() can be used
     const o = {
-      readBaseAsync(callback: (err: Error | null, dir?: IDirent | null) => void): void {
-        _this.wrapAsync(_this.readBase, [iteratorInfo], callback);
+      readBaseAsync: (callback: (err: Error | null, dir?: IDirent | null) => void): void => {
+        validateCallback(callback);
+        queueMicrotask(() => {
+          try {
+            const result = this.readBase(iteratorInfo);
+            callback(null, result);
+          } catch (err) {
+            callback(err);
+          }
+        });
       },
     };
     return {
       async next() {
-        const dirEnt = await _this.promisify(o, 'readBaseAsync')();
+        const dirEnt = await promisify(o as any, 'readBaseAsync')();
 
         if (dirEnt !== null) {
           return { done: false, value: dirEnt };

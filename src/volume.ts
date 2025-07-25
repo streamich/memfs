@@ -1243,9 +1243,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       return;
     }
 
-    // Get stats for both src and dest - use stat if dereference, lstat otherwise
-    const statFunc = options.dereference ? this.statSync.bind(this) : this.lstatSync.bind(this);
-    const srcStat = statFunc(src);
+    const srcStat = options.dereference ? this.statSync(src) : this.lstatSync(src);
     let destStat: Stats | null = null;
     
     try {

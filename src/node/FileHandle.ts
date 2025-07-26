@@ -149,16 +149,27 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     });
   }
 
-  async read(buffer: Buffer | Uint8Array, offset: number, length: number, position?: number | null): Promise<TFileHandleReadResult> {
+  async read(
+    buffer: Buffer | Uint8Array,
+    offset: number,
+    length: number,
+    position?: number | null,
+  ): Promise<TFileHandleReadResult> {
     const readPosition = position !== null && position !== undefined ? position : this.position;
-    
-    const result = await promisify(this.fs, 'read', bytesRead => ({ bytesRead, buffer }))(this.fd, buffer, offset, length, readPosition);
-    
+
+    const result = await promisify(this.fs, 'read', bytesRead => ({ bytesRead, buffer }))(
+      this.fd,
+      buffer,
+      offset,
+      length,
+      readPosition,
+    );
+
     // Update internal position only if position was null/undefined
     if (position === null || position === undefined) {
       this.position += result.bytesRead;
     }
-    
+
     return result;
   }
 
@@ -193,7 +204,7 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     position?: number | null,
   ): Promise<TFileHandleWriteResult> {
     const writePosition = position !== null && position !== undefined ? position : this.position;
-    
+
     const result = await promisify(this.fs, 'write', bytesWritten => ({ bytesWritten, buffer }))(
       this.fd,
       buffer,
@@ -201,12 +212,12 @@ export class FileHandle extends EventEmitter implements IFileHandle {
       length,
       writePosition,
     );
-    
+
     // Update internal position only if position was null/undefined
     if (position === null || position === undefined) {
       this.position += result.bytesWritten;
     }
-    
+
     return result;
   }
 

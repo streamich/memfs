@@ -146,7 +146,12 @@ export interface IFileHandle extends EventEmitter {
   createWriteStream(options: IFileHandleWriteStreamOptions): IWriteStream;
   datasync(): Promise<void>;
   readableWebStream(options?: IReadableWebStreamOptions): ReadableStream;
-  read(buffer: Buffer | Uint8Array, offset: number, length: number, position?: number | null): Promise<TFileHandleReadResult>;
+  read(
+    buffer: Buffer | Uint8Array,
+    offset: number,
+    length: number,
+    position?: number | null,
+  ): Promise<TFileHandleReadResult>;
   readv(buffers: ArrayBufferView[], position?: number | null): Promise<TFileHandleReadvResult>;
   readFile(options?: IReadFileOptions | string): Promise<TDataOut>;
   stat(options?: IStatOptions): Promise<IStats>;

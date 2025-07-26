@@ -1,39 +1,45 @@
 import { Link } from './node';
-import { validateCallback, promisify } from './node/util';
+import { validateCallback } from './node/util';
 import * as opts from './node/types/options';
 import Dirent from './Dirent';
-import type { IDir, IDirent } from './node/types/misc';
-import { Error as NodeError } from './internal/errors';
+import type { IDir, IDirent, TCallback } from './node/types/misc';
 import queueMicrotask from './queueMicrotask';
+
+// Define the asyncIterator symbol if not available
+const asyncIteratorSymbol = (Symbol as any).asyncIterator || Symbol.for('Symbol.asyncIterator');
 
 /**
  * A directory stream, like `fs.Dir`.
- * Implements Node.js-style directory operations with buffering and operation queuing.
  */
 export class Dir implements IDir {
-  // Private fields following Node.js Dir implementation pattern
-  private _link: Link;
-  private _options: opts.IOpendirOptions;
-  private _bufferedEntries: IDirent[] = [];
-  private _closed: boolean = false;
-  private _operationQueue: Array<() => void> | null = null;
   private _iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
+  private _bufferedEntries: IDirent[] = [];
+  private _operationQueue: (() => void)[] | null = null;
+  private _closed = false;
 
-  constructor(link: Link, options: opts.IOpendirOptions) {
-    this._link = link;
-    this._options = options;
-    this.path = link.getParentPath();
-    this._iteratorInfo.push(link.children[Symbol.iterator]());
+  constructor(
+    protected readonly _link: Link,
+    protected _options: opts.IOpendirOptions,
+  ) {
+    this.path = _link.getParentPath();
+    this._iteratorInfo.push(_link.children[Symbol.iterator]());
   }
 
-  public readonly path: string;
+  private promisifyMethod<T>(method: Function): (...args: any[]) => Promise<T> {
+    return (...args: any[]) =>
+      new Promise<T>((resolve, reject) => {
+        method(...args, (error: Error | undefined | null, result?: T) => {
+          if (error) reject(error);
+          else resolve(result as T);
+        });
+      });
+  }
 
   private readFromIterator(iteratorInfo: IterableIterator<[string, Link | undefined]>[]): IDirent | null {
     let done: boolean | undefined;
     let value: [string, Link | undefined];
     let name: string;
     let link: Link | undefined;
-
     do {
       do {
         ({ done, value } = iteratorInfo[iteratorInfo.length - 1].next());
@@ -43,7 +49,6 @@ export class Dir implements IDir {
           break;
         }
       } while (name === '.' || name === '..');
-
       if (done) {
         iteratorInfo.pop();
         if (iteratorInfo.length === 0) {
@@ -58,100 +63,104 @@ export class Dir implements IDir {
         return Dirent.build(link!, this._options.encoding);
       }
     } while (!done);
-
     return null;
   }
 
-  private processReadResult(): void {
-    // Process entries and buffer them following Node.js pattern
-    const entry = this.readFromIterator(this._iteratorInfo);
-    if (entry) {
-      this._bufferedEntries.push(entry);
+  private closeBaseAsync(callback: (err?: Error) => void): void {
+    validateCallback(callback);
+    queueMicrotask(() => {
+      if (this._closed) {
+        callback(new Error('ERR_DIR_CLOSED'));
+        return;
+      }
+
+      if (this._operationQueue !== null) {
+        this._operationQueue.push(() => this.closeBaseAsync(callback));
+        return;
+      }
+
+      try {
+        this._closed = true;
+        callback();
+      } catch (err) {
+        callback(err as Error);
+      }
+    });
+  }
+
+  private readBaseAsync(callback: (err: Error | null, dir?: IDirent | null) => void): void {
+    validateCallback(callback);
+    queueMicrotask(() => {
+      if (this._closed) {
+        callback(new Error('ERR_DIR_CLOSED'));
+        return;
+      }
+
+      if (this._operationQueue !== null) {
+        this._operationQueue.push(() => this.readBaseAsync(callback));
+        return;
+      }
+
+      try {
+        // Check buffered entries first
+        if (this._bufferedEntries.length > 0) {
+          const entry = this._bufferedEntries.shift()!;
+          callback(null, entry);
+          return;
+        }
+
+        // Read from iterator
+        const entry = this.readFromIterator(this._iteratorInfo);
+        callback(null, entry);
+      } catch (err) {
+        callback(err as Error);
+      }
+    });
+  }
+
+  // ------------------------------------------------------------- IDir
+
+  public readonly path: string;
+
+  close(): Promise<void>;
+  close(callback?: (err?: Error) => void): void;
+  close(callback?: unknown): void | Promise<void> {
+    if (typeof callback === 'function') {
+      this.closeBaseAsync(callback as (err?: Error) => void);
+    } else {
+      return this.promisifyMethod<void>(this.closeBaseAsync.bind(this))();
     }
   }
 
-  private readImpl(maybeSync: boolean, callback?: (err: Error | null, dirent?: IDirent | null) => void): void {
-    if (this._closed === true) {
-      const error = new NodeError('ERR_DIR_CLOSED');
-      if (callback) {
-        callback(error as any);
-        return;
-      }
-      throw error;
+  closeSync(): void {
+    if (this._closed) {
+      throw new Error('ERR_DIR_CLOSED');
     }
-
-    if (callback === undefined) {
-      throw new Error('Callback is required');
-    }
-
-    validateCallback(callback);
-
     if (this._operationQueue !== null) {
-      this._operationQueue.push(() => {
-        this.readImpl(maybeSync, callback);
-      });
-      return;
+      throw new Error('ERR_DIR_CONCURRENT_OPERATION');
     }
-
-    if (this._bufferedEntries.length > 0) {
-      const dirent = this._bufferedEntries.shift()!;
-      if (maybeSync) {
-        queueMicrotask(() => callback!(null, dirent));
-      } else {
-        callback!(null, dirent);
-      }
-      return;
-    }
-
-    const handleRead = () => {
-      queueMicrotask(() => {
-        const queue = this._operationQueue;
-        this._operationQueue = null;
-        if (queue) {
-          for (const op of queue) op();
-        }
-      });
-
-      try {
-        this.processReadResult();
-        const dirent = this._bufferedEntries.shift() || null;
-        callback!(null, dirent);
-      } catch (error) {
-        callback!(error as Error);
-      }
-    };
-
-    this._operationQueue = [];
-    queueMicrotask(handleRead);
+    this._closed = true;
   }
 
   read(): Promise<IDirent | null>;
-  read(callback?: (err: Error | null, dirent?: IDirent | null) => void): void;
-  read(callback?: (err: Error | null, dirent?: IDirent | null) => void): void | Promise<IDirent | null> {
+  read(callback?: (err: Error | null, dir?: IDirent | null) => void): void;
+  read(callback?: unknown): void | Promise<IDirent | null> {
     if (typeof callback === 'function') {
-      this.readImpl(true, callback);
+      this.readBaseAsync(callback as (err: Error | null, dir?: IDirent | null) => void);
     } else {
-      if (this._closed === true) {
-        return Promise.reject(new NodeError('ERR_DIR_CLOSED'));
-      }
-      return new Promise((resolve, reject) => {
-        this.readImpl(true, (err, dirent) => {
-          if (err) reject(err);
-          else resolve(dirent!);
-        });
-      });
+      return this.promisifyMethod<IDirent | null>(this.readBaseAsync.bind(this))();
     }
   }
 
   readSync(): IDirent | null {
-    if (this._closed === true) {
-      throw new NodeError('ERR_DIR_CLOSED');
+    if (this._closed) {
+      throw new Error('ERR_DIR_CLOSED');
     }
-
     if (this._operationQueue !== null) {
-      throw new NodeError('ERR_DIR_CONCURRENT_OPERATION');
+      throw new Error('ERR_DIR_CONCURRENT_OPERATION');
     }
 
+    // Check buffered entries first
     if (this._bufferedEntries.length > 0) {
       return this._bufferedEntries.shift()!;
     }
@@ -159,69 +168,7 @@ export class Dir implements IDir {
     return this.readFromIterator(this._iteratorInfo);
   }
 
-  close(): Promise<void>;
-  close(callback?: (err?: Error) => void): void;
-  close(callback?: (err?: Error) => void): void | Promise<void> {
-    // Promise mode
-    if (callback === undefined) {
-      if (this._closed === true) {
-        return Promise.reject(new NodeError('ERR_DIR_CLOSED'));
-      }
-      return new Promise((resolve, reject) => {
-        this.close(err => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-    }
-
-    // Callback mode
-    validateCallback(callback);
-
-    if (this._closed === true) {
-      queueMicrotask(() => callback!(new NodeError('ERR_DIR_CLOSED') as any));
-      return;
-    }
-
-    if (this._operationQueue !== null) {
-      this._operationQueue.push(() => {
-        this.close(callback);
-      });
-      return;
-    }
-
-    // Set the operation queue to indicate a pending operation
-    this._operationQueue = [];
-
-    queueMicrotask(() => {
-      // Clear the operation queue
-      const queue = this._operationQueue;
-      this._operationQueue = null;
-
-      // Close the directory
-      this._closed = true;
-      callback!();
-
-      // Process any queued operations
-      if (queue) {
-        for (const op of queue) op();
-      }
-    });
-  }
-
-  closeSync(): void {
-    if (this._closed === true) {
-      throw new NodeError('ERR_DIR_CLOSED');
-    }
-
-    if (this._operationQueue !== null) {
-      throw new NodeError('ERR_DIR_CONCURRENT_OPERATION');
-    }
-
-    this._closed = true;
-  }
-
-  [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
+  [asyncIteratorSymbol](): AsyncIterableIterator<IDirent> {
     // Create a separate iterator info for the async iterator to avoid interference
     const iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
     iteratorInfo.push(this._link.children[Symbol.iterator]());
@@ -241,7 +188,7 @@ export class Dir implements IDir {
     };
 
     // Add the Symbol.asyncIterator method using bracket notation to avoid TypeScript issues
-    (iterator as any)[Symbol.asyncIterator] = function () {
+    (iterator as any)[asyncIteratorSymbol] = function () {
       return iterator;
     };
 

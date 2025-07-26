@@ -157,7 +157,11 @@ describe('opendir', () => {
       const dir = vol.opendirSync('/test');
       dir.closeSync();
 
-      expect(() => dir.readSync()).toThrow('ERR_DIR_CLOSED');
+      expect(() => dir.readSync()).toThrow(
+        expect.objectContaining({
+          code: 'ERR_DIR_CLOSED',
+        }),
+      );
     });
 
     it('should throw ERR_DIR_CLOSED when closing already closed directory (sync)', () => {
@@ -167,7 +171,11 @@ describe('opendir', () => {
       const dir = vol.opendirSync('/test');
       dir.closeSync();
 
-      expect(() => dir.closeSync()).toThrow('ERR_DIR_CLOSED');
+      expect(() => dir.closeSync()).toThrow(
+        expect.objectContaining({
+          code: 'ERR_DIR_CLOSED',
+        }),
+      );
     });
 
     it('should call callback with ERR_DIR_CLOSED when reading from closed directory (async)', done => {
@@ -208,7 +216,7 @@ describe('opendir', () => {
       dir.closeSync();
 
       await expect(dir.close()).rejects.toMatchObject({
-        code: 'ERR_DIR_CLOSED'
+        code: 'ERR_DIR_CLOSED',
       });
     });
   });
@@ -229,7 +237,11 @@ describe('opendir', () => {
       });
 
       // Immediately try sync operation - should throw
-      expect(() => dir.readSync()).toThrow('ERR_DIR_CONCURRENT_OPERATION');
+      expect(() => dir.readSync()).toThrow(
+        expect.objectContaining({
+          code: 'ERR_DIR_CONCURRENT_OPERATION',
+        }),
+      );
     });
 
     it('should throw ERR_DIR_CONCURRENT_OPERATION when sync operation attempted during async (closeSync)', done => {
@@ -240,13 +252,17 @@ describe('opendir', () => {
 
       // Start async close operation
       dir.close(err => {
-        // This should complete successfully  
+        // This should complete successfully
         expect(err).toBeFalsy();
         done();
       });
 
       // Immediately try sync operation - should throw
-      expect(() => dir.closeSync()).toThrow('ERR_DIR_CONCURRENT_OPERATION');
+      expect(() => dir.closeSync()).toThrow(
+        expect.objectContaining({
+          code: 'ERR_DIR_CONCURRENT_OPERATION',
+        }),
+      );
     });
 
     it('should queue async operations properly', done => {
@@ -275,7 +291,7 @@ describe('opendir', () => {
         expect(results.length).toBe(2);
         expect(results).toContain('file1.txt');
         expect(results).toContain('file2.txt');
-        
+
         dir.close(done);
       });
     });
@@ -295,7 +311,7 @@ describe('opendir', () => {
       // Use the async iterator manually
       const iterator = (dir as any)[Symbol.asyncIterator]();
       let result = await iterator.next();
-      
+
       while (!result.done) {
         entries.push(String(result.value.name));
         result = await iterator.next();
@@ -317,7 +333,7 @@ describe('opendir', () => {
       // Use the async iterator manually
       const iterator = (dir as any)[Symbol.asyncIterator]();
       let result = await iterator.next();
-      
+
       while (!result.done) {
         entries.push(String(result.value.name));
         result = await iterator.next();

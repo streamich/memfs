@@ -82,6 +82,8 @@ export interface FsCallbackApi {
   ): void;
   realpath(path: misc.PathLike, callback: misc.TCallback<misc.TDataOut>);
   realpath(path: misc.PathLike, options: opts.IRealpathOptions | string, callback: misc.TCallback<misc.TDataOut>);
+  realpathNative(path: misc.PathLike, callback: misc.TCallback<misc.TDataOut>);
+  realpathNative(path: misc.PathLike, options: opts.IRealpathOptions | string, callback: misc.TCallback<misc.TDataOut>);
   rename(oldPath: misc.PathLike, newPath: misc.PathLike, callback: misc.TCallback<void>): void;
   rmdir(path: misc.PathLike, callback: misc.TCallback<void>);
   rmdir(path: misc.PathLike, options: opts.IRmdirOptions, callback: misc.TCallback<void>);

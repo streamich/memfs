@@ -1518,6 +1518,18 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this.realpathBase, [pathFilename, opts.encoding], callback);
   }
 
+  realpathNative(path: PathLike, callback: TCallback<TDataOut>);
+  realpathNative(path: PathLike, options: opts.IRealpathOptions | string, callback: TCallback<TDataOut>);
+  realpathNative(path: PathLike, a: TCallback<TDataOut> | opts.IRealpathOptions | string, b?: TCallback<TDataOut>) {
+    const [opts, callback] = getRealpathOptsAndCb(a, b);
+    const pathFilename = pathToFilename(path);
+    this.wrapAsync(this.realpathBase, [pathFilename, opts.encoding], callback);
+  }
+
+  realpathNativeSync(path: PathLike, options?: opts.IRealpathOptions | string): TDataOut {
+    return this.realpathBase(pathToFilename(path), getRealpathOptions(options).encoding);
+  }
+
   private lstatBase(filename: string, bigint: false, throwIfNoEntry: true): Stats<number>;
   private lstatBase(filename: string, bigint: true, throwIfNoEntry: true): Stats<bigint>;
   private lstatBase(filename: string, bigint: true, throwIfNoEntry: false): Stats<bigint> | undefined;

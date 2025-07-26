@@ -175,11 +175,10 @@ export class Dir implements IDir {
   }
 
   [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
-    const _this = this;
     return {
-      async next() {
+      next: async () => {
         try {
-          const dirEnt = await _this.read();
+          const dirEnt = await this.read();
           
           if (dirEnt !== null) {
             return { done: false, value: dirEnt };

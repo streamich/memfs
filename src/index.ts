@@ -31,6 +31,14 @@ export interface IFs extends Volume {
   WriteStream: new (...args) => IWriteStream;
   promises: FsPromisesApi;
   _toUnixTimestamp;
+  
+  // Override realpath and realpathSync to include native properties
+  realpath: Volume['realpath'] & {
+    native: Volume['realpathNative'];
+  };
+  realpathSync: Volume['realpathSync'] & {
+    native: Volume['realpathNativeSync'];
+  };
 }
 
 export function createFsFromVolume(vol: Volume): IFs {
@@ -39,6 +47,14 @@ export function createFsFromVolume(vol: Volume): IFs {
   // Bind FS methods.
   for (const method of fsSynchronousApiList) if (typeof vol[method] === 'function') fs[method] = vol[method].bind(vol);
   for (const method of fsCallbackApiList) if (typeof vol[method] === 'function') fs[method] = vol[method].bind(vol);
+
+  // Bind native realpath methods as properties
+  if (typeof vol.realpathNative === 'function') {
+    (fs.realpath as any).native = vol.realpathNative.bind(vol);
+  }
+  if (typeof vol.realpathNativeSync === 'function') {
+    (fs.realpathSync as any).native = vol.realpathNativeSync.bind(vol);
+  }
 
   fs.StatWatcher = vol.StatWatcher;
   fs.FSWatcher = vol.FSWatcher;

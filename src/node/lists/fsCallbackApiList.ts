@@ -31,6 +31,7 @@ export const fsCallbackApiList: Array<keyof FsCallbackApi> = [
   'readFile',
   'readlink',
   'realpath',
+  'realpathNative',
   'rename',
   'rm',
   'rmdir',

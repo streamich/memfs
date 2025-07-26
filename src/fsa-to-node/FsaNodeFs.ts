@@ -298,6 +298,17 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     callback(null, strToEncoding(pathFilename, opts.encoding));
   };
 
+  public readonly realpathNative: FsCallbackApi['realpathNative'] = (
+    path: misc.PathLike,
+    a: misc.TCallback<misc.TDataOut> | opts.IRealpathOptions | string,
+    b?: misc.TCallback<misc.TDataOut>,
+  ): void => {
+    const [opts, callback] = optHelpers.getRealpathOptsAndCb(a, b);
+    let pathFilename = util.pathToFilename(path);
+    if (pathFilename[0] !== FsaToNodeConstants.Separator) pathFilename = FsaToNodeConstants.Separator + pathFilename;
+    callback(null, strToEncoding(pathFilename, opts.encoding));
+  };
+
   public readonly stat: FsCallbackApi['stat'] = (
     path: misc.PathLike,
     a: misc.TCallback<misc.IStats> | opts.IStatOptions,
@@ -1005,6 +1016,16 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public readonly realpathSync: FsSynchronousApi['realpathSync'] = (
+    path: misc.PathLike,
+    options?: opts.IRealpathOptions | string,
+  ): misc.TDataOut => {
+    let filename = util.pathToFilename(path);
+    const { encoding } = optHelpers.getRealpathOptions(options);
+    if (filename[0] !== FsaToNodeConstants.Separator) filename = FsaToNodeConstants.Separator + filename;
+    return strToEncoding(filename, encoding);
+  };
+
+  public readonly realpathNativeSync: FsSynchronousApi['realpathNativeSync'] = (
     path: misc.PathLike,
     options?: opts.IRealpathOptions | string,
   ): misc.TDataOut => {

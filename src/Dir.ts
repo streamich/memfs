@@ -3,55 +3,28 @@ import { validateCallback } from './node/util';
 import * as opts from './node/types/options';
 import Dirent from './Dirent';
 import type { IDir, IDirent, TCallback } from './node/types/misc';
+import * as errors from './internal/errors';
 
 /**
  * A directory stream, like `fs.Dir`.
  */
 export class Dir implements IDir {
   private iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
+  private closed = false;
+  private operationQueue: Array<() => void> | null = null;
 
   constructor(
     protected readonly link: Link,
     protected options: opts.IOpendirOptions,
   ) {
-    this.path = link.getParentPath();
+    this.path = link.getPath();
     this.iteratorInfo.push(link.children[Symbol.iterator]());
   }
 
-  private wrapAsync(method: (...args) => void, args: any[], callback: TCallback<any>) {
-    validateCallback(callback);
-    Promise.resolve().then(() => {
-      let result;
-      try {
-        result = method.apply(this, args);
-      } catch (err) {
-        callback(err);
-        return;
-      }
-      callback(null, result);
-    });
+  private closeBase(): void {
+    // In a real filesystem implementation, this would close file descriptors
+    // For memfs, we just need to mark as closed
   }
-
-  private isFunction(x: any): x is Function {
-    return typeof x === 'function';
-  }
-
-  private promisify<T>(obj: T, fn: keyof T): (...args: any[]) => Promise<any> {
-    return (...args) =>
-      new Promise<void>((resolve, reject) => {
-        const method = obj[fn];
-        if (this.isFunction(method)) {
-          (method as Function).bind(obj)(...args, (error: Error, result: any) => {
-            if (error) reject(error);
-            resolve(result);
-          });
-        } else {
-          reject('Not a function');
-        }
-      });
-  }
-
-  private closeBase(): void {}
 
   private readBase(iteratorInfo: IterableIterator<[string, Link | undefined]>[]): IDirent | null {
     let done: boolean | undefined;
@@ -88,64 +61,137 @@ export class Dir implements IDir {
 
   public readonly path: string;
 
-  closeBaseAsync(callback: (err?: Error) => void): void {
-    this.wrapAsync(this.closeBase, [], callback);
-  }
-
   close(): Promise<void>;
   close(callback?: (err?: Error) => void): void;
   close(callback?: unknown): void | Promise<void> {
-    if (typeof callback === 'function') {
-      this.closeBaseAsync(callback as (err?: Error) => void);
-    } else {
-      return this.promisify(this, 'closeBaseAsync')();
+    // Promise-based close
+    if (callback === undefined) {
+      if (this.closed) {
+        return Promise.reject(new errors.Error('ERR_DIR_CLOSED'));
+      }
+      return new Promise<void>((resolve, reject) => {
+        this.close((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    }
+
+    // Callback-based close
+    validateCallback(callback as (err?: Error) => void);
+    
+    if (this.closed) {
+      process.nextTick(callback as (err?: Error) => void, new errors.Error('ERR_DIR_CLOSED'));
+      return;
+    }
+
+    if (this.operationQueue !== null) {
+      this.operationQueue.push(() => {
+        this.close(callback as (err?: Error) => void);
+      });
+      return;
+    }
+
+    this.closed = true;
+    try {
+      this.closeBase();
+      process.nextTick(callback as (err?: Error) => void);
+    } catch (err) {
+      process.nextTick(callback as (err?: Error) => void, err);
     }
   }
 
   closeSync(): void {
-    this.closeBase();
-  }
+    if (this.closed) {
+      throw new errors.Error('ERR_DIR_CLOSED');
+    }
 
-  readBaseAsync(callback: (err: Error | null, dir?: IDirent | null) => void): void {
-    this.wrapAsync(this.readBase, [this.iteratorInfo], callback);
+    if (this.operationQueue !== null) {
+      throw new errors.Error('ERR_DIR_CONCURRENT_OPERATION');
+    }
+
+    this.closed = true;
+    this.closeBase();
   }
 
   read(): Promise<IDirent | null>;
   read(callback?: (err: Error | null, dir?: IDirent | null) => void): void;
   read(callback?: unknown): void | Promise<IDirent | null> {
-    if (typeof callback === 'function') {
-      this.readBaseAsync(callback as (err: Error | null, dir?: IDirent | null) => void);
-    } else {
-      return this.promisify(this, 'readBaseAsync')();
+    // Promise-based read
+    if (callback === undefined) {
+      return new Promise<IDirent | null>((resolve, reject) => {
+        this.read((err, result) => {
+          if (err) reject(err);
+          else resolve(result ?? null);
+        });
+      });
+    }
+
+    // Callback-based read
+    validateCallback(callback as (err: Error | null, dir?: IDirent | null) => void);
+
+    if (this.closed) {
+      process.nextTick(callback as (err: Error | null, dir?: IDirent | null) => void, new errors.Error('ERR_DIR_CLOSED'));
+      return;
+    }
+
+    if (this.operationQueue !== null) {
+      this.operationQueue.push(() => {
+        this.read(callback as (err: Error | null, dir?: IDirent | null) => void);
+      });
+      return;
+    }
+
+    this.operationQueue = [];
+    
+    try {
+      const result = this.readBase(this.iteratorInfo);
+      process.nextTick(() => {
+        const queue = this.operationQueue;
+        this.operationQueue = null;
+        for (const op of queue!) op();
+        (callback as (err: Error | null, dir?: IDirent | null) => void)(null, result);
+      });
+    } catch (err) {
+      process.nextTick(() => {
+        const queue = this.operationQueue;
+        this.operationQueue = null;
+        for (const op of queue!) op();
+        (callback as (err: Error | null, dir?: IDirent | null) => void)(err);
+      });
     }
   }
 
   readSync(): IDirent | null {
+    if (this.closed) {
+      throw new errors.Error('ERR_DIR_CLOSED');
+    }
+
+    if (this.operationQueue !== null) {
+      throw new errors.Error('ERR_DIR_CONCURRENT_OPERATION');
+    }
+
     return this.readBase(this.iteratorInfo);
   }
 
   [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
-    const iteratorInfo: IterableIterator<[string, Link | undefined]>[] = [];
     const _this = this;
-    iteratorInfo.push(_this.link.children[Symbol.iterator]());
-    // auxiliary object so promisify() can be used
-    const o = {
-      readBaseAsync(callback: (err: Error | null, dir?: IDirent | null) => void): void {
-        _this.wrapAsync(_this.readBase, [iteratorInfo], callback);
-      },
-    };
     return {
       async next() {
-        const dirEnt = await _this.promisify(o, 'readBaseAsync')();
-
-        if (dirEnt !== null) {
-          return { done: false, value: dirEnt };
-        } else {
-          return { done: true, value: undefined };
+        try {
+          const dirEnt = await _this.read();
+          
+          if (dirEnt !== null) {
+            return { done: false, value: dirEnt };
+          } else {
+            return { done: true, value: undefined };
+          }
+        } catch (err) {
+          throw err;
         }
       },
       [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
-        throw new Error('Not implemented');
+        return this;
       },
     };
   }

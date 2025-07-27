@@ -290,6 +290,20 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   WriteStream: new (...args) => IWriteStream;
   FSWatcher: new () => FSWatcher;
 
+  realpath: {
+    (path: PathLike, callback: TCallback<TDataOut>): void;
+    (path: PathLike, options: opts.IRealpathOptions | string, callback: TCallback<TDataOut>): void;
+    native: {
+      (path: PathLike, callback: TCallback<TDataOut>): void;
+      (path: PathLike, options: opts.IRealpathOptions | string, callback: TCallback<TDataOut>): void;
+    };
+  };
+
+  realpathSync: {
+    (path: PathLike, options?: opts.IRealpathOptions | string): TDataOut;
+    native: (path: PathLike, options?: opts.IRealpathOptions | string) => TDataOut;
+  };
+
   props: {
     Node: new (...args) => Node;
     Link: new (...args) => Link;
@@ -344,6 +358,25 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     root.getNode().nlink++;
 
     this.root = root;
+
+    const realpathImpl = (
+      path: PathLike,
+      a: TCallback<TDataOut> | opts.IRealpathOptions | string,
+      b?: TCallback<TDataOut>,
+    ) => {
+      const [opts, callback] = getRealpathOptsAndCb(a, b);
+      const pathFilename = pathToFilename(path);
+      self.wrapAsync(self.realpathBase, [pathFilename, opts.encoding], callback);
+    };
+
+    const realpathSyncImpl = (path: PathLike, options?: opts.IRealpathOptions | string): TDataOut => {
+      return self.realpathBase(pathToFilename(path), getRealpathOptions(options).encoding);
+    };
+
+    this.realpath = realpathImpl as any;
+    this.realpath.native = realpathImpl as any;
+    this.realpathSync = realpathSyncImpl as any;
+    this.realpathSync.native = realpathSyncImpl as any;
   }
 
   createLink(): Link;
@@ -1504,18 +1537,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const realLink = this.getResolvedLinkOrThrow(filename, 'realpath');
 
     return strToEncoding(realLink.getPath() || '/', encoding);
-  }
-
-  realpathSync(path: PathLike, options?: opts.IRealpathOptions | string): TDataOut {
-    return this.realpathBase(pathToFilename(path), getRealpathOptions(options).encoding);
-  }
-
-  realpath(path: PathLike, callback: TCallback<TDataOut>);
-  realpath(path: PathLike, options: opts.IRealpathOptions | string, callback: TCallback<TDataOut>);
-  realpath(path: PathLike, a: TCallback<TDataOut> | opts.IRealpathOptions | string, b?: TCallback<TDataOut>) {
-    const [opts, callback] = getRealpathOptsAndCb(a, b);
-    const pathFilename = pathToFilename(path);
-    this.wrapAsync(this.realpathBase, [pathFilename, opts.encoding], callback);
   }
 
   private lstatBase(filename: string, bigint: false, throwIfNoEntry: true): Stats<number>;

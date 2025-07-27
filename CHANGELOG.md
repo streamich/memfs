@@ -1,3 +1,10 @@
+## [4.22.1](https://github.com/streamich/memfs/compare/v4.22.0...v4.22.1) (2025-07-27)
+
+
+### Bug Fixes
+
+* `fs.createReadStream` throwing `ERR_OUT_OF_RANGE` with start parameter ([5e5e5ca](https://github.com/streamich/memfs/commit/5e5e5ca4726f615d2fa7a5dd9ae27341c6a38682))
+
 # [4.22.0](https://github.com/streamich/memfs/compare/v4.21.0...v4.22.0) (2025-07-27)
 
 

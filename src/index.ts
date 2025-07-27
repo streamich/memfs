@@ -46,6 +46,20 @@ export function createFsFromVolume(vol: Volume): IFs {
   fs.ReadStream = vol.ReadStream;
   fs.promises = vol.promises;
 
+  // Handle realpath and realpathSync with their .native properties
+  if (typeof vol.realpath === 'function') {
+    fs.realpath = vol.realpath.bind(vol);
+    if (typeof vol.realpath.native === 'function') {
+      fs.realpath.native = vol.realpath.native.bind(vol);
+    }
+  }
+  if (typeof vol.realpathSync === 'function') {
+    fs.realpathSync = vol.realpathSync.bind(vol);
+    if (typeof vol.realpathSync.native === 'function') {
+      fs.realpathSync.native = vol.realpathSync.native.bind(vol);
+    }
+  }
+
   fs._toUnixTimestamp = toUnixTimestamp;
   (fs as any).__vol = vol;
 

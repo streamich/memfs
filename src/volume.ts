@@ -290,7 +290,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   WriteStream: new (...args) => IWriteStream;
   FSWatcher: new () => FSWatcher;
 
-  // realpath function properties with native variants
   realpath: {
     (path: PathLike, callback: TCallback<TDataOut>): void;
     (path: PathLike, options: opts.IRealpathOptions | string, callback: TCallback<TDataOut>): void;
@@ -360,18 +359,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     this.root = root;
 
-    // Set up realpath as function properties with native variants
     const realpathImpl = (
-      path: PathLike,
-      a: TCallback<TDataOut> | opts.IRealpathOptions | string,
-      b?: TCallback<TDataOut>,
-    ) => {
-      const [opts, callback] = getRealpathOptsAndCb(a, b);
-      const pathFilename = pathToFilename(path);
-      self.wrapAsync(self.realpathBase, [pathFilename, opts.encoding], callback);
-    };
-
-    const realpathNativeImpl = (
       path: PathLike,
       a: TCallback<TDataOut> | opts.IRealpathOptions | string,
       b?: TCallback<TDataOut>,
@@ -385,14 +373,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       return self.realpathBase(pathToFilename(path), getRealpathOptions(options).encoding);
     };
 
-    const realpathSyncNativeImpl = (path: PathLike, options?: opts.IRealpathOptions | string): TDataOut => {
-      return self.realpathBase(pathToFilename(path), getRealpathOptions(options).encoding);
-    };
-
     this.realpath = realpathImpl as any;
-    this.realpath.native = realpathNativeImpl as any;
+    this.realpath.native = realpathImpl as any;
     this.realpathSync = realpathSyncImpl as any;
-    this.realpathSync.native = realpathSyncNativeImpl as any;
+    this.realpathSync.native = realpathSyncImpl as any;
   }
 
   createLink(): Link;

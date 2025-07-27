@@ -1,3 +1,10 @@
+# [4.23.0](https://github.com/streamich/memfs/compare/v4.22.1...v4.23.0) (2025-07-27)
+
+
+### Features
+
+* add `promises.watch` ([45a6171](https://github.com/streamich/memfs/commit/45a61716ab7e306f4f364ad6f07a7840f510a20e))
+
 ## [4.22.1](https://github.com/streamich/memfs/compare/v4.22.0...v4.22.1) (2025-07-27)
 
 

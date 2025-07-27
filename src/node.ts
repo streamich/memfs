@@ -183,6 +183,7 @@ export class Node extends EventEmitter {
   ): number {
     this.atime = new Date();
     if (!this.buf) this.buf = bufferAllocUnsafe(0);
+    if (pos >= this.buf.length) return 0;
     let actualLen = len;
     if (actualLen > buf.byteLength) {
       actualLen = buf.byteLength;

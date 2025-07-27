@@ -933,5 +933,36 @@ describe('Promises API', () => {
       expect(events[0].curr.isFile()).toBe(true);
       expect(events[0].prev.isFile()).toBe(true);
     });
+
+    it('Works with for-await loops', async () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      vol.fromJSON({
+        '/test.txt': 'initial',
+      });
+      
+      const watcher = promises.watch('/test.txt');
+      const events: Array<{ eventType: string; filename: string | Buffer }> = [];
+      
+      // Start the for-await loop
+      const watchPromise = (async () => {
+        for await (const event of watcher) {
+          events.push(event);
+          if (events.length >= 2) {
+            break;
+          }
+        }
+      })();
+      
+      // Generate events
+      setTimeout(() => vol.writeFileSync('/test.txt', 'change1'), 10);
+      setTimeout(() => vol.writeFileSync('/test.txt', 'change2'), 15);
+      
+      await watchPromise;
+      
+      expect(events).toHaveLength(2);
+      expect(events[0].eventType).toBe('change');
+      expect(events[1].eventType).toBe('change');
+    });
   });
 });

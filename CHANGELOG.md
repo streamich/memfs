@@ -1,3 +1,10 @@
+# [4.22.0](https://github.com/streamich/memfs/compare/v4.21.0...v4.22.0) (2025-07-27)
+
+
+### Features
+
+* add `realpath.native` and its sync variant ([89d7e54](https://github.com/streamich/memfs/commit/89d7e54164a0515f82cebf098295d8b58f010cab))
+
 # [4.21.0](https://github.com/streamich/memfs/compare/v4.20.1...v4.21.0) (2025-07-27)
 
 

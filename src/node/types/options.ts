@@ -136,6 +136,19 @@ export interface IWatchOptions extends IOptions {
    * Allows closing the watcher with an {@link AbortSignal}.
    */
   signal?: AbortSignal;
+
+  /**
+   * Specifies the number of events to queue between iterations of the AsyncIterator.
+   * Default: 2048.
+   */
+  maxQueue?: number;
+
+  /**
+   * Either 'ignore' or 'throw' when there are more events to be queued than maxQueue allows.
+   * 'ignore' means overflow events are dropped and a warning is emitted, while 'throw'
+   * means to throw an exception. Default: 'ignore'.
+   */
+  overflow?: 'ignore' | 'throw';
 }
 
 export interface ICpOptions {

@@ -1,3 +1,10 @@
+# [4.21.0](https://github.com/streamich/memfs/compare/v4.20.1...v4.21.0) (2025-07-27)
+
+
+### Features
+
+* improve `Dir` class, align better with Node.js ([cdc257a](https://github.com/streamich/memfs/commit/cdc257a800abe30512eab8a4ef763f6df8de8d09))
+
 ## [4.20.1](https://github.com/streamich/memfs/compare/v4.20.0...v4.20.1) (2025-07-27)
 
 

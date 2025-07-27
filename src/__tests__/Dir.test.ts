@@ -16,9 +16,9 @@ describe('Dir API Error Handling', () => {
       expect(() => dir.closeSync()).not.toThrow();
     });
 
-    it('should close without error using callback', (done) => {
+    it('should close without error using callback', done => {
       const dir = vol.opendirSync('/test');
-      dir.close((err) => {
+      dir.close(err => {
         expect(err).toBeFalsy();
         done();
       });
@@ -77,7 +77,7 @@ describe('Dir API Error Handling', () => {
       }
     });
 
-    it('should callback with ERR_DIR_CLOSED when reading from closed dir', (done) => {
+    it('should callback with ERR_DIR_CLOSED when reading from closed dir', done => {
       const dir = vol.opendirSync('/test');
       dir.closeSync();
       dir.read((err, entry) => {
@@ -89,10 +89,10 @@ describe('Dir API Error Handling', () => {
       });
     });
 
-    it('should callback with ERR_DIR_CLOSED when closing already closed dir', (done) => {
+    it('should callback with ERR_DIR_CLOSED when closing already closed dir', done => {
       const dir = vol.opendirSync('/test');
       dir.closeSync();
-      dir.close((err) => {
+      dir.close(err => {
         expect(err).toBeTruthy();
         expect((err as any)?.code).toBe('ERR_DIR_CLOSED');
         expect((err as any)?.name).toMatch(/ERR_DIR_CLOSED/);
@@ -102,19 +102,19 @@ describe('Dir API Error Handling', () => {
   });
 
   describe('concurrent operations', () => {
-    it('should throw ERR_DIR_CONCURRENT_OPERATION when sync read during async operation', (done) => {
+    it('should throw ERR_DIR_CONCURRENT_OPERATION when sync read during async operation', done => {
       const dir = vol.opendirSync('/test');
-      
+
       // Start an async read
       dir.read((err, entry) => {
         expect(err).toBeNull();
         expect(entry).toBeTruthy();
-        
+
         // Now sync operations should work again
         expect(() => dir.readSync()).not.toThrow();
         done();
       });
-      
+
       // Try a sync operation while async is pending
       try {
         dir.readSync();
@@ -125,16 +125,16 @@ describe('Dir API Error Handling', () => {
       }
     });
 
-    it('should throw ERR_DIR_CONCURRENT_OPERATION when sync close during async operation', (done) => {
+    it('should throw ERR_DIR_CONCURRENT_OPERATION when sync close during async operation', done => {
       const dir = vol.opendirSync('/test');
-      
+
       // Start an async read
       dir.read((err, entry) => {
         expect(err).toBeNull();
         expect(entry).toBeTruthy();
         done();
       });
-      
+
       // Try a sync close while async is pending
       try {
         dir.closeSync();
@@ -163,11 +163,11 @@ describe('Dir API Error Handling', () => {
     it('should work with for-await-of', async () => {
       const dir = vol.opendirSync('/test');
       const entries: string[] = [];
-      
+
       for await (const entry of dir) {
         entries.push(String(entry.name));
       }
-      
+
       expect(entries).toContain('file1.txt');
       expect(entries).toContain('file2.txt');
       expect(entries.length).toBe(2);

@@ -70,7 +70,7 @@ export class Dir implements IDir {
         return Promise.reject(new errors.Error('ERR_DIR_CLOSED'));
       }
       return new Promise<void>((resolve, reject) => {
-        this.close((err) => {
+        this.close(err => {
           if (err) reject(err);
           else resolve();
         });
@@ -79,7 +79,7 @@ export class Dir implements IDir {
 
     // Callback-based close
     validateCallback(callback as (err?: Error) => void);
-    
+
     if (this.closed) {
       process.nextTick(callback as (err?: Error) => void, new errors.Error('ERR_DIR_CLOSED'));
       return;
@@ -131,7 +131,10 @@ export class Dir implements IDir {
     validateCallback(callback as (err: Error | null, dir?: IDirent | null) => void);
 
     if (this.closed) {
-      process.nextTick(callback as (err: Error | null, dir?: IDirent | null) => void, new errors.Error('ERR_DIR_CLOSED'));
+      process.nextTick(
+        callback as (err: Error | null, dir?: IDirent | null) => void,
+        new errors.Error('ERR_DIR_CLOSED'),
+      );
       return;
     }
 
@@ -143,7 +146,7 @@ export class Dir implements IDir {
     }
 
     this.operationQueue = [];
-    
+
     try {
       const result = this.readBase(this.iteratorInfo);
       process.nextTick(() => {
@@ -179,7 +182,7 @@ export class Dir implements IDir {
       next: async () => {
         try {
           const dirEnt = await this.read();
-          
+
           if (dirEnt !== null) {
             return { done: false, value: dirEnt };
           } else {

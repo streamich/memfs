@@ -173,7 +173,10 @@ E('ERR_V8BREAKITERATOR', 'Full ICU data not installed. ' + 'See https://github.c
 
 // Dir-related errors
 E('ERR_DIR_CLOSED', 'Directory handle was closed');
-E('ERR_DIR_CONCURRENT_OPERATION', 'Cannot do synchronous work on directory handle with concurrent asynchronous operations');
+E(
+  'ERR_DIR_CONCURRENT_OPERATION',
+  'Cannot do synchronous work on directory handle with concurrent asynchronous operations',
+);
 
 function invalidArgType(name, expected, actual) {
   assert(name, 'name is required');

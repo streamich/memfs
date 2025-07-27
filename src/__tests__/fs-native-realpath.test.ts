@@ -133,7 +133,7 @@ describe('fs.realpath vs fs.realpath.native comparison', () => {
 
     const regularPath = testFs.realpathSync('/symlink/file.txt');
     const nativePath = testFs.realpathSync.native('/symlink/file.txt');
-    
+
     expect(regularPath).toBe(nativePath);
     expect(regularPath).toBe('/dir/file.txt');
   });

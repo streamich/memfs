@@ -48,7 +48,6 @@ export interface FsSynchronousApi {
   readFileSync(file: misc.TFileId, options?: opts.IReadFileOptions | string): misc.TDataOut;
   readvSync(fd: number, buffers: ArrayBufferView[], position?: number | null): number;
   realpathSync(path: misc.PathLike, options?: opts.IRealpathOptions | string): misc.TDataOut;
-  realpathNativeSync(path: misc.PathLike, options?: opts.IRealpathOptions | string): misc.TDataOut;
   renameSync(oldPath: misc.PathLike, newPath: misc.PathLike): void;
   rmdirSync(path: misc.PathLike, options?: opts.IRmdirOptions): void;
   rmSync(path: misc.PathLike, options?: opts.IRmOptions): void;

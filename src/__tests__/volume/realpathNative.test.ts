@@ -1,6 +1,6 @@
 import { create } from '../util';
 
-describe('.realpathNative(...)', () => {
+describe('.realpath.native(...)', () => {
   it('works with async callback', done => {
     const vol = create({});
     vol.mkdirSync('/a');
@@ -8,7 +8,7 @@ describe('.realpathNative(...)', () => {
     vol.writeFileSync('/c/index.js', 'alert(123);');
     vol.symlinkSync('/c', '/a/b');
 
-    vol.realpathNative('/a/b/index.js', (err, path) => {
+    vol.realpath.native('/a/b/index.js', (err, path) => {
       expect(err).toBe(null);
       expect(path).toBe('/c/index.js');
       done();
@@ -22,7 +22,7 @@ describe('.realpathNative(...)', () => {
     vol.writeFileSync('/c/index.js', 'alert(123);');
     vol.symlinkSync('/c', '/a/b');
 
-    vol.realpathNative('/a/b/index.js', 'utf8', (err, path) => {
+    vol.realpath.native('/a/b/index.js', 'utf8', (err, path) => {
       expect(err).toBe(null);
       expect(path).toBe('/c/index.js');
       done();
@@ -36,7 +36,7 @@ describe('.realpathNative(...)', () => {
     vol.writeFileSync('/c/index.js', 'alert(123);');
     vol.symlinkSync('/c', '/a/b');
 
-    vol.realpathNative('/a/b/index.js', { encoding: 'utf8' }, (err, path) => {
+    vol.realpath.native('/a/b/index.js', { encoding: 'utf8' }, (err, path) => {
       expect(err).toBe(null);
       expect(path).toBe('/c/index.js');
       done();
@@ -45,7 +45,7 @@ describe('.realpathNative(...)', () => {
 
   it('returns the root correctly', done => {
     const vol = create({ './a': 'a' });
-    vol.realpathNative('/', (err, path) => {
+    vol.realpath.native('/', (err, path) => {
       expect(err).toBe(null);
       expect(path).toBe('/');
       done();
@@ -54,7 +54,7 @@ describe('.realpathNative(...)', () => {
 
   it('handles errors correctly', done => {
     const vol = create({});
-    vol.realpathNative('/nonexistent', (err, path) => {
+    vol.realpath.native('/nonexistent', (err, path) => {
       expect(err).toBeTruthy();
       expect(err?.code).toBe('ENOENT');
       expect(path).toBeUndefined();
@@ -63,7 +63,7 @@ describe('.realpathNative(...)', () => {
   });
 });
 
-describe('.realpathNativeSync(...)', () => {
+describe('.realpathSync.native(...)', () => {
   it('works with symlinks', () => {
     const vol = create({});
     vol.mkdirSync('/a');
@@ -71,7 +71,7 @@ describe('.realpathNativeSync(...)', () => {
     vol.writeFileSync('/c/index.js', 'alert(123);');
     vol.symlinkSync('/c', '/a/b');
 
-    const path = vol.realpathNativeSync('/a/b/index.js');
+    const path = vol.realpathSync.native('/a/b/index.js');
     expect(path).toBe('/c/index.js');
   });
 
@@ -82,7 +82,7 @@ describe('.realpathNativeSync(...)', () => {
     vol.writeFileSync('/c/index.js', 'alert(123);');
     vol.symlinkSync('/c', '/a/b');
 
-    const path = vol.realpathNativeSync('/a/b/index.js', 'utf8');
+    const path = vol.realpathSync.native('/a/b/index.js', 'utf8');
     expect(path).toBe('/c/index.js');
   });
 
@@ -93,20 +93,20 @@ describe('.realpathNativeSync(...)', () => {
     vol.writeFileSync('/c/index.js', 'alert(123);');
     vol.symlinkSync('/c', '/a/b');
 
-    const path = vol.realpathNativeSync('/a/b/index.js', { encoding: 'utf8' });
+    const path = vol.realpathSync.native('/a/b/index.js', { encoding: 'utf8' });
     expect(path).toBe('/c/index.js');
   });
 
   it('returns the root correctly', () => {
     const vol = create({ './a': 'a' });
-    expect(vol.realpathNativeSync('/')).toBe('/');
+    expect(vol.realpathSync.native('/')).toBe('/');
   });
 
   it('throws EACCES when the containing directory does not have sufficient permissions', () => {
     const vol = create({ '/foo/bar': 'bar' });
     vol.chmodSync('/foo', 0o666); // rw
     expect(() => {
-      vol.realpathNativeSync('/foo/bar');
+      vol.realpathSync.native('/foo/bar');
     }).toThrow(/EACCES/);
   });
 
@@ -114,14 +114,14 @@ describe('.realpathNativeSync(...)', () => {
     const vol = create({ '/foo/bar': 'bar' });
     vol.chmodSync('/', 0o666); // rw
     expect(() => {
-      vol.realpathNativeSync('/foo/bar');
+      vol.realpathSync.native('/foo/bar');
     }).toThrow(/EACCES/);
   });
 
   it('throws ENOENT for non-existent paths', () => {
     const vol = create({});
     expect(() => {
-      vol.realpathNativeSync('/nonexistent');
+      vol.realpathSync.native('/nonexistent');
     }).toThrow(/ENOENT/);
   });
 });

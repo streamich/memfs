@@ -171,6 +171,13 @@ E('ERR_UNKNOWN_STDIN_TYPE', 'Unknown stdin file type');
 E('ERR_UNKNOWN_STREAM_TYPE', 'Unknown stream file type');
 E('ERR_V8BREAKITERATOR', 'Full ICU data not installed. ' + 'See https://github.com/nodejs/node/wiki/Intl');
 
+// Dir-related errors
+E('ERR_DIR_CLOSED', 'Directory handle was closed');
+E(
+  'ERR_DIR_CONCURRENT_OPERATION',
+  'Cannot do synchronous work on directory handle with concurrent asynchronous operations',
+);
+
 function invalidArgType(name, expected, actual) {
   assert(name, 'name is required');
 

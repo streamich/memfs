@@ -1,3 +1,10 @@
+## [4.20.1](https://github.com/streamich/memfs/compare/v4.20.0...v4.20.1) (2025-07-27)
+
+
+### Bug Fixes
+
+* track internal position in FileHandle ([7406f1b](https://github.com/streamich/memfs/commit/7406f1b29ab7d0dbd45f27428258de40c7809e99))
+
 # [4.20.0](https://github.com/streamich/memfs/compare/v4.19.0...v4.20.0) (2025-07-25)
 
 

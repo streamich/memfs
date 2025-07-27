@@ -859,21 +859,5 @@ describe('Promises API', () => {
         await iterator.return();
       }
     });
-
-    it('Handles overflow with throw strategy', async () => {
-      const vol = new Volume();
-      const { promises } = vol;
-      vol.fromJSON({
-        '/foo': 'bar',
-      });
-
-      const watcher = promises.watch('/foo', { maxQueue: 1, overflow: 'throw' });
-
-      // This test is tricky because we need to ensure the overflow happens
-      // We can't easily test this synchronously, so we'll skip for now
-      if (watcher.return) {
-        await watcher.return();
-      }
-    });
   });
 });

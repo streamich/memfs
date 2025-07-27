@@ -60,4 +60,38 @@ describe('ReadStream', () => {
         done(new Error("Expected ReadStream to emit EACCES but it didn't"));
       });
   });
+
+  it('should handle createReadStream with start parameter', done => {
+    const fs = createFs();
+    fs.writeFileSync('/streamTest', '# Hello World');
+    const rs = fs.createReadStream('/streamTest', { encoding: 'utf8', start: 0 });
+    let data = '';
+    rs.on('data', chunk => {
+      data += chunk;
+    });
+    rs.on('end', () => {
+      expect(data).toEqual('# Hello World');
+      done();
+    });
+    rs.on('error', err => {
+      done(err);
+    });
+  });
+
+  it('should handle createReadStream with start parameter beyond file length', done => {
+    const fs = createFs();
+    fs.writeFileSync('/streamTest', 'short');
+    const rs = fs.createReadStream('/streamTest', { encoding: 'utf8', start: 100 });
+    let data = '';
+    rs.on('data', chunk => {
+      data += chunk;
+    });
+    rs.on('end', () => {
+      expect(data).toEqual('');
+      done();
+    });
+    rs.on('error', err => {
+      done(err);
+    });
+  });
 });

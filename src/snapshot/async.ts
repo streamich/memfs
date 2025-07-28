@@ -7,9 +7,7 @@ export const toSnapshot = async ({ fs, path = '/', separator = '/' }: AsyncSnaps
     const list = await fs.readdir(path);
     const entries: { [child: string]: SnapshotNode } = {};
     const dir = path.endsWith(separator) ? path : path + separator;
-    const snapshots = await Promise.all(
-      list.map(child => toSnapshot({ fs, path: `${dir}${child}`, separator }))
-    );
+    const snapshots = await Promise.all(list.map(child => toSnapshot({ fs, path: `${dir}${child}`, separator })));
     for (let i = 0; i < list.length; i++) {
       if (snapshots[i]) entries['' + list[i]] = snapshots[i];
     }

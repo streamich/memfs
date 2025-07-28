@@ -7,10 +7,11 @@ export const toSnapshot = async ({ fs, path = '/', separator = '/' }: AsyncSnaps
     const list = await fs.readdir(path);
     const entries: { [child: string]: SnapshotNode } = {};
     const dir = path.endsWith(separator) ? path : path + separator;
-    for (const child of list) {
-      const childSnapshot = await toSnapshot({ fs, path: `${dir}${child}`, separator });
-      if (childSnapshot) entries['' + child] = childSnapshot;
-    }
+    await Promise.all(
+      list.map((child) => toSnapshot({ fs, path: `${dir}${child}`, separator }).then((childSnapshot) => {
+        if (childSnapshot) entries['' + child] = childSnapshot;
+      }))
+    );
     return [SnapshotNodeType.Folder, {}, entries];
   } else if (stats.isFile()) {
     const buf = (await fs.readFile(path)) as Buffer;

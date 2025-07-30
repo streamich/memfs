@@ -1,3 +1,10 @@
+# [4.24.0](https://github.com/streamich/memfs/compare/v4.23.0...v4.24.0) (2025-07-30)
+
+
+### Features
+
+* refactor core classes to separate files ([0ce0317](https://github.com/streamich/memfs/commit/0ce0317eff853cf0c9af860682ecca1cedc2138b))
+
 # [4.23.0](https://github.com/streamich/memfs/compare/v4.22.1...v4.23.0) (2025-07-27)
 
 

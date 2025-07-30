@@ -1,0 +1,4 @@
+- Do not add trivial comments, usually do not add blank lines inside functions.
+- Use Angular style commits, e.g `feat: implemented xyz`.
+- Make sure tests (`yarn test`) pass.
+- In the end, make sure linter and formatter pass.

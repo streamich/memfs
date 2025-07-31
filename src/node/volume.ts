@@ -1,22 +1,22 @@
 import * as pathModule from 'path';
-import { Link, Superblock } from './core';
+import { Link, Superblock } from '../core';
 import Stats from './Stats';
 import Dirent from './Dirent';
-import { Buffer, bufferAllocUnsafe, bufferFrom } from './internal/buffer';
-import queueMicrotask from './queueMicrotask';
-import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
+import { Buffer, bufferAllocUnsafe, bufferFrom } from '../internal/buffer';
+import queueMicrotask from '../queueMicrotask';
+import setTimeoutUnref, { TSetTimeout } from '../setTimeoutUnref';
 import { Readable, Writable } from 'stream';
-import { constants } from './constants';
+import { constants } from '../constants';
 import { EventEmitter } from 'events';
-import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from './encoding';
-import { FileHandle } from './node/FileHandle';
+import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from '../encoding';
+import { FileHandle } from './FileHandle';
 import * as util from 'util';
-import * as misc from './node/types/misc';
-import * as opts from './node/types/options';
-import { FsCallbackApi, WritevCallback } from './node/types/FsCallbackApi';
-import { FsPromises } from './node/FsPromises';
-import { ToTreeOptions, toTreeSync } from './print';
-import { ERRSTR, FLAGS, MODE } from './node/constants';
+import * as misc from './types/misc';
+import * as opts from './types/options';
+import { FsCallbackApi, WritevCallback } from './types/FsCallbackApi';
+import { FsPromises } from './FsPromises';
+import { ToTreeOptions, toTreeSync } from '../print';
+import { ERRSTR, FLAGS, MODE } from './constants';
 import {
   getDefaultOpts,
   getDefaultOptsAndCb,
@@ -38,7 +38,7 @@ import {
   writeFileDefaults,
   getOpendirOptsAndCb,
   getOpendirOptions,
-} from './node/options';
+} from './options';
 import {
   validateCallback,
   modeToNumber,
@@ -50,14 +50,14 @@ import {
   getWriteArgs,
   bufferToEncoding,
   getWriteSyncArgs,
-} from './node/util';
-import type { PathLike, symlink } from './node/types/misc';
-import type { FsPromisesApi, FsSynchronousApi } from './node/types';
+} from './util';
+import type { PathLike, symlink } from './types/misc';
+import type { FsPromisesApi, FsSynchronousApi } from './types';
 import { Dir } from './Dir';
-import { DirectoryJSON, NestedDirectoryJSON } from './core/json';
-import { ERROR_CODE } from './core/constants';
-import { TFileId } from './core/types';
-import { dataToBuffer, filenameToSteps, isFd, isWin, validateFd } from './core/util';
+import { DirectoryJSON, NestedDirectoryJSON } from '../core/json';
+import { ERROR_CODE } from '../core/constants';
+import { TFileId } from '../core/types';
+import { dataToBuffer, filenameToSteps, isFd, isWin, validateFd } from '../core/util';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {

@@ -1,4 +1,4 @@
-import { Volume } from '../volume';
+import { Volume } from '../node/volume';
 
 describe('Dir API Error Handling', () => {
   let vol: Volume;

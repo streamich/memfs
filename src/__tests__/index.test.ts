@@ -1,4 +1,4 @@
-import { Volume } from '../volume';
+import { Volume } from '../node/volume';
 import { constants } from '../constants';
 import { fsCallbackApiList } from '../node/lists/fsCallbackApiList';
 import { fsSynchronousApiList } from '../node/lists/fsSynchronousApiList';

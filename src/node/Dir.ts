@@ -1,9 +1,9 @@
-import { Link } from './node';
-import { validateCallback } from './node/util';
-import * as opts from './node/types/options';
+import { Link } from '../node';
+import { validateCallback } from './util';
+import * as opts from './types/options';
 import Dirent from './Dirent';
-import type { IDir, IDirent, TCallback } from './node/types/misc';
-import * as errors from './internal/errors';
+import type { IDir, IDirent, TCallback } from './types/misc';
+import * as errors from '../internal/errors';
 
 /**
  * A directory stream, like `fs.Dir`.

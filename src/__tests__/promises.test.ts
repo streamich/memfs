@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-import { Volume } from '../volume';
+import { Volume } from '../node/volume';
 import { Readable } from 'stream';
 
 describe('Promises API', () => {

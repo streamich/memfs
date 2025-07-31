@@ -1,9 +1,9 @@
 import { promisify } from 'util';
 import { URL } from 'url';
 import { Link } from '../node';
-import Stats from '../Stats';
-import Dirent from '../Dirent';
-import { Volume, StatWatcher } from '../volume';
+import Stats from '../node/Stats';
+import Dirent from '../node/Dirent';
+import { Volume, StatWatcher } from '../node/volume';
 import hasBigInt from './hasBigInt';
 import { tryGetChild, tryGetChildNode } from './util';
 import { genRndStr6 } from '../node/util';

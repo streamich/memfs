@@ -1,5 +1,5 @@
 import { constants } from '../constants';
-import Stats from '../Stats';
+import Stats from '../node/Stats';
 import type { Link } from './Link';
 import type { Node } from './Node';
 

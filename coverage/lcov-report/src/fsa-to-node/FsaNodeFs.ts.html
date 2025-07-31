@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">72.38% </span>
+                <span class="strong">72.42% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>456/630</span>
+                <span class='fraction'>457/631</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">73.46% </span>
+                <span class="strong">73.51% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>432/588</span>
+                <span class='fraction'>433/589</span>
             </div>
         
             
@@ -1171,7 +1171,8 @@
 <a name='L1106'></a><a href='#L1106'>1106</a>
 <a name='L1107'></a><a href='#L1107'>1107</a>
 <a name='L1108'></a><a href='#L1108'>1108</a>
-<a name='L1109'></a><a href='#L1109'>1109</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<a name='L1109'></a><a href='#L1109'>1109</a>
+<a name='L1110'></a><a href='#L1110'>1110</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -1185,6 +1186,7 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -2297,6 +2299,7 @@ import { FsaNodeWriteStream } from './FsaNodeWriteStream';
 import { FsaNodeReadStream } from './FsaNodeReadStream';
 import { FsaNodeCore } from './FsaNodeCore';
 import { FileHandle } from '../node/FileHandle';
+import { dataToBuffer, isFd, isWin, validateFd } from '../core/util';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -2348,7 +2351,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 &nbsp;
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback&lt;void&gt;): void =&gt; {
-    util.validateFd(fd);
+    validateFd(fd);
     this.__close(fd).then(
       () =&gt; callback(null),
 <span class="fstat-no" title="function not covered" >      error </span>=&gt; <span class="cstat-no" title="statement not covered" >callback(error),</span>
@@ -2442,7 +2445,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: number | null | WritevCallback,
     b?: WritevCallback,
   ): void =&gt; {
-    util.validateFd(fd);
+    validateFd(fd);
     let position: number | null = null;
     let callback: WritevCallback;
     if (typeof a === 'function') {
@@ -2485,7 +2488,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const opts = optHelpers.getWriteFileOptions(options);
     const flagsNum = util.flagsToNumber(opts.flag);
     const modeNum = util.modeToNumber(opts.mode);
-    const buf = util.dataToBuffer(data, opts.encoding);
+    const buf = dataToBuffer(data, opts.encoding);
     (async () =&gt; {
       let fd: number = typeof id === 'number' ? <span class="branch-0 cbranch-no" title="branch not covered" >id </span>: -1;
       const originalFd = fd;
@@ -2715,7 +2718,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 &nbsp;
   public readonly appendFile: FsCallbackApi['appendFile'] = (id: misc.TFileId, data: misc.TData, a, b?) =&gt; {
     const [opts, callback] = optHelpers.getAppendFileOptsAndCb(a, b);
-    const buffer = util.dataToBuffer(data, opts.encoding);
+    const buffer = dataToBuffer(data, opts.encoding);
     this.getFileByIdOrCreate(id, 'appendFile')
       .then(file =&gt;
         (async () =&gt; {
@@ -2749,7 +2752,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
               const dirent = new FsaNodeDirent(name, handle.kind);
               list.push(dirent);
             }
-            if (!util.isWin &amp;&amp; options.encoding !== 'buffer')
+            if (!isWin &amp;&amp; options.encoding !== 'buffer')
               list.sort((a, b) =&gt; {
                 <span class="missing-if-branch" title="if path not taken" >I</span>if (a.name &lt; b.name) <span class="cstat-no" title="statement not covered" >return -1;</span>
                 if (a.name &gt; b.name) return 1;
@@ -2761,7 +2764,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 &nbsp;
             for await (const key of dir.keys()) list.push(key);
 &nbsp;
-            if (!util.isWin &amp;&amp; options.encoding !== 'buffer') list.sort();
+            if (!isWin &amp;&amp; options.encoding !== 'buffer') list.sort();
 &nbsp;
             return list;
           }
@@ -3147,7 +3150,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const opts = <span class="cstat-no" title="statement not covered" >optHelpers.getWriteFileOptions(options);</span>
     const flagsNum = <span class="cstat-no" title="statement not covered" >util.flagsToNumber(opts.flag);</span>
     const modeNum = <span class="cstat-no" title="statement not covered" >util.modeToNumber(opts.mode);</span>
-    const buf = <span class="cstat-no" title="statement not covered" >util.dataToBuffer(data, opts.encoding);</span>
+    const buf = <span class="cstat-no" title="statement not covered" >dataToBuffer(data, opts.encoding);</span>
     const filename = <span class="cstat-no" title="statement not covered" >this.getFileName(id);</span>
     const adapter = <span class="cstat-no" title="statement not covered" >this.getSyncAdapter();</span>
 <span class="cstat-no" title="statement not covered" >    adapter.call('writeFile', [filename, util.bufToUint8(buf), opts]);</span>
@@ -3159,15 +3162,15 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     options?: opts.IAppendFileOptions | string,
   ) =&gt; {
     const opts = <span class="cstat-no" title="statement not covered" >optHelpers.getAppendFileOpts(options);</span>
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!opts.flag || util.isFd(id)) <span class="cstat-no" title="statement not covered" >opts.flag = 'a';</span></span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!opts.flag || isFd(id)) <span class="cstat-no" title="statement not covered" >opts.flag = 'a';</span></span>
     const filename = <span class="cstat-no" title="statement not covered" >this.getFileName(id);</span>
-    const buf = <span class="cstat-no" title="statement not covered" >util.dataToBuffer(data, opts.encoding);</span>
+    const buf = <span class="cstat-no" title="statement not covered" >dataToBuffer(data, opts.encoding);</span>
     const adapter = <span class="cstat-no" title="statement not covered" >this.getSyncAdapter();</span>
 <span class="cstat-no" title="statement not covered" >    adapter.call('appendFile', [filename, util.bufToUint8(buf), opts]);</span>
   };
 &nbsp;
   public readonly closeSync: FsSynchronousApi['closeSync'] = <span class="fstat-no" title="function not covered" >(f</span>d: number) =&gt; {
-<span class="cstat-no" title="statement not covered" >    util.validateFd(fd);</span>
+<span class="cstat-no" title="statement not covered" >    validateFd(fd);</span>
     const file = <span class="cstat-no" title="statement not covered" >this.getFileByFd(fd, 'close');</span>
 <span class="cstat-no" title="statement not covered" >    file.close().catch(<span class="fstat-no" title="function not covered" >() =</span>&gt; {});</span>
 <span class="cstat-no" title="statement not covered" >    this.fds.delete(fd);</span>
@@ -3248,7 +3251,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 &nbsp;
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = <span class="fstat-no" title="function not covered" >(i</span>d: misc.TFileId, len?: number): void =&gt; {
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (util.isFd(id)) <span class="cstat-no" title="statement not covered" >return this.ftruncateSync(id as number, len);</span></span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (isFd(id)) <span class="cstat-no" title="statement not covered" >return this.ftruncateSync(id as number, len);</span></span>
     const filename = <span class="cstat-no" title="statement not covered" >util.pathToFilename(id as misc.PathLike);</span>
 <span class="cstat-no" title="statement not covered" >    this.getSyncAdapter().call('trunc', [filename, Number(len) || 0]);</span>
   };
@@ -3302,7 +3305,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     length: number,
     position: number,
   ): number =&gt; {
-<span class="cstat-no" title="statement not covered" >    util.validateFd(fd);</span>
+<span class="cstat-no" title="statement not covered" >    validateFd(fd);</span>
     const filename = <span class="cstat-no" title="statement not covered" >this.getFileName(fd);</span>
     const adapter = <span class="cstat-no" title="statement not covered" >this.getSyncAdapter();</span>
     const uint8 = <span class="cstat-no" title="statement not covered" >adapter.call('read', [filename, position, length]);</span>
@@ -3394,7 +3397,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-07-30T11:45:46.199Z
+                at 2025-07-31T12:30:18.179Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

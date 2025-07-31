@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1753965018246" clover="3.2.0">
-  <project timestamp="1753965018246" name="All files">
-    <metrics statements="4326" coveredstatements="3711" conditionals="1634" coveredconditionals="1206" methods="909" coveredmethods="726" elements="6869" coveredelements="5643" complexity="0" loc="4326" ncloc="4326" packages="18" files="70" classes="70"/>
+<coverage generated="1753982170646" clover="3.2.0">
+  <project timestamp="1753982170646" name="All files">
+    <metrics statements="4326" coveredstatements="3711" conditionals="1634" coveredconditionals="1206" methods="910" coveredmethods="727" elements="6870" coveredelements="5644" complexity="0" loc="4326" ncloc="4326" packages="18" files="70" classes="70"/>
     <package name="src">
       <metrics statements="1169" coveredstatements="1038" conditionals="563" coveredconditionals="423" methods="257" coveredmethods="215"/>
       <file name="Dir.ts" path="/home/runner/work/memfs/memfs/src/Dir.ts">
@@ -4418,17 +4418,17 @@
       </file>
     </package>
     <package name="src.snapshot">
-      <metrics statements="104" coveredstatements="102" conditionals="34" coveredconditionals="28" methods="12" coveredmethods="12"/>
+      <metrics statements="104" coveredstatements="102" conditionals="34" coveredconditionals="28" methods="13" coveredmethods="13"/>
       <file name="async.ts" path="/home/runner/work/memfs/memfs/src/snapshot/async.ts">
-        <metrics statements="32" coveredstatements="31" conditionals="17" coveredconditionals="14" methods="2" coveredmethods="2"/>
+        <metrics statements="32" coveredstatements="31" conditionals="17" coveredconditionals="14" methods="3" coveredmethods="3"/>
         <line num="4" count="3" type="cond" truecount="1" falsecount="1"/>
         <line num="5" count="125" type="stmt"/>
         <line num="6" count="125" type="cond" truecount="2" falsecount="0"/>
         <line num="7" count="58" type="stmt"/>
         <line num="8" count="58" type="stmt"/>
         <line num="9" count="58" type="cond" truecount="2" falsecount="0"/>
-        <line num="10" count="58" type="stmt"/>
-        <line num="11" count="114" type="stmt"/>
+        <line num="10" count="114" type="stmt"/>
+        <line num="11" count="58" type="stmt"/>
         <line num="12" count="114" type="cond" truecount="1" falsecount="0"/>
         <line num="14" count="58" type="stmt"/>
         <line num="15" count="67" type="cond" truecount="2" falsecount="0"/>

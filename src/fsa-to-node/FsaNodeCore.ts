@@ -1,4 +1,4 @@
-import { createError, isFd, pathToFilename } from '../node/util';
+import { createError, pathToFilename } from '../node/util';
 import { pathToLocation } from './util';
 import { ERRSTR } from '../node/constants';
 import { FsaToNodeConstants } from './constants';
@@ -8,6 +8,7 @@ import * as util from '../node/util';
 import type * as fsa from '../fsa/types';
 import type * as misc from '../node/types/misc';
 import type { FsaNodeSyncAdapter } from './types';
+import {isFd} from '../core/util';
 
 export class FsaNodeCore {
   protected static fd: number = 0x7fffffff;

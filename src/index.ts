@@ -6,9 +6,11 @@ import {
   FSWatcher,
   toUnixTimestamp,
   IWriteStream,
+} from './volume';
+import {
   DirectoryJSON,
   NestedDirectoryJSON,
-} from './volume';
+} from './core';
 import { constants } from './constants';
 import type { FsPromisesApi } from './node/types';
 import type * as misc from './node/types/misc';

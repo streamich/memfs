@@ -1,19 +1,17 @@
 import { EventEmitter } from 'events';
-import { constants } from '../constants';
-import { Volume } from '../volume';
-import { Node } from './Node';
+import { constants, PATH } from '../constants';
+import type { Node } from './Node';
+import type { Superblock } from './Superblock';
 
-const { S_IFREG, S_IFDIR } = constants;
-
-export const SEP = '/';
+const { S_IFREG } = constants;
 
 /**
  * Represents a hard link that points to an i-node `node`.
  */
 export class Link extends EventEmitter {
-  vol: Volume;
+  vol: Superblock;
 
-  parent: Link;
+  parent: Link | undefined;
 
   children = new Map<string, Link | undefined>();
 
@@ -46,7 +44,7 @@ export class Link extends EventEmitter {
     }
   }
 
-  constructor(vol: Volume, parent: Link, name: string) {
+  constructor(vol: Superblock, parent: Link | undefined, name: string) {
     super();
     this.vol = vol;
     this.parent = parent;
@@ -113,25 +111,16 @@ export class Link extends EventEmitter {
   }
 
   getPath(): string {
-    return this.steps.join(SEP);
+    return this.steps.join(PATH.SEP);
   }
 
   getParentPath(): string {
-    return this.steps.slice(0, -1).join(SEP);
+    return this.steps.slice(0, -1).join(PATH.SEP);
   }
 
   getName(): string {
     return this.steps[this.steps.length - 1];
   }
-
-  // del() {
-  //     const parent = this.parent;
-  //     if(parent) {
-  //         parent.deleteChild(link);
-  //     }
-  //     this.parent = null;
-  //     this.vol = null;
-  // }
 
   toJSON() {
     return {

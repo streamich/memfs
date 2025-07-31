@@ -16,6 +16,7 @@ import { FsaNodeWriteStream } from './FsaNodeWriteStream';
 import { FsaNodeReadStream } from './FsaNodeReadStream';
 import { FsaNodeCore } from './FsaNodeCore';
 import { FileHandle } from '../node/FileHandle';
+import {dataToBuffer, isFd, validateFd} from '../core/util';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -67,7 +68,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public readonly close: FsCallbackApi['close'] = (fd: number, callback: misc.TCallback<void>): void => {
-    util.validateFd(fd);
+    validateFd(fd);
     this.__close(fd).then(
       () => callback(null),
       error => callback(error),
@@ -161,7 +162,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: number | null | WritevCallback,
     b?: WritevCallback,
   ): void => {
-    util.validateFd(fd);
+    validateFd(fd);
     let position: number | null = null;
     let callback: WritevCallback;
     if (typeof a === 'function') {
@@ -204,7 +205,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const opts = optHelpers.getWriteFileOptions(options);
     const flagsNum = util.flagsToNumber(opts.flag);
     const modeNum = util.modeToNumber(opts.mode);
-    const buf = util.dataToBuffer(data, opts.encoding);
+    const buf = dataToBuffer(data, opts.encoding);
     (async () => {
       let fd: number = typeof id === 'number' ? id : -1;
       const originalFd = fd;
@@ -434,7 +435,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
   public readonly appendFile: FsCallbackApi['appendFile'] = (id: misc.TFileId, data: misc.TData, a, b?) => {
     const [opts, callback] = optHelpers.getAppendFileOptsAndCb(a, b);
-    const buffer = util.dataToBuffer(data, opts.encoding);
+    const buffer = dataToBuffer(data, opts.encoding);
     this.getFileByIdOrCreate(id, 'appendFile')
       .then(file =>
         (async () => {
@@ -866,7 +867,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const opts = optHelpers.getWriteFileOptions(options);
     const flagsNum = util.flagsToNumber(opts.flag);
     const modeNum = util.modeToNumber(opts.mode);
-    const buf = util.dataToBuffer(data, opts.encoding);
+    const buf = dataToBuffer(data, opts.encoding);
     const filename = this.getFileName(id);
     const adapter = this.getSyncAdapter();
     adapter.call('writeFile', [filename, util.bufToUint8(buf), opts]);
@@ -878,15 +879,15 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     options?: opts.IAppendFileOptions | string,
   ) => {
     const opts = optHelpers.getAppendFileOpts(options);
-    if (!opts.flag || util.isFd(id)) opts.flag = 'a';
+    if (!opts.flag || isFd(id)) opts.flag = 'a';
     const filename = this.getFileName(id);
-    const buf = util.dataToBuffer(data, opts.encoding);
+    const buf = dataToBuffer(data, opts.encoding);
     const adapter = this.getSyncAdapter();
     adapter.call('appendFile', [filename, util.bufToUint8(buf), opts]);
   };
 
   public readonly closeSync: FsSynchronousApi['closeSync'] = (fd: number) => {
-    util.validateFd(fd);
+    validateFd(fd);
     const file = this.getFileByFd(fd, 'close');
     file.close().catch(() => {});
     this.fds.delete(fd);
@@ -967,7 +968,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public readonly truncateSync: FsSynchronousApi['truncateSync'] = (id: misc.TFileId, len?: number): void => {
-    if (util.isFd(id)) return this.ftruncateSync(id as number, len);
+    if (isFd(id)) return this.ftruncateSync(id as number, len);
     const filename = util.pathToFilename(id as misc.PathLike);
     this.getSyncAdapter().call('trunc', [filename, Number(len) || 0]);
   };
@@ -1021,7 +1022,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     length: number,
     position: number,
   ): number => {
-    util.validateFd(fd);
+    validateFd(fd);
     const filename = this.getFileName(fd);
     const adapter = this.getSyncAdapter();
     const uint8 = adapter.call('read', [filename, position, length]);

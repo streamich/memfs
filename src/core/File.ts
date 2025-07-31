@@ -1,37 +1,21 @@
-import { Buffer } from '../internal/buffer';
 import { constants } from '../constants';
 import Stats from '../Stats';
-import { Link } from './Link';
-import { Node } from './Node';
+import type { Link } from './Link';
+import type { Node } from './Node';
 
 const { O_APPEND } = constants;
 
 /**
  * Represents an open file (file descriptor) that points to a `Link` (Hard-link) and a `Node`.
+ *
+ * @todo Rename to `OpenFile`.
  */
 export class File {
-  fd: number;
-
-  /**
-   * Hard link that this file opened.
-   * @type {any}
-   */
-  link: Link;
-
-  /**
-   * Reference to a `Node`.
-   * @type {Node}
-   */
-  node: Node;
-
   /**
    * A cursor/offset position in a file, where data will be written on write.
    * User can "seek" this position.
    */
   position: number;
-
-  // Flags used when opening the file.
-  flags: number;
 
   /**
    * Open a Link-Node pair. `node` is provided separately as that might be a different node
@@ -41,11 +25,12 @@ export class File {
    * @param flags
    * @param fd
    */
-  constructor(link: Link, node: Node, flags: number, fd: number) {
-    this.link = link;
-    this.node = node;
-    this.flags = flags;
-    this.fd = fd;
+  constructor(
+    public readonly link: Link,
+    public readonly node: Node,
+    public flags: number,
+    public fd: number
+  ) {
     this.position = 0;
     if (this.flags & O_APPEND) this.position = this.getSize();
   }

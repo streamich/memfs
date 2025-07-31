@@ -7,6 +7,7 @@ import { ENCODING_UTF8, TEncodingExtended } from '../encoding';
 import { bufferFrom } from '../internal/buffer';
 import queueMicrotask from '../queueMicrotask';
 import { Readable } from 'stream';
+import {dataToBuffer, validateFd} from '../core/util';
 
 export const isWin = process.platform === 'win32';
 
@@ -172,14 +173,6 @@ export function flagsToNumber(flags: misc.TFlags | undefined): number {
   throw new errors.TypeError('ERR_INVALID_OPT_VALUE', 'flags', flags);
 }
 
-export function isFd(path): boolean {
-  return path >>> 0 === path;
-}
-
-export function validateFd(fd) {
-  if (!isFd(fd)) throw TypeError(ERRSTR.FD);
-}
-
 export function streamToBuffer(stream: Readable) {
   const chunks: any[] = [];
   return new Promise<Buffer>((resolve, reject) => {
@@ -187,12 +180,6 @@ export function streamToBuffer(stream: Readable) {
     stream.on('end', () => resolve(Buffer.concat(chunks)));
     stream.on('error', reject);
   });
-}
-
-export function dataToBuffer(data: misc.TData, encoding: string = ENCODING_UTF8): Buffer {
-  if (Buffer.isBuffer(data)) return data;
-  else if (data instanceof Uint8Array) return bufferFrom(data);
-  else return bufferFrom(String(data), encoding);
 }
 
 export const bufToUint8 = (buf: Buffer): Uint8Array => new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);

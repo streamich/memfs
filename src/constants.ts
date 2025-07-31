@@ -1,3 +1,9 @@
+export const SEP = '/';
+
+export const enum PATH {
+  SEP = '/',
+}
+
 export const constants = {
   O_RDONLY: 0,
   O_WRONLY: 1,

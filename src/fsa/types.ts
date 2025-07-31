@@ -1,3 +1,5 @@
+import type { Superblock } from '../core/Superblock';
+
 export interface IPermissionStatus {
   name: string;
   state: 'granted' | 'denied' | 'prompt';
@@ -24,6 +26,21 @@ export interface IFileSystemDirectoryHandle extends IFileSystemHandle {
   getFileHandle(name: string, options?: GetFileHandleOptions): Promise<IFileSystemFileHandle>;
   removeEntry(name: string, options?: RemoveEntryOptions): Promise<void>;
   resolve(possibleDescendant: IFileSystemHandle): Promise<string[] | null>;
+}
+
+/**
+ * Context for Core FSA operations - similar to NodeFsaContext but for Superblock
+ */
+export interface CoreFsaContext {
+  separator: '/' | '\\';
+  /** Whether synchronous file handles are allowed. */
+  syncHandleAllowed: boolean;
+  /** Whether writes are allowed, defaults to `read`. */
+  mode: 'read' | 'readwrite';
+}
+
+export interface CreateWritableOptions {
+  keepExistingData?: boolean;
 }
 
 export interface GetDirectoryHandleOptions {

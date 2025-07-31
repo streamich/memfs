@@ -1,3 +1,3 @@
 export { Node } from './core/Node';
-export { Link, SEP } from './core/Link';
+export { Link } from './core/Link';
 export { File } from './core/File';

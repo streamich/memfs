@@ -1,14 +1,13 @@
 import { ERRSTR, FLAGS } from './constants';
 import * as errors from '../internal/errors';
 import { Buffer } from '../internal/buffer';
-import type { FsCallbackApi } from './types';
-import type * as misc from './types/misc';
-import { ENCODING_UTF8, TEncodingExtended } from '../encoding';
+import { TEncodingExtended } from '../encoding';
 import { bufferFrom } from '../internal/buffer';
 import queueMicrotask from '../queueMicrotask';
 import { Readable } from 'stream';
-
-export const isWin = process.platform === 'win32';
+import { dataToBuffer, validateFd } from '../core/util';
+import type { FsCallbackApi } from './types';
+import type * as misc from './types/misc';
 
 export function promisify(
   fs: FsCallbackApi,
@@ -172,14 +171,6 @@ export function flagsToNumber(flags: misc.TFlags | undefined): number {
   throw new errors.TypeError('ERR_INVALID_OPT_VALUE', 'flags', flags);
 }
 
-export function isFd(path): boolean {
-  return path >>> 0 === path;
-}
-
-export function validateFd(fd) {
-  if (!isFd(fd)) throw TypeError(ERRSTR.FD);
-}
-
 export function streamToBuffer(stream: Readable) {
   const chunks: any[] = [];
   return new Promise<Buffer>((resolve, reject) => {
@@ -187,12 +178,6 @@ export function streamToBuffer(stream: Readable) {
     stream.on('end', () => resolve(Buffer.concat(chunks)));
     stream.on('error', reject);
   });
-}
-
-export function dataToBuffer(data: misc.TData, encoding: string = ENCODING_UTF8): Buffer {
-  if (Buffer.isBuffer(data)) return data;
-  else if (data instanceof Uint8Array) return bufferFrom(data);
-  else return bufferFrom(String(data), encoding);
 }
 
 export const bufToUint8 = (buf: Buffer): Uint8Array => new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
@@ -309,30 +294,3 @@ export function isReadableStream(stream): stream is Readable {
     stream.readable === true
   );
 }
-
-const isSeparator = (str, i) => {
-  let char = str[i];
-  return i > 0 && (char === '/' || (isWin && char === '\\'));
-};
-
-const removeTrailingSeparator = (str: string): string => {
-  let i = str.length - 1;
-  if (i < 2) return str;
-  while (isSeparator(str, i)) i--;
-  return str.substr(0, i + 1);
-};
-
-const normalizePath = (str, stripTrailing): string => {
-  if (typeof str !== 'string') throw new TypeError('expected a string');
-  str = str.replace(/[\\\/]+/g, '/');
-  if (stripTrailing !== false) str = removeTrailingSeparator(str);
-  return str;
-};
-
-export const unixify = (filepath: string, stripTrailing: boolean = true): string => {
-  if (isWin) {
-    filepath = normalizePath(filepath, stripTrailing);
-    return filepath.replace(/^([a-zA-Z]+:|\.\/)/, '');
-  }
-  return filepath;
-};

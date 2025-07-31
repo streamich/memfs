@@ -3,12 +3,13 @@ import { URL } from 'url';
 import { Link } from '../node';
 import Stats from '../Stats';
 import Dirent from '../Dirent';
-import { Volume, filenameToSteps, StatWatcher } from '../volume';
+import { Volume, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
 import { tryGetChild, tryGetChildNode } from './util';
 import { genRndStr6 } from '../node/util';
 import queueMicrotask from '../queueMicrotask';
 import { constants } from '../constants';
+import { filenameToSteps } from '../core/util';
 
 const { O_RDWR, O_SYMLINK } = constants;
 

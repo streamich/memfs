@@ -4,7 +4,6 @@ import Stats from './Stats';
 import Dirent from './Dirent';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from './internal/buffer';
 import queueMicrotask from './queueMicrotask';
-import process from './process';
 import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
 import { Readable, Writable } from 'stream';
 import { constants } from './constants';
@@ -48,11 +47,9 @@ import {
   createError,
   genRndStr6,
   flagsToNumber,
-  isWin,
   getWriteArgs,
   bufferToEncoding,
   getWriteSyncArgs,
-  unixify,
 } from './node/util';
 import type { PathLike, symlink } from './node/types/misc';
 import type { FsPromisesApi, FsSynchronousApi } from './node/types';
@@ -60,7 +57,7 @@ import { Dir } from './Dir';
 import { DirectoryJSON, NestedDirectoryJSON } from './core/json';
 import { ERROR_CODE } from './core/constants';
 import { TFileId } from './core/types';
-import { dataToBuffer, isFd, validateFd } from './core/util';
+import { dataToBuffer, filenameToSteps, isFd, isWin, validateFd } from './core/util';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -121,20 +118,6 @@ export interface IWatchOptions extends opts.IOptions {
 }
 
 // ---------------------------------------- Utility functions
-
-type TResolve = (filename: string, base?: string) => string;
-let resolve: TResolve = (filename, base = process.cwd()) => resolveCrossPlatform(base, filename);
-if (isWin) {
-  const _resolve = resolve;
-  resolve = (filename, base) => unixify(_resolve(filename, base));
-}
-
-export function filenameToSteps(filename: string, base?: string): string[] {
-  const fullPath = resolve(filename, base);
-  const fullPathSansSlash = fullPath.substring(1);
-  if (!fullPathSansSlash) return [];
-  return fullPathSansSlash.split(sep);
-}
 
 export function pathToSteps(path: PathLike): string[] {
   return filenameToSteps(pathToFilename(path));

@@ -1,15 +1,13 @@
 import { ERRSTR, FLAGS } from './constants';
 import * as errors from '../internal/errors';
 import { Buffer } from '../internal/buffer';
-import type { FsCallbackApi } from './types';
-import type * as misc from './types/misc';
-import { ENCODING_UTF8, TEncodingExtended } from '../encoding';
+import { TEncodingExtended } from '../encoding';
 import { bufferFrom } from '../internal/buffer';
 import queueMicrotask from '../queueMicrotask';
 import { Readable } from 'stream';
 import { dataToBuffer, validateFd } from '../core/util';
-
-export const isWin = process.platform === 'win32';
+import type { FsCallbackApi } from './types';
+import type * as misc from './types/misc';
 
 export function promisify(
   fs: FsCallbackApi,
@@ -296,30 +294,3 @@ export function isReadableStream(stream): stream is Readable {
     stream.readable === true
   );
 }
-
-const isSeparator = (str, i) => {
-  let char = str[i];
-  return i > 0 && (char === '/' || (isWin && char === '\\'));
-};
-
-const removeTrailingSeparator = (str: string): string => {
-  let i = str.length - 1;
-  if (i < 2) return str;
-  while (isSeparator(str, i)) i--;
-  return str.substr(0, i + 1);
-};
-
-const normalizePath = (str, stripTrailing): string => {
-  if (typeof str !== 'string') throw new TypeError('expected a string');
-  str = str.replace(/[\\\/]+/g, '/');
-  if (stripTrailing !== false) str = removeTrailingSeparator(str);
-  return str;
-};
-
-export const unixify = (filepath: string, stripTrailing: boolean = true): string => {
-  if (isWin) {
-    filepath = normalizePath(filepath, stripTrailing);
-    return filepath.replace(/^([a-zA-Z]+:|\.\/)/, '');
-  }
-  return filepath;
-};

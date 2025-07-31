@@ -16,7 +16,7 @@ import { FsaNodeWriteStream } from './FsaNodeWriteStream';
 import { FsaNodeReadStream } from './FsaNodeReadStream';
 import { FsaNodeCore } from './FsaNodeCore';
 import { FileHandle } from '../node/FileHandle';
-import { dataToBuffer, isFd, validateFd } from '../core/util';
+import { dataToBuffer, isFd, isWin, validateFd } from '../core/util';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -469,7 +469,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
               const dirent = new FsaNodeDirent(name, handle.kind);
               list.push(dirent);
             }
-            if (!util.isWin && options.encoding !== 'buffer')
+            if (!isWin && options.encoding !== 'buffer')
               list.sort((a, b) => {
                 if (a.name < b.name) return -1;
                 if (a.name > b.name) return 1;
@@ -481,7 +481,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
             for await (const key of dir.keys()) list.push(key);
 
-            if (!util.isWin && options.encoding !== 'buffer') list.sort();
+            if (!isWin && options.encoding !== 'buffer') list.sort();
 
             return list;
           }

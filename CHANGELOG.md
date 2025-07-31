@@ -1,3 +1,18 @@
+# [4.27.0](https://github.com/streamich/memfs/compare/v4.26.0...v4.27.0) (2025-07-31)
+
+
+### Bug Fixes
+
+* resolve security regex issue and constructor bug in FSA classes ([c7c268c](https://github.com/streamich/memfs/commit/c7c268c07ba1adaddef61b4eefe237f88d7109f4))
+
+
+### Features
+
+* complete Core FSA implementation with clean linting ([e53cd7c](https://github.com/streamich/memfs/commit/e53cd7cb154e3433fbaf7a5e6b6e76dfe5f56c1a))
+* complete FSA implementation with main package exports ([a26e1cc](https://github.com/streamich/memfs/commit/a26e1ccbc5eaf5bff5b997de81b8ff002a074fad))
+* implement Core FSA classes with basic functionality working ([7e60a4a](https://github.com/streamich/memfs/commit/7e60a4a6d23ef08861d5c69df0146c8008019b83))
+* revert index.ts changes and implement queryPermission method ([02c2b6c](https://github.com/streamich/memfs/commit/02c2b6ca8102c93332d88bb0f043f4d8ba7d3feb))
+
 # [4.26.0](https://github.com/streamich/memfs/compare/v4.25.1...v4.26.0) (2025-07-31)
 
 

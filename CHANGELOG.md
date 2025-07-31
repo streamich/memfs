@@ -1,3 +1,10 @@
+## [4.25.1](https://github.com/streamich/memfs/compare/v4.25.0...v4.25.1) (2025-07-31)
+
+
+### Performance Improvements
+
+* remove await in loop for toSnapshot ([66519da](https://github.com/streamich/memfs/commit/66519da0637870985433418981064c814997f076))
+
 # [4.25.0](https://github.com/streamich/memfs/compare/v4.24.0...v4.25.0) (2025-07-31)
 
 

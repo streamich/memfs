@@ -36,11 +36,11 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
       const { core } = setup();
       // Create file with binary content
       core.writeFile('/binary.dat', content, 0x200 | 0x40 | 0x1, 0o644); // O_CREAT | O_TRUNC | O_WRONLY
-      
+
       const dir = new CoreFileSystemDirectoryHandle(core, '/', { mode: 'readwrite' });
       const fileHandle = await dir.getFileHandle('binary.dat');
       const file = await fileHandle.getFile();
-      
+
       expect(file.size).toBe(5);
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
@@ -54,10 +54,10 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
       const fileHandle = await dir.getFileHandle('test.txt');
       const writable = await fileHandle.createWritable();
       expect(writable).toBeDefined();
-      
+
       await writable.write('new content');
       await writable.close();
-      
+
       const file = await fileHandle.getFile();
       expect(await file.text()).toBe('new content');
     });
@@ -67,11 +67,11 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
       const fileHandle = await dir.getFileHandle('test.txt');
       const writable = await fileHandle.createWritable({ keepExistingData: true });
       expect(writable).toBeDefined();
-      
+
       await writable.seek(8); // Move past "initial "
       await writable.write('new data');
       await writable.close();
-      
+
       const file = await fileHandle.getFile();
       expect(await file.text()).toBe('initial new data');
     });
@@ -86,9 +86,9 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
 
     test('returns function when sync handle allowed', async () => {
       const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
-      const dir = new CoreFileSystemDirectoryHandle(core, '/', { 
-        mode: 'readwrite', 
-        syncHandleAllowed: true 
+      const dir = new CoreFileSystemDirectoryHandle(core, '/', {
+        mode: 'readwrite',
+        syncHandleAllowed: true,
       });
       const fileHandle = await dir.getFileHandle('test.txt');
       expect(fileHandle.createSyncAccessHandle).toBeDefined();

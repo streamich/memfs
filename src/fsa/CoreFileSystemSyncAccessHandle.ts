@@ -69,10 +69,7 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle/read
    */
-  public async read(
-    buffer: ArrayBuffer | ArrayBufferView,
-    options: FileSystemReadWriteOptions = {},
-  ): Promise<number> {
+  public async read(buffer: ArrayBuffer | ArrayBufferView, options: FileSystemReadWriteOptions = {}): Promise<number> {
     const fd = this._ensureOpen();
     const { at: position = 0 } = options;
 

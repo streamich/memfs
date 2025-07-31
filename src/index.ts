@@ -9,25 +9,25 @@ import { fsSynchronousApiList } from './node/lists/fsSynchronousApiList';
 import { fsCallbackApiList } from './node/lists/fsCallbackApiList';
 
 // Re-export core FSA implementation
-export { 
+export {
   CoreFileSystemHandle,
-  CoreFileSystemDirectoryHandle, 
+  CoreFileSystemDirectoryHandle,
   CoreFileSystemFileHandle,
   CoreFileSystemSyncAccessHandle,
   CoreFileSystemWritableFileStream,
   CorePermissionStatus,
   coreToFsa,
-  type CoreFsaContext
+  type CoreFsaContext,
 } from './fsa';
 
-// Re-export node-to-fsa implementation  
-export { 
+// Re-export node-to-fsa implementation
+export {
   NodeFileSystemHandle,
   NodeFileSystemDirectoryHandle,
   NodeFileSystemFileHandle,
   nodeToFsa,
   type NodeFsaContext,
-  type NodeFsaFs
+  type NodeFsaFs,
 } from './node-to-fsa';
 
 const { F_OK, R_OK, W_OK, X_OK } = constants;

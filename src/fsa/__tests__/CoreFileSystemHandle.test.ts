@@ -33,9 +33,9 @@ onlyOnNode20('CoreFileSystemHandle', () => {
   });
 
   test('isSameEntry returns false for different handles', async () => {
-    const { dir } = setup({ 
+    const { dir } = setup({
       'test1.txt': 'content1',
-      'test2.txt': 'content2'
+      'test2.txt': 'content2',
     });
     const file1 = await dir.getFileHandle('test1.txt');
     const file2 = await dir.getFileHandle('test2.txt');
@@ -43,9 +43,9 @@ onlyOnNode20('CoreFileSystemHandle', () => {
   });
 
   test('isSameEntry returns false for different types', async () => {
-    const { dir } = setup({ 
+    const { dir } = setup({
       'test.txt': 'content',
-      folder: null
+      folder: null,
     });
     const file = await dir.getFileHandle('test.txt');
     const folder = await dir.getDirectoryHandle('folder');

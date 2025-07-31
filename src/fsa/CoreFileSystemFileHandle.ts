@@ -2,11 +2,11 @@ import { CoreFileSystemHandle } from './CoreFileSystemHandle';
 import { CoreFileSystemSyncAccessHandle } from './CoreFileSystemSyncAccessHandle';
 import { assertCanWrite, basename, ctx as createCtx, newNotAllowedError } from './util';
 import { CoreFileSystemWritableFileStream } from './CoreFileSystemWritableFileStream';
-import type { 
-  CoreFsaContext, 
+import type {
+  CoreFsaContext,
   CreateWritableOptions,
-  IFileSystemFileHandle, 
-  IFileSystemSyncAccessHandle 
+  IFileSystemFileHandle,
+  IFileSystemSyncAccessHandle,
 } from './types';
 import type { Superblock } from '../core/Superblock';
 import { Buffer } from '../internal/buffer';
@@ -36,18 +36,18 @@ export class CoreFileSystemFileHandle extends CoreFileSystemHandle implements IF
       const path = this.__path;
       const link = this._core.getResolvedLinkOrThrow(path);
       const node = link.getNode();
-      
+
       if (!node.isFile()) {
         throw new Error('Not a file');
       }
 
       // Get file stats for lastModified
       const lastModified = node.mtime ? node.mtime.getTime() : Date.now();
-      
+
       // Read file content
       const buffer = node.getBuffer();
       const data = new Uint8Array(buffer);
-      
+
       const file = new File([data], this.name, { lastModified });
       return file;
     } catch (error) {

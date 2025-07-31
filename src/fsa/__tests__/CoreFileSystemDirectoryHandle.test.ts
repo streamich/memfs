@@ -120,7 +120,9 @@ onlyOnNode20('CoreFileSystemDirectoryHandle', () => {
 
     test('throws error when directory does not exist and create is false', async () => {
       const { dir } = setup();
-      await expect(dir.getDirectoryHandle('nonexistent')).rejects.toThrow('A requested file or directory could not be found');
+      await expect(dir.getDirectoryHandle('nonexistent')).rejects.toThrow(
+        'A requested file or directory could not be found',
+      );
     });
   });
 
@@ -141,7 +143,9 @@ onlyOnNode20('CoreFileSystemDirectoryHandle', () => {
 
     test('throws error when file does not exist and create is false', async () => {
       const { dir } = setup();
-      await expect(dir.getFileHandle('nonexistent.txt')).rejects.toThrow('A requested file or directory could not be found');
+      await expect(dir.getFileHandle('nonexistent.txt')).rejects.toThrow(
+        'A requested file or directory could not be found',
+      );
     });
   });
 
@@ -155,13 +159,17 @@ onlyOnNode20('CoreFileSystemDirectoryHandle', () => {
     test('can remove an empty directory', async () => {
       const { dir } = setup({ folder: null });
       await dir.removeEntry('folder');
-      await expect(dir.getDirectoryHandle('folder')).rejects.toThrow('A requested file or directory could not be found');
+      await expect(dir.getDirectoryHandle('folder')).rejects.toThrow(
+        'A requested file or directory could not be found',
+      );
     });
 
     test('can remove directory recursively', async () => {
       const { dir } = setup({ 'folder/file.txt': 'content' });
       await dir.removeEntry('folder', { recursive: true });
-      await expect(dir.getDirectoryHandle('folder')).rejects.toThrow('A requested file or directory could not be found');
+      await expect(dir.getDirectoryHandle('folder')).rejects.toThrow(
+        'A requested file or directory could not be found',
+      );
     });
   });
 
@@ -183,17 +191,17 @@ onlyOnNode20('CoreFileSystemDirectoryHandle', () => {
 
     test('returns null for non-descendant', async () => {
       const { dir: dir1 } = setup({ 'file1.txt': 'content' });
-      
+
       // Create completely different core and root path
       const core2 = Superblock.fromJSON({ 'different/file2.txt': 'content' }, '/');
       // Use a different path that does not start with dir1's path
       const dir2 = new CoreFileSystemDirectoryHandle(core2, '/some-completely-different-path/', { mode: 'readwrite' });
-      
+
       // This will try to get file2.txt from /some-completely-different-path/ which doesn't exist
       // So we need to actually create the file in the expected location
       const actualDir2 = new CoreFileSystemDirectoryHandle(core2, '/different/', { mode: 'readwrite' });
       const file2 = await actualDir2.getFileHandle('file2.txt');
-      
+
       const resolved = await dir1.resolve(file2);
       expect(resolved).toBeNull();
     });

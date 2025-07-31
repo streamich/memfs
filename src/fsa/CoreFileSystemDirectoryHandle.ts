@@ -9,7 +9,7 @@ import {
   newTypeMismatchError,
 } from './util';
 import { CoreFileSystemFileHandle } from './CoreFileSystemFileHandle';
-import type { 
+import type {
   CoreFsaContext,
   GetDirectoryHandleOptions,
   GetFileHandleOptions,
@@ -247,6 +247,9 @@ export class CoreFileSystemDirectoryHandle extends CoreFileSystemHandle implemen
       possibleDescendant instanceof CoreFileSystemDirectoryHandle ||
       possibleDescendant instanceof CoreFileSystemFileHandle
     ) {
+      // First check if they are from the same core instance
+      if ((possibleDescendant as any)._core !== this._core) return null;
+
       const path = this.__path;
       const childPath = possibleDescendant.__path;
       if (!childPath.startsWith(path)) return null;

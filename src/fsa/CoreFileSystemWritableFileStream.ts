@@ -15,17 +15,15 @@ export class CoreFileSystemWritableFileStream extends WritableStream implements 
   private readonly _core: Superblock;
   private readonly _path: string;
 
-  constructor(
-    core: Superblock,
-    path: string,
-    keepExistingData: boolean = false,
-  ) {
+  constructor(core: Superblock, path: string, keepExistingData: boolean = false) {
+    let fd: number | undefined;
+
     super({
-      start: (controller) => {
+      start: controller => {
         // Open file for writing
         const flags = keepExistingData ? FLAGS['r+'] : FLAGS.w;
         try {
-          this._fd = core.open(path, flags, MODE.FILE);
+          fd = core.open(path, flags, MODE.FILE);
         } catch (error) {
           if (error && typeof error === 'object' && error.code === ERROR_CODE.EACCES) {
             throw newNotAllowedError();
@@ -49,8 +47,10 @@ export class CoreFileSystemWritableFileStream extends WritableStream implements 
         }
       },
     });
+
     this._core = core;
     this._path = path;
+    this._fd = fd;
   }
 
   /**

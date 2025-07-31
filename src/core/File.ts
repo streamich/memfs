@@ -1,5 +1,5 @@
 import { constants } from '../constants';
-import Stats from '../node/Stats';
+import { Buffer } from '../internal/buffer';
 import type { Link } from './Link';
 import type { Node } from './Node';
 
@@ -63,9 +63,7 @@ export class File {
     this.position = position;
   }
 
-  stats(): Stats<number> {
-    return Stats.build(this.node) as Stats<number>;
-  }
+
 
   write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number | null): number {
     if (typeof position !== 'number') position = this.position;

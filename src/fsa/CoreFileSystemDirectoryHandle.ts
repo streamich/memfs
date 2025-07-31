@@ -9,8 +9,8 @@ import {
   newTypeMismatchError,
 } from './util';
 import { CoreFileSystemFileHandle } from './CoreFileSystemFileHandle';
-import type { CoreFsaContext } from './types';
-import type {
+import type { 
+  CoreFsaContext,
   GetDirectoryHandleOptions,
   GetFileHandleOptions,
   IFileSystemDirectoryHandle,

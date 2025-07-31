@@ -184,10 +184,15 @@ onlyOnNode20('CoreFileSystemDirectoryHandle', () => {
     test('returns null for non-descendant', async () => {
       const { dir: dir1 } = setup({ 'file1.txt': 'content' });
       
-      // Create completely different directory structure
+      // Create completely different core and root path
       const core2 = Superblock.fromJSON({ 'different/file2.txt': 'content' }, '/');
-      const dir2 = new CoreFileSystemDirectoryHandle(core2, '/different/', { mode: 'readwrite' });
-      const file2 = await dir2.getFileHandle('file2.txt');
+      // Use a different path that does not start with dir1's path
+      const dir2 = new CoreFileSystemDirectoryHandle(core2, '/some-completely-different-path/', { mode: 'readwrite' });
+      
+      // This will try to get file2.txt from /some-completely-different-path/ which doesn't exist
+      // So we need to actually create the file in the expected location
+      const actualDir2 = new CoreFileSystemDirectoryHandle(core2, '/different/', { mode: 'readwrite' });
+      const file2 = await actualDir2.getFileHandle('file2.txt');
       
       const resolved = await dir1.resolve(file2);
       expect(resolved).toBeNull();

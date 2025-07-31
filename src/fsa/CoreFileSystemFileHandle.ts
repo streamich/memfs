@@ -2,8 +2,12 @@ import { CoreFileSystemHandle } from './CoreFileSystemHandle';
 import { CoreFileSystemSyncAccessHandle } from './CoreFileSystemSyncAccessHandle';
 import { assertCanWrite, basename, ctx as createCtx, newNotAllowedError } from './util';
 import { CoreFileSystemWritableFileStream } from './CoreFileSystemWritableFileStream';
-import type { CoreFsaContext, CreateWritableOptions } from './types';
-import type { IFileSystemFileHandle, IFileSystemSyncAccessHandle } from './types';
+import type { 
+  CoreFsaContext, 
+  CreateWritableOptions,
+  IFileSystemFileHandle, 
+  IFileSystemSyncAccessHandle 
+} from './types';
 import type { Superblock } from '../core/Superblock';
 import { Buffer } from '../internal/buffer';
 import { ERROR_CODE } from '../core/constants';

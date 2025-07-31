@@ -8,7 +8,7 @@ import * as util from '../node/util';
 import type * as fsa from '../fsa/types';
 import type * as misc from '../node/types/misc';
 import type { FsaNodeSyncAdapter } from './types';
-import {isFd} from '../core/util';
+import { isFd } from '../core/util';
 
 export class FsaNodeCore {
   protected static fd: number = 0x7fffffff;

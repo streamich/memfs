@@ -1,5 +1,5 @@
 import * as pathModule from 'path';
-import {Link, Superblock} from './core';
+import { Link, Superblock } from './core';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from './internal/buffer';
@@ -57,10 +57,10 @@ import {
 import type { PathLike, symlink } from './node/types/misc';
 import type { FsPromisesApi, FsSynchronousApi } from './node/types';
 import { Dir } from './Dir';
-import {DirectoryJSON, NestedDirectoryJSON} from './core/json';
-import {ERROR_CODE} from './core/constants';
-import {TFileId} from './core/types';
-import {dataToBuffer, isFd, validateFd} from './core/util';
+import { DirectoryJSON, NestedDirectoryJSON } from './core/json';
+import { ERROR_CODE } from './core/constants';
+import { TFileId } from './core/types';
+import { dataToBuffer, isFd, validateFd } from './core/util';
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
@@ -91,7 +91,6 @@ export type TData = TDataOut | ArrayBufferView | DataView; // Data formats users
 export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
 export type TTime = number | string | Date;
-
 
 // ---------------------------------------- Constants
 
@@ -434,7 +433,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     (id: TFileId, callback: misc.TCallback<TDataOut>);
     (id: TFileId, options: opts.IReadFileOptions | string, callback: misc.TCallback<TDataOut>);
   } = (id: TFileId, a: misc.TCallback<TDataOut> | opts.IReadFileOptions | string, b?: misc.TCallback<TDataOut>) => {
-    const [opts, callback] = optsAndCbGenerator<opts.IReadFileOptions, misc.TCallback<TDataOut>>(getReadFileOptions)(a, b);
+    const [opts, callback] = optsAndCbGenerator<opts.IReadFileOptions, misc.TCallback<TDataOut>>(getReadFileOptions)(
+      a,
+      b,
+    );
     const flagsNum = flagsToNumber(opts.flag);
     this.wrapAsync(this._readfile, [id, flagsNum, opts.encoding], callback);
   };
@@ -555,7 +557,12 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   public writeFile: {
     (id: TFileId, data: TData, callback: misc.TCallback<void>): void;
     (id: TFileId, data: TData, options: opts.IWriteFileOptions | string, callback: misc.TCallback<void>): void;
-  } = (id: TFileId, data: TData, a: misc.TCallback<void> | opts.IWriteFileOptions | string, b?: misc.TCallback<void>): void => {
+  } = (
+    id: TFileId,
+    data: TData,
+    a: misc.TCallback<void> | opts.IWriteFileOptions | string,
+    b?: misc.TCallback<void>,
+  ): void => {
     let options: opts.IWriteFileOptions | string = a as opts.IWriteFileOptions;
     let callback: misc.TCallback<void> | undefined = b;
     if (typeof a === 'function') [options, callback] = [writeFileDefaults, a];
@@ -569,10 +576,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   private _copyFile(src: string, dest: string, flags: number) {
     const buf = this.readFileSync(src) as Buffer;
-    if ((flags & COPYFILE_EXCL) && this.existsSync(dest))
-      throw createError(ERROR_CODE.EEXIST, 'copyFile', src, dest);
-    if (flags & COPYFILE_FICLONE_FORCE)
-      throw createError(ERROR_CODE.ENOSYS, 'copyFile', src, dest);
+    if (flags & COPYFILE_EXCL && this.existsSync(dest)) throw createError(ERROR_CODE.EEXIST, 'copyFile', src, dest);
+    if (flags & COPYFILE_FICLONE_FORCE) throw createError(ERROR_CODE.ENOSYS, 'copyFile', src, dest);
     this._core.writeFile(dest, buf, FLAGS.w, MODE.DEFAULT);
   }
 
@@ -612,26 +617,22 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       }
     }
     // Check if src and dest are the same (both exist and have same inode)
-    if (destStat && (srcStat.ino === destStat.ino && srcStat.dev === destStat.dev))
+    if (destStat && srcStat.ino === destStat.ino && srcStat.dev === destStat.dev)
       throw createError(ERROR_CODE.EINVAL, 'cp', src, dest);
     // Check type compatibility
     if (destStat) {
-      if (srcStat.isDirectory() && !destStat.isDirectory())
-        throw createError(ERROR_CODE.EISDIR, 'cp', src, dest);
-      if (!srcStat.isDirectory() && destStat.isDirectory())
-        throw createError(ERROR_CODE.ENOTDIR, 'cp', src, dest);
+      if (srcStat.isDirectory() && !destStat.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'cp', src, dest);
+      if (!srcStat.isDirectory() && destStat.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'cp', src, dest);
     }
     // Check if trying to copy directory to subdirectory of itself
-    if (srcStat.isDirectory() && this.isSrcSubdir(src, dest))
-      throw createError(ERROR_CODE.EINVAL, 'cp', src, dest);
+    if (srcStat.isDirectory() && this.isSrcSubdir(src, dest)) throw createError(ERROR_CODE.EINVAL, 'cp', src, dest);
     ENDURE_PARENT_DIR_EXISTS: {
       const parent = dirname(dest);
       if (!this.existsSync(parent)) this.mkdirSync(parent, { recursive: true });
     }
     // Handle different file types
     if (srcStat.isDirectory()) {
-      if (!options.recursive)
-        throw createError(ERROR_CODE.EISDIR, 'cp', src);
+      if (!options.recursive) throw createError(ERROR_CODE.EISDIR, 'cp', src);
       this.cpDirSync(srcStat, destStat, src, dest, options);
     } else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) {
       this.cpFileSync(srcStat, destStat, src, dest, options);
@@ -667,8 +668,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
   ): void {
     if (destStat) {
-      if (options.errorOnExist)
-        throw createError(ERROR_CODE.EEXIST, 'cp', dest);
+      if (options.errorOnExist) throw createError(ERROR_CODE.EEXIST, 'cp', dest);
       if (!options.force) return;
       this.unlinkSync(dest);
     }
@@ -762,7 +762,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this._core.symlink, [targetFilename, pathFilename], callback);
   };
 
-  private readonly _lstat = (filename: string, bigint = false, throwIfNoEntry = false): Stats<number | bigint> | undefined => {
+  private readonly _lstat = (
+    filename: string,
+    bigint = false,
+    throwIfNoEntry = false,
+  ): Stats<number | bigint> | undefined => {
     let link: Link;
     try {
       link = this._core.getLinkOrThrow(filename, 'lstat');
@@ -912,7 +916,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   } = (path: PathLike, a: misc.TCallback<void> | number, b?: misc.TCallback<void>) => {
     let mode: number = F_OK;
     let callback: misc.TCallback<void>;
-    if (typeof a !== 'function') [mode, callback] = [a | 0, validateCallback(b)]
+    if (typeof a !== 'function') [mode, callback] = [a | 0, validateCallback(b)];
     else callback = a;
     const filename = pathToFilename(path);
     this.wrapAsync(this._access, [filename, mode], callback);
@@ -1148,7 +1152,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     (path: PathLike, mode: TMode | (opts.IMkdirOptions & { recursive?: false }), callback: misc.TCallback<void>);
     (path: PathLike, mode: opts.IMkdirOptions & { recursive: true }, callback: misc.TCallback<string>);
     (path: PathLike, mode: TMode | opts.IMkdirOptions, callback: misc.TCallback<string>);
-  } = (path: PathLike, a: misc.TCallback<void> | TMode | opts.IMkdirOptions, b?: misc.TCallback<string> | misc.TCallback<void>): void => {
+  } = (
+    path: PathLike,
+    a: misc.TCallback<void> | TMode | opts.IMkdirOptions,
+    b?: misc.TCallback<string> | misc.TCallback<void>,
+  ): void => {
     const opts: TMode | opts.IMkdirOptions = getMkdirOptions(a);
     const callback = validateCallback(typeof a === 'function' ? a : b!);
     const modeNum = modeToNumber(opts.mode, 0o777);
@@ -1425,7 +1433,12 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   public cp: {
     (src: string | URL, dest: string | URL, callback: misc.TCallback<void>);
     (src: string | URL, dest: string | URL, options: opts.ICpOptions, callback: misc.TCallback<void>);
-  } = (src: string | URL, dest: string | URL, a?: opts.ICpOptions | misc.TCallback<void>, b?: misc.TCallback<void>): void => {
+  } = (
+    src: string | URL,
+    dest: string | URL,
+    a?: opts.ICpOptions | misc.TCallback<void>,
+    b?: misc.TCallback<void>,
+  ): void => {
     const srcFilename = pathToFilename(src as misc.PathLike);
     const destFilename = pathToFilename(dest as misc.PathLike);
     let options: Partial<opts.ICpOptions>;

@@ -368,16 +368,18 @@ describe('volume', () => {
           '/hello': 'world',
         };
         vol.fromJSON(json);
-        expect(new Promise((resolve, reject) => {
-          vol
-            .createReadStream('/hello')
-            .on('data', () => null)
-            .on('close', resolve)
-            .on('end', () => {
-              vol.reset();
-            })
-            .on('error', reject);
-        })).rejects.toThrow();
+        expect(
+          new Promise((resolve, reject) => {
+            vol
+              .createReadStream('/hello')
+              .on('data', () => null)
+              .on('close', resolve)
+              .on('end', () => {
+                vol.reset();
+              })
+              .on('error', reject);
+          }),
+        ).rejects.toThrow();
       });
     });
     describe('.openSync(path, flags[, mode])', () => {

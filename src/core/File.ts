@@ -29,7 +29,7 @@ export class File {
     public readonly link: Link,
     public readonly node: Node,
     public flags: number,
-    public fd: number
+    public fd: number,
   ) {
     this.position = 0;
     if (this.flags & O_APPEND) this.position = this.getSize();

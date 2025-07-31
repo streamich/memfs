@@ -2,8 +2,8 @@ import * as pathModule from 'path';
 import { Buffer, bufferFrom } from '../internal/buffer';
 import process from '../process';
 import { TDataOut, ENCODING_UTF8 } from '../encoding';
-import { pathToFilename, isWin, unixify} from '../node/util';
-import {ERRSTR} from '../node/constants';
+import { pathToFilename, isWin, unixify } from '../node/util';
+import { ERRSTR } from '../node/constants';
 import type { PathLike } from '../node/types/misc';
 
 const resolveCrossPlatform = pathModule.resolve;

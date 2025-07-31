@@ -6,15 +6,12 @@ import { Buffer } from '../internal/buffer';
 import process from '../process';
 import { constants } from '../constants';
 import { ERRSTR, FLAGS, MODE } from '../node/constants';
-import {
-  pathToFilename,
-  createError,
-} from '../node/util';
-import {dataToBuffer, filenameToSteps, isFd, resolve, validateFd} from './util';
-import {DirectoryJSON, flattenJSON, NestedDirectoryJSON} from './json';
+import { pathToFilename, createError } from '../node/util';
+import { dataToBuffer, filenameToSteps, isFd, resolve, validateFd } from './util';
+import { DirectoryJSON, flattenJSON, NestedDirectoryJSON } from './json';
 import type { PathLike } from '../node/types/misc';
-import {ERROR_CODE} from './constants';
-import {TFileId} from './types';
+import { ERROR_CODE } from './constants';
+import { TFileId } from './types';
 
 type TCallback<TData> = (error?: any, data?: TData) => void;
 
@@ -428,7 +425,8 @@ export class Superblock {
 
     // Check whether node is a directory
     if (node.isDirectory()) {
-      if ((flagsNum & (O_RDONLY | O_RDWR | O_WRONLY)) !== O_RDONLY) throw createError(ERROR_CODE.EISDIR, 'open', link.getPath());
+      if ((flagsNum & (O_RDONLY | O_RDWR | O_WRONLY)) !== O_RDONLY)
+        throw createError(ERROR_CODE.EISDIR, 'open', link.getPath());
     } else {
       if (flagsNum & O_DIRECTORY) throw createError(ERROR_CODE.ENOTDIR, 'open', link.getPath());
     }
@@ -494,11 +492,16 @@ export class Superblock {
     throw createError(ERROR_CODE.ENOENT, 'open', filename);
   }
 
-  public readonly open = (filename: string, flagsNum: number, modeNum: number, resolveSymlinks: boolean = true): number => {
+  public readonly open = (
+    filename: string,
+    flagsNum: number,
+    modeNum: number,
+    resolveSymlinks: boolean = true,
+  ): number => {
     const file = this.openFile(filename, flagsNum, modeNum, resolveSymlinks);
     if (!file) throw createError(ERROR_CODE.ENOENT, 'open', filename);
     return file.fd;
-  }
+  };
 
   public readonly writeFile = (id: TFileId, buf: Buffer, flagsNum: number, modeNum: number) => {
     const isUserFd = typeof id === 'number';
@@ -611,7 +614,8 @@ export class Superblock {
     // Note we're not checking permissions on the target path: It is not an error to create a symlink to a
     // non-existent or inaccessible target
     const node = dirLink.getNode();
-    if (!node.canExecute() || !node.canWrite()) throw createError(ERROR_CODE.EACCES, 'symlink', targetFilename, pathFilename);
+    if (!node.canExecute() || !node.canWrite())
+      throw createError(ERROR_CODE.EACCES, 'symlink', targetFilename, pathFilename);
     // Create symlink.
     const symlink: Link = dirLink.createChild(name);
     symlink.getNode().makeSymlink(targetFilename);
@@ -645,8 +649,7 @@ export class Superblock {
 
     // Remove hard link from old folder.
     const oldLinkParent = link.parent;
-    if (!oldLinkParent)
-      throw createError(ERROR_CODE.EINVAL, 'rename', oldPathFilename, newPathFilename);
+    if (!oldLinkParent) throw createError(ERROR_CODE.EINVAL, 'rename', oldPathFilename, newPathFilename);
 
     // Check we have access and write permissions in both places
     const oldParentNode: Node = oldLinkParent.getNode();
@@ -667,13 +670,12 @@ export class Superblock {
     link.name = name;
     link.steps = [...newPathDirLink.steps, name];
     newPathDirLink.setChild(link.getName(), link);
-  }
+  };
 
   public readonly mkdir = (filename: string, modeNum: number): void => {
     const steps = filenameToSteps(filename);
     // This will throw if user tries to create root dir `fs.mkdirSync('/')`.
-    if (!steps.length)
-      throw createError(ERROR_CODE.EEXIST, 'mkdir', filename);
+    if (!steps.length) throw createError(ERROR_CODE.EEXIST, 'mkdir', filename);
     const dir = this.getLinkParentAsDirOrThrow(filename, 'mkdir');
     // Check path already exists.
     const name = steps[steps.length - 1];

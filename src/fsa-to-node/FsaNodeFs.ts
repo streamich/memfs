@@ -16,7 +16,7 @@ import { FsaNodeWriteStream } from './FsaNodeWriteStream';
 import { FsaNodeReadStream } from './FsaNodeReadStream';
 import { FsaNodeCore } from './FsaNodeCore';
 import { FileHandle } from '../node/FileHandle';
-import {dataToBuffer, isFd, validateFd} from '../core/util';
+import { dataToBuffer, isFd, validateFd } from '../core/util';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';

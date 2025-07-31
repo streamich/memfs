@@ -7,7 +7,7 @@ import { ENCODING_UTF8, TEncodingExtended } from '../encoding';
 import { bufferFrom } from '../internal/buffer';
 import queueMicrotask from '../queueMicrotask';
 import { Readable } from 'stream';
-import {dataToBuffer, validateFd} from '../core/util';
+import { dataToBuffer, validateFd } from '../core/util';
 
 export const isWin = process.platform === 'win32';
 

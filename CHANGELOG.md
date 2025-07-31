@@ -1,3 +1,16 @@
+# [4.25.0](https://github.com/streamich/memfs/compare/v4.24.0...v4.25.0) (2025-07-31)
+
+
+### Bug Fixes
+
+* 🐛 correct imports graph to fix Windows path resolution ([3e442a8](https://github.com/streamich/memfs/commit/3e442a8656b339f7978f989f49b8907118afebed))
+* 🐛 pass tests after refactor ([7a87435](https://github.com/streamich/memfs/commit/7a8743585b0f8d1359cd7ff4a7ff8062a2ab70da))
+
+
+### Features
+
+* 🎸 introduce Superblock, make Volume use it ([963850f](https://github.com/streamich/memfs/commit/963850f58c4837670f4f48bf63bad528a0c2c091))
+
 # [4.24.0](https://github.com/streamich/memfs/compare/v4.23.0...v4.24.0) (2025-07-30)
 
 

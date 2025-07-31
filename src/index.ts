@@ -7,6 +7,29 @@ import type { FsPromisesApi } from './node/types';
 import type * as misc from './node/types/misc';
 import { fsSynchronousApiList } from './node/lists/fsSynchronousApiList';
 import { fsCallbackApiList } from './node/lists/fsCallbackApiList';
+
+// Re-export core FSA implementation
+export { 
+  CoreFileSystemHandle,
+  CoreFileSystemDirectoryHandle, 
+  CoreFileSystemFileHandle,
+  CoreFileSystemSyncAccessHandle,
+  CoreFileSystemWritableFileStream,
+  CorePermissionStatus,
+  coreToFsa,
+  type CoreFsaContext
+} from './fsa';
+
+// Re-export node-to-fsa implementation  
+export { 
+  NodeFileSystemHandle,
+  NodeFileSystemDirectoryHandle,
+  NodeFileSystemFileHandle,
+  nodeToFsa,
+  type NodeFsaContext,
+  type NodeFsaFs
+} from './node-to-fsa';
+
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
 export { DirectoryJSON, NestedDirectoryJSON, Volume };

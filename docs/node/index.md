@@ -17,8 +17,6 @@ In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 - [Relative paths](./relative-paths.md)
 - [Dependencies](./dependencies.md)
 
-[chat]: https://onp4.com/@vadim/~memfs
-[chat-badge]: https://img.shields.io/badge/Chat-%F0%9F%92%AC-green?style=flat&logo=chat&link=https://onp4.com/@vadim/~memfs
 [npm-url]: https://www.npmjs.com/package/memfs
 [npm-badge]: https://img.shields.io/npm/v/memfs.svg
 [travis-url]: https://travis-ci.org/streamich/memfs

@@ -1,9 +1,7 @@
 # memfs
 
-[![][chat-badge]][chat] [![][npm-badge]][npm-url]
+[![][npm-badge]][npm-url]
 
-[chat]: https://onp4.com/@vadim/~memfs
-[chat-badge]: https://img.shields.io/badge/Chat-%F0%9F%92%AC-green?style=flat&logo=chat&link=https://onp4.com/@vadim/~memfs
 [npm-url]: https://www.npmjs.com/package/memfs
 [npm-badge]: https://img.shields.io/npm/v/memfs.svg
 
@@ -19,8 +17,9 @@ npm i memfs
 
 - Documentation
   - [In-memory Node.js `fs` API](./docs/node/index.md)
-  - `experimental` [`fs` to File System Access API adapter](./docs/fsa/fs-to-fsa.md)
-  - `experimental` [File System Access API to `fs` adapter](./docs/fsa/fsa-to-fs.md)
+  - [In-memory browser FSA (File System Access) API](./docs/fsa/fsa.md)
+  - [`fs` to File System Access API adapter](./docs/fsa/fs-to-fsa.md)
+  - [File System Access API to `fs` adapter](./docs/fsa/fsa-to-fs.md)
   - `experimental` [`crudfs` a CRUD-like file system abstraction](./docs/crudfs/index.md)
   - `experimental` [`casfs` Content Addressable Storage file system abstraction](./docs/casfs/index.md)
   - [Directory `snapshot` utility](./docs/snapshot/index.md)

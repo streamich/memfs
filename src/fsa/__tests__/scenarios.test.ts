@@ -1,7 +1,8 @@
 import { Superblock } from '../../core/Superblock';
-import { coreToFsa } from '../index';
+import { coreToFsa, fsa } from '../index';
 import { CoreFileSystemDirectoryHandle } from '../CoreFileSystemDirectoryHandle';
 import { onlyOnNode20 } from '../../__tests__/util';
+import { fileURLToPath } from 'url';
 
 onlyOnNode20('coreToFsa scenarios', () => {
   test('can create FSA from empty Superblock', () => {
@@ -19,6 +20,41 @@ onlyOnNode20('coreToFsa scenarios', () => {
     });
     const fsa = coreToFsa(core, '/', { mode: 'readwrite' });
     expect(fsa).toBeInstanceOf(CoreFileSystemDirectoryHandle);
+  });
+
+  test('can create FSA using fsa() helper', async () => {
+    const { dir, core } = fsa({ mode: 'readwrite' });
+    core.fromJSON(
+      {
+        'documents/readme.txt': 'Welcome!',
+        'photos/vacation.jpg': Buffer.from('fake-jpg-data'),
+        'empty-folder': null,
+      },
+      '/',
+    );
+    expect(dir).toBeInstanceOf(CoreFileSystemDirectoryHandle);
+    expect(dir.name).toBe('');
+    const dir2 = await dir.getDirectoryHandle('documents');
+    const file = await dir2.getFileHandle('readme.txt');
+    const fileContent = await file.getFile();
+    expect(await fileContent.text()).toBe('Welcome!');
+  });
+
+  test('can create a a file folder in empty filesystem', async () => {
+    const { dir, core } = fsa({ mode: 'readwrite' });
+    expect(core.toJSON()).toEqual({});
+    const dir2 = await dir.getDirectoryHandle('new-folder', { create: true });
+    expect(core.toJSON()).toEqual({
+      '/new-folder': null,
+    });
+    const file = await dir2.getFileHandle('file.txt', { create: true });
+    expect(core.toJSON()).toEqual({
+      '/new-folder/file.txt': '',
+    });
+    await (await file.createWritable()).write('Hello, world!');
+    expect(core.toJSON()).toEqual({
+      '/new-folder/file.txt': 'Hello, world!',
+    });
   });
 
   test('can navigate filesystem structure', async () => {

@@ -33,5 +33,5 @@ export const coreToFsa = (
 export const fsa = (ctx?: Partial<CoreFsaContext>) => {
   const core = new Superblock();
   const dir = new CoreFileSystemDirectoryHandle(core, '/', ctx);
-  return {dir, core};
+  return { dir, core };
 };

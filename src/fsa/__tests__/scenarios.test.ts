@@ -23,12 +23,15 @@ onlyOnNode20('coreToFsa scenarios', () => {
   });
 
   test('can create FSA using fsa() helper', async () => {
-    const {dir, core} = fsa({ mode: 'readwrite' });
-    core.fromJSON({
-      'documents/readme.txt': 'Welcome!',
-      'photos/vacation.jpg': Buffer.from('fake-jpg-data'),
-      'empty-folder': null,
-    }, '/');
+    const { dir, core } = fsa({ mode: 'readwrite' });
+    core.fromJSON(
+      {
+        'documents/readme.txt': 'Welcome!',
+        'photos/vacation.jpg': Buffer.from('fake-jpg-data'),
+        'empty-folder': null,
+      },
+      '/',
+    );
     expect(dir).toBeInstanceOf(CoreFileSystemDirectoryHandle);
     expect(dir.name).toBe('');
     const dir2 = await dir.getDirectoryHandle('documents');
@@ -38,7 +41,7 @@ onlyOnNode20('coreToFsa scenarios', () => {
   });
 
   test('can create a a file folder in empty filesystem', async () => {
-    const {dir, core} = fsa({ mode: 'readwrite' });
+    const { dir, core } = fsa({ mode: 'readwrite' });
     expect(core.toJSON()).toEqual({});
     const dir2 = await dir.getDirectoryHandle('new-folder', { create: true });
     expect(core.toJSON()).toEqual({

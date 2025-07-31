@@ -2,16 +2,15 @@
 
 In-memory file-system with browser FSA API. Construct a new instance:
 
-
 ## Quick Start
 
 Create a new instance of FSA filesystem:
 
 ```ts
-import {fsa} from 'memfs/lib/fsa';
+import { fsa } from 'memfs/lib/fsa';
 
 // Create a new filesystem.
-const {dir, core} = fsa({ mode: 'readwrite' });
+const { dir, core } = fsa({ mode: 'readwrite' });
 
 // Create a folder and a file.
 const dir2 = await dir.getDirectoryHandle('new-folder', { create: true });
@@ -26,14 +25,17 @@ console.log(core.toJSON());
 Create a new FSA filesystem from JSON:
 
 ```ts
-const {dir, core} = fsa({ mode: 'readwrite' });
+const { dir, core } = fsa({ mode: 'readwrite' });
 
 // Import JSON.
-core.fromJSON({
-  'documents/readme.txt': 'Welcome!',
-  'photos/vacation.jpg': Buffer.from('fake-jpg-data'),
-  'empty-folder': null,
-}, '/');
+core.fromJSON(
+  {
+    'documents/readme.txt': 'Welcome!',
+    'photos/vacation.jpg': Buffer.from('fake-jpg-data'),
+    'empty-folder': null,
+  },
+  '/',
+);
 
 // Use FSA API.
 const dir2 = await dir.getDirectoryHandle('documents');

@@ -1,3 +1,10 @@
+# [4.28.0](https://github.com/streamich/memfs/compare/v4.27.0...v4.28.0) (2025-07-31)
+
+
+### Features
+
+* 🎸 export fsa() factory ([5b5431b](https://github.com/streamich/memfs/commit/5b5431b8d216009cf2b87a0421f7768953073485))
+
 # [4.27.0](https://github.com/streamich/memfs/compare/v4.26.0...v4.27.0) (2025-07-31)
 
 

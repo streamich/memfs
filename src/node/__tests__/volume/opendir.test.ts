@@ -1,4 +1,4 @@
-import { Volume } from '../..';
+import { Volume } from '../../../';
 
 describe('opendir', () => {
   it('should provide fs.opendir (callback)', done => {
@@ -104,7 +104,7 @@ describe('opendir', () => {
   });
 
   it('should work with memfs fs export', done => {
-    const { fs } = require('../..');
+    const { fs } = require('../../../');
 
     // Clear any existing state
     fs.rmSync('/', { recursive: true, force: true });

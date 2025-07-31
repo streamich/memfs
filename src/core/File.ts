@@ -63,8 +63,6 @@ export class File {
     this.position = position;
   }
 
-
-
   write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number | null): number {
     if (typeof position !== 'number') position = this.position;
     const bytes = this.node.write(buf, offset, length, position);

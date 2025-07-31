@@ -1,5 +1,5 @@
 import { create } from '../../../__tests__/util';
-import { memfs } from '../..';
+import { memfs } from '../../../';
 
 describe('.writeSync(fd, buffer, offset, length, position)', () => {
   it('Write binary data to file', () => {

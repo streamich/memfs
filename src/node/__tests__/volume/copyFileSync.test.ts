@@ -1,5 +1,5 @@
 import { create } from '../../../__tests__/util';
-import { constants } from '../../constants';
+import { constants } from '../../../constants';
 
 describe('copyFileSync(src, dest[, flags])', () => {
   it('method exists', () => {

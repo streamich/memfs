@@ -1,5 +1,5 @@
 import { create, multitest } from '../../../__tests__/util';
-import { constants } from '../../constants';
+import { constants } from '../../../constants';
 
 describe('copyFile(src, dest[, flags], callback)', () => {
   it('method exists', () => {

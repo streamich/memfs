@@ -1,5 +1,5 @@
-import { of } from '../../thingies';
-import { memfs } from '../..';
+import { of } from '../../../thingies';
+import { memfs } from '../../../';
 
 describe('.readFile()', () => {
   it('can read a file', async () => {

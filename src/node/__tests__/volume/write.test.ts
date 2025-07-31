@@ -1,4 +1,4 @@
-import { Volume } from '../..';
+import { Volume } from '../../../';
 
 const create = (json = { '/foo': 'bar' }) => {
   const vol = Volume.fromJSON(json);

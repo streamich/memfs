@@ -1,4 +1,4 @@
-import { Volume } from '../..';
+import { Volume } from '../../../';
 
 describe('.closeSync(fd)', () => {
   const vol = new Volume();

@@ -1,3 +1,17 @@
+# [4.26.0](https://github.com/streamich/memfs/compare/v4.25.1...v4.26.0) (2025-07-31)
+
+
+### Bug Fixes
+
+* revert yarn.lock changes and fix import paths in moved test files ([1cd8d0a](https://github.com/streamich/memfs/commit/1cd8d0a52641d418c515028dcd6575d69c5a0609))
+* update remaining import paths in volume.test.ts ([4dd00c8](https://github.com/streamich/memfs/commit/4dd00c813a03572f2fe42e564b0c9666b9117c86))
+* update remaining Stats import in mkdirSync test ([4cfcfa6](https://github.com/streamich/memfs/commit/4cfcfa6b2ef73cc96a3c3d5a3035621d73e13330))
+
+
+### Features
+
+* update Node.js interfaces to use property syntax instead of method declarations ([a774c3f](https://github.com/streamich/memfs/commit/a774c3feff4b1fbf58e69a6f83e8e8530af34328))
+
 ## [4.25.1](https://github.com/streamich/memfs/compare/v4.25.0...v4.25.1) (2025-07-31)
 
 

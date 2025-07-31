@@ -1,5 +1,5 @@
 import { create } from '../util';
-import type Stats from '../../Stats';
+import type Stats from '../../node/Stats';
 
 describe('mkdirSync', () => {
   it('can create a directory', () => {

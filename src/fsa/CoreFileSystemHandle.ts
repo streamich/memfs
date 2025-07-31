@@ -1,5 +1,5 @@
 import { CorePermissionStatus } from './CorePermissionStatus';
-import type { IFileSystemHandle, FileSystemHandlePermissionDescriptor } from './types';
+import type { IFileSystemHandle, FileSystemHandlePermissionDescriptor, CoreFsaContext } from './types';
 
 /**
  * Represents a File System Access API file handle `FileSystemHandle` object,
@@ -8,10 +8,15 @@ import type { IFileSystemHandle, FileSystemHandlePermissionDescriptor } from './
  * @see [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle)
  */
 export abstract class CoreFileSystemHandle implements IFileSystemHandle {
+  protected readonly ctx: CoreFsaContext;
+
   constructor(
     public readonly kind: 'file' | 'directory',
     public readonly name: string,
-  ) {}
+    ctx: CoreFsaContext,
+  ) {
+    this.ctx = ctx;
+  }
 
   /**
    * Compares two handles to see if the associated entries (either a file or directory) match.
@@ -30,7 +35,17 @@ export abstract class CoreFileSystemHandle implements IFileSystemHandle {
   public queryPermission(
     fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor,
   ): CorePermissionStatus {
-    throw new Error('Not implemented');
+    // Check if the requested mode is compatible with the context mode
+    const requestedMode = fileSystemHandlePermissionDescriptor.mode;
+    const contextMode = this.ctx.mode;
+
+    // If requesting readwrite but context only allows read, deny
+    if (requestedMode === 'readwrite' && contextMode === 'read') {
+      return new CorePermissionStatus('denied', requestedMode);
+    }
+
+    // Otherwise grant the permission
+    return new CorePermissionStatus('granted', requestedMode);
   }
 
   /**

@@ -52,10 +52,35 @@ onlyOnNode20('CoreFileSystemHandle', () => {
     expect(file.isSameEntry(folder)).toBe(false);
   });
 
-  test('queryPermission throws not implemented error', async () => {
+  test('queryPermission returns permission status based on context mode', async () => {
     const { dir } = setup({ 'test.txt': 'content' });
     const file = await dir.getFileHandle('test.txt');
-    expect(() => file.queryPermission({ mode: 'read' })).toThrow('Not implemented');
+
+    // Test read permission request (should be granted since context allows readwrite)
+    const readPermission = file.queryPermission({ mode: 'read' });
+    expect(readPermission.state).toBe('granted');
+    expect(readPermission.name).toBe('read');
+
+    // Test readwrite permission request (should be granted since context allows readwrite)
+    const readwritePermission = file.queryPermission({ mode: 'readwrite' });
+    expect(readwritePermission.state).toBe('granted');
+    expect(readwritePermission.name).toBe('readwrite');
+  });
+
+  test('queryPermission denies readwrite when context only allows read', async () => {
+    const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
+    const dir = new CoreFileSystemDirectoryHandle(core, '/', { mode: 'read' });
+    const file = await dir.getFileHandle('test.txt');
+
+    // Test read permission request (should be granted)
+    const readPermission = file.queryPermission({ mode: 'read' });
+    expect(readPermission.state).toBe('granted');
+    expect(readPermission.name).toBe('read');
+
+    // Test readwrite permission request (should be denied since context only allows read)
+    const readwritePermission = file.queryPermission({ mode: 'readwrite' });
+    expect(readwritePermission.state).toBe('denied');
+    expect(readwritePermission.name).toBe('readwrite');
   });
 
   test('requestPermission throws not implemented error', async () => {

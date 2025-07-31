@@ -20,9 +20,9 @@ export class CoreFileSystemFileHandle extends CoreFileSystemHandle implements IF
     public readonly __path: string,
     ctx: Partial<CoreFsaContext> = {},
   ) {
-    ctx = createCtx(ctx);
-    super('file', basename(__path, ctx.separator!));
-    this.ctx = ctx as CoreFsaContext;
+    const fullCtx = createCtx(ctx);
+    super('file', basename(__path, fullCtx.separator), fullCtx);
+    this.ctx = fullCtx;
   }
 
   /**

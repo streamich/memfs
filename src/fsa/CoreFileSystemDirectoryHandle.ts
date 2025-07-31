@@ -15,6 +15,7 @@ import type {
   GetFileHandleOptions,
   IFileSystemDirectoryHandle,
   IFileSystemFileHandle,
+  IFileSystemHandle,
   RemoveEntryOptions,
 } from './types';
 import type { Superblock } from '../core/Superblock';
@@ -27,7 +28,7 @@ import { MODE, FLAGS } from '../node/constants';
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle
  */
 export class CoreFileSystemDirectoryHandle extends CoreFileSystemHandle implements IFileSystemDirectoryHandle {
-  protected readonly ctx: Partial<CoreFsaContext>;
+  protected readonly ctx: CoreFsaContext;
   /** Directory path with trailing slash. */
   public readonly __path: string;
 
@@ -36,8 +37,9 @@ export class CoreFileSystemDirectoryHandle extends CoreFileSystemHandle implemen
     path: string,
     ctx: Partial<CoreFsaContext> = {},
   ) {
-    super('directory', basename(path, ctx.separator || '/'));
-    this.ctx = createCtx(ctx);
+    const fullCtx = createCtx(ctx);
+    super('directory', basename(path, fullCtx.separator), fullCtx);
+    this.ctx = fullCtx;
     this.__path = path[path.length - 1] === this.ctx.separator ? path : path + this.ctx.separator;
   }
 
@@ -242,7 +244,7 @@ export class CoreFileSystemDirectoryHandle extends CoreFileSystemHandle implemen
    * @param possibleDescendant The {@link CoreFileSystemHandle} from which
    *        to return the relative path.
    */
-  public async resolve(possibleDescendant: CoreFileSystemHandle): Promise<string[] | null> {
+  public async resolve(possibleDescendant: IFileSystemHandle): Promise<string[] | null> {
     if (
       possibleDescendant instanceof CoreFileSystemDirectoryHandle ||
       possibleDescendant instanceof CoreFileSystemFileHandle

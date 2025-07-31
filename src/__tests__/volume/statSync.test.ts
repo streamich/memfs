@@ -15,7 +15,7 @@ describe('.statSync(...)', () => {
   it('returns rdev', () => {
     const vol = create({});
     const fd = vol.openSync('/null', 'w');
-    vol.fds[fd].node.rdev = 1;
+    vol._core.fds[fd].node.rdev = 1;
     const stats = vol.statSync('/null');
     expect(stats.rdev).toBe(1);
   });

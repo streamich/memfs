@@ -7,7 +7,7 @@ describe('writeFileSync(path, data[, options])', () => {
     const vol = create();
     vol.writeFileSync('/writeFileSync.txt', data);
 
-    const node = tryGetChildNode(vol.root, 'writeFileSync.txt');
+    const node = tryGetChildNode(vol._core.root, 'writeFileSync.txt');
     expect(node).toBeInstanceOf(Node);
     expect(node.getString()).toBe(data);
   });
@@ -15,7 +15,7 @@ describe('writeFileSync(path, data[, options])', () => {
     const vol = create();
     const fd = vol.openSync('/writeByFd.txt', 'w');
     vol.writeFileSync(fd, data);
-    const node = tryGetChildNode(vol.root, 'writeByFd.txt');
+    const node = tryGetChildNode(vol._core.root, 'writeByFd.txt');
     expect(node).toBeInstanceOf(Node);
     expect(node.getString()).toBe(data);
   });
@@ -32,8 +32,8 @@ describe('writeFileSync(path, data[, options])', () => {
 
     vol.writeFileSync(fd2, '456');
 
-    expect(tryGetChildNode(vol.root, '1.txt').getString()).toBe('123');
-    expect(tryGetChildNode(vol.root, '2.txt').getString()).toBe('456');
+    expect(tryGetChildNode(vol._core.root, '1.txt').getString()).toBe('123');
+    expect(tryGetChildNode(vol._core.root, '2.txt').getString()).toBe('456');
   });
   it('Write at relative path that does not exist throws correct error', () => {
     const vol = create();

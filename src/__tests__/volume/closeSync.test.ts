@@ -37,14 +37,14 @@ describe('.closeSync(fd)', () => {
   });
   it('Closing a file decreases the number of open files', () => {
     const fd = vol.openSync('/test.txt', 'w');
-    const openFiles = vol.openFiles;
+    const openFiles = vol._core.openFiles;
     vol.closeSync(fd);
-    expect(openFiles).toBeGreaterThan(vol.openFiles);
+    expect(openFiles).toBeGreaterThan(vol._core.openFiles);
   });
   it('When closing a file, its descriptor is added to the pool of descriptors to be reused', () => {
     const fd = vol.openSync('/test.txt', 'w');
-    const usedFdLength = vol.releasedFds.length;
+    const usedFdLength = vol._core.releasedFds.length;
     vol.closeSync(fd);
-    expect(usedFdLength).toBeLessThan(vol.releasedFds.length);
+    expect(usedFdLength).toBeLessThan(vol._core.releasedFds.length);
   });
 });

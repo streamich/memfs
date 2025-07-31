@@ -9,7 +9,6 @@ import { tryGetChild, tryGetChildNode } from './util';
 import { genRndStr6 } from '../node/util';
 import queueMicrotask from '../queueMicrotask';
 import { constants } from '../constants';
-import { IDirent } from '../node/types/misc';
 
 const { O_RDWR, O_SYMLINK } = constants;
 
@@ -45,19 +44,19 @@ describe('volume', () => {
     describe('.getLink(steps)', () => {
       const vol = new Volume();
       it('[] - Get the root link', () => {
-        const link = vol.getLink([]);
+        const link = vol._core.getLink([]);
         expect(link).toBeInstanceOf(Link);
-        expect(link).toBe(vol.root);
+        expect(link).toBe(vol._core.root);
       });
       it('["child.sh"] - Get a child link', () => {
-        const link1 = vol.root.createChild('child.sh');
-        const link2 = vol.getLink(['child.sh']);
+        const link1 = vol._core.root.createChild('child.sh');
+        const link2 = vol._core.getLink(['child.sh']);
         expect(link1).toBe(link2);
       });
       it('["dir", "child.sh"] - Get a child link in a dir', () => {
-        const dir = vol.root.createChild('dir');
+        const dir = vol._core.root.createChild('dir');
         const link1 = dir.createChild('child.sh');
-        const node2 = vol.getLink(['dir', 'child.sh']);
+        const node2 = vol._core.getLink(['dir', 'child.sh']);
         expect(link1).toBe(node2);
       });
     });
@@ -339,7 +338,7 @@ describe('volume', () => {
     });
 
     describe('.reset()', () => {
-      it('Remove all files', () => {
+      it('remove all files', () => {
         const vol = new Volume();
         const json = {
           '/hello': 'world',
@@ -349,7 +348,8 @@ describe('volume', () => {
         vol.reset();
         expect(vol.toJSON()).toEqual({});
       });
-      it('File operations should work after reset', () => {
+
+      it('file operations should work after reset', () => {
         const vol = new Volume();
         const json = {
           '/hello': 'world',
@@ -361,13 +361,14 @@ describe('volume', () => {
           '/good': 'bye',
         });
       });
-      it('Open streams should not be affected', async () => {
+
+      it('open streams should error', async () => {
         const vol = new Volume();
         const json = {
           '/hello': 'world',
         };
         vol.fromJSON(json);
-        await new Promise((resolve, reject) => {
+        expect(new Promise((resolve, reject) => {
           vol
             .createReadStream('/hello')
             .on('data', () => null)
@@ -376,16 +377,16 @@ describe('volume', () => {
               vol.reset();
             })
             .on('error', reject);
-        });
+        })).rejects.toThrow();
       });
     });
     describe('.openSync(path, flags[, mode])', () => {
       const vol = new Volume();
       it('Create new file at root (/test.txt)', () => {
-        const oldMtime = vol.root.getNode().mtime;
+        const oldMtime = vol._core.root.getNode().mtime;
         const fd = vol.openSync('/test.txt', 'w');
-        const newMtime = vol.root.getNode().mtime;
-        expect(vol.root.getChild('test.txt')).toBeInstanceOf(Link);
+        const newMtime = vol._core.root.getNode().mtime;
+        expect(vol._core.root.getChild('test.txt')).toBeInstanceOf(Link);
         expect(typeof fd).toBe('number');
         expect(fd).toBeGreaterThan(0);
         expect(oldMtime).not.toBe(newMtime);
@@ -447,7 +448,7 @@ describe('volume', () => {
       it('Create new file at root (/test.txt)', done => {
         vol.open('/test.txt', 'w', (err, fd) => {
           expect(err).toBe(null);
-          expect(vol.root.getChild('test.txt')).toBeInstanceOf(Link);
+          expect(vol._core.root.getChild('test.txt')).toBeInstanceOf(Link);
           expect(typeof fd).toBe('number');
           expect(fd).toBeGreaterThan(0);
           done();
@@ -456,7 +457,7 @@ describe('volume', () => {
       it('Creates a character device at root (/null)', done => {
         vol.open('/null', 'w', constants.S_IFCHR | 0o666, (err, fd) => {
           expect(err).toBe(null);
-          expect(vol.root.getChild('null')?.getNode().isCharacterDevice()).toBe(true);
+          expect(vol._core.root.getChild('null')?.getNode().isCharacterDevice()).toBe(true);
           expect(typeof fd).toBe('number');
           expect(fd).toBeGreaterThan(0);
           done();
@@ -516,9 +517,9 @@ describe('volume', () => {
         // Write a new file, copying the mode from the old file
         vol.open('/b.txt', 'w', stats.mode, (err, fd) => {
           expect(err).toBe(null);
-          expect(vol.root.getChild('b.txt')).toBeInstanceOf(Link);
+          expect(vol._core.root.getChild('b.txt')).toBeInstanceOf(Link);
           expect(typeof fd).toBe('number');
-          expect(tryGetChildNode(vol.root, 'b.txt').canWrite()).toBe(true);
+          expect(tryGetChildNode(vol._core.root, 'b.txt').canWrite()).toBe(true);
           done();
         });
       });
@@ -551,7 +552,7 @@ describe('volume', () => {
     describe('.read(fd, buffer, offset, length, position, callback)', () => {
       const vol = new Volume();
       const data = 'trololo';
-      const fileNode = (vol as any).createLink(vol.root, 'text.txt').getNode();
+      const fileNode = vol._core.createLink(vol._core.root, 'text.txt').getNode();
       fileNode.setString(data);
       vol.symlinkSync('/text.txt', '/link.txt');
 
@@ -623,7 +624,7 @@ describe('volume', () => {
     describe('.readFileSync(path[, options])', () => {
       const vol = new Volume();
       const data = 'trololo';
-      const fileNode = (vol as any).createLink(vol.root, 'text.txt').getNode();
+      const fileNode = vol._core.createLink(vol._core.root, 'text.txt').getNode();
       fileNode.setString(data);
 
       it('Read file at root (/text.txt)', () => {
@@ -645,9 +646,9 @@ describe('volume', () => {
         expect(str).toBe(data);
       });
       it('Read file deep in tree (/dir1/dir2/test-file)', () => {
-        const dir1 = (vol as any).createLink(vol.root, 'dir1', true);
-        const dir2 = (vol as any).createLink(dir1, 'dir2', true);
-        const fileNode = (vol as any).createLink(dir2, 'test-file').getNode();
+        const dir1 = vol._core.createLink(vol._core.root, 'dir1', true);
+        const dir2 = vol._core.createLink(dir1, 'dir2', true);
+        const fileNode = vol._core.createLink(dir2, 'test-file').getNode();
         const data = 'aaaaaa';
         fileNode.setString(data);
 
@@ -678,7 +679,7 @@ describe('volume', () => {
     describe('.readFile(path[, options], callback)', () => {
       const vol = new Volume();
       const data = 'asdfasdf asdfasdf asdf';
-      const fileNode = (vol as any).createLink(vol.root, 'file.txt').getNode();
+      const fileNode = vol._core.createLink(vol._core.root, 'file.txt').getNode();
       fileNode.setString(data);
       it('Read file at root (/file.txt)', done => {
         vol.readFile('/file.txt', 'utf8', (err, str) => {
@@ -765,7 +766,7 @@ describe('volume', () => {
       it('Create a file at root (/writeFile.json)', done => {
         vol.writeFile('/writeFile.json', data, err => {
           expect(err).toBe(null);
-          const str = tryGetChildNode(vol.root, 'writeFile.json').getString();
+          const str = tryGetChildNode(vol._core.root, 'writeFile.json').getString();
           expect(str).toBe(data);
           done();
         });
@@ -773,7 +774,7 @@ describe('volume', () => {
       it('Create a file at root (/writeFile2.json) with exclude flag', done => {
         vol.writeFile('/writeFile2.json', data, { flag: 'wx' }, err => {
           expect(err).toBe(null);
-          const str = tryGetChildNode(vol.root, 'writeFile2.json').getString();
+          const str = tryGetChildNode(vol._core.root, 'writeFile2.json').getString();
           expect(str).toBe(data);
           done();
         });
@@ -789,13 +790,13 @@ describe('volume', () => {
     });
     describe('.symlinkSync(target, path[, type])', () => {
       const vol = new Volume();
-      const jquery = (vol as any).createLink(vol.root, 'jquery.js').getNode();
+      const jquery = vol._core.createLink(vol._core.root, 'jquery.js').getNode();
       const data = '"use strict";';
       jquery.setString(data);
       it('Create a symlink', () => {
         vol.symlinkSync('/jquery.js', '/test.js');
-        expect(vol.root.getChild('test.js')).toBeInstanceOf(Link);
-        expect(tryGetChildNode(vol.root, 'test.js').isSymlink()).toBe(true);
+        expect(vol._core.root.getChild('test.js')).toBeInstanceOf(Link);
+        expect(tryGetChildNode(vol._core.root, 'test.js').isSymlink()).toBe(true);
       });
       it('Read from symlink', () => {
         vol.symlinkSync('/jquery.js', '/test2.js');
@@ -889,15 +890,15 @@ describe('volume', () => {
     });
     describe('.realpathSync(path[, options])', () => {
       const vol = new Volume();
-      const mootools = vol.root.createChild('mootools.js');
+      const mootools = vol._core.root.createChild('mootools.js');
       const data = 'String.prototype...';
       mootools.getNode().setString(data);
 
-      const symlink = vol.root.createChild('mootools.link.js');
+      const symlink = vol._core.root.createChild('mootools.link.js');
       symlink.getNode().makeSymlink('mootools.js');
 
       it('Symlink works', () => {
-        const resolved = vol.resolveSymlinks(symlink);
+        const resolved = vol._core.resolveSymlinks(symlink);
         expect(resolved).toBe(mootools);
       });
       it('Basic one-jump symlink resolves', () => {
@@ -911,11 +912,11 @@ describe('volume', () => {
     });
     describe('.realpath(path[, options], callback)', () => {
       const vol = new Volume();
-      const mootools = vol.root.createChild('mootools.js');
+      const mootools = vol._core.root.createChild('mootools.js');
       const data = 'String.prototype...';
       mootools.getNode().setString(data);
 
-      const symlink = vol.root.createChild('mootools.link.js');
+      const symlink = vol._core.root.createChild('mootools.link.js');
       symlink.getNode().makeSymlink('mootools.js');
 
       it('Basic one-jump symlink resolves', done => {
@@ -966,7 +967,7 @@ describe('volume', () => {
     });
     describe('.lstatSync(path)', () => {
       const vol = new Volume();
-      const dojo = vol.root.createChild('dojo.js');
+      const dojo = vol._core.root.createChild('dojo.js');
       const data = '(function(){})();';
       dojo.getNode().setString(data);
 
@@ -1002,7 +1003,7 @@ describe('volume', () => {
     });
     describe('.statSync(path)', () => {
       const vol = new Volume();
-      const dojo = vol.root.createChild('dojo.js');
+      const dojo = vol._core.root.createChild('dojo.js');
       const data = '(function(){})();';
       dojo.getNode().setString(data);
       it('Returns basic file stats', () => {
@@ -1047,7 +1048,7 @@ describe('volume', () => {
     });
     describe('.fstatSync(fd)', () => {
       const vol = new Volume();
-      const dojo = vol.root.createChild('dojo.js');
+      const dojo = vol._core.root.createChild('dojo.js');
       const data = '(function(){})();';
       dojo.getNode().setString(data);
 
@@ -1238,12 +1239,12 @@ describe('volume', () => {
     describe('.mkdirSync(path[, options])', () => {
       it('Create dir at root', () => {
         const vol = new Volume();
-        const oldMtime = vol.root.getNode().mtime;
-        const oldNlink = vol.root.getNode().nlink;
+        const oldMtime = vol._core.root.getNode().mtime;
+        const oldNlink = vol._core.root.getNode().nlink;
         vol.mkdirSync('/test');
-        const newMtime = vol.root.getNode().mtime;
-        const newNlink = vol.root.getNode().nlink;
-        const child = tryGetChild(vol.root, 'test');
+        const newMtime = vol._core.root.getNode().mtime;
+        const newNlink = vol._core.root.getNode().nlink;
+        const child = tryGetChild(vol._core.root, 'test');
         expect(child).toBeInstanceOf(Link);
         expect(child.getNode().isDirectory()).toBe(true);
         expect(oldMtime).not.toBe(newMtime);
@@ -1253,7 +1254,7 @@ describe('volume', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir1');
         vol.mkdirSync('/dir1/dir2');
-        const dir1 = tryGetChild(vol.root, 'dir1');
+        const dir1 = tryGetChild(vol._core.root, 'dir1');
         expect(dir1).toBeInstanceOf(Link);
         expect(dir1.getNode().isDirectory()).toBe(true);
         const dir2 = tryGetChild(dir1, 'dir2');
@@ -1264,7 +1265,7 @@ describe('volume', () => {
       it('Create /dir1/dir2/dir3 recursively', () => {
         const vol = new Volume();
         const fullPath = vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
-        const dir1 = tryGetChild(vol.root, 'dir1');
+        const dir1 = tryGetChild(vol._core.root, 'dir1');
         const dir2 = tryGetChild(dir1, 'dir2');
         const dir3 = tryGetChild(dir2, 'dir3');
         expect(dir1).toBeInstanceOf(Link);
@@ -1313,15 +1314,15 @@ describe('volume', () => {
       it('Remove single dir', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir');
-        expect(tryGetChildNode(vol.root, 'dir').isDirectory()).toBe(true);
+        expect(tryGetChildNode(vol._core.root, 'dir').isDirectory()).toBe(true);
         vol.rmdirSync('/dir');
-        expect(!!vol.root.getChild('dir')).toBe(false);
+        expect(!!vol._core.root.getChild('dir')).toBe(false);
       });
       it('Remove dir /dir1/dir2/dir3 recursively', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
         vol.rmdirSync('/dir1', { recursive: true });
-        expect(!!vol.root.getChild('dir1')).toBe(false);
+        expect(!!vol._core.root.getChild('dir1')).toBe(false);
       });
     });
     describe('.rmdir(path, callback)', () => {
@@ -1330,7 +1331,7 @@ describe('volume', () => {
         const vol = new Volume();
         vol.mkdirSync('/dir1/dir2/dir3', { recursive: true });
         vol.rmdir('/dir1', { recursive: true }, () => {
-          expect(!!vol.root.getChild('dir1')).toBe(false);
+          expect(!!vol._core.root.getChild('dir1')).toBe(false);
           done();
         });
       });

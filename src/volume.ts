@@ -258,7 +258,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.realpathSync.native = realpathSyncImpl as any;
   }
 
-  private wrapAsync(method: (...args) => void, args: any[], callback: misc.TCallback<any>) {
+  private wrapAsync<Args extends any[]>(method: (...args: Args) => void, args: Args, callback: misc.TCallback<any>) {
     validateCallback(callback);
     Promise.resolve().then(() => {
       let result;
@@ -1079,7 +1079,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const len: number = typeof a === 'number' ? a : 0;
     const callback: misc.TCallback<void> = validateCallback(typeof a === 'number' ? b : a);
     if (isFd(id)) return this.ftruncate(id as number, len, callback);
-    this.wrapAsync(this._truncate, [id, len], callback);
+    this.wrapAsync(this._truncate, [id as string, len], callback);
   };
 
   private readonly _futimes = (fd: number, atime: number, mtime: number): void => {
@@ -1198,7 +1198,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   } = (path: PathLike, a: misc.TCallback<void> | opts.IRmdirOptions, b?: misc.TCallback<void>) => {
     const opts: opts.IRmdirOptions = getRmdirOptions(a);
     const callback: misc.TCallback<void> = validateCallback(typeof a === 'function' ? a : b);
-    this.wrapAsync(this._core.rmdir, [pathToFilename(path), opts], callback);
+    this.wrapAsync(this._core.rmdir, [pathToFilename(path), opts.recursive], callback);
   };
 
   public rmSync = (path: PathLike, options?: opts.IRmOptions): void => {

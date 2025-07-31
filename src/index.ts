@@ -1,6 +1,6 @@
-import Stats from './Stats';
-import Dirent from './Dirent';
-import { Volume, StatWatcher, FSWatcher, toUnixTimestamp, IWriteStream } from './volume';
+import Stats from './node/Stats';
+import Dirent from './node/Dirent';
+import { Volume, StatWatcher, FSWatcher, toUnixTimestamp, IWriteStream } from './node/volume';
 import { DirectoryJSON, NestedDirectoryJSON } from './core';
 import { constants } from './constants';
 import type { FsPromisesApi } from './node/types';

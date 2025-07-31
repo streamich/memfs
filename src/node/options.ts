@@ -3,7 +3,7 @@ import { FLAGS, MODE } from './constants';
 import { assertEncoding } from '../encoding';
 import * as misc from './types/misc';
 import { validateCallback } from './util';
-import { IAppendFileOptions } from '../volume';
+import { IAppendFileOptions } from './volume';
 
 const mkdirDefaults: opts.IMkdirOptions = {
   mode: MODE.DIR,

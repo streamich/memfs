@@ -1,5 +1,5 @@
 import { constants } from '../constants';
-import Stats from '../Stats';
+import { Buffer } from '../internal/buffer';
 import type { Link } from './Link';
 import type { Node } from './Node';
 
@@ -61,10 +61,6 @@ export class File {
 
   seekTo(position: number) {
     this.position = position;
-  }
-
-  stats(): Stats<number> {
-    return Stats.build(this.node) as Stats<number>;
   }
 
   write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number | null): number {

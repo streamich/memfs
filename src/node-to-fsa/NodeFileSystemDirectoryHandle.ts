@@ -10,7 +10,7 @@ import {
 } from './util';
 import { NodeFileSystemFileHandle } from './NodeFileSystemFileHandle';
 import type { NodeFsaContext, NodeFsaFs } from './types';
-import type Dirent from '../Dirent';
+import type Dirent from '../node/Dirent';
 import type {
   GetDirectoryHandleOptions,
   GetFileHandleOptions,

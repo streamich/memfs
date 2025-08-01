@@ -1,3 +1,16 @@
+# [4.32.0](https://github.com/streamich/memfs/compare/v4.31.0...v4.32.0) (2025-08-01)
+
+
+### Bug Fixes
+
+* ensure glob APIs use consistent posix paths on all platforms ([a0cff3e](https://github.com/streamich/memfs/commit/a0cff3e8fd267fa77e4f1e6e603118654132e537))
+* resolve merge conflicts and update missing-apis tests ([247302f](https://github.com/streamich/memfs/commit/247302f2bf7451543d94d147262d2d32324c9585))
+
+
+### Features
+
+* implement in-memory Node.js fs glob APIs ([1b57205](https://github.com/streamich/memfs/commit/1b5720519844c3f05824a839c227d1df81e418fc))
+
 # [4.31.0](https://github.com/streamich/memfs/compare/v4.30.1...v4.31.0) (2025-08-01)
 
 

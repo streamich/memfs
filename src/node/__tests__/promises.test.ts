@@ -393,9 +393,15 @@ describe('Promises API', () => {
       const vol = new Volume();
       const { promises } = vol;
       vol.fromJSON({
-        '/foo.ts': 'some content'
+        '/foo.ts': 'some content',
       });
       return expect(promises.appendFile('/foo.ts/bar.ts', '...')).rejects.toHaveProperty('code', 'ENOTDIR');
+    });
+    it('Reject when trying to write to nested path with non-existent parent', () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      vol.fromJSON({});
+      return expect(promises.appendFile('/does/not/exist.ts/bar.ts', '...')).rejects.toHaveProperty('code', 'ENOENT');
     });
   });
   describe('chmod(path, mode)', () => {

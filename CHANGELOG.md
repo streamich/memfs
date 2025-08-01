@@ -1,3 +1,17 @@
+# [4.30.0](https://github.com/streamich/memfs/compare/v4.29.0...v4.30.0) (2025-08-01)
+
+
+### Bug Fixes
+
+* remove implemented APIs from missing-apis tests ([1a5dfbe](https://github.com/streamich/memfs/commit/1a5dfbe11f5b15334382e80a85deec2001c8142b))
+
+
+### Features
+
+* implement fs.openAsBlob method with comprehensive tests ([a85d5fc](https://github.com/streamich/memfs/commit/a85d5fcc3b8fd6071214d4656c7e3354bb0a2cf0))
+* implement statfsSync and statfs functions with StatFs class ([312ce88](https://github.com/streamich/memfs/commit/312ce883bf97469f2387dda8c0573e7509fe49de))
+* move statfs tests to standalone statfs.spec.ts file ([daaf632](https://github.com/streamich/memfs/commit/daaf632bac2e219478a54a6ce2cb7783c27050b3))
+
 # [4.29.0](https://github.com/streamich/memfs/compare/v4.28.1...v4.29.0) (2025-08-01)
 
 

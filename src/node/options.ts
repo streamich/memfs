@@ -108,6 +108,19 @@ export const getStatOptsAndCb: (
 ) => [opts.IStatOptions, misc.TCallback<misc.IStats>] = (options, callback?) =>
   typeof options === 'function' ? [getStatOptions(), options] : [getStatOptions(options), validateCallback(callback)];
 
+const statfsDefaults: opts.IStafsOptions = {
+  bigint: false,
+};
+export const getStatfsOptions: (options?: any) => opts.IStafsOptions = (options = {}) =>
+  Object.assign({}, statfsDefaults, options);
+export const getStatfsOptsAndCb: (
+  options: any,
+  callback?: misc.TCallback<misc.IStatFs>,
+) => [opts.IStafsOptions, misc.TCallback<misc.IStatFs>] = (options, callback?) =>
+  typeof options === 'function'
+    ? [getStatfsOptions(), options]
+    : [getStatfsOptions(options), validateCallback(callback)];
+
 const realpathDefaults: opts.IReadFileOptions = optsDefaults;
 export const getRealpathOptions = optsGenerator<opts.IRealpathOptions>(realpathDefaults);
 export const getRealpathOptsAndCb = optsAndCbGenerator<opts.IRealpathOptions, misc.TDataOut>(getRealpathOptions);

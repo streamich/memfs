@@ -2,6 +2,7 @@ import * as pathModule from 'path';
 import { Link, Superblock } from '../core';
 import Stats from './Stats';
 import Dirent from './Dirent';
+import StatFs from './StatFs';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '../internal/buffer';
 import queueMicrotask from '../queueMicrotask';
 import setTimeoutUnref, { TSetTimeout } from '../setTimeoutUnref';
@@ -32,6 +33,8 @@ import {
   getAppendFileOpts,
   getStatOptsAndCb,
   getStatOptions,
+  getStatfsOptsAndCb,
+  getStatfsOptions,
   getRealpathOptsAndCb,
   getRealpathOptions,
   getWriteFileOptions,
@@ -1442,12 +1445,41 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this._cp, [srcFilename, destFilename, opts_], callback);
   };
 
-  /** @todo Implement statfs */
-  public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
-  /** @todo Implement statfs */
-  public statfs: FsCallbackApi['statfs'] = notImplemented;
-  /** @todo Implement openAsBlob */
-  public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
+  private _statfs(filename: string): StatFs<number>;
+  private _statfs(filename: string, bigint: false): StatFs<number>;
+  private _statfs(filename: string, bigint: true): StatFs<bigint>;
+  private _statfs(filename: string, bigint = false): StatFs {
+    // Verify the path exists to match Node.js behavior
+    this._core.getResolvedLinkOrThrow(filename, 'statfs');
+    return StatFs.build(this._core, bigint);
+  }
+
+  statfsSync(path: PathLike): StatFs<number>;
+  statfsSync(path: PathLike, options: { bigint: false }): StatFs<number>;
+  statfsSync(path: PathLike, options: { bigint: true }): StatFs<bigint>;
+  statfsSync(path: PathLike, options?: opts.IStafsOptions): StatFs {
+    const { bigint = false } = getStatfsOptions(options);
+    return this._statfs(pathToFilename(path), bigint as any);
+  }
+
+  statfs(path: PathLike, callback: misc.TCallback<StatFs>): void;
+  statfs(path: PathLike, options: opts.IStafsOptions, callback: misc.TCallback<StatFs>): void;
+  statfs(path: PathLike, a: misc.TCallback<StatFs> | opts.IStafsOptions, b?: misc.TCallback<StatFs>): void {
+    const [{ bigint = false }, callback] = getStatfsOptsAndCb(a, b);
+    this.wrapAsync(this._statfs, [pathToFilename(path), bigint], callback);
+  }
+
+  public openAsBlob = async (path: PathLike, options?: opts.IOpenAsBlobOptions): Promise<Blob> => {
+    const filename = pathToFilename(path);
+    const link = this._core.getResolvedLinkOrThrow(filename, 'open');
+    const node = link.getNode();
+    if (node.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'open', link.getPath());
+
+    const buffer = node.getBuffer();
+    const type = options?.type || '';
+
+    return new Blob([buffer], { type });
+  };
 
   public glob: FsCallbackApi['glob'] = (pattern: string, ...args: any[]) => {
     const [options, callback] = args.length === 1 ? [{}, args[0]] : [args[0], args[1]];

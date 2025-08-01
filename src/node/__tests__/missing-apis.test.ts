@@ -7,23 +7,14 @@ describe('Missing APIs', () => {
     vol = new Volume();
   });
 
-  describe('openAsBlob API', () => {
-    it('should throw "Not implemented"', () => {
-      expect(() => vol.openAsBlob('/test/file.txt')).toThrow('Not implemented');
-    });
-  });
-
-  describe('statfs APIs', () => {
-    it('statfsSync should throw "Not implemented"', () => {
-      expect(() => vol.statfsSync('/test')).toThrow('Not implemented');
-    });
-
-    it('statfs should throw "Not implemented"', () => {
-      expect(() => vol.statfs('/test', () => {})).toThrow('Not implemented');
-    });
-
-    it('promises.statfs should throw "Not implemented"', async () => {
-      await expect(vol.promises.statfs('/test')).rejects.toThrow('Not implemented');
-    });
+  // All previously missing APIs have been implemented:
+  // - openAsBlob (implemented in master)
+  // - statfs/statfsSync (implemented in master)  
+  // - glob/globSync/promises.glob (implemented in this branch)
+  
+  it('should have no missing APIs', () => {
+    // This test serves as a placeholder to ensure the test file is not empty
+    // When new APIs are added to Node.js fs module, they should be tested here
+    expect(true).toBe(true);
   });
 });

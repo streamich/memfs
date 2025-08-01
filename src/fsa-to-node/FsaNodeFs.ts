@@ -1062,12 +1062,14 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     fd: number,
     buffers: ArrayBufferView[],
     position?: number | null,
-  ): void => {
-    if (buffers.length === 0) return;
-    this.writeSync(fd, buffers[0], 0, buffers[0].byteLength, position);
+  ): number => {
+    if (buffers.length === 0) return 0;
+    let bytesWritten = 0;
+    bytesWritten += this.writeSync(fd, buffers[0], 0, buffers[0].byteLength, position);
     for (let i = 1; i < buffers.length; i++) {
-      this.writeSync(fd, buffers[i], 0, buffers[i].byteLength, null);
+      bytesWritten += this.writeSync(fd, buffers[i], 0, buffers[i].byteLength, null);
     }
+    return bytesWritten;
   };
 
   public readonly fdatasyncSync: FsSynchronousApi['fdatasyncSync'] = noop;

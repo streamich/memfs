@@ -524,9 +524,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     });
   };
 
-  public writevSync = (fd: number, buffers: ArrayBufferView[], position?: number | null): void => {
+  public writevSync = (fd: number, buffers: ArrayBufferView[], position?: number | null): number => {
     validateFd(fd);
-    this.writevBase(fd, buffers, position ?? null);
+    return this.writevBase(fd, buffers, position ?? null);
   };
 
   public writeFileSync = (id: TFileId, data: TData, options?: opts.IWriteFileOptions): void => {

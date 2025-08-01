@@ -1,3 +1,10 @@
+# [4.34.0](https://github.com/streamich/memfs/compare/v4.33.0...v4.34.0) (2025-08-01)
+
+
+### Features
+
+* add ENOTDIR error for files accessed with trailing slash ([83d36f3](https://github.com/streamich/memfs/commit/83d36f388f92904cd45acd62df9230218b94a299))
+
 # [4.33.0](https://github.com/streamich/memfs/compare/v4.32.1...v4.33.0) (2025-08-01)
 
 

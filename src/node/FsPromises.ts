@@ -137,6 +137,7 @@ export class FsPromises implements FsPromisesApi {
   public readonly opendir = promisify(this.fs, 'opendir');
   public readonly statfs = promisify(this.fs, 'statfs');
   public readonly lutimes = promisify(this.fs, 'lutimes');
+  public readonly glob = promisify(this.fs, 'glob');
   public readonly access = promisify(this.fs, 'access');
   public readonly chmod = promisify(this.fs, 'chmod');
   public readonly chown = promisify(this.fs, 'chown');

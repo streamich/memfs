@@ -21,6 +21,7 @@ export interface FsSynchronousApi {
   fsyncSync: (fd: number) => void;
   ftruncateSync: (fd: number, len?: number) => void;
   futimesSync: (fd: number, atime: misc.TTime, mtime: misc.TTime) => void;
+  globSync: (pattern: string, options?: opts.IGlobOptions) => string[];
   lchmodSync: (path: misc.PathLike, mode: misc.TMode) => void;
   lchownSync: (path: misc.PathLike, uid: number, gid: number) => void;
   lutimesSync: (path: misc.PathLike, atime: number | string | Date, time: number | string | Date) => void;

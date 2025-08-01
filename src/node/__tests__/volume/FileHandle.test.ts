@@ -248,6 +248,88 @@ describe('FileHandle', () => {
       const result = await data;
       expect(Buffer.from(result)).toEqual(Buffer.from('hello'));
     });
+
+    it('throws error when called multiple times', async () => {
+      const fs = createFs();
+      fs.writeFileSync('/test', 'hello');
+      const handle = await fs.promises.open('/test', 'r');
+
+      // First call should succeed
+      const stream1 = handle.readableWebStream();
+      expect(stream1).toBeInstanceOf(ReadableStream);
+
+      // Second call should throw
+      expect(() => handle.readableWebStream()).toThrow(
+        'An error will be thrown if this method is called more than once or is called after the FileHandle is closed or closing.',
+      );
+
+      // Clean up the first stream
+      await stream1.cancel();
+      await handle.close();
+    });
+
+    it('allows new readableWebStream after previous stream is consumed', async () => {
+      const fs = createFs();
+      fs.writeFileSync('/test', 'hello');
+      const handle = await fs.promises.open('/test', 'r');
+
+      // First stream - consume it completely
+      const stream1 = handle.readableWebStream();
+      const data1 = await fromStream(stream1);
+      expect(Buffer.from(data1).toString()).toBe('hello');
+
+      // Second call should now succeed since first stream is consumed
+      const stream2 = handle.readableWebStream();
+      expect(stream2).toBeInstanceOf(ReadableStream);
+      const data2 = await fromStream(stream2);
+      expect(Buffer.from(data2).toString()).toBe('hello');
+
+      await handle.close();
+    });
+
+    it('allows new readableWebStream after previous stream is cancelled', async () => {
+      const fs = createFs();
+      fs.writeFileSync('/test', 'hello');
+      const handle = await fs.promises.open('/test', 'r');
+
+      // First stream - cancel it
+      const stream1 = handle.readableWebStream();
+      await stream1.cancel();
+
+      // Second call should succeed since first stream was cancelled
+      const stream2 = handle.readableWebStream();
+      expect(stream2).toBeInstanceOf(ReadableStream);
+      const data2 = await fromStream(stream2);
+      expect(Buffer.from(data2).toString()).toBe('hello');
+
+      await handle.close();
+    });
+
+    it('throws error when called after FileHandle is closed', async () => {
+      const fs = createFs();
+      fs.writeFileSync('/test', 'hello');
+      const handle = await fs.promises.open('/test', 'r');
+
+      await handle.close();
+
+      expect(() => handle.readableWebStream()).toThrow('The FileHandle is closed');
+    });
+
+    it('supports autoClose option', async () => {
+      const fs = createFs();
+      fs.writeFileSync('/test', 'hello');
+      const handle = await fs.promises.open('/test', 'r');
+
+      const stream = handle.readableWebStream({ autoClose: true });
+      const data = await fromStream(stream);
+      expect(Buffer.from(data).toString()).toBe('hello');
+
+      // Give some time for autoClose to take effect
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      // FileHandle should be closed now
+      expect(() => handle.readableWebStream()).toThrow('The FileHandle is closed');
+    });
   });
 
   describe('EventEmitter functionality', () => {

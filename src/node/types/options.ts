@@ -34,6 +34,7 @@ export interface IAppendFileOptions extends IFileOptions {}
 
 export interface IReadableWebStreamOptions {
   type?: 'bytes' | undefined;
+  autoClose?: boolean;
 }
 
 export interface IFileHandleReadStreamOptions {

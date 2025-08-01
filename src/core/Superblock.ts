@@ -219,12 +219,7 @@ export class Superblock {
           throw createError(ERROR_CODE.EACCES, funcName, filename);
         }
       } else {
-        if (i < steps.length) {
-          // On Windows, use ENOENT for consistency with Node.js behavior
-          // On other platforms, use ENOTDIR which is more semantically correct
-          const errorCode = process.platform === 'win32' ? ERROR_CODE.ENOENT : ERROR_CODE.ENOTDIR;
-          throw createError(errorCode, funcName, filename);
-        }
+        if (i < steps.length - 1) throw createError(ERROR_CODE.ENOTDIR, funcName, filename);
       }
 
       curr = curr.getChild(steps[i]) ?? null;
@@ -235,6 +230,7 @@ export class Superblock {
         else return null;
 
       node = curr?.getNode();
+
       // Resolve symlink if we're resolving all symlinks OR if this is an intermediate path component
       // This allows lstat to traverse through symlinks in intermediate directories while not resolving the final component
       if (node.isSymlink() && (resolveSymlinks || i < steps.length - 1)) {
@@ -246,6 +242,16 @@ export class Superblock {
         curr = this.root;
         i = 0;
         continue;
+      }
+
+      // After resolving symlinks, check if it's not a directory and we still have more steps
+      // This handles the case where we try to traverse through a file
+      // Only do this check when we're doing filesystem operations (checkExistence = true)
+      if (checkExistence && !node.isDirectory() && i < steps.length - 1) {
+        // On Windows, use ENOENT for consistency with Node.js behavior
+        // On other platforms, use ENOTDIR which is more semantically correct
+        const errorCode = process.platform === 'win32' ? ERROR_CODE.ENOENT : ERROR_CODE.ENOTDIR;
+        throw createError(errorCode, funcName, filename);
       }
 
       i++;

@@ -378,9 +378,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     });
   };
 
-  public readvSync = (fd: number, buffers: ArrayBufferView[], position: number | null): number => {
+  public readvSync = (fd: number, buffers: ArrayBufferView[], position?: number | null): number => {
     validateFd(fd);
-    return this._core.readv(fd, buffers, position);
+    return this._core.readv(fd, buffers, position ?? null);
   };
 
   private readonly _readfile = (id: TFileId, flagsNum: number, encoding: BufferEncoding): Buffer | string => {
@@ -438,7 +438,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       buffer: Buffer | ArrayBufferView | DataView,
       offset?: number,
       length?: number,
-      position?: number,
+      position?: number | null,
     ): number;
     (fd: number, str: string, position?: number, encoding?: BufferEncoding): number;
   } = (
@@ -524,9 +524,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     });
   };
 
-  public writevSync = (fd: number, buffers: ArrayBufferView[], position: number | null): number => {
+  public writevSync = (fd: number, buffers: ArrayBufferView[], position?: number | null): void => {
     validateFd(fd);
-    return this.writevBase(fd, buffers, position);
+    this.writevBase(fd, buffers, position ?? null);
   };
 
   public writeFileSync = (id: TFileId, data: TData, options?: opts.IWriteFileOptions): void => {

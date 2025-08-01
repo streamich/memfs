@@ -11,6 +11,7 @@ export class FileHandle extends EventEmitter implements IFileHandle {
   private closeResolve?: () => void;
   private closeReject?: (error: Error) => void;
   private position: number = 0;
+  private readableWebStreamLocked: boolean = false;
 
   fd: number;
 
@@ -85,9 +86,8 @@ export class FileHandle extends EventEmitter implements IFileHandle {
   }
 
   readableWebStream(options: opts.IReadableWebStreamOptions = {}): ReadableStream {
-    const { type = 'bytes' } = options;
+    const { type = 'bytes', autoClose = false } = options;
     let position = 0;
-    let locked = false;
 
     if (this.fd === -1) {
       throw new Error('The FileHandle is closed');
@@ -97,18 +97,30 @@ export class FileHandle extends EventEmitter implements IFileHandle {
       throw new Error('The FileHandle is closing');
     }
 
-    if (locked) {
-      throw new Error('The FileHandle is locked');
+    if (this.readableWebStreamLocked) {
+      throw new Error(
+        'An error will be thrown if this method is called more than once or is called after the FileHandle is closed or closing.',
+      );
     }
 
-    locked = true;
+    this.readableWebStreamLocked = true;
     this.ref();
 
+    const unlockAndCleanup = () => {
+      this.readableWebStreamLocked = false;
+      this.unref();
+      if (autoClose) {
+        this.close().catch(() => {
+          // Ignore close errors in cleanup
+        });
+      }
+    };
+
     return new ReadableStream({
-      type: 'bytes',
+      type: type === 'bytes' ? 'bytes' : undefined,
       autoAllocateChunkSize: 16384,
 
-      pull: async controller => {
+      pull: async (controller: any) => {
         try {
           const view = controller.byobRequest?.view;
           if (!view) {
@@ -118,7 +130,7 @@ export class FileHandle extends EventEmitter implements IFileHandle {
 
             if (result.bytesRead === 0) {
               controller.close();
-              this.unref();
+              unlockAndCleanup();
               return;
             }
 
@@ -131,7 +143,7 @@ export class FileHandle extends EventEmitter implements IFileHandle {
 
           if (result.bytesRead === 0) {
             controller.close();
-            this.unref();
+            unlockAndCleanup();
             return;
           }
 
@@ -139,12 +151,12 @@ export class FileHandle extends EventEmitter implements IFileHandle {
           controller.byobRequest.respond(result.bytesRead);
         } catch (error) {
           controller.error(error);
-          this.unref();
+          unlockAndCleanup();
         }
       },
 
       cancel: async () => {
-        this.unref();
+        unlockAndCleanup();
       },
     });
   }

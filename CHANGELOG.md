@@ -1,3 +1,10 @@
+# [4.31.0](https://github.com/streamich/memfs/compare/v4.30.1...v4.31.0) (2025-08-01)
+
+
+### Features
+
+* improve FileHandle.readableWebStream() with proper locking and autoClose support ([1e27b52](https://github.com/streamich/memfs/commit/1e27b52b74e02553f1f44c38616e1d0b750e2d65))
+
 ## [4.30.1](https://github.com/streamich/memfs/compare/v4.30.0...v4.30.1) (2025-08-01)
 
 

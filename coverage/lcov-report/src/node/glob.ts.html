@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/node/Dir.ts</title>
+    <title>Code coverage report for src/node/glob.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/node</a> Dir.ts</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/node</a> glob.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">75.29% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>76/95</span>
+                <span class='fraction'>64/85</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">81.25% </span>
+                <span class="strong">69.23% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>26/32</span>
+                <span class='fraction'>36/52</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">77.77% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>14/18</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">82.41% </span>
+                <span class="strong">74.07% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>75/91</span>
+                <span class='fraction'>60/81</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -241,85 +241,65 @@
 <a name='L176'></a><a href='#L176'>176</a>
 <a name='L177'></a><a href='#L177'>177</a>
 <a name='L178'></a><a href='#L178'>178</a>
-<a name='L179'></a><a href='#L179'>179</a>
-<a name='L180'></a><a href='#L180'>180</a>
-<a name='L181'></a><a href='#L181'>181</a>
-<a name='L182'></a><a href='#L182'>182</a>
-<a name='L183'></a><a href='#L183'>183</a>
-<a name='L184'></a><a href='#L184'>184</a>
-<a name='L185'></a><a href='#L185'>185</a>
-<a name='L186'></a><a href='#L186'>186</a>
-<a name='L187'></a><a href='#L187'>187</a>
-<a name='L188'></a><a href='#L188'>188</a>
-<a name='L189'></a><a href='#L189'>189</a>
-<a name='L190'></a><a href='#L190'>190</a>
-<a name='L191'></a><a href='#L191'>191</a>
-<a name='L192'></a><a href='#L192'>192</a>
-<a name='L193'></a><a href='#L193'>193</a>
-<a name='L194'></a><a href='#L194'>194</a>
-<a name='L195'></a><a href='#L195'>195</a>
-<a name='L196'></a><a href='#L196'>196</a>
-<a name='L197'></a><a href='#L197'>197</a>
-<a name='L198'></a><a href='#L198'>198</a>
-<a name='L199'></a><a href='#L199'>199</a>
-<a name='L200'></a><a href='#L200'>200</a>
-<a name='L201'></a><a href='#L201'>201</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">64x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">64x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">64x</span>
+<a name='L179'></a><a href='#L179'>179</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">64x</span>
-<span class="cline-any cline-yes">21x</span>
-<span class="cline-any cline-yes">21x</span>
-<span class="cline-any cline-yes">21x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">21x</span>
-<span class="cline-any cline-yes">21x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">21x</span>
-<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">83x</span>
+<span class="cline-any cline-yes">83x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">83x</span>
+<span class="cline-any cline-yes">378x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">378x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">93x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">23x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">77x</span>
+<span class="cline-any cline-yes">77x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">93x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -328,340 +308,294 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">83x</span>
+<span class="cline-any cline-yes">83x</span>
+<span class="cline-any cline-yes">83x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">202x</span>
+<span class="cline-any cline-yes">202x</span>
+<span class="cline-any cline-yes">202x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">83x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">83x</span>
+<span class="cline-any cline-yes">83x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">78x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">13x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">27x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">78x</span>
+<span class="cline-any cline-yes">78x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">78x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">77x</span>
+<span class="cline-any cline-yes">77x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">77x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Link } from '../node';
-import { validateCallback } from './util';
-import * as opts from './types/options';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import * as pathModule from 'path';
+import { PathLike } from './types/misc';
+import { IGlobOptions } from './types/options';
+import { pathToFilename } from './util';
 import Dirent from './Dirent';
-import type { IDir, IDirent, TCallback } from './types/misc';
-import * as errors from '../internal/errors';
+&nbsp;
+const { sep, join, relative, resolve } = pathModule.posix;
 &nbsp;
 /**
- * A directory stream, like `fs.Dir`.
+ * Convert a glob pattern to a regular expression
+ * Supports: *, ?, **, [abc], [!abc], [a-z]
  */
-export class Dir implements IDir {
-  private iteratorInfo: IterableIterator&lt;[string, Link | undefined]&gt;[] = [];
-  private closed = false;
-  private operationQueue: Array&lt;() =&gt; void&gt; | null = null;
+function globToRegex(pattern: string): RegExp {
+  let regexStr = '';
+  let i = 0;
 &nbsp;
-  constructor(
-    protected readonly link: Link,
-    protected options: opts.IOpendirOptions,
-  ) {
-    this.path = link.getPath();
-    this.iteratorInfo.push(link.children[Symbol.iterator]());
-  }
+  while (i &lt; pattern.length) {
+    const char = pattern[i];
 &nbsp;
-  private closeBase(): void {
-    // In a real filesystem implementation, this would close file descriptors
-    // For memfs, we just need to mark as closed
-  }
-&nbsp;
-  private readBase(iteratorInfo: IterableIterator&lt;[string, Link | undefined]&gt;[]): IDirent | null {
-    let done: boolean | undefined;
-    let value: [string, Link | undefined];
-    let name: string;
-    let link: Link | undefined;
-    do {
-      do {
-        ({ done, value } = iteratorInfo[iteratorInfo.length - 1].next());
-        if (!done) {
-          [name, link] = value;
-        } else {
-          break;
-        }
-      } while (name === '.' || name === '..');
-      if (done) {
-        iteratorInfo.pop();
-        if (iteratorInfo.length === 0) {
-          break;
-        } else <span class="missing-if-branch" title="else path not taken" >E</span>{
-<span class="cstat-no" title="statement not covered" >          done = false;</span>
-        }
-      } else {
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (this.options.recursive &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >link!.children.size)</span> {
-<span class="cstat-no" title="statement not covered" >          iteratorInfo.push(link!.children[Symbol.iterator]());</span>
-        }
-        return Dirent.build(link!, this.options.encoding);
-      }
-    } while (!done);
-    return null;
-  }
-&nbsp;
-  // ------------------------------------------------------------- IDir
-&nbsp;
-  public readonly path: string;
-&nbsp;
-  close(): Promise&lt;void&gt;;
-  close(callback?: (err?: Error) =&gt; void): void;
-  close(callback?: unknown): void | Promise&lt;void&gt; {
-    // Promise-based close
-    if (callback === undefined) {
-      if (this.closed) {
-        return Promise.reject(new errors.Error('ERR_DIR_CLOSED'));
-      }
-      return new Promise&lt;void&gt;((resolve, reject) =&gt; {
-        this.close(err =&gt; {
-          <span class="missing-if-branch" title="if path not taken" >I</span>if (err) <span class="cstat-no" title="statement not covered" >reject(err);</span>
-          else resolve();
-        });
-      });
-    }
-&nbsp;
-    // Callback-based close
-    validateCallback(callback as (err?: Error) =&gt; void);
-&nbsp;
-    if (this.closed) {
-      process.nextTick(callback as (err?: Error) =&gt; void, new errors.Error('ERR_DIR_CLOSED'));
-      return;
-    }
-&nbsp;
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (this.operationQueue !== null) {
-<span class="cstat-no" title="statement not covered" >      this.operationQueue.push(<span class="fstat-no" title="function not covered" >() =</span>&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        this.close(callback as (err?: Error) =&gt; void);</span>
-      });
-<span class="cstat-no" title="statement not covered" >      return;</span>
-    }
-&nbsp;
-    this.closed = true;
-    try {
-      this.closeBase();
-      process.nextTick(callback as (err?: Error) =&gt; void);
-    } catch (err) {
-<span class="cstat-no" title="statement not covered" >      process.nextTick(callback as (err?: Error) =&gt; void, err);</span>
-    }
-  }
-&nbsp;
-  closeSync(): void {
-    if (this.closed) {
-      throw new errors.Error('ERR_DIR_CLOSED');
-    }
-&nbsp;
-    if (this.operationQueue !== null) {
-      throw new errors.Error('ERR_DIR_CONCURRENT_OPERATION');
-    }
-&nbsp;
-    this.closed = true;
-    this.closeBase();
-  }
-&nbsp;
-  read(): Promise&lt;IDirent | null&gt;;
-  read(callback?: (err: Error | null, dir?: IDirent | null) =&gt; void): void;
-  read(callback?: unknown): void | Promise&lt;IDirent | null&gt; {
-    // Promise-based read
-    if (callback === undefined) {
-      return new Promise&lt;IDirent | null&gt;((resolve, reject) =&gt; {
-        this.read((err, result) =&gt; {
-          if (err) reject(err);
-          else resolve(result ?? null);
-        });
-      });
-    }
-&nbsp;
-    // Callback-based read
-    validateCallback(callback as (err: Error | null, dir?: IDirent | null) =&gt; void);
-&nbsp;
-    if (this.closed) {
-      process.nextTick(
-        callback as (err: Error | null, dir?: IDirent | null) =&gt; void,
-        new errors.Error('ERR_DIR_CLOSED'),
-      );
-      return;
-    }
-&nbsp;
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (this.operationQueue !== null) {
-<span class="cstat-no" title="statement not covered" >      this.operationQueue.push(<span class="fstat-no" title="function not covered" >() =</span>&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        this.read(callback as (err: Error | null, dir?: IDirent | null) =&gt; void);</span>
-      });
-<span class="cstat-no" title="statement not covered" >      return;</span>
-    }
-&nbsp;
-    this.operationQueue = [];
-&nbsp;
-    try {
-      const result = this.readBase(this.iteratorInfo);
-      process.nextTick(() =&gt; {
-        const queue = this.operationQueue;
-        this.operationQueue = null;
-        for (const op of queue!) <span class="cstat-no" title="statement not covered" >op();</span>
-        (callback as (err: Error | null, dir?: IDirent | null) =&gt; void)(null, result);
-      });
-    } catch (err) {
-<span class="cstat-no" title="statement not covered" >      process.nextTick(<span class="fstat-no" title="function not covered" >() =</span>&gt; {</span>
-        const queue = <span class="cstat-no" title="statement not covered" >this.operationQueue;</span>
-<span class="cstat-no" title="statement not covered" >        this.operationQueue = null;</span>
-<span class="cstat-no" title="statement not covered" >        for (const op of queue!) <span class="cstat-no" title="statement not covered" >op();</span></span>
-        (<span class="cstat-no" title="statement not covered" >callback as (err: Error | null, dir?: IDirent | null) =&gt; void)(err);</span>
-      });
-    }
-  }
-&nbsp;
-  readSync(): IDirent | null {
-    if (this.closed) {
-      throw new errors.Error('ERR_DIR_CLOSED');
-    }
-&nbsp;
-    if (this.operationQueue !== null) {
-      throw new errors.Error('ERR_DIR_CONCURRENT_OPERATION');
-    }
-&nbsp;
-    return this.readBase(this.iteratorInfo);
-  }
-&nbsp;
-  [Symbol.asyncIterator](): AsyncIterableIterator&lt;IDirent&gt; {
-    return {
-      next: async () =&gt; {
-        try {
-          const dirEnt = await this.read();
-&nbsp;
-          if (dirEnt !== null) {
-            return { done: false, value: dirEnt };
-          } else {
-            return { done: true, value: undefined };
+    switch (char) {
+      case '*':
+        if (pattern[i + 1] === '*') {
+          // Handle **
+          if (pattern[i + 2] === '/' || <span class="branch-1 cbranch-no" title="branch not covered" >i + 2 === pattern.length)</span> {
+            regexStr += '(?:.*\\/)?'; // Match zero or more directories
+            i += pattern[i + 2] === '/' ? 3 : <span class="branch-1 cbranch-no" title="branch not covered" >2;</span>
+          } else <span class="missing-if-branch" title="else path not taken" >E</span>{
+<span class="cstat-no" title="statement not covered" >            regexStr += '[^/]*'; </span>// Single *
+<span class="cstat-no" title="statement not covered" >            i++;</span>
           }
-        } catch (err) {
-<span class="cstat-no" title="statement not covered" >          throw err;</span>
+        } else {
+          regexStr += '[^/]*'; // Single *
+          i++;
         }
-      },
-<span class="fstat-no" title="function not covered" >      [S</span>ymbol.asyncIterator](): AsyncIterableIterator&lt;IDirent&gt; {
-<span class="cstat-no" title="statement not covered" >        return this;</span>
-      },
-    };
+        break;
+<span class="branch-1 cbranch-no" title="branch not covered" >      case '?':</span>
+<span class="cstat-no" title="statement not covered" >        regexStr += '[^/]';</span>
+<span class="cstat-no" title="statement not covered" >        i++;</span>
+<span class="cstat-no" title="statement not covered" >        break;</span>
+<span class="branch-2 cbranch-no" title="branch not covered" >      case '[':</span>
+<span class="cstat-no" title="statement not covered" >        regexStr += '[';</span>
+<span class="cstat-no" title="statement not covered" >        i++;</span>
+<span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (i &lt; pattern.length &amp;&amp; pattern[i] === '!') {</span>
+<span class="cstat-no" title="statement not covered" >          regexStr += '^';</span>
+<span class="cstat-no" title="statement not covered" >          i++;</span>
+        }
+<span class="cstat-no" title="statement not covered" >        while (i &lt; pattern.length &amp;&amp; pattern[i] !== ']') {</span>
+<span class="cstat-no" title="statement not covered" >          <span class="missing-if-branch" title="if path not taken" >I</span>if (pattern[i] === '\\') {</span>
+<span class="cstat-no" title="statement not covered" >            regexStr += '\\\\';</span>
+<span class="cstat-no" title="statement not covered" >            i++;</span>
+          }
+<span class="cstat-no" title="statement not covered" >          regexStr += pattern[i];</span>
+<span class="cstat-no" title="statement not covered" >          i++;</span>
+        }
+<span class="cstat-no" title="statement not covered" >        regexStr += ']';</span>
+<span class="cstat-no" title="statement not covered" >        i++;</span>
+<span class="cstat-no" title="statement not covered" >        break;</span>
+      case '.':
+      case '^':
+      case '$':
+      case '+':
+      case '{':
+      case '}':
+      case '(':
+      case ')':
+      case '|':
+      case '\\':
+        regexStr += '\\' + char;
+        i++;
+        break;
+      default:
+        regexStr += char;
+        i++;
+        break;
+    }
   }
+&nbsp;
+  return new RegExp('^' + regexStr + '$');
+}
+&nbsp;
+/**
+ * Check if a path matches a glob pattern
+ */
+function matchesPattern(path: string, pattern: string): boolean {
+  const regex = globToRegex(pattern);
+  return regex.test(path);
+}
+&nbsp;
+/**
+ * Check if a path should be excluded based on exclude patterns
+ */
+function isExcluded(path: string, exclude: string | string[] | ((path: string) =&gt; boolean) | undefined): boolean {
+  if (!exclude) return false;
+&nbsp;
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof exclude === 'function') {
+<span class="cstat-no" title="statement not covered" >    return exclude(path);</span>
+  }
+&nbsp;
+  const patterns = Array.isArray(exclude) ? exclude : <span class="branch-1 cbranch-no" title="branch not covered" >[exclude];</span>
+  return patterns.some(pattern =&gt; matchesPattern(path, pattern));
+}
+&nbsp;
+/**
+ * Walk directory tree and collect matching paths
+ */
+function walkDirectory(fs: any, dir: string, patterns: string[], options: IGlobOptions, currentDepth = 0): string[] {
+  const results: string[] = [];
+  const maxDepth = options.maxdepth ?? Infinity;
+  const baseCwd = options.cwd ? pathToFilename(options.cwd as any) : <span class="branch-1 cbranch-no" title="branch not covered" >process.cwd();</span>
+&nbsp;
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (currentDepth &gt; maxDepth) {
+<span class="cstat-no" title="statement not covered" >    return results;</span>
+  }
+&nbsp;
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true }) as Dirent[];
+&nbsp;
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name.toString());
+      const relativePath = relative(baseCwd, fullPath);
+&nbsp;
+      // Skip if excluded
+      if (isExcluded(relativePath, options.exclude)) {
+        continue;
+      }
+&nbsp;
+      // Check if this path matches any pattern
+      const matches = patterns.some(pattern =&gt; matchesPattern(relativePath, pattern));
+      if (matches) {
+        results.push(relativePath);
+      }
+&nbsp;
+      // Recurse into directories
+      if (entry.isDirectory() &amp;&amp; currentDepth &lt; maxDepth) {
+        const subResults = walkDirectory(fs, fullPath, patterns, options, currentDepth + 1);
+        results.push(...subResults);
+      }
+    }
+  } catch (err) {
+    // Skip directories we can't read
+  }
+&nbsp;
+  return results;
+}
+&nbsp;
+/**
+ * Main glob implementation
+ */
+export function globSync(fs: any, pattern: string, options: IGlobOptions = <span class="branch-0 cbranch-no" title="branch not covered" >{})</span>: string[] {
+  const cwd = options.cwd ? pathToFilename(options.cwd as any) : process.cwd();
+  const resolvedCwd = resolve(cwd);
+&nbsp;
+  const globOptions: IGlobOptions = {
+    cwd: resolvedCwd,
+    exclude: options.exclude,
+    maxdepth: options.maxdepth,
+    withFileTypes: options.withFileTypes || false,
+  };
+&nbsp;
+  let results: string[] = [];
+&nbsp;
+  // Handle absolute patterns
+  if (pathModule.posix.isAbsolute(pattern)) {
+    const dir = pathModule.posix.dirname(pattern);
+    const basename = pathModule.posix.basename(pattern);
+    const dirResults = walkDirectory(fs, dir, [basename], { ...globOptions, cwd: dir });
+    results.push(...dirResults.map(r =&gt; pathModule.posix.resolve(dir, r)));
+  } else {
+    // Handle relative patterns
+    const dirResults = walkDirectory(fs, resolvedCwd, [pattern], globOptions);
+    results.push(...dirResults);
+  }
+&nbsp;
+  // Remove duplicates and sort
+  results = [...new Set(results)].sort();
+&nbsp;
+  return results;
 }
 &nbsp;</pre></td></tr></table></pre>
 

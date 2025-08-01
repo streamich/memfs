@@ -1386,8 +1386,10 @@ describe('volume', () => {
         try {
           vol.writeFileSync('/tmp/foo-dir/foo.js', writtenContent);
 
-          expect(mockCallback).toBeCalledTimes(1);
-          expect(mockCallback).toBeCalledWith('rename', 'foo.js');
+          expect(mockCallback).toBeCalledTimes(3);
+          expect(mockCallback).nthCalledWith(1, 'rename', 'foo.js');
+          expect(mockCallback).nthCalledWith(2, 'change', 'foo.js');
+          expect(mockCallback).nthCalledWith(3, 'change', 'foo.js');
         } finally {
           watcher.close();
         }
@@ -1442,13 +1444,15 @@ describe('volume', () => {
 
           setTimeout(() => {
             watcher.close();
-            expect(listener).toBeCalledTimes(6);
+            expect(listener).toBeCalledTimes(8);
             expect(listener).nthCalledWith(1, 'change', 'lol.txt');
             expect(listener).nthCalledWith(2, 'change', 'lol.txt');
             expect(listener).nthCalledWith(3, 'rename', 'test/lol.txt');
-            expect(listener).nthCalledWith(4, 'rename', 'lol.txt');
-            expect(listener).nthCalledWith(5, 'rename', 'test/lol.txt');
-            expect(listener).nthCalledWith(6, 'rename', 'test/foo');
+            expect(listener).nthCalledWith(4, 'change', 'test/lol.txt');
+            expect(listener).nthCalledWith(5, 'change', 'test/lol.txt');
+            expect(listener).nthCalledWith(6, 'rename', 'lol.txt');
+            expect(listener).nthCalledWith(7, 'rename', 'test/lol.txt');
+            expect(listener).nthCalledWith(8, 'rename', 'test/foo');
             done();
           }, 10);
         });
@@ -1474,6 +1478,28 @@ describe('volume', () => {
             done();
           }, 10);
         });
+      });
+      it('Calls listener for file created immediately after directory creation', done => {
+        const vol = new Volume();
+        vol.mkdirSync('/watched', { recursive: true });
+
+        const listener = jest.fn();
+        const watcher = vol.watch('/watched', { recursive: true }, listener);
+
+        // Create directory and immediately create file inside it
+        vol.mkdirSync('/watched/new_dir', { recursive: true });
+        vol.writeFileSync('/watched/new_dir/new_file', 'content');
+
+        setTimeout(() => {
+          watcher.close();
+
+          // Should have at least 3 events: directory creation, file creation, file change
+          expect(listener).toHaveBeenCalledWith('rename', 'new_dir');
+          expect(listener).toHaveBeenCalledWith('rename', 'new_dir/new_file');
+          expect(listener).toHaveBeenCalledWith('change', 'new_dir/new_file');
+
+          done();
+        }, 10);
       });
     });
     describe('.watchFile(path[, options], listener)', () => {

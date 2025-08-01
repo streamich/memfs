@@ -200,6 +200,17 @@ export interface IOpenAsBlobOptions {
   type?: string;
 }
 
+export interface IGlobOptions {
+  /** Current working directory. */
+  cwd?: string | URL;
+  /** Exclude patterns. */
+  exclude?: string | string[];
+  /** Maximum search depth. */
+  maxdepth?: number;
+  /** Whether to include symbolic links. */
+  withFileTypes?: boolean;
+}
+
 export interface IOpendirOptions extends IOptions {
   /**
    * Number of directory entries that are buffered internally when reading from

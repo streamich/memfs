@@ -1468,8 +1468,24 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const [{ bigint = false }, callback] = getStatfsOptsAndCb(a, b);
     this.wrapAsync(this._statfs, [pathToFilename(path), bigint], callback);
   }
-  /** @todo Implement openAsBlob */
-  public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
+
+  public openAsBlob = async (path: PathLike, options?: opts.IOpenAsBlobOptions): Promise<Blob> => {
+    const filename = pathToFilename(path);
+    const link = this._core.getResolvedLinkOrThrow(filename, 'open');
+    const node = link.getNode();
+    if (node.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'open', link.getPath());
+
+    const buffer = node.getBuffer();
+    const type = options?.type || '';
+
+    return new Blob([buffer], { type });
+  };
+
+  /** @todo Implement glob */
+  public glob: FsCallbackApi['glob'] = notImplemented;
+
+  /** @todo Implement globSync */
+  public globSync: FsSynchronousApi['globSync'] = notImplemented;
 
   private readonly _opendir = (filename: string, options: opts.IOpendirOptions): Dir => {
     const link: Link = this._core.getResolvedLinkOrThrow(filename, 'scandir');

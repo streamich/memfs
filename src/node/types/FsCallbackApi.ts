@@ -42,6 +42,10 @@ export interface FsCallbackApi {
     (fd: number, len: number, callback: misc.TCallback<void>): void;
   };
   futimes: (fd: number, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>) => void;
+  glob: {
+    (pattern: string, callback: misc.TCallback<string[]>): void;
+    (pattern: string, options: opts.IGlobOptions, callback: misc.TCallback<string[]>): void;
+  };
   lchmod: (path: misc.PathLike, mode: misc.TMode, callback: misc.TCallback<void>) => void;
   lchown: (path: misc.PathLike, uid: number, gid: number, callback: misc.TCallback<void>) => void;
   lutimes: (

@@ -1,3 +1,10 @@
+# [4.29.0](https://github.com/streamich/memfs/compare/v4.28.1...v4.29.0) (2025-08-01)
+
+
+### Features
+
+* add missing Node.js fs APIs with proper TypeScript types and stubs ([280f317](https://github.com/streamich/memfs/commit/280f31701a219deed4b131c573e5fbd14cc50912))
+
 ## [4.28.1](https://github.com/streamich/memfs/compare/v4.28.0...v4.28.1) (2025-08-01)
 
 

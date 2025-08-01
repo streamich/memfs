@@ -394,9 +394,19 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (userOwnsFd) fd = id as number;
     else {
       const filename = pathToFilename(id as PathLike);
+      // Check if original path had trailing slash (indicates directory intent)
+      const originalPath = String(id);
+      const hasTrailingSlash = originalPath.length > 1 && originalPath.endsWith('/');
+
       const link = this._core.getResolvedLinkOrThrow(filename, 'open');
       const node = link.getNode();
       if (node.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'open', link.getPath());
+
+      // If path had trailing slash but resolved to a file, throw ENOTDIR
+      if (hasTrailingSlash && node.isFile()) {
+        throw createError(ERROR_CODE.ENOTDIR, 'open', originalPath);
+      }
+
       fd = this.openSync(id as PathLike, flagsNum);
     }
     try {

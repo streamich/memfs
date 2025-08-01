@@ -2014,12 +2014,10 @@ export class FSWatcher extends EventEmitter {
       const onLinkChildAdd = (l: Link) => {
         this.emit('change', 'rename', relative(this._filename, l.getPath()));
 
-        setTimeout(() => {
-          // 1. watch changes of the new link-node
-          watchLinkNodeChanged(l);
-          // 2. watch changes of the new link-node's children
-          watchLinkChildrenChanged(l);
-        });
+        // 1. watch changes of the new link-node
+        watchLinkNodeChanged(l);
+        // 2. watch changes of the new link-node's children
+        watchLinkChildrenChanged(l);
       };
 
       // when a new link deleted

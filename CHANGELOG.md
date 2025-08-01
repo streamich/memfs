@@ -1,3 +1,12 @@
+## [4.30.1](https://github.com/streamich/memfs/compare/v4.30.0...v4.30.1) (2025-08-01)
+
+
+### Bug Fixes
+
+* add missing name check in FsaNodeSyncWorker.getFileOrDir for root directory ([fcdd81e](https://github.com/streamich/memfs/commit/fcdd81e354918c6fb475d2da8b61bf18f7ddc5e2))
+* allow lstat to traverse intermediate symlinks ([733eb2c](https://github.com/streamich/memfs/commit/733eb2c3ac2238370ab8bceb3059b89ade90afd0))
+* statSync("/") error in FsaNodeSyncAdapterWorker ([bd831a6](https://github.com/streamich/memfs/commit/bd831a69d172dd32765d4ac8c11e1451e5b5378e))
+
 # [4.30.0](https://github.com/streamich/memfs/compare/v4.29.0...v4.30.0) (2025-08-01)
 
 

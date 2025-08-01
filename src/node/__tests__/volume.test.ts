@@ -1097,6 +1097,7 @@ describe('volume', () => {
     describe('.fstat(fd, callback)', () => {
       xit('...', () => {});
     });
+
     describe('.linkSync(existingPath, newPath)', () => {
       const vol = new Volume();
       it('Create a new link', () => {

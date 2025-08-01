@@ -1000,6 +1000,22 @@ describe('volume', () => {
         expect(stats.isFile()).toBe(false);
         expect(stats.size).toBe(0);
       });
+      it('Can lstat intermediate directories through symlinks', () => {
+        // Create directory structure: /target/subDir/test.txt
+        vol.mkdirSync('/target/subDir', { recursive: true });
+        vol.writeFileSync('/target/subDir/test.txt', 'Hello World');
+
+        // Create symlink: /link -> /target
+        vol.symlinkSync('/target', '/link');
+
+        // lstat should be able to access intermediate directory through symlink
+        const stats = vol.lstatSync('/link/subDir');
+        expect(stats.isDirectory()).toBe(true);
+        expect(stats.isSymbolicLink()).toBe(false);
+
+        // Also verify the file exists through the symlink
+        expect(vol.existsSync('/link/subDir/test.txt')).toBe(true);
+      });
     });
     describe('.lstat(path, callback)', () => {
       xit('...', () => {});

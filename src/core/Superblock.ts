@@ -230,8 +230,9 @@ export class Superblock {
         else return null;
 
       node = curr?.getNode();
-      // Resolve symlink
-      if (resolveSymlinks && node.isSymlink()) {
+      // Resolve symlink if we're resolving all symlinks OR if this is an intermediate path component
+      // This allows lstat to traverse through symlinks in intermediate directories while not resolving the final component
+      if (node.isSymlink() && (resolveSymlinks || i < steps.length - 1)) {
         const resolvedPath = NodePath.isAbsolute(node.symlink)
           ? node.symlink
           : join(NodePath.dirname(curr.getPath()), node.symlink); // Relative to symlink's parent

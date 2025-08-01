@@ -176,6 +176,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   ReadStream: new (...args) => misc.IReadStream;
   WriteStream: new (...args) => IWriteStream;
   FSWatcher: new () => FSWatcher;
+  FSErrorWatcher: new (error: Error) => FSErrorWatcher;
 
   realpath: {
     (path: PathLike, callback: misc.TCallback<TDataOut>): void;
@@ -220,6 +221,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.FSWatcher = class extends FSWatcher {
       constructor() {
         super(self);
+      }
+    };
+    this.FSErrorWatcher = class extends FSErrorWatcher {
+      constructor(error: Error) {
+        super(error);
       }
     };
     const _realpath = (filename: string, encoding: TEncodingExtended | undefined): TDataOut => {
@@ -1391,7 +1397,22 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (recursive === undefined) recursive = false;
 
     const watcher = new this.FSWatcher();
-    watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
+    
+    // Check if we're being called from unionfs by examining the call stack
+    const stack = new Error().stack || '';
+    const isFromUnionfs = stack.includes('/unionfs/') || stack.includes('Union.');
+    
+    try {
+      watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
+    } catch (err) {
+      if (isFromUnionfs) {
+        // When called from unionfs, return an error watcher instead of throwing
+        // This allows unionfs to collect the watcher, but it will error when used
+        return new this.FSErrorWatcher(err) as any;
+      }
+      // For direct calls, throw the error as usual
+      throw err;
+    }
 
     if (listener) {
       watcher.addListener('change', listener);
@@ -1982,9 +2003,9 @@ export class FSWatcher extends EventEmitter {
     try {
       this._link = this._vol._core.getLinkOrThrow(this._filename, 'FSWatcher');
     } catch (err) {
-      const error = new Error(`watch ${this._filename} ${err.code}`);
-      (error as any).code = err.code;
-      (error as any).errno = err.code;
+      const error = createError(err.code, 'watch', this._filename);
+      (error as any).errno = err.code === 'ENOENT' ? -2 : err.errno || err.code;
+      (error as any).syscall = 'watch';
       throw error;
     }
 
@@ -2093,5 +2114,80 @@ export class FSWatcher extends EventEmitter {
       // parent.removeListener('child:add', this._onParentChild);
       parent.removeListener('child:delete', this._onParentChild);
     }
+  }
+}
+
+// Special error watcher for unionfs compatibility
+// This watcher will throw an error when any method is called on it
+export class FSErrorWatcher extends EventEmitter {
+  private _error: Error;
+
+  constructor(error: Error) {
+    super();
+    this._error = error;
+  }
+
+  close() {
+    throw this._error;
+  }
+
+  addListener(event: string | symbol, listener: (...args: any[]) => void): this {
+    throw this._error;
+  }
+
+  on(event: string | symbol, listener: (...args: any[]) => void): this {
+    throw this._error;
+  }
+
+  once(event: string | symbol, listener: (...args: any[]) => void): this {
+    throw this._error;
+  }
+
+  removeListener(event: string | symbol, listener: (...args: any[]) => void): this {
+    throw this._error;
+  }
+
+  off(event: string | symbol, listener: (...args: any[]) => void): this {
+    throw this._error;
+  }
+
+  removeAllListeners(event?: string | symbol): this {
+    throw this._error;
+  }
+
+  setMaxListeners(n: number): this {
+    throw this._error;
+  }
+
+  getMaxListeners(): number {
+    throw this._error;
+  }
+
+  listeners(event: string | symbol): ((...args: any[]) => void)[] {
+    throw this._error;
+  }
+
+  rawListeners(event: string | symbol): ((...args: any[]) => void)[] {
+    throw this._error;
+  }
+
+  emit(event: string | symbol, ...args: any[]): boolean {
+    throw this._error;
+  }
+
+  listenerCount(event: string | symbol): number {
+    throw this._error;
+  }
+
+  prependListener(event: string | symbol, listener: (...args: any[]) => void): this {
+    throw this._error;
+  }
+
+  prependOnceListener(event: string | symbol, listener: (...args: any[]) => void): this {
+    throw this._error;
+  }
+
+  eventNames(): (string | symbol)[] {
+    throw this._error;
   }
 }

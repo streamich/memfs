@@ -575,6 +575,13 @@ onlyOnNode20('FsaNodeFs', () => {
       expect(stats.isDirectory()).toBe(true);
     });
 
+    test('can stat root directory', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const stats = await fs.promises.stat('/');
+      expect(stats.isFile()).toBe(false);
+      expect(stats.isDirectory()).toBe(true);
+    });
+
     test('throws on non-existing path', async () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       try {

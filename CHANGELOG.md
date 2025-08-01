@@ -1,3 +1,10 @@
+## [4.32.1](https://github.com/streamich/memfs/compare/v4.32.0...v4.32.1) (2025-08-01)
+
+
+### Bug Fixes
+
+* remove setTimeout to capture immediate file events in watched directories ([6cda8d5](https://github.com/streamich/memfs/commit/6cda8d51d725818ea8b88d94b988124f99e62400))
+
 # [4.32.0](https://github.com/streamich/memfs/compare/v4.31.0...v4.32.0) (2025-08-01)
 
 

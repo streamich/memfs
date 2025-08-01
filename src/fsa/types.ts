@@ -124,3 +124,36 @@ export type Data =
   | DataView
   | Blob
   | string;
+
+// Missing types from WHATWG File System API specification
+
+export type FileSystemHandleKind = 'file' | 'directory';
+
+export type WellKnownDirectory = 'desktop' | 'documents' | 'downloads' | 'music' | 'pictures' | 'videos';
+
+export interface FilePickerAcceptType {
+  description?: string;
+  accept: Record<string, string | string[]>;
+}
+
+export interface OpenFilePickerOptions {
+  multiple?: boolean;
+  excludeAcceptAllOption?: boolean;
+  types?: FilePickerAcceptType[];
+  startIn?: WellKnownDirectory | IFileSystemHandle;
+  id?: string;
+}
+
+export interface SaveFilePickerOptions {
+  excludeAcceptAllOption?: boolean;
+  types?: FilePickerAcceptType[];
+  startIn?: WellKnownDirectory | IFileSystemHandle;
+  id?: string;
+  suggestedName?: string;
+}
+
+export interface DirectoryPickerOptions {
+  startIn?: WellKnownDirectory | IFileSystemHandle;
+  id?: string;
+  mode?: 'read' | 'readwrite';
+}

@@ -9,6 +9,8 @@ export * from './CoreFileSystemFileHandle';
 export * from './CoreFileSystemSyncAccessHandle';
 export * from './CoreFileSystemWritableFileStream';
 export * from './CorePermissionStatus';
+export * from './global';
+export * from './extensions';
 
 /**
  * Creates a File System Access API implementation on top of a Superblock.

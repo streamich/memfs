@@ -1446,8 +1446,17 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   public statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
   /** @todo Implement statfs */
   public statfs: FsCallbackApi['statfs'] = notImplemented;
-  /** @todo Implement openAsBlob */
-  public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
+  public openAsBlob = async (path: PathLike, options?: opts.IOpenAsBlobOptions): Promise<Blob> => {
+    const filename = pathToFilename(path);
+    const link = this._core.getResolvedLinkOrThrow(filename, 'open');
+    const node = link.getNode();
+    if (node.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'open', link.getPath());
+
+    const buffer = node.getBuffer();
+    const type = options?.type || '';
+
+    return new Blob([buffer], { type });
+  };
 
   /** @todo Implement glob */
   public glob: FsCallbackApi['glob'] = notImplemented;

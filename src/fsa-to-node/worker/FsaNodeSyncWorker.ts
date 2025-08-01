@@ -94,6 +94,7 @@ export class FsaNodeSyncWorker {
     create?: boolean,
   ): Promise<fsa.IFileSystemFileHandle | fsa.IFileSystemDirectoryHandle> {
     const dir = await this.getDir(path, false, funcName);
+    if (!name) return dir;
     try {
       const file = await dir.getFileHandle(name);
       return file;

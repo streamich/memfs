@@ -1481,11 +1481,19 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return new Blob([buffer], { type });
   };
 
-  /** @todo Implement glob */
-  public glob: FsCallbackApi['glob'] = notImplemented;
+  public glob: FsCallbackApi['glob'] = (pattern: string, ...args: any[]) => {
+    const [options, callback] = args.length === 1 ? [{}, args[0]] : [args[0], args[1]];
+    this.wrapAsync(this._globSync, [pattern, options || {}], callback);
+  };
 
-  /** @todo Implement globSync */
-  public globSync: FsSynchronousApi['globSync'] = notImplemented;
+  public globSync: FsSynchronousApi['globSync'] = (pattern: string, options: opts.IGlobOptions = {}) => {
+    return this._globSync(pattern, options);
+  };
+
+  private readonly _globSync = (pattern: string, options: opts.IGlobOptions = {}): string[] => {
+    const { globSync } = require('./glob');
+    return globSync(this, pattern, options);
+  };
 
   private readonly _opendir = (filename: string, options: opts.IOpendirOptions): Dir => {
     const link: Link = this._core.getResolvedLinkOrThrow(filename, 'scandir');

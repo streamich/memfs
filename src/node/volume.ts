@@ -1449,6 +1449,12 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   /** @todo Implement openAsBlob */
   public openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
 
+  /** @todo Implement glob */
+  public glob: FsCallbackApi['glob'] = notImplemented;
+
+  /** @todo Implement globSync */
+  public globSync: FsSynchronousApi['globSync'] = notImplemented;
+
   private readonly _opendir = (filename: string, options: opts.IOpendirOptions): Dir => {
     const link: Link = this._core.getResolvedLinkOrThrow(filename, 'scandir');
     const node = link.getNode();

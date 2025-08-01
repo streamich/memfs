@@ -801,6 +801,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly opendir: FsCallbackApi['opendir'] = notImplemented;
   public readonly readv: FsCallbackApi['readv'] = notImplemented;
   public readonly statfs: FsCallbackApi['statfs'] = notImplemented;
+  public readonly glob: FsCallbackApi['glob'] = notImplemented;
 
   /**
    * @todo Watchers could be implemented in the future on top of `FileSystemObserver`,
@@ -1088,6 +1089,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly opendirSync: FsSynchronousApi['opendirSync'] = notImplemented;
   public readonly statfsSync: FsSynchronousApi['statfsSync'] = notImplemented;
   public readonly readvSync: FsSynchronousApi['readvSync'] = notImplemented;
+  public readonly globSync: FsSynchronousApi['globSync'] = notImplemented;
 
   public readonly symlinkSync: FsSynchronousApi['symlinkSync'] = notSupported;
   public readonly linkSync: FsSynchronousApi['linkSync'] = notSupported;

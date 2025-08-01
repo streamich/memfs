@@ -1397,11 +1397,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (recursive === undefined) recursive = false;
 
     const watcher = new this.FSWatcher();
-    
+
     // Check if we're being called from unionfs by examining the call stack
     const stack = new Error().stack || '';
     const isFromUnionfs = stack.includes('/unionfs/') || stack.includes('Union.');
-    
+
     try {
       watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
     } catch (err) {

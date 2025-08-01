@@ -1478,11 +1478,11 @@ describe('volume', () => {
 
       it('should throw ENOENT error when watching non-existent path', () => {
         const vol = new Volume();
-        
+
         expect(() => {
           vol.watch('/nonexistent/path');
         }).toThrow();
-        
+
         expect(() => {
           vol.watch('/nonexistent/path');
         }).toThrow(/ENOENT/);
@@ -1490,21 +1490,22 @@ describe('volume', () => {
 
       it('should return error watcher when called from unionfs context', () => {
         const vol = new Volume();
-        
+
         // Simulate unionfs call by creating a fake unionfs stack trace
         const originalStackTrace = Error.prepareStackTrace;
-        Error.prepareStackTrace = () => 'Error\n    at Union.watch (/fake/path/unionfs/lib/union.js:215:48)\n    at test';
-        
+        Error.prepareStackTrace = () =>
+          'Error\n    at Union.watch (/fake/path/unionfs/lib/union.js:215:48)\n    at test';
+
         try {
           const watcher = vol.watch('/nonexistent/path');
           expect(watcher).toBeDefined();
           expect(typeof watcher).toBe('object');
-          
+
           // The watcher should throw when any method is called
           expect(() => {
             watcher.close();
           }).toThrow(/ENOENT/);
-          
+
           expect(() => {
             watcher.addListener('change', () => {});
           }).toThrow(/ENOENT/);

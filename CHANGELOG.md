@@ -1,3 +1,11 @@
+## [4.28.1](https://github.com/streamich/memfs/compare/v4.28.0...v4.28.1) (2025-08-01)
+
+
+### Bug Fixes
+
+* correct writevSync return type to number per Node.js documentation ([d7720c3](https://github.com/streamich/memfs/commit/d7720c34bf021912167897de0aeae8fcc41a5481))
+* make position parameter optional in readvSync, writeSync, and writevSync methods ([3e4ccc6](https://github.com/streamich/memfs/commit/3e4ccc6599cb297d134965eb43723db7e3c81cb7))
+
 # [4.28.0](https://github.com/streamich/memfs/compare/v4.27.0...v4.28.0) (2025-07-31)
 
 

@@ -4,7 +4,7 @@ import { IGlobOptions } from './types/options';
 import { pathToFilename } from './util';
 import Dirent from './Dirent';
 
-const { sep, join, relative, resolve } = pathModule.posix ? pathModule.posix : pathModule;
+const { sep, join, relative, resolve } = pathModule.posix;
 
 /**
  * Convert a glob pattern to a regular expression
@@ -160,11 +160,11 @@ export function globSync(fs: any, pattern: string, options: IGlobOptions = {}): 
   let results: string[] = [];
 
   // Handle absolute patterns
-  if (pathModule.isAbsolute(pattern)) {
-    const dir = pathModule.dirname(pattern);
-    const basename = pathModule.basename(pattern);
+  if (pathModule.posix.isAbsolute(pattern)) {
+    const dir = pathModule.posix.dirname(pattern);
+    const basename = pathModule.posix.basename(pattern);
     const dirResults = walkDirectory(fs, dir, [basename], { ...globOptions, cwd: dir });
-    results.push(...dirResults.map(r => pathModule.resolve(dir, r)));
+    results.push(...dirResults.map(r => pathModule.posix.resolve(dir, r)));
   } else {
     // Handle relative patterns
     const dirResults = walkDirectory(fs, resolvedCwd, [pattern], globOptions);

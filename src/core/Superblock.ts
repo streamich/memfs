@@ -219,7 +219,12 @@ export class Superblock {
           throw createError(ERROR_CODE.EACCES, funcName, filename);
         }
       } else {
-        if (i < steps.length - 1) throw createError(ERROR_CODE.ENOTDIR, funcName, filename);
+        if (i < steps.length) {
+          // On Windows, use ENOENT for consistency with Node.js behavior
+          // On other platforms, use ENOTDIR which is more semantically correct
+          const errorCode = process.platform === 'win32' ? ERROR_CODE.ENOENT : ERROR_CODE.ENOTDIR;
+          throw createError(errorCode, funcName, filename);
+        }
       }
 
       curr = curr.getChild(steps[i]) ?? null;

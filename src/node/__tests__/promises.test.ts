@@ -389,6 +389,14 @@ describe('Promises API', () => {
       });
       return expect(promises.appendFile('/foo', 'bar')).rejects.toBeInstanceOf(Error);
     });
+    it('Reject when trying to write on a file with non existing parental directory containing dots', () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      vol.fromJSON({
+        '/foo.ts': 'some content'
+      });
+      return expect(promises.appendFile('/foo.ts/bar.ts', '...')).rejects.toHaveProperty('code', 'ENOTDIR');
+    });
   });
   describe('chmod(path, mode)', () => {
     const vol = new Volume();

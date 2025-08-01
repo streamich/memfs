@@ -82,5 +82,5 @@ export interface FsSynchronousApi {
     ): number;
     (fd: number, str: string, position?: number, encoding?: BufferEncoding): number;
   };
-  writevSync: (fd: number, buffers: ArrayBufferView[], position?: number | null) => void;
+  writevSync: (fd: number, buffers: ArrayBufferView[], position?: number | null) => number;
 }

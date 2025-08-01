@@ -16,12 +16,6 @@ These APIs are defined with proper TypeScript types but currently throw "Not imp
 
 - `fs.openAsBlob(path[, options])` - Open a file as a Blob object for web API compatibility
 
-### Pattern Matching (Node.js 20+)
-
-- `fs.glob(pattern[, options], callback)` - Find files matching a glob pattern
-- `fs.globSync(pattern[, options])` - Synchronous version of glob
-- `fs.promises.glob(pattern[, options])` - Promise-based glob
-
 ## Implementation Status
 
 ### ✅ Fully Implemented APIs
@@ -36,12 +30,12 @@ All core Node.js fs APIs are implemented including:
 - Streams (createReadStream, createWriteStream)
 - File copying (copyFile, cp)
 - File truncation (truncate, ftruncate)
+- **Pattern matching (glob, globSync, promises.glob)** - Node.js 20+
 
 ### 🚧 Stubbed APIs (not implemented)
 
 - `statfs` / `statfsSync` - File system statistics
 - `openAsBlob` - Open file as Blob
-- `glob` / `globSync` - Pattern matching
 
 ## Usage
 
@@ -52,7 +46,7 @@ const { Volume } = require('memfs');
 const vol = new Volume();
 
 try {
-  vol.globSync('*.js');
+  vol.statfsSync('/test');
 } catch (err) {
   console.log(err.message); // "Not implemented"
 }

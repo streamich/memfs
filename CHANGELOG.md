@@ -1,3 +1,18 @@
+# [4.35.0](https://github.com/streamich/memfs/compare/v4.34.0...v4.35.0) (2025-08-02)
+
+
+### Bug Fixes
+
+* directory timestamp handling - correctly distinguish access vs modification operations ([db0e6ce](https://github.com/streamich/memfs/commit/db0e6ceb1925529d71803de0f480665c627cf3c4))
+* increase setTimeout delay in directory timestamp tests from 1ms to 10ms to improve reliability on Mac systems ([65051af](https://github.com/streamich/memfs/commit/65051af4b3f03e304cba88f960a89c5f321cf978))
+
+
+### Features
+
+* add comprehensive test coverage for appendFile path validation ([0baa763](https://github.com/streamich/memfs/commit/0baa7638d97fd3374abd86fe2fde9c796e502dae))
+* add test case for appendFile with dots in path ([ab544ca](https://github.com/streamich/memfs/commit/ab544caac21edac56ad4df3ee7387932835137ed))
+* fix directory timestamp handling - correctly distinguish access vs modification operations ([5d88334](https://github.com/streamich/memfs/commit/5d88334f24aaf67c6cef758f2d4760e51b6c1369))
+
 # [4.34.0](https://github.com/streamich/memfs/compare/v4.33.0...v4.34.0) (2025-08-01)
 
 

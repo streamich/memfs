@@ -14,7 +14,7 @@ describe('Directory timestamp behavior', () => {
       const beforeMtime = (await fs.promises.stat('/test')).mtime;
 
       // Minimal delay to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       await fs.promises.writeFile('/test/newfile.txt', 'new content');
       const afterMtime = (await fs.promises.stat('/test')).mtime;
@@ -27,7 +27,7 @@ describe('Directory timestamp behavior', () => {
       const beforeMtime = (await fs.promises.stat('/test')).mtime;
 
       // Minimal delay to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       await fs.promises.mkdir('/test/subdir');
       const afterMtime = (await fs.promises.stat('/test')).mtime;
@@ -40,7 +40,7 @@ describe('Directory timestamp behavior', () => {
       const beforeMtime = (await fs.promises.stat('/test')).mtime;
 
       // Minimal delay to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       await fs.promises.unlink('/test/file.txt');
       const afterMtime = (await fs.promises.stat('/test')).mtime;
@@ -54,7 +54,7 @@ describe('Directory timestamp behavior', () => {
       const beforeMtime = (await fs.promises.stat('/test')).mtime;
 
       // Minimal delay to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       await fs.promises.rename('/source.txt', '/test/moved.txt');
       const afterMtime = (await fs.promises.stat('/test')).mtime;
@@ -89,7 +89,7 @@ describe('Directory timestamp behavior', () => {
       const beforeAtime = (await fs.promises.stat('/test')).atime;
 
       // Minimal delay to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       await fs.promises.readdir('/test');
       const afterAtime = (await fs.promises.stat('/test')).atime;
@@ -102,7 +102,7 @@ describe('Directory timestamp behavior', () => {
       const beforeAtime = (await fs.promises.stat('/test')).atime;
 
       // Minimal delay to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       await fs.promises.stat('/test/file.txt');
       const afterAtime = (await fs.promises.stat('/test')).atime;

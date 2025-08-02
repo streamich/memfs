@@ -106,7 +106,6 @@ export class Link extends EventEmitter {
   }
 
   getChild(name: string): Link | undefined {
-    this.getNode().mtime = new Date();
     return this.children.get(name);
   }
 

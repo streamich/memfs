@@ -18,12 +18,21 @@ let rootId = 0;
 
 export class FsaNodeSyncAdapterWorker implements FsaNodeSyncAdapter {
   public static async start(
-    url: string,
+    urlOrWorker: string | Worker,
     dir: fsa.IFileSystemDirectoryHandle | Promise<fsa.IFileSystemDirectoryHandle>,
   ): Promise<FsaNodeSyncAdapterWorker> {
-    const worker = new Worker(url);
+    let worker: Worker;
+    if (typeof urlOrWorker === 'string') {
+      if (urlOrWorker.includes('type=module')) {
+        worker = new Worker(urlOrWorker, { type: 'module' });
+      } else {
+        worker = new Worker(urlOrWorker);
+      }
+    } else {
+      worker = urlOrWorker;
+    }
     const future = new Defer<FsaNodeSyncAdapterWorker>();
-    let id = rootId++;
+    const id = rootId++;
     let messenger: SyncMessenger | undefined = undefined;
     const _dir = await dir;
     worker.onmessage = e => {

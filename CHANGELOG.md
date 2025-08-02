@@ -1,3 +1,29 @@
+# [4.34.0](https://github.com/streamich/memfs/compare/v4.33.0...v4.34.0) (2025-08-01)
+
+
+### Features
+
+* add ENOTDIR error for files accessed with trailing slash ([83d36f3](https://github.com/streamich/memfs/commit/83d36f388f92904cd45acd62df9230218b94a299))
+
+# [4.33.0](https://github.com/streamich/memfs/compare/v4.32.1...v4.33.0) (2025-08-01)
+
+
+### Bug Fixes
+
+* correct ENOTDIR vs ENOENT error handling after symlink resolution ([63b5cb3](https://github.com/streamich/memfs/commit/63b5cb3bff5ba0e79607b5e53ddf0a6cdb360f6b))
+
+
+### Features
+
+* fix ENOTDIR vs ENOENT error handling for file-as-directory scenarios ([adab01d](https://github.com/streamich/memfs/commit/adab01d9c7effb861fb291ade7f18478c673dd5a))
+
+## [4.32.1](https://github.com/streamich/memfs/compare/v4.32.0...v4.32.1) (2025-08-01)
+
+
+### Bug Fixes
+
+* remove setTimeout to capture immediate file events in watched directories ([6cda8d5](https://github.com/streamich/memfs/commit/6cda8d51d725818ea8b88d94b988124f99e62400))
+
 # [4.32.0](https://github.com/streamich/memfs/compare/v4.31.0...v4.32.0) (2025-08-01)
 
 

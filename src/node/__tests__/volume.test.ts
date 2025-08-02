@@ -1539,7 +1539,6 @@ describe('volume', () => {
           done();
         }, 10);
       });
-      });
     });
     describe('.watchFile(path[, options], listener)', () => {
       it('Calls listener on .writeFile', done => {

@@ -1,3 +1,10 @@
+# [4.36.0](https://github.com/streamich/memfs/compare/v4.35.0...v4.36.0) (2025-08-03)
+
+
+### Features
+
+* 🎸 harden WritableStream usage ([155b023](https://github.com/streamich/memfs/commit/155b0239883e9d7693741f50238121b19d1653f0))
+
 # [4.35.0](https://github.com/streamich/memfs/compare/v4.34.0...v4.35.0) (2025-08-02)
 
 

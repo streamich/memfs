@@ -21,7 +21,7 @@
       "src/cas/types.ts",
       "src/crud/types.ts",
       "src/crud-to-cas/index.ts",
-      "src/fsa/types.ts",
+      "src/fsa/index.ts",
       "src/fsa-to-crud/index.ts",
       "src/fsa-to-node/index.ts",
       "src/node-to-crud/index.ts",

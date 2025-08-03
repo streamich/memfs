@@ -5,6 +5,17 @@ import { ERROR_CODE } from '../core/constants';
 import { newNotAllowedError } from './util';
 import { FLAGS, MODE } from '../node/constants';
 
+// Polyfill WritableStream for Node.js environments (like Jest) where it's not globally available
+if (typeof WritableStream === 'undefined') {
+  try {
+    // Node.js 16.5+ has WritableStream in stream/web
+    const { WritableStream: NodeWritableStream } = require('stream/web');
+    (globalThis as any).WritableStream = NodeWritableStream;
+  } catch (error) {
+    // Fallback error - this will be thrown later when WritableStream is actually used
+  }
+}
+
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemWritableFileStream
  */

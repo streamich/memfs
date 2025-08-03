@@ -3,6 +3,17 @@ import type { Data, FileSystemWritableFileStreamParams, IFileSystemWritableFileS
 import type { IFileHandle } from '../node/types/misc';
 import type { NodeFsaFs } from './types';
 
+// Polyfill WritableStream for Node.js environments (like Jest) where it's not globally available
+if (typeof WritableStream === 'undefined') {
+  try {
+    // Node.js 16.5+ has WritableStream in stream/web
+    const { WritableStream: NodeWritableStream } = require('stream/web');
+    (globalThis as any).WritableStream = NodeWritableStream;
+  } catch (error) {
+    // Fallback error - this will be thrown later when WritableStream is actually used
+  }
+}
+
 /**
  * When Chrome writes to the file, it creates a copy of the file with extension
  * `.crswap` and then replaces the original file with the copy only when the

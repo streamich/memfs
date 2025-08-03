@@ -52,7 +52,9 @@ interface SwapFile {
 }
 
 declare const require: any;
-const WS = (typeof WritableStream === 'undefined' ? require('stream/web').WritableStream : WritableStream) as typeof WritableStream;
+const WS = (
+  typeof WritableStream === 'undefined' ? require('stream/web').WritableStream : WritableStream
+) as typeof WritableStream;
 
 /**
  * Is a WritableStream object with additional convenience methods, which

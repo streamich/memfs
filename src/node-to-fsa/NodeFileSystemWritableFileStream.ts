@@ -51,6 +51,11 @@ interface SwapFile {
   ready?: Promise<void>;
 }
 
+declare const require: any;
+const WS = (
+  typeof WritableStream === 'undefined' ? require('stream/web').WritableStream : WritableStream
+) as typeof WritableStream;
+
 /**
  * Is a WritableStream object with additional convenience methods, which
  * operates on a single file on disk. The interface is accessed through the
@@ -58,7 +63,7 @@ interface SwapFile {
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemWritableFileStream
  */
-export class NodeFileSystemWritableFileStream extends WritableStream implements IFileSystemWritableFileStream {
+export class NodeFileSystemWritableFileStream extends WS implements IFileSystemWritableFileStream {
   protected readonly swap: SwapFile;
 
   constructor(

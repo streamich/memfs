@@ -5,10 +5,15 @@ import { ERROR_CODE } from '../core/constants';
 import { newNotAllowedError } from './util';
 import { FLAGS, MODE } from '../node/constants';
 
+declare const require: any;
+const WS = (
+  typeof WritableStream === 'undefined' ? require('stream/web').WritableStream : WritableStream
+) as typeof WritableStream;
+
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemWritableFileStream
  */
-export class CoreFileSystemWritableFileStream extends WritableStream implements IFileSystemWritableFileStream {
+export class CoreFileSystemWritableFileStream extends WS implements IFileSystemWritableFileStream {
   private _fd: number | undefined;
   private _position: number = 0;
   private _closed = false;

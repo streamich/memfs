@@ -27,6 +27,22 @@
       "src/node-to-crud/index.ts",
       "src/node-to-fsa/index.ts"
     ],
-    "out": "typedocs"
+    "out": "typedocs",
+    "name": "memfs",
+    "includeVersion": true,
+    "readme": "docs/index.md",
+    "categorizeByGroup": true,
+    "sort": ["source-order"],
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "excludeExternals": true,
+    "hideGenerator": true,
+    "searchInComments": true,
+    "navigationLinks": {
+      "Getting Started": "https://github.com/streamich/memfs/blob/master/docs/getting-started.md",
+      "Testing Guide": "https://github.com/streamich/memfs/blob/master/docs/testing-usage.md",
+      "Browser Guide": "https://github.com/streamich/memfs/blob/master/docs/browser-usage.md",
+      "GitHub": "https://github.com/streamich/memfs"
+    }
   }
 }

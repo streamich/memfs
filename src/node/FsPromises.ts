@@ -4,6 +4,79 @@ import type * as opts from './types/options';
 import type * as misc from './types/misc';
 import type { FsCallbackApi, FsPromisesApi } from './types';
 
+// AsyncIterator implementation for promises.glob
+class GlobAsyncIterator implements AsyncIterableIterator<string | misc.IDirent> {
+  private results: (string | misc.IDirent)[];
+  private index = 0;
+
+  constructor(
+    private fs: any,
+    private pattern: string | readonly string[],
+    private options: opts.IGlobOptions = {},
+  ) {
+    this.results = this.getResults();
+  }
+
+  private getResults(): (string | misc.IDirent)[] {
+    const { globSync } = require('./glob');
+    const patterns = Array.isArray(this.pattern) ? this.pattern : [this.pattern];
+    const allResults: (string | misc.IDirent)[] = [];
+
+    for (const pat of patterns) {
+      const results = globSync(this.fs, pat, this.options);
+
+      if (this.options.withFileTypes) {
+        // Convert string paths to Dirent objects
+        for (const result of results) {
+          try {
+            const fullPath = this.options.cwd ? require('path').join(this.options.cwd, result) : result;
+            const stat = this.fs.lstatSync(fullPath);
+            allResults.push({
+              name: result,
+              isDirectory: () => stat.isDirectory(),
+              isFile: () => stat.isFile(),
+              isBlockDevice: () => stat.isBlockDevice(),
+              isCharacterDevice: () => stat.isCharacterDevice(),
+              isSymbolicLink: () => stat.isSymbolicLink(),
+              isFIFO: () => stat.isFIFO(),
+              isSocket: () => stat.isSocket(),
+            });
+          } catch (err) {
+            // Skip files that can't be statted
+          }
+        }
+      } else {
+        allResults.push(...results);
+      }
+    }
+
+    return allResults;
+  }
+
+  async next(): Promise<IteratorResult<string | misc.IDirent>> {
+    if (this.index >= this.results.length) {
+      return { value: undefined, done: true };
+    }
+
+    const value = this.results[this.index++];
+    return { value, done: false };
+  }
+
+  async return(): Promise<IteratorResult<string | misc.IDirent>> {
+    this.index = this.results.length;
+    return { value: undefined, done: true };
+  }
+
+  async throw(error: any): Promise<IteratorResult<string | misc.IDirent>> {
+    this.index = this.results.length;
+    throw error;
+  }
+
+  [Symbol.asyncIterator](): AsyncIterableIterator<string | misc.IDirent> {
+    return this;
+  }
+}
+
 // AsyncIterator implementation for promises.watch
 class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string; filename: string | Buffer }> {
   private watcher: any;
@@ -137,7 +210,25 @@ export class FsPromises implements FsPromisesApi {
   public readonly opendir = promisify(this.fs, 'opendir');
   public readonly statfs = promisify(this.fs, 'statfs');
   public readonly lutimes = promisify(this.fs, 'lutimes');
-  public readonly glob = promisify(this.fs, 'glob');
+  public glob(pattern: string | readonly string[]): AsyncIterableIterator<string>;
+  public glob(
+    pattern: string | readonly string[],
+    options: opts.IGlobOptions & { withFileTypes: true },
+  ): AsyncIterableIterator<misc.IDirent>;
+  public glob(
+    pattern: string | readonly string[],
+    options: opts.IGlobOptions & { withFileTypes?: false },
+  ): AsyncIterableIterator<string>;
+  public glob(
+    pattern: string | readonly string[],
+    options?: opts.IGlobOptions,
+  ): AsyncIterableIterator<misc.IDirent | string>;
+  public glob(
+    pattern: string | readonly string[],
+    options?: opts.IGlobOptions,
+  ): AsyncIterableIterator<string | misc.IDirent> {
+    return new GlobAsyncIterator(this.fs, pattern, options || {});
+  }
   public readonly access = promisify(this.fs, 'access');
   public readonly chmod = promisify(this.fs, 'chmod');
   public readonly chown = promisify(this.fs, 'chown');

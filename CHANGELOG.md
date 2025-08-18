@@ -1,3 +1,11 @@
+## [4.36.3](https://github.com/streamich/memfs/compare/v4.36.2...v4.36.3) (2025-08-18)
+
+
+### Bug Fixes
+
+* 🐛 add thingies package ([8df9208](https://github.com/streamich/memfs/commit/8df9208451987f1c42454ad24d19c91844fb60f7))
+* 🐛 remove CRUD and CAS fs implementations ([6ec598d](https://github.com/streamich/memfs/commit/6ec598d0bdc16723c3901a87d858c94be11b4cef))
+
 ## [4.36.2](https://github.com/streamich/memfs/compare/v4.36.1...v4.36.2) (2025-08-18)
 
 

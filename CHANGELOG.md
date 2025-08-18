@@ -1,3 +1,10 @@
+## [4.36.1](https://github.com/streamich/memfs/compare/v4.36.0...v4.36.1) (2025-08-18)
+
+
+### Bug Fixes
+
+* 🐛 correctly write at offset in FS adapter ([2526c3a](https://github.com/streamich/memfs/commit/2526c3af1229dbe3e651111c6562325f1a529ee3))
+
 # [4.36.0](https://github.com/streamich/memfs/compare/v4.35.0...v4.36.0) (2025-08-03)
 
 

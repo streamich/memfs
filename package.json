@@ -126,6 +126,7 @@
   "dependencies": {
     "@jsonjoy.com/json-pack": "^1.0.3",
     "@jsonjoy.com/util": "^1.3.0",
+    "thingies": "^2.5.0",
     "tree-dump": "^1.0.1",
     "tslib": "^2.0.0"
   },

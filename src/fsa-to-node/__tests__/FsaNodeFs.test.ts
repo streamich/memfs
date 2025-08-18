@@ -1,9 +1,9 @@
-import { IFsWithVolume, NestedDirectoryJSON, memfs } from '../..';
+import { NestedDirectoryJSON, memfs } from '../..';
 import { AMODE } from '../../consts/AMODE';
 import { nodeToFsa } from '../../node-to-fsa';
 import { IDirent, IStats } from '../../node/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
-import { of } from '../../thingies';
+import { of } from 'thingies';
 import { onlyOnNode20 } from '../../__tests__/util';
 import { FLAG } from '../../consts/FLAG';
 

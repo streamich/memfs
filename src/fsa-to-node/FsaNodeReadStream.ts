@@ -1,6 +1,6 @@
 import { Readable } from 'stream';
-import { Defer } from '../thingies/Defer';
-import { concurrency } from '../thingies/concurrency';
+import { Defer } from 'thingies/lib/Defer';
+import { concurrency } from 'thingies/lib/concurrency';
 import type { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import type { IReadStream } from '../node/types/misc';
 import type { IReadStreamOptions } from '../node/types/options';

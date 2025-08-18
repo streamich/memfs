@@ -1,3 +1,10 @@
+## [4.36.2](https://github.com/streamich/memfs/compare/v4.36.1...v4.36.2) (2025-08-18)
+
+
+### Bug Fixes
+
+* 🐛 check for buffer size when stream reading ([1402df8](https://github.com/streamich/memfs/commit/1402df871536ff9b6932c025c2ea33f07cef9f8f))
+
 ## [4.36.1](https://github.com/streamich/memfs/compare/v4.36.0...v4.36.1) (2025-08-18)
 
 

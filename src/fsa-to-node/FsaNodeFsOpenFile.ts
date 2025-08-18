@@ -31,7 +31,9 @@ export class FsaNodeFsOpenFile {
 
   public async write(data: ArrayBufferView, seek: number | null): Promise<void> {
     if (typeof seek !== 'number') seek = this.seek;
-    const writer = await this.file.createWritable({ keepExistingData: this.keepExistingData });
+    else this.keepExistingData = true;
+    const keepExistingData = this.keepExistingData;
+    const writer = await this.file.createWritable({ keepExistingData });
     await writer.write({
       type: 'write',
       data,

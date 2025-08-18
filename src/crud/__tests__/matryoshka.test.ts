@@ -33,11 +33,11 @@ onlyOnNode20('CRUD matryoshka', () => {
       expect(await fs.promises.readFile('/file1.txt', 'utf8')).toBe('a.c');
 
       const fsa = new NodeFileSystemDirectoryHandle(fs, '/', { mode: 'readwrite' });
-      const file2 = await fsa.getFileHandle('file2.txt', {create: true});
-      const writable1 = await file2.createWritable({keepExistingData: false});
+      const file2 = await fsa.getFileHandle('file2.txt', { create: true });
+      const writable1 = await file2.createWritable({ keepExistingData: false });
       await writable1.write('abc');
       await writable1.close();
-      const writable2 = await file2.createWritable({keepExistingData: true});
+      const writable2 = await file2.createWritable({ keepExistingData: true });
       await writable2.write({
         type: 'write',
         data: Buffer.from('.'),

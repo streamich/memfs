@@ -1,3 +1,5 @@
+import { fromStream } from '@jsonjoy.com/util/lib/streams/fromStream';
+import { bufferToUint8Array } from '@jsonjoy.com/util/lib/buffers/bufferToUint8Array';
 import { memfs } from '../..';
 import { onlyOnNode20 } from '../../__tests__/util';
 import { NodeFileSystemDirectoryHandle } from '../../node-to-fsa';
@@ -5,6 +7,11 @@ import { FsaNodeFs } from '../../fsa-to-node';
 import { NodeCrud } from '../../node-to-crud';
 import { testCrudfs } from '../../crud/__tests__/testCrudfs';
 import { FsaCrud } from '../../fsa-to-crud';
+
+const b = (str: string) => {
+  const buf = Buffer.from(str);
+  return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+};
 
 onlyOnNode20('CRUD matryoshka', () => {
   describe('crud(memfs)', () => {
@@ -52,6 +59,17 @@ onlyOnNode20('CRUD matryoshka', () => {
       const handle = await fs2.promises.open('/file3.txt', 'r+');
       await handle.write(Buffer.from('.'), 0, 1, 1);
       expect(await fs2.promises.readFile('/file3.txt', 'utf8')).toBe('a.c');
+    });
+
+    test('can read as stream', async () => {
+      const { fs } = memfs();
+      const fsa = new NodeFileSystemDirectoryHandle(fs, '/', { mode: 'readwrite' });
+      const fs2 = new FsaNodeFs(fsa);
+      await fs2.promises.writeFile('/foo', 'bar');
+      const handle = await fs2.promises.open('/foo', 'r+');
+      const stream = handle.readableWebStream();
+      const blob = bufferToUint8Array((await fromStream(stream)) as any);
+      expect(blob).toStrictEqual(b('bar'));
     });
 
     testCrudfs(() => {

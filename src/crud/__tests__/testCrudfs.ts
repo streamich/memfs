@@ -52,6 +52,33 @@ export const testCrudfs = (setup: Setup) => {
       });
     });
 
+    test('truncates overwritten resource', async () => {
+      const { crud, snapshot } = setup();
+      await crud.put(['a', 'b'], 'bar', b('abc'));
+      await crud.put(['a', 'b'], 'bar', b('.'));
+      expect(snapshot()).toStrictEqual({
+        '/a/b/bar': '.',
+      });
+    });
+
+    test('can overwrite with empty file', async () => {
+      const { crud, snapshot } = setup();
+      await crud.put(['a', 'b'], 'bar', b('abc'));
+      await crud.put(['a', 'b'], 'bar', b(''));
+      expect(snapshot()).toStrictEqual({
+        '/a/b/bar': '',
+      });
+    });
+
+    test('overwrites existing data', async () => {
+      const { crud, snapshot } = setup();
+      await crud.put(['a', 'b'], 'bar', b('abc'));
+      await crud.put(['a', 'b'], 'bar', b('.'));
+      expect(snapshot()).toStrictEqual({
+        '/a/b/bar': '.',
+      });
+    });
+
     test('can choose to throw if item already exists', async () => {
       const { crud } = setup();
       await crud.put(['a', 'b'], 'bar', b('abc'), { throwIf: 'exists' });

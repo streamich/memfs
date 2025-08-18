@@ -94,7 +94,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
       const openFile = await this.getFileByFd(fd, 'read');
       const file = await openFile.file.getFile();
       const src = await file.arrayBuffer();
-      const slice = new Uint8Array(src, Number(position), Number(length));
+      position = Number(position);
+      length = Number(length);
+      const slice = position > src.byteLength ? new Uint8Array(0) : new Uint8Array(src, position, Math.min(length, src.byteLength - position));
       const dest = new Uint8Array(buffer.buffer, buffer.byteOffset + offset, slice.length);
       dest.set(slice, 0);
       return slice.length;

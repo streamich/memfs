@@ -215,7 +215,8 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     length?: number,
     position?: number | null,
   ): Promise<TFileHandleWriteResult> {
-    const writePosition = position !== null && position !== undefined ? position : this.position;
+    const useInternalPosition = typeof position !== 'number';
+    const writePosition: number = useInternalPosition ? this.position : position;
 
     const result = await promisify(this.fs, 'write', bytesWritten => ({ bytesWritten, buffer }))(
       this.fd,
@@ -226,7 +227,7 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     );
 
     // Update internal position only if position was null/undefined
-    if (position === null || position === undefined) {
+    if (useInternalPosition) {
       this.position += result.bytesWritten;
     }
 

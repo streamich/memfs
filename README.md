@@ -15,15 +15,12 @@ npm i memfs
 
 ## Resources
 
-- Documentation
-  - [In-memory Node.js `fs` API](./docs/node/index.md)
-  - [In-memory browser File System (Access) API](./docs/fsa/fsa.md)
-  - [`fs` to File System (Access) API adapter](./docs/fsa/fs-to-fsa.md)
-  - [File System (Access) API to `fs` adapter](./docs/fsa/fsa-to-fs.md)
-  - `experimental` [`crudfs` a CRUD-like file system abstraction](./docs/crudfs/index.md)
-  - `experimental` [`casfs` Content Addressable Storage file system abstraction](./docs/casfs/index.md)
-  - [Directory `snapshot` utility](./docs/snapshot/index.md)
-  - [`print` directory tree to terminal](./docs/print/index.md)
+- [In-memory Node.js `fs` API](./docs/node/index.md)
+- [In-memory browser File System (Access) API](./docs/fsa/fsa.md)
+- [`fs` to File System (Access) API adapter](./docs/fsa/fs-to-fsa.md)
+- [File System (Access) API to `fs` adapter](./docs/fsa/fsa-to-fs.md)
+- [Directory `snapshot` utility](./docs/snapshot/index.md)
+- [`print` directory tree to terminal](./docs/print/index.md)
 - [Code reference](https://streamich.github.io/memfs/)
 - [Test coverage](https://streamich.github.io/memfs/coverage/lcov-report/)
 
@@ -34,7 +31,6 @@ npm i memfs
 - [Git on in-memory file system](demo/git/README.md)
 - [`fs` in browser, creates a `.tar` file in real folder](demo/fsa-to-node-zipfile/README.md)
 - [`fs` in browser, synchronous API, writes to real folder](demo/fsa-to-node-sync-tests/README.md)
-- [`crudfs` and `casfs` in browser and Node.js interoperability](demo/crud-and-cas/README.md)
 
 ## See also
 

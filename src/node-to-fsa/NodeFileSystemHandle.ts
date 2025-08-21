@@ -1,5 +1,7 @@
 import { NodePermissionStatus } from './NodePermissionStatus';
+import { AMODE } from '../consts/AMODE';
 import type { IFileSystemHandle, FileSystemHandlePermissionDescriptor } from '../fsa/types';
+import type { NodeFsaFs } from './types';
 
 /**
  * Represents a File System Access API file handle `FileSystemHandle` object,
@@ -8,6 +10,9 @@ import type { IFileSystemHandle, FileSystemHandlePermissionDescriptor } from '..
  * @see [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle)
  */
 export abstract class NodeFileSystemHandle implements IFileSystemHandle {
+  protected abstract readonly fs: NodeFsaFs;
+  protected abstract readonly __path: string;
+
   constructor(
     public readonly kind: 'file' | 'directory',
     public readonly name: string,
@@ -30,7 +35,26 @@ export abstract class NodeFileSystemHandle implements IFileSystemHandle {
   public queryPermission(
     fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor,
   ): NodePermissionStatus {
-    throw new Error('Not implemented');
+    const { mode } = fileSystemHandlePermissionDescriptor;
+    
+    try {
+      // Use Node.js fs.access() to check permissions synchronously
+      let accessMode = AMODE.F_OK;
+      
+      if (mode === 'read') {
+        accessMode = AMODE.R_OK;
+      } else if (mode === 'readwrite') {
+        accessMode = AMODE.R_OK | AMODE.W_OK;
+      }
+      
+      // Use synchronous access check
+      this.fs.accessSync(this.__path, accessMode);
+      
+      return new NodePermissionStatus(mode, 'granted');
+    } catch (error) {
+      // If access check fails, permission is denied
+      return new NodePermissionStatus(mode, 'denied');
+    }
   }
 
   /**

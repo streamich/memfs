@@ -32,9 +32,9 @@ export abstract class CoreFileSystemHandle implements IFileSystemHandle {
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle/queryPermission
    */
-  public queryPermission(
+  public async queryPermission(
     fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor,
-  ): CorePermissionStatus {
+  ): Promise<CorePermissionStatus> {
     // Check if the requested mode is compatible with the context mode
     const requestedMode = fileSystemHandlePermissionDescriptor.mode;
     const contextMode = this.ctx.mode;

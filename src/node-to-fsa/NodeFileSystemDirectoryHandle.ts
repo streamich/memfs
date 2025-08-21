@@ -16,6 +16,7 @@ import type {
   GetFileHandleOptions,
   IFileSystemDirectoryHandle,
   IFileSystemFileHandle,
+  IFileSystemHandle,
   RemoveEntryOptions,
 } from '../fsa/types';
 
@@ -23,7 +24,7 @@ import type {
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle
  */
 export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implements IFileSystemDirectoryHandle {
-  protected readonly ctx: Partial<NodeFsaContext>;
+  protected readonly ctx: NodeFsaContext;
   /** Directory path with trailing slash. */
   public readonly __path: string;
 
@@ -32,8 +33,9 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
     path: string,
     ctx: Partial<NodeFsaContext> = {},
   ) {
-    super('directory', basename(path, ctx.separator || '/'));
-    this.ctx = createCtx(ctx);
+    const fullCtx = createCtx(ctx);
+    super('directory', basename(path, fullCtx.separator));
+    this.ctx = fullCtx;
     this.__path = path[path.length - 1] === this.ctx.separator ? path : path + this.ctx.separator;
   }
 
@@ -196,16 +198,16 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
    * child entry, with the name of the child entry as the last array item.
    *
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/resolve
-   * @param possibleDescendant The {@link NodeFileSystemFileHandle} from which
+   * @param possibleDescendant The {@link IFileSystemHandle} from which
    *        to return the relative path.
    */
-  public async resolve(possibleDescendant: NodeFileSystemHandle): Promise<string[] | null> {
+  public async resolve(possibleDescendant: IFileSystemHandle): Promise<string[] | null> {
     if (
       possibleDescendant instanceof NodeFileSystemDirectoryHandle ||
       possibleDescendant instanceof NodeFileSystemFileHandle
     ) {
       const path = this.__path;
-      const childPath = possibleDescendant.__path;
+      const childPath = (possibleDescendant as any).__path;
       if (!childPath.startsWith(path)) return null;
       let relative = childPath.slice(path.length);
       if (relative === '') return [];

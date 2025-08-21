@@ -9,7 +9,9 @@ export interface IFileSystemHandle {
   kind: 'file' | 'directory';
   name: string;
   isSameEntry(fileSystemHandle: IFileSystemHandle): boolean;
-  queryPermission(fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor): IPermissionStatus;
+  queryPermission(
+    fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor,
+  ): Promise<IPermissionStatus>;
   remove(options?: { recursive?: boolean }): Promise<void>;
   requestPermission(fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor): IPermissionStatus;
 }

@@ -47,7 +47,7 @@ onlyOnNode20('NodeFileSystemHandle', () => {
         'test.txt': 'content',
       });
       const file = await dir.getFileHandle('test.txt');
-      const permission = file.queryPermission({ mode: 'read' });
+      const permission = await file.queryPermission({ mode: 'read' });
       expect(permission.state).toBe('granted');
       expect(permission.name).toBe('read');
     });
@@ -57,7 +57,7 @@ onlyOnNode20('NodeFileSystemHandle', () => {
         'test.txt': 'content',
       });
       const file = await dir.getFileHandle('test.txt');
-      const permission = file.queryPermission({ mode: 'readwrite' });
+      const permission = await file.queryPermission({ mode: 'readwrite' });
       expect(permission.state).toBe('granted');
       expect(permission.name).toBe('readwrite');
     });
@@ -67,7 +67,7 @@ onlyOnNode20('NodeFileSystemHandle', () => {
         subdir: null,
       });
       const subdir = await dir.getDirectoryHandle('subdir');
-      const permission = subdir.queryPermission({ mode: 'read' });
+      const permission = await subdir.queryPermission({ mode: 'read' });
       expect(permission.state).toBe('granted');
       expect(permission.name).toBe('read');
     });
@@ -77,9 +77,9 @@ onlyOnNode20('NodeFileSystemHandle', () => {
       const nonExistentFile = new (await import('../NodeFileSystemFileHandle')).NodeFileSystemFileHandle(
         fs as any,
         '/nonexistent.txt',
-        { mode: 'readwrite' }
+        { mode: 'readwrite' },
       );
-      const permission = nonExistentFile.queryPermission({ mode: 'read' });
+      const permission = await nonExistentFile.queryPermission({ mode: 'read' });
       expect(permission.state).toBe('denied');
       expect(permission.name).toBe('read');
     });

@@ -126,3 +126,32 @@ export type Data =
   | DataView
   | Blob
   | string;
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemChangeRecord
+ */
+export interface FileSystemChangeRecord {
+  /** The changed file system handle. */
+  changedHandle: IFileSystemHandle;
+  /** Path components from the observed directory to the changed handle. */
+  relativePathComponents: string[];
+  /** The type of change that occurred. */
+  type: 'appeared' | 'disappeared' | 'modified';
+}
+
+export interface FileSystemObserverObserveOptions {
+  /** Whether to observe changes recursively in subdirectories. */
+  recursive?: boolean;
+}
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemObserver
+ */
+export interface FileSystemObserver {
+  /** Start observing changes to a directory handle. */
+  observe(handle: IFileSystemDirectoryHandle, options?: FileSystemObserverObserveOptions): Promise<void>;
+  /** Stop observing changes to a directory handle. */
+  unobserve(handle: IFileSystemDirectoryHandle): void;
+  /** Disconnect and stop all observations. */
+  disconnect(): void;
+}

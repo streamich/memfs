@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">71.89% </span>
+                <span class="strong">71.65% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>458/637</span>
+                <span class='fraction'>450/628</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">65.4% </span>
+                <span class="strong">66.03% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>104/159</span>
+                <span class='fraction'>105/159</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">72.94% </span>
+                <span class="strong">72.74% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>434/595</span>
+                <span class='fraction'>427/587</span>
             </div>
         
             
@@ -1172,16 +1172,7 @@
 <a name='L1107'></a><a href='#L1107'>1107</a>
 <a name='L1108'></a><a href='#L1108'>1108</a>
 <a name='L1109'></a><a href='#L1109'>1109</a>
-<a name='L1110'></a><a href='#L1110'>1110</a>
-<a name='L1111'></a><a href='#L1111'>1111</a>
-<a name='L1112'></a><a href='#L1112'>1112</a>
-<a name='L1113'></a><a href='#L1113'>1113</a>
-<a name='L1114'></a><a href='#L1114'>1114</a>
-<a name='L1115'></a><a href='#L1115'>1115</a>
-<a name='L1116'></a><a href='#L1116'>1116</a>
-<a name='L1117'></a><a href='#L1117'>1117</a>
-<a name='L1118'></a><a href='#L1118'>1118</a>
-<a name='L1119'></a><a href='#L1119'>1119</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L1110'></a><a href='#L1110'>1110</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -1587,32 +1578,23 @@
 <span class="cline-any cline-yes">18x</span>
 <span class="cline-any cline-yes">18x</span>
 <span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2705,34 +2687,25 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const [folder, name] = pathToLocation(filename);
     (async () =&gt; {
       const node = folder.length || name ? await this.getFileOrDir(folder, name, 'access') : await this.root;
+&nbsp;
+      // Check execute permission - not supported by FSA
       const checkIfCanExecute = mode &amp; AMODE.X_OK;
       if (checkIfCanExecute) throw util.createError('EACCESS', 'access', filename);
+&nbsp;
+      // Use queryPermission to check read/write access
+      const checkIfCanRead = mode &amp; AMODE.R_OK;
       const checkIfCanWrite = mode &amp; AMODE.W_OK;
-      switch (node.kind) {
-        case 'file': {
-          if (checkIfCanWrite) {
-            try {
-              const file = node as fsa.IFileSystemFileHandle;
-              const writable = await file.createWritable();
-              await writable.close();
-            } catch {
-              throw util.createError('EACCESS', 'access', filename);
-            }
-          }
-          break;
-        }
-        case 'directory': {
-          if (checkIfCanWrite) {
-            const dir = node as fsa.IFileSystemDirectoryHandle;
-            const canWrite = await testDirectoryIsWritable(dir);
-            if (!canWrite) throw util.createError('EACCESS', 'access', filename);
-          }
-          break;
-        }
-<span class="branch-2 cbranch-no" title="branch not covered" >        default: {</span>
-<span class="cstat-no" title="statement not covered" >          throw util.createError('EACCESS', 'access', filename);</span>
+&nbsp;
+      if (checkIfCanRead || checkIfCanWrite) {
+        const permissionMode = checkIfCanWrite ? 'readwrite' : 'read';
+        const permission = await node.queryPermission({ mode: permissionMode });
+&nbsp;
+        if (permission.state === 'denied') {
+          throw util.createError('EACCESS', 'access', filename);
         }
       }
+&nbsp;
+      // If only F_OK is requested, we already verified the file exists by getting the node
     })().then(
       () =&gt; callback(null),
       error =&gt; callback(error),
@@ -3424,7 +3397,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-18T12:48:11.549Z
+                at 2025-08-22T09:33:51.040Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

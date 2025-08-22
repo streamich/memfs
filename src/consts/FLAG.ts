@@ -1,10 +1,13 @@
 /**
  * Constants used in `open` system calls, see [open(2)](http://man7.org/linux/man-pages/man2/open.2.html).
  *
+ * These constants are compatible with Node.js fs constants and can be used with both
+ * memfs and native Node.js fs.promises.open().
+ *
  * @see http://man7.org/linux/man-pages/man2/open.2.html
  * @see https://www.gnu.org/software/libc/manual/html_node/Open_002dtime-Flags.html
  */
-export const enum FLAG {
+export enum FLAG {
   O_RDONLY = 0,
   O_WRONLY = 1,
   O_RDWR = 2,

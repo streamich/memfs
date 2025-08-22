@@ -6,7 +6,7 @@ import type { FsCommonObjects } from '../node/types/FsCommonObjects';
  */
 export type NodeFsaFs = Pick<FsCommonObjects, 'constants'> & { promises: FsPromisesApi } & Pick<
     FsSynchronousApi,
-    'openSync' | 'fsyncSync' | 'statSync' | 'closeSync' | 'readSync' | 'truncateSync' | 'writeSync'
+    'openSync' | 'fsyncSync' | 'statSync' | 'closeSync' | 'readSync' | 'truncateSync' | 'writeSync' | 'accessSync'
   >;
 
 export interface NodeFsaContext {

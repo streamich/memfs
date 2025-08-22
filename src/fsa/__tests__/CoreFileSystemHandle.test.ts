@@ -57,12 +57,12 @@ onlyOnNode20('CoreFileSystemHandle', () => {
     const file = await dir.getFileHandle('test.txt');
 
     // Test read permission request (should be granted since context allows readwrite)
-    const readPermission = file.queryPermission({ mode: 'read' });
+    const readPermission = await file.queryPermission({ mode: 'read' });
     expect(readPermission.state).toBe('granted');
     expect(readPermission.name).toBe('read');
 
     // Test readwrite permission request (should be granted since context allows readwrite)
-    const readwritePermission = file.queryPermission({ mode: 'readwrite' });
+    const readwritePermission = await file.queryPermission({ mode: 'readwrite' });
     expect(readwritePermission.state).toBe('granted');
     expect(readwritePermission.name).toBe('readwrite');
   });
@@ -73,12 +73,12 @@ onlyOnNode20('CoreFileSystemHandle', () => {
     const file = await dir.getFileHandle('test.txt');
 
     // Test read permission request (should be granted)
-    const readPermission = file.queryPermission({ mode: 'read' });
+    const readPermission = await file.queryPermission({ mode: 'read' });
     expect(readPermission.state).toBe('granted');
     expect(readPermission.name).toBe('read');
 
     // Test readwrite permission request (should be denied since context only allows read)
-    const readwritePermission = file.queryPermission({ mode: 'readwrite' });
+    const readwritePermission = await file.queryPermission({ mode: 'readwrite' });
     expect(readwritePermission.state).toBe('denied');
     expect(readwritePermission.name).toBe('readwrite');
   });

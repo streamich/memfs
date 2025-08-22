@@ -1,5 +1,7 @@
 import { NodePermissionStatus } from './NodePermissionStatus';
+import { AMODE } from '../consts/AMODE';
 import type { IFileSystemHandle, FileSystemHandlePermissionDescriptor } from '../fsa/types';
+import type { NodeFsaFs, NodeFsaContext } from './types';
 
 /**
  * Represents a File System Access API file handle `FileSystemHandle` object,
@@ -8,6 +10,10 @@ import type { IFileSystemHandle, FileSystemHandlePermissionDescriptor } from '..
  * @see [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle)
  */
 export abstract class NodeFileSystemHandle implements IFileSystemHandle {
+  protected abstract readonly fs: NodeFsaFs;
+  protected abstract readonly __path: string;
+  protected abstract readonly ctx: NodeFsaContext;
+
   constructor(
     public readonly kind: 'file' | 'directory',
     public readonly name: string,
@@ -18,7 +24,7 @@ export abstract class NodeFileSystemHandle implements IFileSystemHandle {
    *
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle/isSameEntry
    */
-  public isSameEntry(fileSystemHandle: NodeFileSystemHandle): boolean {
+  public isSameEntry(fileSystemHandle: IFileSystemHandle): boolean {
     return (
       this.constructor === fileSystemHandle.constructor && (this as any).__path === (fileSystemHandle as any).__path
     );
@@ -27,10 +33,38 @@ export abstract class NodeFileSystemHandle implements IFileSystemHandle {
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle/queryPermission
    */
-  public queryPermission(
+  public async queryPermission(
     fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor,
-  ): NodePermissionStatus {
-    throw new Error('Not implemented');
+  ): Promise<NodePermissionStatus> {
+    const { mode } = fileSystemHandlePermissionDescriptor;
+
+    // Check if the requested mode is compatible with the context mode
+    const requestedMode = mode;
+    const contextMode = this.ctx.mode;
+
+    // If requesting readwrite but context only allows read, deny
+    if (requestedMode === 'readwrite' && contextMode === 'read') {
+      return new NodePermissionStatus(requestedMode, 'denied');
+    }
+
+    try {
+      // Use Node.js fs.promises.access() to check permissions asynchronously
+      let accessMode = AMODE.F_OK;
+
+      if (mode === 'read') {
+        accessMode = AMODE.R_OK;
+      } else if (mode === 'readwrite') {
+        accessMode = AMODE.R_OK | AMODE.W_OK;
+      }
+
+      // Use asynchronous access check
+      await this.fs.promises.access(this.__path, accessMode);
+
+      return new NodePermissionStatus(mode, 'granted');
+    } catch (error) {
+      // If access check fails, permission is denied
+      return new NodePermissionStatus(mode, 'denied');
+    }
   }
 
   /**

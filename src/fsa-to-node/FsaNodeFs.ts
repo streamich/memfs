@@ -404,34 +404,25 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const [folder, name] = pathToLocation(filename);
     (async () => {
       const node = folder.length || name ? await this.getFileOrDir(folder, name, 'access') : await this.root;
+
+      // Check execute permission - not supported by FSA
       const checkIfCanExecute = mode & AMODE.X_OK;
       if (checkIfCanExecute) throw util.createError('EACCESS', 'access', filename);
+
+      // Use queryPermission to check read/write access
+      const checkIfCanRead = mode & AMODE.R_OK;
       const checkIfCanWrite = mode & AMODE.W_OK;
-      switch (node.kind) {
-        case 'file': {
-          if (checkIfCanWrite) {
-            try {
-              const file = node as fsa.IFileSystemFileHandle;
-              const writable = await file.createWritable();
-              await writable.close();
-            } catch {
-              throw util.createError('EACCESS', 'access', filename);
-            }
-          }
-          break;
-        }
-        case 'directory': {
-          if (checkIfCanWrite) {
-            const dir = node as fsa.IFileSystemDirectoryHandle;
-            const canWrite = await testDirectoryIsWritable(dir);
-            if (!canWrite) throw util.createError('EACCESS', 'access', filename);
-          }
-          break;
-        }
-        default: {
+
+      if (checkIfCanRead || checkIfCanWrite) {
+        const permissionMode = checkIfCanWrite ? 'readwrite' : 'read';
+        const permission = await node.queryPermission({ mode: permissionMode });
+
+        if (permission.state === 'denied') {
           throw util.createError('EACCESS', 'access', filename);
         }
       }
+
+      // If only F_OK is requested, we already verified the file exists by getting the node
     })().then(
       () => callback(null),
       error => callback(error),

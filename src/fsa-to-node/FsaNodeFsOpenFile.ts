@@ -1,4 +1,4 @@
-import { FLAG } from '../consts/FLAG';
+import { FLAG_CON } from '../consts/FLAG';
 import type * as fsa from '../fsa/types';
 import type * as misc from '../node/types/misc';
 
@@ -24,7 +24,7 @@ export class FsaNodeFsOpenFile {
     public readonly file: fsa.IFileSystemFileHandle,
     public readonly filename: string,
   ) {
-    this.keepExistingData = !!(flags & FLAG.O_APPEND);
+    this.keepExistingData = !!(flags & FLAG_CON.O_APPEND);
   }
 
   public async close(): Promise<void> {}

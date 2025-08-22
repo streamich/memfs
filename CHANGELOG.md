@@ -1,3 +1,15 @@
+## [4.37.1](https://github.com/streamich/memfs/compare/v4.37.0...v4.37.1) (2025-08-22)
+
+
+### Bug Fixes
+
+* ensure FLAG enum is properly exported for compatibility with Node.js fs.open ([685aef1](https://github.com/streamich/memfs/commit/685aef1dd97373f8e14cad63fee13b6e80a04ba5))
+
+
+### Performance Improvements
+
+* add FLAG constant enum ([8c301ff](https://github.com/streamich/memfs/commit/8c301ff928cbe89b8d75fba8fd5560b804042bfb))
+
 # [4.37.0](https://github.com/streamich/memfs/compare/v4.36.3...v4.37.0) (2025-08-22)
 
 

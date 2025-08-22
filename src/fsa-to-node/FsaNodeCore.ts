@@ -3,7 +3,7 @@ import { pathToLocation } from './util';
 import { ERRSTR } from '../node/constants';
 import { FsaToNodeConstants } from './constants';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
-import { FLAG } from '../consts/FLAG';
+import { FLAG_CON } from '../consts/FLAG';
 import * as util from '../node/util';
 import type * as fsa from '../fsa/types';
 import type * as misc from '../node/types/misc';
@@ -142,7 +142,7 @@ export class FsaNodeCore {
 
   protected async __open(filename: string, flags: number, mode: number): Promise<FsaNodeFsOpenFile> {
     const [folder, name] = pathToLocation(filename);
-    const throwIfExists = !!(flags & FLAG.O_EXCL);
+    const throwIfExists = !!(flags & FLAG_CON.O_EXCL);
     if (throwIfExists) {
       try {
         await this.getFile(folder, name, 'open', false);
@@ -164,7 +164,7 @@ export class FsaNodeCore {
       }
     }
     try {
-      const createIfMissing = !!(flags & FLAG.O_CREAT);
+      const createIfMissing = !!(flags & FLAG_CON.O_CREAT);
       const fsaFile = await this.getFile(folder, name, 'open', createIfMissing);
       return this.__open2(fsaFile, filename, flags, mode);
     } catch (error) {

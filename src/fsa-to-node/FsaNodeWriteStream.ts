@@ -2,7 +2,7 @@ import { Writable } from 'stream';
 import { Defer } from 'thingies/lib/Defer';
 import { concurrency } from 'thingies/lib/concurrency';
 import { flagsToNumber } from '../node/util';
-import { FLAG } from '../consts/FLAG';
+import { FLAG_CON } from '../consts/FLAG';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import queueMicrotask from '../queueMicrotask';
 import type { IFileSystemWritableFileStream } from '../fsa/types';
@@ -58,7 +58,7 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
       const fileWasOpened = !options.fd;
       if (fileWasOpened) this.emit('open', fsaHandle.fd);
       const flags = flagsToNumber(options.flags ?? 'w');
-      const keepExistingData = flags & FLAG.O_APPEND ? true : false;
+      const keepExistingData = flags & FLAG_CON.O_APPEND ? true : false;
       const writable = await fsaHandle.file.createWritable({ keepExistingData });
       if (keepExistingData) {
         const start = Number(options.start ?? 0);

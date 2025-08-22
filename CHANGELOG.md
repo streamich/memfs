@@ -1,3 +1,11 @@
+# [4.37.0](https://github.com/streamich/memfs/compare/v4.36.3...v4.37.0) (2025-08-22)
+
+
+### Features
+
+* implement async queryPermission with FSA context mode checks ([68a5927](https://github.com/streamich/memfs/commit/68a5927ac26381a6492dea204978643d7ce2aeeb))
+* implement queryPermission method in NodeFileSystemHandle using fs.access ([06bd6b1](https://github.com/streamich/memfs/commit/06bd6b16a0bddfe3942c0c55698f531b6a6b2e73))
+
 ## [4.36.3](https://github.com/streamich/memfs/compare/v4.36.2...v4.36.3) (2025-08-18)
 
 

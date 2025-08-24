@@ -1,3 +1,15 @@
+# [4.38.0](https://github.com/streamich/memfs/compare/v4.37.1...v4.38.0) (2025-08-24)
+
+
+### Bug Fixes
+
+* handle chmod 0 permissions in existsSync and access methods ([3452bcf](https://github.com/streamich/memfs/commit/3452bcf24cd44f476687b693a1a1b6685d7353c9))
+
+
+### Features
+
+* revert exists implementation ([bf209cd](https://github.com/streamich/memfs/commit/bf209cd05ed41787be8afb425077fbcdb93fb3fa))
+
 ## [4.37.1](https://github.com/streamich/memfs/compare/v4.37.0...v4.37.1) (2025-08-22)
 
 

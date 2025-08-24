@@ -875,17 +875,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private _exists(filename: string): boolean {
-    try {
-      const link = this._core.getResolvedLinkOrThrow(filename, 'stat');
-      const node = link.getNode();
-
-      // For existsSync, Node.js returns false if the file exists but has no read permissions
-      // This matches the behavior described in the existing test comment
-      return node.canRead();
-    } catch (err) {
-      // If we can't find the file or access the path, it doesn't exist
-      return false;
-    }
+    return !!this._stat(filename);
   }
 
   public existsSync = (path: PathLike): boolean => {

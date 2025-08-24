@@ -1,3 +1,10 @@
+## [4.38.1](https://github.com/streamich/memfs/compare/v4.38.0...v4.38.1) (2025-08-24)
+
+
+### Bug Fixes
+
+* 🐛 use glob-to-regex library ([8962374](https://github.com/streamich/memfs/commit/89623740b78cbcf58a5b1b32d67b2e4ecd183469))
+
 # [4.38.0](https://github.com/streamich/memfs/compare/v4.37.1...v4.38.0) (2025-08-24)
 
 

@@ -66,7 +66,7 @@ describe('chmod 0 permission issue reproduction', () => {
   // Test the exact scenario from the issue (https://github.com/streamich/memfs/issues/1172)
   test('chmod on file and promises access with fs.constants', async () => {
     const vol = create({ '/path/to/file.txt': 'some text' });
-    
+
     await vol.promises.chmod('/path/to/file.txt', 0o0000);
 
     // Should throw for R_OK and W_OK
@@ -76,7 +76,7 @@ describe('chmod 0 permission issue reproduction', () => {
     await expect(vol.promises.access('/path/to/file.txt', AMODE.W_OK | AMODE.F_OK)).rejects.toThrow();
     await expect(vol.promises.access('/path/to/file.txt', AMODE.W_OK | AMODE.R_OK)).rejects.toThrow();
     await expect(vol.promises.access('/path/to/file.txt', AMODE.W_OK | AMODE.R_OK | AMODE.F_OK)).rejects.toThrow();
-    
+
     // F_OK should NOT throw - it just checks existence, which it does exist
     await expect(vol.promises.access('/path/to/file.txt', AMODE.F_OK)).resolves.toBeUndefined();
   });

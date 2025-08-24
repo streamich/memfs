@@ -3282,6 +3282,11 @@ glob-parent@^5.1.2, glob-parent@~5.1.2:
   dependencies:
     is-glob "^4.0.1"
 
+glob-to-regex.js@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/glob-to-regex.js/-/glob-to-regex.js-1.0.1.tgz#f71cc9cb8441471a9318626160bc8a35e1306b21"
+  integrity sha512-CG/iEvgQqfzoVsMUbxSJcwbG2JwyZ3naEqPkeltwl0BSS8Bp83k3xlGms+0QdWFUAwV+uvo80wNswKF6FWEkKg==
+
 glob-to-regexp@^0.4.1:
   version "0.4.1"
   resolved "https://registry.npmjs.org/glob-to-regexp/-/glob-to-regexp-0.4.1.tgz"

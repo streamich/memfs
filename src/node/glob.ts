@@ -1,5 +1,5 @@
 import * as pathModule from 'path';
-import {toRegex} from 'glob-to-regex.js';
+import { toRegex } from 'glob-to-regex.js';
 import { IGlobOptions } from './types/options';
 import { pathToFilename } from './util';
 import Dirent from './Dirent';

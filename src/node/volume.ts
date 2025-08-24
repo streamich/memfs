@@ -74,6 +74,9 @@ const {
   O_DIRECTORY,
   O_SYMLINK,
   F_OK,
+  R_OK,
+  W_OK,
+  X_OK,
   COPYFILE_EXCL,
   COPYFILE_FICLONE_FORCE,
 } = constants;
@@ -896,8 +899,28 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private _access(filename: string, mode: number) {
-    // TODO: Need to check mode?
-    this._core.getLinkOrThrow(filename, 'access');
+    const link = this._core.getLinkOrThrow(filename, 'access');
+    const node = link.getNode();
+
+    // F_OK (0) just checks for existence, which we already confirmed above
+    if (mode === F_OK) {
+      return;
+    }
+
+    // Check read permission
+    if (mode & R_OK && !node.canRead()) {
+      throw createError(ERROR_CODE.EACCES, 'access', filename);
+    }
+
+    // Check write permission
+    if (mode & W_OK && !node.canWrite()) {
+      throw createError(ERROR_CODE.EACCES, 'access', filename);
+    }
+
+    // Check execute permission
+    if (mode & X_OK && !node.canExecute()) {
+      throw createError(ERROR_CODE.EACCES, 'access', filename);
+    }
   }
 
   public accessSync = (path: PathLike, mode: number = F_OK) => {

@@ -1,88 +1,16 @@
 import * as pathModule from 'path';
-import { PathLike } from './types/misc';
+import { toRegex } from 'glob-to-regex.js';
 import { IGlobOptions } from './types/options';
 import { pathToFilename } from './util';
 import Dirent from './Dirent';
 
-const { sep, join, relative, resolve } = pathModule.posix;
-
-/**
- * Convert a glob pattern to a regular expression
- * Supports: *, ?, **, [abc], [!abc], [a-z]
- */
-function globToRegex(pattern: string): RegExp {
-  let regexStr = '';
-  let i = 0;
-
-  while (i < pattern.length) {
-    const char = pattern[i];
-
-    switch (char) {
-      case '*':
-        if (pattern[i + 1] === '*') {
-          // Handle **
-          if (pattern[i + 2] === '/' || i + 2 === pattern.length) {
-            regexStr += '(?:.*\\/)?'; // Match zero or more directories
-            i += pattern[i + 2] === '/' ? 3 : 2;
-          } else {
-            regexStr += '[^/]*'; // Single *
-            i++;
-          }
-        } else {
-          regexStr += '[^/]*'; // Single *
-          i++;
-        }
-        break;
-      case '?':
-        regexStr += '[^/]';
-        i++;
-        break;
-      case '[':
-        regexStr += '[';
-        i++;
-        if (i < pattern.length && pattern[i] === '!') {
-          regexStr += '^';
-          i++;
-        }
-        while (i < pattern.length && pattern[i] !== ']') {
-          if (pattern[i] === '\\') {
-            regexStr += '\\\\';
-            i++;
-          }
-          regexStr += pattern[i];
-          i++;
-        }
-        regexStr += ']';
-        i++;
-        break;
-      case '.':
-      case '^':
-      case '$':
-      case '+':
-      case '{':
-      case '}':
-      case '(':
-      case ')':
-      case '|':
-      case '\\':
-        regexStr += '\\' + char;
-        i++;
-        break;
-      default:
-        regexStr += char;
-        i++;
-        break;
-    }
-  }
-
-  return new RegExp('^' + regexStr + '$');
-}
+const { join, relative, resolve } = pathModule.posix;
 
 /**
  * Check if a path matches a glob pattern
  */
 function matchesPattern(path: string, pattern: string): boolean {
-  const regex = globToRegex(pattern);
+  const regex = toRegex(pattern);
   return regex.test(path);
 }
 

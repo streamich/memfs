@@ -99,6 +99,23 @@ describe('copyFile(src, dest[, flags], callback)', () => {
     });
   });
 
+  it('copying readonly source file should succeed', done => {
+    const vol = create({ '/foo': 'hello world' });
+    vol.chmodSync('/foo', 0o400); // read-only for owner
+
+    // This should not throw - we can read the file even though it's read-only
+    vol.copyFile('/foo', '/bar', err => {
+      try {
+        expect(err).toBeNull();
+        expect(vol.readFileSync('/foo', 'utf8')).toBe('hello world');
+        expect(vol.readFileSync('/bar', 'utf8')).toBe('hello world');
+        done();
+      } catch (failure) {
+        done(failure);
+      }
+    });
+  });
+
   it('copying gives EACCES with insufficient permissions on an intermediate directory', done => {
     const vol = create({ '/foo/test': 'test' });
     vol.mkdirSync('/bar');

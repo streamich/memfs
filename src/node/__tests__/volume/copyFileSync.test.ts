@@ -125,6 +125,18 @@ describe('copyFileSync(src, dest[, flags])', () => {
         }).toThrowError(/EACCES/);
       });
     });
+
+    it('copying readonly source file should succeed', () => {
+      const vol = create({ '/foo': 'hello world' });
+      vol.chmodSync('/foo', 0o400); // read-only for owner
+
+      // This should not throw - we can read the file even though it's read-only
+      vol.copyFileSync('/foo', '/bar');
+
+      expect(vol.readFileSync('/foo', 'utf8')).toBe('hello world');
+      expect(vol.readFileSync('/bar', 'utf8')).toBe('hello world');
+    });
+
     it('copying throws EACCES with insufficient permissions an intermediate directory', () => {
       const vol = create({ '/foo/test': 'test' });
       vol.mkdirSync('/bar');

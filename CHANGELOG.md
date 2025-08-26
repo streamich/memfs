@@ -1,3 +1,10 @@
+## [4.38.2](https://github.com/streamich/memfs/compare/v4.38.1...v4.38.2) (2025-08-26)
+
+
+### Bug Fixes
+
+* correct permission check logic for readonly files in copyFile operations ([a06bb4d](https://github.com/streamich/memfs/commit/a06bb4d13b3ed4bad28921f5e06a7a87f2c089b7))
+
 ## [4.38.1](https://github.com/streamich/memfs/compare/v4.38.0...v4.38.1) (2025-08-24)
 
 

@@ -444,12 +444,14 @@ export class Superblock {
     }
 
     // Check node permissions
-    if (!(flagsNum & O_WRONLY)) {
+    // For read access: check if flags are O_RDONLY or O_RDWR (i.e., not only O_WRONLY)
+    if ((flagsNum & (O_RDONLY | O_RDWR | O_WRONLY)) !== O_WRONLY) {
       if (!node.canRead()) {
         throw createError(ERROR_CODE.EACCES, 'open', link.getPath());
       }
     }
-    if (!(flagsNum & O_RDONLY)) {
+    // For write access: check if flags are O_WRONLY or O_RDWR
+    if (flagsNum & (O_WRONLY | O_RDWR)) {
       if (!node.canWrite()) {
         throw createError(ERROR_CODE.EACCES, 'open', link.getPath());
       }

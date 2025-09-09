@@ -60,7 +60,7 @@ describe('node.ts', () => {
         node.read(buf, 0, 1, 1);
         expect(buf.equals(Buffer.from([2]))).toBe(true);
       });
-      it('updates the atime and ctime', () => {
+      it('updates the atime but not ctime', () => {
         const node = new Node(1);
         const oldAtime = node.atime;
         const oldCtime = node.ctime;
@@ -68,7 +68,7 @@ describe('node.ts', () => {
         const newAtime = node.atime;
         const newCtime = node.ctime;
         expect(newAtime).not.toBe(oldAtime);
-        expect(newCtime).not.toBe(oldCtime);
+        expect(newCtime).toBe(oldCtime);
       });
     });
     describe('.chmod(perm)', () => {
@@ -79,7 +79,7 @@ describe('node.ts', () => {
       expect(node.perm).toBe(0o600);
       expect(node.isFile()).toBe(true);
     });
-    describe.each(['uid', 'gid', 'atime', 'mtime', 'perm', 'nlink'])('when %s changes', field => {
+    describe.each(['uid', 'gid', 'mtime', 'perm', 'nlink'])('when %s changes', field => {
       it('updates the property and the ctime', () => {
         const node = new Node(1);
         const oldCtime = node.ctime;
@@ -89,8 +89,18 @@ describe('node.ts', () => {
         expect(node[field]).toBe(1);
       });
     });
+    describe('when atime changes', () => {
+      it('updates the property but NOT the ctime', () => {
+        const node = new Node(1);
+        const oldCtime = node.ctime;
+        node.atime = new Date(1);
+        const newCtime = node.ctime;
+        expect(newCtime).toBe(oldCtime);
+        expect(node.atime).toEqual(new Date(1));
+      });
+    });
     describe('.getString(encoding?)', () => {
-      it('updates the atime and ctime', () => {
+      it('updates the atime but not ctime', () => {
         const node = new Node(1);
         const oldAtime = node.atime;
         const oldCtime = node.ctime;
@@ -98,11 +108,11 @@ describe('node.ts', () => {
         const newAtime = node.atime;
         const newCtime = node.ctime;
         expect(newAtime).not.toBe(oldAtime);
-        expect(newCtime).not.toBe(oldCtime);
+        expect(newCtime).toBe(oldCtime);
       });
     });
     describe('.getBuffer()', () => {
-      it('updates the atime and ctime', () => {
+      it('updates the atime but not ctime', () => {
         const node = new Node(1);
         const oldAtime = node.atime;
         const oldCtime = node.ctime;
@@ -110,7 +120,7 @@ describe('node.ts', () => {
         const newAtime = node.atime;
         const newCtime = node.ctime;
         expect(newAtime).not.toBe(oldAtime);
-        expect(newCtime).not.toBe(oldCtime);
+        expect(newCtime).toBe(oldCtime);
       });
     });
   });

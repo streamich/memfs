@@ -1,3 +1,10 @@
+## [4.38.3](https://github.com/streamich/memfs/compare/v4.38.2...v4.38.3) (2025-09-09)
+
+
+### Bug Fixes
+
+* prevent readFile from updating ctime when only accessing files ([f5f3066](https://github.com/streamich/memfs/commit/f5f3066cd6d2d7e2d8bec7414e9eda064afd7868))
+
 ## [4.38.2](https://github.com/streamich/memfs/compare/v4.38.1...v4.38.2) (2025-08-26)
 
 

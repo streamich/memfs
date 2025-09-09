@@ -68,7 +68,6 @@ export class Node extends EventEmitter {
 
   public set atime(atime: Date) {
     this._atime = atime;
-    this.ctime = new Date();
   }
 
   public get atime(): Date {
@@ -115,7 +114,7 @@ export class Node extends EventEmitter {
 
   getBuffer(): Buffer {
     this.atime = new Date();
-    if (!this.buf) this.setBuffer(bufferAllocUnsafe(0));
+    if (!this.buf) this.buf = bufferAllocUnsafe(0);
     return bufferFrom(this.buf); // Return a copy.
   }
 

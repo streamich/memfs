@@ -132,25 +132,76 @@ export type Data =
  */
 export interface IFileSystemChangeRecord {
   /**
-   * The changed file system handle.
-   * This property will be null for records with a "disappeared", "errored", or "unknown" type.
+   * A reference to the file system handle that the change was observed on. This
+   * property will be null for records with a "disappeared", "errored", or
+   * "unknown" type.
    */
-  changedHandle: IFileSystemHandle | IFileSystemSyncAccessHandle | null;
-  /** Path components from the observed directory to the changed handle. */
-  relativePathComponents: string[];
+  changedHandle:
+    | IFileSystemHandle
+    | IFileSystemSyncAccessHandle
+    | IFileSystemDirectoryHandle
+    | null;
+
   /**
-   * Path components that make up the relative file path from the root to the
-   * changedHandle's former location, in the case of observations with a "moved" type.
-   * If the type is not "moved", this property will be null.
+   * An array containing the path components that make up the relative file path
+   * from the `root` to the `changedHandle`, including the `changedHandle`
+   * filename.
+   */
+  relativePathComponents: string[];
+
+  /**
+   * An array containing the path components that make up the relative file path
+   * from the `root` to the `changedHandle`'s former location, in the case of
+   * observations with a `"moved"` type. If the type is not `"moved"`, this
+   * property will be `null`.
    */
   relativePathMovedFrom: string[] | null;
+
   /**
-   * A reference to the root file system handle, that is, the one passed to the observe()
-   * call that started the observation.
+   * A reference to the root file system handle, that is, the one passed to the
+   * `observe()` call that started the observation.
    */
-  root: IFileSystemHandle | IFileSystemSyncAccessHandle;
-  /** The type of change that occurred. */
-  type: 'appeared' | 'disappeared' | 'modified' | 'moved' | 'errored' | 'unknown';
+  root:
+    | IFileSystemHandle
+    | IFileSystemSyncAccessHandle
+    | IFileSystemDirectoryHandle;
+
+  /**
+   * The type of change that occurred.
+   */
+  type:
+    /** The file or directory was created or moved into the `root` file structure. */
+    | 'appeared'
+
+    /**
+     * The file or directory was deleted or moved out of the root file structure.
+     * To find out which file or directory `disappeared`, you can query the
+     * `relativePathComponents` property.
+     */
+    | 'disappeared'
+
+    /** An error state occurred in the observed directory. */
+    | 'errored'
+
+    /** The file or directory was modified. */
+    | 'modified'
+
+    /**
+     * The file or directory was moved within the root file structure.
+     *
+     * Chrome note: On Windows, "moved" observations aren't supported between
+     * directories. They are reported as a "disappeared" observation in the
+     * source directory and an "appeared" observation in the destination directory.
+     */
+    | 'moved'
+
+
+    /**
+     * Indicates that some observations were missed. If you wish to find out
+     * information on what changed in the missed observations, you could fall
+     * back to polling the observed directory.
+     */
+    | 'unknown';
 }
 
 export interface FileSystemObserverObserveOptions {

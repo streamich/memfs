@@ -14,9 +14,9 @@ const getuid = (): number => process.getuid?.() ?? 0;
 const getgid = (): number => process.getgid?.() ?? 0;
 
 /**
- * Node in a file system (like i-node, v-node).
+ * Base node class in a file system (like i-node, v-node).
  */
-export class Node {
+export abstract class Node {
   public readonly changes = new FanOut<NodeEvent>();
 
   // i-node number.
@@ -30,8 +30,6 @@ export class Node {
   private _mtime = new Date();
   private _ctime = new Date();
 
-  // data: string = '';
-  buf: Buffer;
   rdev: number = 0;
 
   mode: number; // S_IFDIR, S_IFREG, etc..
@@ -109,29 +107,23 @@ export class Node {
   }
 
   getString(encoding = 'utf8'): string {
-    this.atime = new Date();
-    return this.getBuffer().toString(encoding);
+    throw new Error('Method not implemented for this node type');
   }
 
   setString(str: string) {
-    // this.setBuffer(bufferFrom(str, 'utf8'));
-    this.buf = bufferFrom(str, 'utf8');
-    this.touch();
+    throw new Error('Method not implemented for this node type');
   }
 
   getBuffer(): Buffer {
-    this.atime = new Date();
-    if (!this.buf) this.buf = bufferAllocUnsafe(0);
-    return bufferFrom(this.buf); // Return a copy.
+    throw new Error('Method not implemented for this node type');
   }
 
   setBuffer(buf: Buffer) {
-    this.buf = bufferFrom(buf); // Creates a copy of data.
-    this.touch();
+    throw new Error('Method not implemented for this node type');
   }
 
   getSize(): number {
-    return this.buf ? this.buf.length : 0;
+    return 0;
   }
 
   setModeProperty(property: number) {
@@ -161,19 +153,7 @@ export class Node {
   }
 
   write(buf: Buffer, off: number = 0, len: number = buf.length, pos: number = 0): number {
-    if (!this.buf) this.buf = bufferAllocUnsafe(0);
-
-    if (pos + len > this.buf.length) {
-      const newBuf = bufferAllocUnsafe(pos + len);
-      this.buf.copy(newBuf, 0, 0, this.buf.length);
-      this.buf = newBuf;
-    }
-
-    buf.copy(this.buf, pos, off, off + len);
-
-    this.touch();
-
-    return len;
+    throw new Error('Method not implemented for this node type');
   }
 
   // Returns the number of bytes read.
@@ -183,36 +163,11 @@ export class Node {
     len: number = buf.byteLength,
     pos: number = 0,
   ): number {
-    this.atime = new Date();
-    if (!this.buf) this.buf = bufferAllocUnsafe(0);
-    if (pos >= this.buf.length) return 0;
-    let actualLen = len;
-    if (actualLen > buf.byteLength) {
-      actualLen = buf.byteLength;
-    }
-    if (actualLen + pos > this.buf.length) {
-      actualLen = this.buf.length - pos;
-    }
-    const buf2 = buf instanceof Buffer ? buf : Buffer.from(buf.buffer);
-    this.buf.copy(buf2, off, pos, pos + actualLen);
-    return actualLen;
+    throw new Error('Method not implemented for this node type');
   }
 
   truncate(len: number = 0) {
-    if (!len) this.buf = bufferAllocUnsafe(0);
-    else {
-      if (!this.buf) this.buf = bufferAllocUnsafe(0);
-      if (len <= this.buf.length) {
-        this.buf = this.buf.slice(0, len);
-      } else {
-        const buf = bufferAllocUnsafe(len);
-        this.buf.copy(buf);
-        buf.fill(0, this.buf.length);
-        this.buf = buf;
-      }
-    }
-
-    this.touch();
+    throw new Error('Method not implemented for this node type');
   }
 
   chmod(perm: number) {
@@ -307,7 +262,108 @@ export class Node {
       mode: this.mode,
       nlink: this.nlink,
       symlink: this.symlink,
+    };
+  }
+}
+
+/**
+ * Node representing a file in a file system.
+ */
+export class FileNode extends Node {
+  buf: Buffer;
+
+  getString(encoding = 'utf8'): string {
+    this.atime = new Date();
+    return this.getBuffer().toString(encoding);
+  }
+
+  setString(str: string) {
+    this.buf = bufferFrom(str, 'utf8');
+    this.touch();
+  }
+
+  getBuffer(): Buffer {
+    this.atime = new Date();
+    if (!this.buf) this.buf = bufferAllocUnsafe(0);
+    return bufferFrom(this.buf); // Return a copy.
+  }
+
+  setBuffer(buf: Buffer) {
+    this.buf = bufferFrom(buf); // Creates a copy of data.
+    this.touch();
+  }
+
+  getSize(): number {
+    return this.buf ? this.buf.length : 0;
+  }
+
+  write(buf: Buffer, off: number = 0, len: number = buf.length, pos: number = 0): number {
+    if (!this.buf) this.buf = bufferAllocUnsafe(0);
+
+    if (pos + len > this.buf.length) {
+      const newBuf = bufferAllocUnsafe(pos + len);
+      this.buf.copy(newBuf, 0, 0, this.buf.length);
+      this.buf = newBuf;
+    }
+
+    buf.copy(this.buf, pos, off, off + len);
+
+    this.touch();
+
+    return len;
+  }
+
+  read(
+    buf: Buffer | ArrayBufferView | DataView,
+    off: number = 0,
+    len: number = buf.byteLength,
+    pos: number = 0,
+  ): number {
+    this.atime = new Date();
+    if (!this.buf) this.buf = bufferAllocUnsafe(0);
+    if (pos >= this.buf.length) return 0;
+    let actualLen = len;
+    if (actualLen > buf.byteLength) {
+      actualLen = buf.byteLength;
+    }
+    if (actualLen + pos > this.buf.length) {
+      actualLen = this.buf.length - pos;
+    }
+    const buf2 = buf instanceof Buffer ? buf : Buffer.from(buf.buffer);
+    this.buf.copy(buf2, off, pos, pos + actualLen);
+    return actualLen;
+  }
+
+  truncate(len: number = 0) {
+    if (!len) this.buf = bufferAllocUnsafe(0);
+    else {
+      if (!this.buf) this.buf = bufferAllocUnsafe(0);
+      if (len <= this.buf.length) {
+        this.buf = this.buf.slice(0, len);
+      } else {
+        const buf = bufferAllocUnsafe(len);
+        this.buf.copy(buf);
+        buf.fill(0, this.buf.length);
+        this.buf = buf;
+      }
+    }
+
+    this.touch();
+  }
+
+  toJSON() {
+    return {
+      ...super.toJSON(),
       data: this.getString(),
     };
+  }
+}
+
+/**
+ * Node representing a directory in a file system.
+ */
+export class DirNode extends Node {
+  getSize(): number {
+    return 0;
   }
 }

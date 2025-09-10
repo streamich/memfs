@@ -1,5 +1,5 @@
 import * as NodePath from 'path';
-import { Node } from './Node';
+import { Node, FileNode, DirNode } from './Node';
 import { Link } from './Link';
 import { File } from './File';
 import { Buffer } from '../internal/buffer';
@@ -150,7 +150,8 @@ export class Superblock {
   }
 
   createNode(mode: number): Node {
-    const node = new Node(this.newInoNumber(), mode);
+    const isDirectory = (mode & constants.S_IFMT) === constants.S_IFDIR;
+    const node = isDirectory ? new DirNode(this.newInoNumber(), mode) : new FileNode(this.newInoNumber(), mode);
     this.inodes[node.ino] = node;
     return node;
   }

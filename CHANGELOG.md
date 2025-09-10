@@ -1,3 +1,16 @@
+# [4.39.0](https://github.com/streamich/memfs/compare/v4.38.3...v4.39.0) (2025-09-10)
+
+
+### Features
+
+* 🎸 add scaffold for `CoreFileSystemObserver` implementation and restructure fsa() helper ([117b7c5](https://github.com/streamich/memfs/commit/117b7c5a7ec26a77c03f0a250793925353c01f58))
+* 🎸 improve `IFileSystemChangeRecord` interface ([868b763](https://github.com/streamich/memfs/commit/868b763ccbd33eac3b3a92d2acbd7df70e77a7c6))
+* 🎸 update `IFileSystemObserver` interface ([d581d8c](https://github.com/streamich/memfs/commit/d581d8c995eb544836b15767aae7dc0d2e49ae72))
+* 🎸 update file change record interface ([ff2386c](https://github.com/streamich/memfs/commit/ff2386c4b3c03dd6c3c5d579c96d3a062423d5f2))
+* 🎸 use `FanOut` for `Link` reactivity ([2aec586](https://github.com/streamich/memfs/commit/2aec58699d07f5b4b9e5164eab631cd7a3f43a93))
+* 🎸 use `FanOut` for `Node` events ([95ef10a](https://github.com/streamich/memfs/commit/95ef10ab401f3b352f1d473465db859eaf6e10c6))
+* 🎸 use compact form for link events ([a00a1f0](https://github.com/streamich/memfs/commit/a00a1f0e2ce0dbc5b4c870eb20c36f9e10c1ce17))
+
 ## [4.38.3](https://github.com/streamich/memfs/compare/v4.38.2...v4.38.3) (2025-09-09)
 
 

@@ -1992,17 +1992,14 @@ export class FSWatcher extends EventEmitter {
       const node = link.getNode();
       const onNodeChange = () => {
         let filename = relative(this._filename, filepath);
-
-        if (!filename) {
-          filename = this._getName();
-        }
-
+        if (!filename) filename = this._getName();
         return this.emit('change', 'change', filename);
       };
-      node.on('change', onNodeChange);
-
+      const unsub = node.changes.listen(([type]) => {
+        if (type === 'modify') onNodeChange();
+      });
       const removers = this._listenerRemovers.get(node.ino) ?? [];
-      removers.push(() => node.removeListener('change', onNodeChange));
+      removers.push(() => unsub());
       this._listenerRemovers.set(node.ino, removers);
     };
 

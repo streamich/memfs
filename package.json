@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "4.37.1",
+  "version": "4.38.3",
   "description": "In-memory file-system with Node's fs API.",
   "keywords": [
     "fs",
@@ -126,6 +126,7 @@
   "dependencies": {
     "@jsonjoy.com/json-pack": "^1.11.0",
     "@jsonjoy.com/util": "^1.9.0",
+    "glob-to-regex.js": "^1.0.1",
     "thingies": "^2.5.0",
     "tree-dump": "^1.0.3",
     "tslib": "^2.0.0"

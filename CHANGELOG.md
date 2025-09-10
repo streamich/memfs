@@ -1,3 +1,36 @@
+## [4.38.3](https://github.com/streamich/memfs/compare/v4.38.2...v4.38.3) (2025-09-09)
+
+
+### Bug Fixes
+
+* prevent readFile from updating ctime when only accessing files ([f5f3066](https://github.com/streamich/memfs/commit/f5f3066cd6d2d7e2d8bec7414e9eda064afd7868))
+
+## [4.38.2](https://github.com/streamich/memfs/compare/v4.38.1...v4.38.2) (2025-08-26)
+
+
+### Bug Fixes
+
+* correct permission check logic for readonly files in copyFile operations ([a06bb4d](https://github.com/streamich/memfs/commit/a06bb4d13b3ed4bad28921f5e06a7a87f2c089b7))
+
+## [4.38.1](https://github.com/streamich/memfs/compare/v4.38.0...v4.38.1) (2025-08-24)
+
+
+### Bug Fixes
+
+* 🐛 use glob-to-regex library ([8962374](https://github.com/streamich/memfs/commit/89623740b78cbcf58a5b1b32d67b2e4ecd183469))
+
+# [4.38.0](https://github.com/streamich/memfs/compare/v4.37.1...v4.38.0) (2025-08-24)
+
+
+### Bug Fixes
+
+* handle chmod 0 permissions in existsSync and access methods ([3452bcf](https://github.com/streamich/memfs/commit/3452bcf24cd44f476687b693a1a1b6685d7353c9))
+
+
+### Features
+
+* revert exists implementation ([bf209cd](https://github.com/streamich/memfs/commit/bf209cd05ed41787be8afb425077fbcdb93fb3fa))
+
 ## [4.37.1](https://github.com/streamich/memfs/compare/v4.37.0...v4.37.1) (2025-08-22)
 
 

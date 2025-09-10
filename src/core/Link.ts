@@ -3,17 +3,9 @@ import { FanOut } from 'thingies/lib/fanout';
 import type { Node } from './Node';
 import type { Superblock } from './Superblock';
 
-export type LinkEventChildAdd = [
-  type: 'child:add',
-  link: Link,
-  parent: Link,
-];
+export type LinkEventChildAdd = [type: 'child:add', link: Link, parent: Link];
 
-export type LinkEventChildDelete = [
-  type: 'child:del',
-  link: Link,
-  parent: Link,
-];
+export type LinkEventChildDelete = [type: 'child:del', link: Link, parent: Link];
 
 export type LinkEvent = LinkEventChildAdd | LinkEventChildDelete;
 

@@ -3,13 +3,9 @@ import process from '../process';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '../internal/buffer';
 import { constants, S } from '../constants';
 
-export type NodeEventModify = [
-  type: 'modify',
-];
+export type NodeEventModify = [type: 'modify'];
 
-export type NodeEventDelete = [
-  type: 'delete',
-];
+export type NodeEventDelete = [type: 'delete'];
 
 export type NodeEvent = NodeEventModify | NodeEventDelete;
 

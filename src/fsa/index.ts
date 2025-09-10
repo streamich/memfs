@@ -1,5 +1,10 @@
 import { CoreFileSystemDirectoryHandle } from './CoreFileSystemDirectoryHandle';
-import { CoreFsaContext, IFileSystemChangeRecord, IFileSystemObserver, IFileSystemObserverConstructable } from './types';
+import {
+  CoreFsaContext,
+  IFileSystemChangeRecord,
+  IFileSystemObserver,
+  IFileSystemObserverConstructable,
+} from './types';
 import { Superblock } from '../core/Superblock';
 import { CoreFileSystemObserver } from './CoreFileSystemObserver';
 
@@ -31,9 +36,9 @@ export * from './CorePermissionStatus';
 export const fsa = (ctx?: Partial<CoreFsaContext>, core = new Superblock(), dirPath: string = '/') => {
   const dir = new CoreFileSystemDirectoryHandle(core, dirPath, ctx);
   const FileSystemObserver: IFileSystemObserverConstructable = class FileSystemObserver extends CoreFileSystemObserver {
-    constructor (callback: (records: IFileSystemChangeRecord[], observer: IFileSystemObserver) => void) {
+    constructor(callback: (records: IFileSystemChangeRecord[], observer: IFileSystemObserver) => void) {
       super(core, callback);
     }
-  }
+  };
   return { core, dir, FileSystemObserver };
 };

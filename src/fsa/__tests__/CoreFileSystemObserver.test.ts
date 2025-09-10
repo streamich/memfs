@@ -1,12 +1,11 @@
 import { fsa, IFileSystemChangeRecord } from '..';
 import { onlyOnNode20 } from '../../__tests__/util';
 
-
 onlyOnNode20('CoreFileSystemObserver', () => {
   test.skip('can listen to file writes', async () => {
-    const { dir, FileSystemObserver } = fsa({mode: 'readwrite'});
+    const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
     const changes: IFileSystemChangeRecord[] = [];
-    const observer = new FileSystemObserver((records) => {
+    const observer = new FileSystemObserver(records => {
       changes.push(...records);
     });
     const file = await dir.getFileHandle('file.txt', { create: true });

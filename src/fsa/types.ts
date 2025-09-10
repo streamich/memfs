@@ -134,11 +134,7 @@ export interface IFileSystemChangeRecord {
    * property will be null for records with a "disappeared", "errored", or
    * "unknown" type.
    */
-  changedHandle:
-    | IFileSystemHandle
-    | IFileSystemSyncAccessHandle
-    | IFileSystemDirectoryHandle
-    | null;
+  changedHandle: IFileSystemHandle | IFileSystemSyncAccessHandle | IFileSystemDirectoryHandle | null;
 
   /**
    * An array containing the path components that make up the relative file path
@@ -159,17 +155,13 @@ export interface IFileSystemChangeRecord {
    * A reference to the root file system handle, that is, the one passed to the
    * `observe()` call that started the observation.
    */
-  root:
-    | IFileSystemHandle
-    | IFileSystemSyncAccessHandle
-    | IFileSystemDirectoryHandle;
+  root: IFileSystemHandle | IFileSystemSyncAccessHandle | IFileSystemDirectoryHandle;
 
   /**
    * The type of change that occurred.
    */
-  type:
-    /** The file or directory was created or moved into the `root` file structure. */
-    | 'appeared'
+  type: /** The file or directory was created or moved into the `root` file structure. */
+  | 'appeared'
 
     /**
      * The file or directory was deleted or moved out of the root file structure.
@@ -192,7 +184,6 @@ export interface IFileSystemChangeRecord {
      * source directory and an "appeared" observation in the destination directory.
      */
     | 'moved'
-
 
     /**
      * Indicates that some observations were missed. If you wish to find out
@@ -217,7 +208,10 @@ export interface IFileSystemObserver {
    * @param handle The file or directory handle to observe.
    * @param options Optional settings for the observation.
    */
-  observe(handle: IFileSystemFileHandle | IFileSystemDirectoryHandle | IFileSystemSyncAccessHandle, options?: IFileSystemObserverObserveOptions): Promise<void>;
+  observe(
+    handle: IFileSystemFileHandle | IFileSystemDirectoryHandle | IFileSystemSyncAccessHandle,
+    options?: IFileSystemObserverObserveOptions,
+  ): Promise<void>;
 
   /** Disconnect and stop all observations. */
   disconnect(): void;

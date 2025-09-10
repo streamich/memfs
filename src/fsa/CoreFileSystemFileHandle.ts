@@ -9,7 +9,6 @@ import type {
   IFileSystemSyncAccessHandle,
 } from './types';
 import type { Superblock } from '../core/Superblock';
-import { Buffer } from '../internal/buffer';
 import { ERROR_CODE } from '../core/constants';
 
 export class CoreFileSystemFileHandle extends CoreFileSystemHandle implements IFileSystemFileHandle {

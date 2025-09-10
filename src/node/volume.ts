@@ -1,4 +1,5 @@
 import * as pathModule from 'path';
+import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import { Link, Superblock } from '../core';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -63,23 +64,7 @@ import { TFileId } from '../core/types';
 import { dataToBuffer, filenameToSteps, isFd, isWin, validateFd } from '../core/util';
 
 const resolveCrossPlatform = pathModule.resolve;
-const {
-  O_RDONLY,
-  O_WRONLY,
-  O_RDWR,
-  O_CREAT,
-  O_EXCL,
-  O_TRUNC,
-  O_APPEND,
-  O_DIRECTORY,
-  O_SYMLINK,
-  F_OK,
-  R_OK,
-  W_OK,
-  X_OK,
-  COPYFILE_EXCL,
-  COPYFILE_FICLONE_FORCE,
-} = constants;
+const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK, COPYFILE_EXCL, COPYFILE_FICLONE_FORCE } = constants;
 
 const { sep, relative, join, dirname, normalize } = pathModule.posix ? pathModule.posix : pathModule;
 
@@ -160,10 +145,6 @@ function validateUid(uid: number) {
 function validateGid(gid: number) {
   if (typeof gid !== 'number') throw TypeError(ERRSTR.GID);
 }
-
-const notImplemented: (...args: any[]) => any = () => {
-  throw new Error('Not implemented');
-};
 
 /**
  * `Volume` represents a file system.
@@ -2026,17 +2007,14 @@ export class FSWatcher extends EventEmitter {
       const node = link.getNode();
       const onNodeChange = () => {
         let filename = relative(this._filename, filepath);
-
-        if (!filename) {
-          filename = this._getName();
-        }
-
+        if (!filename) filename = this._getName();
         return this.emit('change', 'change', filename);
       };
-      node.on('change', onNodeChange);
-
+      const unsub = node.changes.listen(([type]) => {
+        if (type === 'modify') onNodeChange();
+      });
       const removers = this._listenerRemovers.get(node.ino) ?? [];
-      removers.push(() => node.removeListener('change', onNodeChange));
+      removers.push(() => unsub());
       this._listenerRemovers.set(node.ino, removers);
     };
 
@@ -2081,13 +2059,14 @@ export class FSWatcher extends EventEmitter {
         }
       }
       // link children add/remove
-      link.on('child:add', onLinkChildAdd);
-      link.on('child:delete', onLinkChildDelete);
+      const unsubscribeLinkChanges = link.changes.listen(([type, link]) => {
+        if (type === 'child:add') onLinkChildAdd(link);
+        else if (type === 'child:del') onLinkChildDelete(link);
+      });
 
       const removers = this._listenerRemovers.get(node.ino) ?? [];
       removers.push(() => {
-        link.removeListener('child:add', onLinkChildAdd);
-        link.removeListener('child:delete', onLinkChildDelete);
+        unsubscribeLinkChanges();
       });
 
       if (recursive) {
@@ -2103,26 +2082,23 @@ export class FSWatcher extends EventEmitter {
 
     const parent = this._link.parent;
     if (parent) {
-      // parent.on('child:add', this._onParentChild);
-      parent.setMaxListeners(parent.getMaxListeners() + 1);
-      parent.on('child:delete', this._onParentChild);
+      // parent.on('child:delete', this._onParentChild);
+      parent.changes.listen(([type, link]) => {
+        if (type === 'child:del') this._onParentChild(link);
+      });
     }
 
     if (persistent) this._persist();
   }
 
+  protected _parentChangesUnsub: FanOutUnsubscribe;
+
   close() {
     clearTimeout(this._timer);
-
     this._listenerRemovers.forEach(removers => {
       removers.forEach(r => r());
     });
     this._listenerRemovers.clear();
-
-    const parent = this._link.parent;
-    if (parent) {
-      // parent.removeListener('child:add', this._onParentChild);
-      parent.removeListener('child:delete', this._onParentChild);
-    }
+    this._parentChangesUnsub?.();
   }
 }

@@ -1,5 +1,3 @@
-import type { Superblock } from '../core/Superblock';
-
 export interface IPermissionStatus {
   name: string;
   state: 'granted' | 'denied' | 'prompt';
@@ -126,3 +124,105 @@ export type Data =
   | DataView
   | Blob
   | string;
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemChangeRecord
+ */
+export interface IFileSystemChangeRecord {
+  /**
+   * A reference to the file system handle that the change was observed on. This
+   * property will be null for records with a "disappeared", "errored", or
+   * "unknown" type.
+   */
+  changedHandle: IFileSystemHandle | IFileSystemSyncAccessHandle | IFileSystemDirectoryHandle | null;
+
+  /**
+   * An array containing the path components that make up the relative file path
+   * from the `root` to the `changedHandle`, including the `changedHandle`
+   * filename.
+   */
+  relativePathComponents: string[];
+
+  /**
+   * An array containing the path components that make up the relative file path
+   * from the `root` to the `changedHandle`'s former location, in the case of
+   * observations with a `"moved"` type. If the type is not `"moved"`, this
+   * property will be `null`.
+   */
+  relativePathMovedFrom: string[] | null;
+
+  /**
+   * A reference to the root file system handle, that is, the one passed to the
+   * `observe()` call that started the observation.
+   */
+  root: IFileSystemHandle | IFileSystemSyncAccessHandle | IFileSystemDirectoryHandle;
+
+  /**
+   * The type of change that occurred.
+   */
+  type: /** The file or directory was created or moved into the `root` file structure. */
+  | 'appeared'
+
+    /**
+     * The file or directory was deleted or moved out of the root file structure.
+     * To find out which file or directory `disappeared`, you can query the
+     * `relativePathComponents` property.
+     */
+    | 'disappeared'
+
+    /** An error state occurred in the observed directory. */
+    | 'errored'
+
+    /** The file or directory was modified. */
+    | 'modified'
+
+    /**
+     * The file or directory was moved within the root file structure.
+     *
+     * Chrome note: On Windows, "moved" observations aren't supported between
+     * directories. They are reported as a "disappeared" observation in the
+     * source directory and an "appeared" observation in the destination directory.
+     */
+    | 'moved'
+
+    /**
+     * Indicates that some observations were missed. If you wish to find out
+     * information on what changed in the missed observations, you could fall
+     * back to polling the observed directory.
+     */
+    | 'unknown';
+}
+
+export interface IFileSystemObserverObserveOptions {
+  /** Whether to observe changes recursively in subdirectories. */
+  recursive?: boolean;
+}
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemObserver
+ */
+export interface IFileSystemObserver {
+  /**
+   * Start observing changes to a given file or directory.
+   *
+   * @param handle The file or directory handle to observe.
+   * @param options Optional settings for the observation.
+   */
+  observe(
+    handle: IFileSystemFileHandle | IFileSystemDirectoryHandle | IFileSystemSyncAccessHandle,
+    options?: IFileSystemObserverObserveOptions,
+  ): Promise<void>;
+
+  /** Disconnect and stop all observations. */
+  disconnect(): void;
+}
+
+export interface IFileSystemObserverConstructable {
+  /**
+   * Constructor for creating a FileSystemObserver.
+   *
+   * @param callback Function called with file system change records and the
+   *     observer instance
+   */
+  new (callback: (records: IFileSystemChangeRecord[], observer: IFileSystemObserver) => void): IFileSystemObserver;
+}

@@ -1,7 +1,13 @@
+import { FanOut } from 'thingies/lib/fanout';
 import process from '../process';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '../internal/buffer';
 import { constants, S } from '../constants';
-import { EventEmitter } from 'events';
+
+export type NodeEventModify = [type: 'modify'];
+
+export type NodeEventDelete = [type: 'delete'];
+
+export type NodeEvent = NodeEventModify | NodeEventDelete;
 
 const { S_IFMT, S_IFDIR, S_IFREG, S_IFLNK, S_IFCHR } = constants;
 const getuid = (): number => process.getuid?.() ?? 0;
@@ -10,7 +16,9 @@ const getgid = (): number => process.getgid?.() ?? 0;
 /**
  * Node in a file system (like i-node, v-node).
  */
-export class Node extends EventEmitter {
+export class Node {
+  public readonly changes = new FanOut<NodeEvent>();
+
   // i-node number.
   ino: number;
 
@@ -35,7 +43,6 @@ export class Node extends EventEmitter {
   symlink: string;
 
   constructor(ino: number, mode: number = 0o666) {
-    super();
     this.mode = mode;
     this.ino = ino;
   }
@@ -221,7 +228,7 @@ export class Node extends EventEmitter {
 
   touch() {
     this.mtime = new Date();
-    this.emit('change', this);
+    this.changes.emit(['modify']);
   }
 
   canRead(uid: number = getuid(), gid: number = getgid()): boolean {
@@ -285,7 +292,7 @@ export class Node extends EventEmitter {
   }
 
   del() {
-    this.emit('delete', this);
+    this.changes.emit(['delete']);
   }
 
   toJSON() {

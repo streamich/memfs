@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/core/json.ts</title>
+    <title>Code coverage report for src/fsa/CoreFileSystemObserver.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/core</a> json.ts</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/fsa</a> CoreFileSystemObserver.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">20% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>16/16</span>
+                <span class='fraction'>1/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.9% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>10/11</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">20% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>15/15</span>
+                <span class='fraction'>1/5</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -91,18 +91,7 @@
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
 <a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a>
-<a name='L30'></a><a href='#L30'>30</a>
-<a name='L31'></a><a href='#L31'>31</a>
-<a name='L32'></a><a href='#L32'>32</a>
-<a name='L33'></a><a href='#L33'>33</a>
-<a name='L34'></a><a href='#L34'>34</a>
-<a name='L35'></a><a href='#L35'>35</a>
-<a name='L36'></a><a href='#L36'>36</a>
-<a name='L37'></a><a href='#L37'>37</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">64x</span>
-<span class="cline-any cline-yes">64x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">64x</span>
+<a name='L29'></a><a href='#L29'>29</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -112,65 +101,52 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">64x</span>
-<span class="cline-any cline-yes">266x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">447x</span>
-<span class="cline-any cline-yes">643x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">643x</span>
-<span class="cline-any cline-yes">643x</span>
-<span class="cline-any cline-yes">320x</span>
-<span class="cline-any cline-yes">323x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">181x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">142x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">266x</span>
-<span class="cline-any cline-yes">266x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Buffer } from '../internal/buffer';
-import * as pathModule from 'path';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type {
+  IFileSystemChangeRecord,
+  IFileSystemDirectoryHandle,
+  IFileSystemFileHandle,
+  IFileSystemObserver,
+  IFileSystemObserverObserveOptions,
+  IFileSystemSyncAccessHandle,
+} from './types';
+import type { Superblock } from '../core';
 &nbsp;
-const { join } = pathModule.posix ? pathModule.posix : <span class="branch-1 cbranch-no" title="branch not covered" >pathModule;</span>
+export class CoreFileSystemObserver implements IFileSystemObserver {
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    protected readonly <span class="cstat-no" title="statement not covered" >_core: Superblock,</span>
+    protected readonly <span class="cstat-no" title="statement not covered" >callback: (records: IFileSystemChangeRecord[], observer: IFileSystemObserver) =&gt; void,</span>
+  ) {}
 &nbsp;
-export type DirectoryContent = string | Buffer | null;
-&nbsp;
-export interface DirectoryJSON&lt;T extends DirectoryContent = DirectoryContent&gt; {
-  [key: string]: T;
-}
-export interface NestedDirectoryJSON&lt;T extends DirectoryContent = DirectoryContent&gt; {
-  [key: string]: T | NestedDirectoryJSON;
-}
-&nbsp;
-export const flattenJSON = (nestedJSON: NestedDirectoryJSON): DirectoryJSON =&gt; {
-  const flatJSON: DirectoryJSON = {};
-  function flatten(pathPrefix: string, node: NestedDirectoryJSON) {
-    for (const path in node) {
-      const contentOrNode = node[path];
-      // TODO: Can we avoid using `join` here? Just concatenate?
-      const joinedPath = join(pathPrefix, path);
-      if (typeof contentOrNode === 'string' || contentOrNode instanceof Buffer) {
-        flatJSON[joinedPath] = contentOrNode;
-      } else if (typeof contentOrNode === 'object' &amp;&amp; contentOrNode !== null &amp;&amp; Object.keys(contentOrNode).length &gt; 0) {
-        // empty directories need an explicit entry and therefore get handled in `else`, non-empty ones are implicitly considered
-        flatten(joinedPath, contentOrNode);
-      } else {
-        // without this branch null, empty-object or non-object entries would not be handled in the same way
-        // by both fromJSON() and fromNestedJSON()
-        flatJSON[joinedPath] = null;
-      }
-    }
+  public <span class="fstat-no" title="function not covered" >async </span>observe(
+    handle: IFileSystemFileHandle | IFileSystemDirectoryHandle | IFileSystemSyncAccessHandle,
+    options?: IFileSystemObserverObserveOptions,
+  ): Promise&lt;void&gt; {
+<span class="cstat-no" title="statement not covered" >    throw new Error('Method not implemented.');</span>
   }
-  flatten('', nestedJSON);
-  return flatJSON;
-};
+&nbsp;
+  /** Disconnect and stop all observations. */
+  public <span class="fstat-no" title="function not covered" >disconnect(</span>): void {
+<span class="cstat-no" title="statement not covered" >    throw new Error('Method not implemented.');</span>
+  }
+}
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->

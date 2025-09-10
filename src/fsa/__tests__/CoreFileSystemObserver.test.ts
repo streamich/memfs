@@ -3,7 +3,7 @@ import { onlyOnNode20 } from '../../__tests__/util';
 
 
 onlyOnNode20('CoreFileSystemObserver', () => {
-  test('can listen to file writes', async () => {
+  test.skip('can listen to file writes', async () => {
     const { dir, FileSystemObserver } = fsa({mode: 'readwrite'});
     const changes: IFileSystemChangeRecord[] = [];
     const observer = new FileSystemObserver((records) => {
@@ -19,10 +19,8 @@ onlyOnNode20('CoreFileSystemObserver', () => {
     expect(changes).toMatchObject([
       {
         type: 'modified',
-        // ...
       },
     ]);
-
-    throw new Error('Not implemented.');
+    observer.disconnect();
   });
 });

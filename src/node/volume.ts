@@ -65,14 +65,6 @@ import { dataToBuffer, filenameToSteps, isFd, isWin, validateFd } from '../core/
 
 const resolveCrossPlatform = pathModule.resolve;
 const {
-  O_RDONLY,
-  O_WRONLY,
-  O_RDWR,
-  O_CREAT,
-  O_EXCL,
-  O_TRUNC,
-  O_APPEND,
-  O_DIRECTORY,
   O_SYMLINK,
   F_OK,
   COPYFILE_EXCL,
@@ -158,10 +150,6 @@ function validateUid(uid: number) {
 function validateGid(gid: number) {
   if (typeof gid !== 'number') throw TypeError(ERRSTR.GID);
 }
-
-const notImplemented: (...args: any[]) => any = () => {
-  throw new Error('Not implemented');
-};
 
 /**
  * `Volume` represents a file system.

@@ -1,4 +1,5 @@
 import * as pathModule from 'path';
+import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import { Link, Superblock } from '../core';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -2058,13 +2059,14 @@ export class FSWatcher extends EventEmitter {
         }
       }
       // link children add/remove
-      link.on('child:add', onLinkChildAdd);
-      link.on('child:delete', onLinkChildDelete);
+      const unsubscribeLinkChanges = link.changes.listen((event) => {
+        if (event.type === 'child:add') onLinkChildAdd(event.link);
+        else if (event.type === 'child:delete') onLinkChildDelete(event.link);
+      });
 
       const removers = this._listenerRemovers.get(node.ino) ?? [];
       removers.push(() => {
-        link.removeListener('child:add', onLinkChildAdd);
-        link.removeListener('child:delete', onLinkChildDelete);
+        unsubscribeLinkChanges();
       });
 
       if (recursive) {
@@ -2080,26 +2082,23 @@ export class FSWatcher extends EventEmitter {
 
     const parent = this._link.parent;
     if (parent) {
-      // parent.on('child:add', this._onParentChild);
-      parent.setMaxListeners(parent.getMaxListeners() + 1);
-      parent.on('child:delete', this._onParentChild);
+      // parent.on('child:delete', this._onParentChild);
+      parent.changes.listen((event) => {
+        if (event.type === 'child:delete') this._onParentChild(event.link);
+      });
     }
 
     if (persistent) this._persist();
   }
 
+  protected _parentChangesUnsub: FanOutUnsubscribe;
+
   close() {
     clearTimeout(this._timer);
-
     this._listenerRemovers.forEach(removers => {
       removers.forEach(r => r());
     });
     this._listenerRemovers.clear();
-
-    const parent = this._link.parent;
-    if (parent) {
-      // parent.removeListener('child:add', this._onParentChild);
-      parent.removeListener('child:delete', this._onParentChild);
-    }
+    this._parentChangesUnsub?.();
   }
 }

@@ -1,14 +1,30 @@
-import { EventEmitter } from 'events';
 import { constants, PATH } from '../constants';
+import { FanOut } from 'thingies/lib/fanout';
 import type { Node } from './Node';
 import type { Superblock } from './Superblock';
+
+export interface LinkEventChildAdd {
+  type: 'child:add';
+  link: Link;
+  parent: Link;
+}
+
+export interface LinkEventChildDelete {
+  type: 'child:delete';
+  link: Link;
+  parent: Link;
+}
+
+export type LinkEvent = LinkEventChildAdd | LinkEventChildDelete;
 
 const { S_IFREG } = constants;
 
 /**
  * Represents a hard link that points to an i-node `node`.
  */
-export class Link extends EventEmitter {
+export class Link {
+  public readonly changes = new FanOut<LinkEvent>();
+
   vol: Superblock;
 
   parent: Link | undefined;
@@ -45,7 +61,6 @@ export class Link extends EventEmitter {
   }
 
   constructor(vol: Superblock, parent: Link | undefined, name: string) {
-    super();
     this.vol = vol;
     this.parent = parent;
     this.name = name;
@@ -87,7 +102,7 @@ export class Link extends EventEmitter {
     }
 
     this.getNode().mtime = new Date();
-    this.emit('child:add', link, this);
+    this.changes.emit({ type: 'child:add', link, parent: this });
 
     return link;
   }
@@ -102,7 +117,7 @@ export class Link extends EventEmitter {
     this.length--;
 
     this.getNode().mtime = new Date();
-    this.emit('child:delete', link, this);
+    this.changes.emit({ type: 'child:delete', link, parent: this });
   }
 
   getChild(name: string): Link | undefined {

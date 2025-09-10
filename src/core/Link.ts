@@ -3,17 +3,17 @@ import { FanOut } from 'thingies/lib/fanout';
 import type { Node } from './Node';
 import type { Superblock } from './Superblock';
 
-export interface LinkEventChildAdd {
-  type: 'child:add';
-  link: Link;
-  parent: Link;
-}
+export type LinkEventChildAdd = [
+  type: 'child:add',
+  link: Link,
+  parent: Link,
+];
 
-export interface LinkEventChildDelete {
-  type: 'child:delete';
-  link: Link;
-  parent: Link;
-}
+export type LinkEventChildDelete = [
+  type: 'child:del',
+  link: Link,
+  parent: Link,
+];
 
 export type LinkEvent = LinkEventChildAdd | LinkEventChildDelete;
 
@@ -102,7 +102,7 @@ export class Link {
     }
 
     this.getNode().mtime = new Date();
-    this.changes.emit({ type: 'child:add', link, parent: this });
+    this.changes.emit(['child:add', link, this]);
 
     return link;
   }
@@ -117,7 +117,7 @@ export class Link {
     this.length--;
 
     this.getNode().mtime = new Date();
-    this.changes.emit({ type: 'child:delete', link, parent: this });
+    this.changes.emit(['child:del', link, this]);
   }
 
   getChild(name: string): Link | undefined {

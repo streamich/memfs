@@ -2059,9 +2059,9 @@ export class FSWatcher extends EventEmitter {
         }
       }
       // link children add/remove
-      const unsubscribeLinkChanges = link.changes.listen((event) => {
-        if (event.type === 'child:add') onLinkChildAdd(event.link);
-        else if (event.type === 'child:delete') onLinkChildDelete(event.link);
+      const unsubscribeLinkChanges = link.changes.listen(([type, link]) => {
+        if (type === 'child:add') onLinkChildAdd(link);
+        else if (type === 'child:del') onLinkChildDelete(link);
       });
 
       const removers = this._listenerRemovers.get(node.ino) ?? [];
@@ -2083,8 +2083,8 @@ export class FSWatcher extends EventEmitter {
     const parent = this._link.parent;
     if (parent) {
       // parent.on('child:delete', this._onParentChild);
-      parent.changes.listen((event) => {
-        if (event.type === 'child:delete') this._onParentChild(event.link);
+      parent.changes.listen(([type, link]) => {
+        if (type === 'child:del') this._onParentChild(link);
       });
     }
 

@@ -64,24 +64,7 @@ import { TFileId } from '../core/types';
 import { dataToBuffer, filenameToSteps, isFd, isWin, validateFd } from '../core/util';
 
 const resolveCrossPlatform = pathModule.resolve;
-const { O_SYMLINK, F_OK, COPYFILE_EXCL, COPYFILE_FICLONE_FORCE } = constants;
-const {
-  O_RDONLY,
-  O_WRONLY,
-  O_RDWR,
-  O_CREAT,
-  O_EXCL,
-  O_TRUNC,
-  O_APPEND,
-  O_DIRECTORY,
-  O_SYMLINK,
-  F_OK,
-  R_OK,
-  W_OK,
-  X_OK,
-  COPYFILE_EXCL,
-  COPYFILE_FICLONE_FORCE,
-} = constants;
+const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK, COPYFILE_EXCL, COPYFILE_FICLONE_FORCE } = constants;
 
 const { sep, relative, join, dirname, normalize } = pathModule.posix ? pathModule.posix : pathModule;
 

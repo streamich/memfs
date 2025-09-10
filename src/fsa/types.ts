@@ -126,3 +126,52 @@ export type Data =
   | DataView
   | Blob
   | string;
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemChangeRecord
+ */
+export interface IFileSystemChangeRecord {
+  /**
+   * The changed file system handle.
+   * This property will be null for records with a "disappeared", "errored", or "unknown" type.
+   */
+  changedHandle: IFileSystemHandle | IFileSystemSyncAccessHandle | null;
+  /** Path components from the observed directory to the changed handle. */
+  relativePathComponents: string[];
+  /**
+   * Path components that make up the relative file path from the root to the
+   * changedHandle's former location, in the case of observations with a "moved" type.
+   * If the type is not "moved", this property will be null.
+   */
+  relativePathMovedFrom: string[] | null;
+  /**
+   * A reference to the root file system handle, that is, the one passed to the observe()
+   * call that started the observation.
+   */
+  root: IFileSystemHandle | IFileSystemSyncAccessHandle;
+  /** The type of change that occurred. */
+  type: 'appeared' | 'disappeared' | 'modified' | 'moved' | 'errored' | 'unknown';
+}
+
+export interface FileSystemObserverObserveOptions {
+  /** Whether to observe changes recursively in subdirectories. */
+  recursive?: boolean;
+}
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemObserver
+ */
+export interface IFileSystemObserver {
+  /**
+   * Constructor for creating a FileSystemObserver.
+   * @param callback - Function called with file system change records and the observer instance
+   */
+  new (callback: (records: IFileSystemChangeRecord[], observer: IFileSystemObserver) => void): IFileSystemObserver;
+
+  /** Start observing changes to a directory handle. */
+  observe(handle: IFileSystemDirectoryHandle, options?: FileSystemObserverObserveOptions): Promise<void>;
+  /** Stop observing changes to a directory handle. */
+  unobserve(handle: IFileSystemDirectoryHandle): void;
+  /** Disconnect and stop all observations. */
+  disconnect(): void;
+}

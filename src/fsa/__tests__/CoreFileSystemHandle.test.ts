@@ -1,6 +1,5 @@
 import { Superblock } from '../../core/Superblock';
 import { CoreFileSystemDirectoryHandle } from '../CoreFileSystemDirectoryHandle';
-import { CoreFileSystemFileHandle } from '../CoreFileSystemFileHandle';
 import { onlyOnNode20 } from '../../__tests__/util';
 import { DirectoryJSON } from '../../core/json';
 

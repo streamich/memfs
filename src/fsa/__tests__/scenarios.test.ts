@@ -1,8 +1,16 @@
 import { Superblock } from '../../core/Superblock';
-import { coreToFsa, fsa } from '../index';
+import { CoreFsaContext, fsa } from '../index';
 import { CoreFileSystemDirectoryHandle } from '../CoreFileSystemDirectoryHandle';
 import { onlyOnNode20 } from '../../__tests__/util';
-import { fileURLToPath } from 'url';
+
+const coreToFsa = (
+  core: Superblock,
+  dirPath: string = '/',
+  ctx?: Partial<CoreFsaContext>,
+): CoreFileSystemDirectoryHandle => {
+  const { dir } = fsa(ctx, core, dirPath);
+  return dir;
+};
 
 onlyOnNode20('coreToFsa scenarios', () => {
   test('can create FSA from empty Superblock', () => {

@@ -1,5 +1,3 @@
-import type { Superblock } from '../core/Superblock';
-
 export interface IPermissionStatus {
   name: string;
   state: 'granted' | 'denied' | 'prompt';
@@ -214,14 +212,6 @@ export interface IFileSystemObserverObserveOptions {
  */
 export interface IFileSystemObserver {
   /**
-   * Constructor for creating a FileSystemObserver.
-   *
-   * @param callback Function called with file system change records and the
-   *     observer instance
-   */
-  new (callback: (records: IFileSystemChangeRecord[], observer: IFileSystemObserver) => void): IFileSystemObserver;
-
-  /**
    * Start observing changes to a given file or directory.
    *
    * @param handle The file or directory handle to observe.
@@ -231,4 +221,14 @@ export interface IFileSystemObserver {
 
   /** Disconnect and stop all observations. */
   disconnect(): void;
+}
+
+export interface IFileSystemObserverConstructable {
+  /**
+   * Constructor for creating a FileSystemObserver.
+   *
+   * @param callback Function called with file system change records and the
+   *     observer instance
+   */
+  new (callback: (records: IFileSystemChangeRecord[], observer: IFileSystemObserver) => void): IFileSystemObserver;
 }

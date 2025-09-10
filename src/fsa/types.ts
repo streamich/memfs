@@ -204,7 +204,7 @@ export interface IFileSystemChangeRecord {
     | 'unknown';
 }
 
-export interface FileSystemObserverObserveOptions {
+export interface IFileSystemObserverObserveOptions {
   /** Whether to observe changes recursively in subdirectories. */
   recursive?: boolean;
 }
@@ -215,14 +215,20 @@ export interface FileSystemObserverObserveOptions {
 export interface IFileSystemObserver {
   /**
    * Constructor for creating a FileSystemObserver.
-   * @param callback - Function called with file system change records and the observer instance
+   *
+   * @param callback Function called with file system change records and the
+   *     observer instance
    */
   new (callback: (records: IFileSystemChangeRecord[], observer: IFileSystemObserver) => void): IFileSystemObserver;
 
-  /** Start observing changes to a directory handle. */
-  observe(handle: IFileSystemDirectoryHandle, options?: FileSystemObserverObserveOptions): Promise<void>;
-  /** Stop observing changes to a directory handle. */
-  unobserve(handle: IFileSystemDirectoryHandle): void;
+  /**
+   * Start observing changes to a given file or directory.
+   *
+   * @param handle The file or directory handle to observe.
+   * @param options Optional settings for the observation.
+   */
+  observe(handle: IFileSystemFileHandle | IFileSystemDirectoryHandle | IFileSystemSyncAccessHandle, options?: IFileSystemObserverObserveOptions): Promise<void>;
+
   /** Disconnect and stop all observations. */
   disconnect(): void;
 }

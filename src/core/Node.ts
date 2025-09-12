@@ -49,6 +49,7 @@ export class Node {
   private _atime = new Date();
   private _mtime = new Date();
   private _ctime = new Date();
+  private dtime: Date | undefined = void 0; // Deletion time
 
   // data: string = '';
   buf: Buffer;
@@ -134,9 +135,9 @@ export class Node {
   }
 
   setString(str: string) {
-    // this.setBuffer(bufferFrom(str, 'utf8'));
     this.buf = bufferFrom(str, 'utf8');
-    this.touch();
+    this.mtime = new Date();
+    this.changes.emit(['modify']);
   }
 
   getBuffer(): Buffer {
@@ -147,7 +148,8 @@ export class Node {
 
   setBuffer(buf: Buffer) {
     this.buf = bufferFrom(buf); // Creates a copy of data.
-    this.touch();
+    this.mtime = new Date();
+    this.changes.emit(['modify']);
   }
 
   getSize(): number {
@@ -182,17 +184,14 @@ export class Node {
 
   write(buf: Buffer, off: number = 0, len: number = buf.length, pos: number = 0): number {
     if (!this.buf) this.buf = bufferAllocUnsafe(0);
-
     if (pos + len > this.buf.length) {
       const newBuf = bufferAllocUnsafe(pos + len);
       this.buf.copy(newBuf, 0, 0, this.buf.length);
       this.buf = newBuf;
     }
-
     buf.copy(this.buf, pos, off, off + len);
-
-    this.touch();
-
+    this.mtime = new Date();
+    this.changes.emit(['modify']);
     return len;
   }
 
@@ -204,6 +203,7 @@ export class Node {
     pos: number = 0,
   ): number {
     this.atime = new Date();
+    this.changes.emit(['access']);
     if (!this.buf) this.buf = bufferAllocUnsafe(0);
     if (pos >= this.buf.length) return 0;
     let actualLen = len;
@@ -231,87 +231,46 @@ export class Node {
         this.buf = buf;
       }
     }
-
-    this.touch();
+    this.mtime = new Date();
+    this.changes.emit(['modify']);
   }
 
   chmod(perm: number) {
     this.mode = (this.mode & S_IFMT) | (perm & ~S_IFMT);
-    this.touch();
+    this.ctime = new Date(); // On Mac chmod updates ctime but not mtime.
+    this.changes.emit(['attrib']);
   }
 
   chown(uid: number, gid: number) {
     this.uid = uid;
     this.gid = gid;
-    this.touch();
-  }
-
-  touch() {
-    this.mtime = new Date();
-    this.changes.emit(['modify']);
+    this.ctime = new Date(); // On Mac chmod updates ctime but not mtime.
+    this.changes.emit(['attrib']);
   }
 
   canRead(uid: number = getuid(), gid: number = getgid()): boolean {
-    if (this.perm & S.IROTH) {
-      return true;
-    }
-
-    if (gid === this.gid) {
-      if (this.perm & S.IRGRP) {
-        return true;
-      }
-    }
-
-    if (uid === this.uid) {
-      if (this.perm & S.IRUSR) {
-        return true;
-      }
-    }
-
+    if (this.perm & S.IROTH) return true;
+    if (gid === this.gid && this.perm & S.IRGRP) return true;
+    if (uid === this.uid && this.perm & S.IRUSR) return true;
     return false;
   }
 
   canWrite(uid: number = getuid(), gid: number = getgid()): boolean {
-    if (this.perm & S.IWOTH) {
-      return true;
-    }
-
-    if (gid === this.gid) {
-      if (this.perm & S.IWGRP) {
-        return true;
-      }
-    }
-
-    if (uid === this.uid) {
-      if (this.perm & S.IWUSR) {
-        return true;
-      }
-    }
-
+    if (this.perm & S.IWOTH) return true;
+    if (gid === this.gid && this.perm & S.IWGRP) return true;
+    if (uid === this.uid && this.perm & S.IWUSR) return true;
     return false;
   }
 
   canExecute(uid: number = getuid(), gid: number = getgid()): boolean {
-    if (this.perm & S.IXOTH) {
-      return true;
-    }
-
-    if (gid === this.gid) {
-      if (this.perm & S.IXGRP) {
-        return true;
-      }
-    }
-
-    if (uid === this.uid) {
-      if (this.perm & S.IXUSR) {
-        return true;
-      }
-    }
-
+    if (this.perm & S.IXOTH) return true;
+    if (gid === this.gid && this.perm & S.IXGRP) return true;
+    if (uid === this.uid && this.perm & S.IXUSR) return true;
     return false;
   }
 
   del() {
+    this.dtime = new Date();
     this.changes.emit(['delete']);
   }
 

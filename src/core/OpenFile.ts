@@ -1,16 +1,14 @@
 import { constants } from '../constants';
-import { Buffer } from '../internal/buffer';
 import type { Link } from './Link';
 import type { Node } from './Node';
 
 const { O_APPEND } = constants;
 
 /**
- * Represents an open file (file descriptor) that points to a `Link` (Hard-link) and a `Node`.
- *
- * @todo Rename to `OpenFile`.
+ * Represents an open file (file descriptor) that points to a `Link` (Hard-link)
+ * and a `Node`.
  */
-export class File {
+export class OpenFile {
   /**
    * A cursor/offset position in a file, where data will be written on write.
    * User can "seek" this position.

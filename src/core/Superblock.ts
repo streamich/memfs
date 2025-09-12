@@ -1,7 +1,7 @@
 import * as NodePath from 'path';
 import { Node } from './Node';
 import { Link } from './Link';
-import { File } from './File';
+import { OpenFile } from './OpenFile';
 import { Buffer } from '../internal/buffer';
 import process from '../process';
 import { constants } from '../constants';
@@ -70,7 +70,7 @@ export class Superblock {
   releasedInos: number[] = [];
 
   // A mapping for file descriptors to `File`s.
-  fds: { [fd: number]: File } = {};
+  fds: { [fd: number]: OpenFile } = {};
 
   // A list of reusable (opened and closed) file descriptors, that should be
   // used first before creating a new file descriptor.
@@ -304,11 +304,11 @@ export class Superblock {
     return link;
   }
 
-  getFileByFd(fd: number): File {
+  getFileByFd(fd: number): OpenFile {
     return this.fds[String(fd)];
   }
 
-  getFileByFdOrThrow(fd: number, funcName?: string): File {
+  getFileByFdOrThrow(fd: number, funcName?: string): OpenFile {
     if (!isFd(fd)) throw TypeError(ERRSTR.FD);
     const file = this.getFileByFd(fd);
     if (!file) throw createError(ERROR_CODE.EBADF, funcName);
@@ -414,7 +414,7 @@ export class Superblock {
     this.fromJSON(json, mountpoint);
   }
 
-  openLink(link: Link, flagsNum: number, resolveSymlinks: boolean = true): File {
+  openLink(link: Link, flagsNum: number, resolveSymlinks: boolean = true): OpenFile {
     if (this.openFiles >= this.maxFiles) {
       // Too many open files.
       throw createError(ERROR_CODE.EMFILE, 'open', link.getPath());
@@ -451,7 +451,7 @@ export class Superblock {
       }
     }
 
-    const file = new File(link, node, flagsNum, this.newFdNumber());
+    const file = new OpenFile(link, node, flagsNum, this.newFdNumber());
     this.fds[file.fd] = file;
     this.openFiles++;
 
@@ -465,7 +465,7 @@ export class Superblock {
     flagsNum: number,
     modeNum: number | undefined,
     resolveSymlinks: boolean = true,
-  ): File {
+  ): OpenFile {
     const steps = filenameToSteps(filename);
     let link: Link | null;
     try {
@@ -750,7 +750,7 @@ export class Superblock {
     this.deleteLink(link);
   };
 
-  protected closeFile(file: File) {
+  protected closeFile(file: OpenFile) {
     if (!this.fds[file.fd]) return;
     this.openFiles--;
     delete this.fds[file.fd];

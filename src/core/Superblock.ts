@@ -13,8 +13,6 @@ import type { PathLike } from '../node/types/misc';
 import { ERROR_CODE } from './constants';
 import { TFileId } from './types';
 
-type TCallback<TData> = (error?: any, data?: TData) => void;
-
 const { sep, relative, join, dirname } = NodePath.posix ? NodePath.posix : NodePath;
 
 const {
@@ -26,10 +24,6 @@ const {
   O_TRUNC,
   O_APPEND,
   O_DIRECTORY,
-  O_SYMLINK,
-  F_OK,
-  COPYFILE_EXCL,
-  COPYFILE_FICLONE_FORCE,
 } = constants;
 
 /**
@@ -88,7 +82,7 @@ export class Superblock {
   // Current number of open files.
   openFiles = 0;
 
-  constructor(props = {}) {
+  constructor() {
     const root = this.createLink();
     root.setNode(this.createNode(constants.S_IFDIR | 0o777));
 

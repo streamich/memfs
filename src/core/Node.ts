@@ -3,11 +3,31 @@ import process from '../process';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '../internal/buffer';
 import { constants, S } from '../constants';
 
+/**
+ * Emitted when the node is modified (written to, truncated, etc.).
+ */
 export type NodeEventModify = [type: 'modify'];
 
+/**
+ * Emitted when the node is deleted.
+ */
 export type NodeEventDelete = [type: 'delete'];
 
-export type NodeEvent = NodeEventModify | NodeEventDelete;
+/**
+ * Emitted when the node is accessed (read).
+ */
+export type NodeEventAccess = [type: 'access'];
+
+/**
+ * Emitted when the node's attributes (like permissions, ownership, etc.) are changed.
+ */
+export type NodeEventAttrib = [type: 'attrib'];
+
+export type NodeEvent = 
+  | NodeEventModify
+  | NodeEventDelete
+  | NodeEventAccess
+  | NodeEventAttrib;
 
 const { S_IFMT, S_IFDIR, S_IFREG, S_IFLNK, S_IFCHR } = constants;
 const getuid = (): number => process.getuid?.() ?? 0;

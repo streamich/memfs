@@ -810,9 +810,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly glob: FsCallbackApi['glob'] = notImplemented;
 
   /**
-   * @todo Watchers could be implemented in the future on top of `FileSystemObserver`,
-   * which is currently a proposal.
-   * @see https://github.com/whatwg/fs/blob/main/proposals/FileSystemObserver.md
+   * @todo Implement using `FileSystemObserver` class.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemObserver
    */
   public readonly watchFile: FsCallbackApi['watchFile'] = notSupported;
   public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notSupported;

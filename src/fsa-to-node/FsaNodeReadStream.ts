@@ -1,4 +1,4 @@
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
 import { Defer } from 'thingies/lib/Defer';
 import { concurrency } from 'thingies/lib/concurrency';
 import type { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';

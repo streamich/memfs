@@ -1,5 +1,5 @@
-import { promisify } from 'util';
-import { URL } from 'url';
+import { promisify } from 'node:util';
+import { URL } from 'node:url';
 import { Link } from '../../core';
 import Stats from '../Stats';
 import Dirent from '../Dirent';

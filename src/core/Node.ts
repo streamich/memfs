@@ -108,7 +108,7 @@ export class Node {
     return this._nlink;
   }
 
-  getString(encoding = 'utf8'): string {
+  getString(encoding: BufferEncoding = 'utf8'): string {
     this.atime = new Date();
     return this.getBuffer().toString(encoding);
   }

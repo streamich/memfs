@@ -714,6 +714,22 @@ export interface DenoFs {
    * @category File System
    */
   watchFs: (paths: string | string[], options?: { recursive: boolean }) => DenoFsWatcher;
+
+  /**
+   * Retrieve the process umask. If `mask` is provided, sets the process umask.
+   * This call always returns what the umask was before the call.
+   *
+   * ```ts
+   * console.log(Deno.umask());  // e.g. 18 (0o022)
+   * const prevUmaskValue = Deno.umask(0o077);  // e.g. 18 (0o022)
+   * console.log(Deno.umask());  // e.g. 63 (0o077)
+   * ```
+   *
+   * *Note*: This API is not implemented on Windows
+   *
+   * @category File System
+   */
+  umask: (mask?: number) => number;
 }
 
 /**

@@ -1,11 +1,11 @@
 import {Superblock} from "../core";
 import type {
-  DenoFs, 
-  DenoMkdirOptions, 
-  DenoOpenOptions, 
-  DenoFsFile, 
-  DenoMakeTempOptions, 
-  DenoRemoveOptions, 
+  DenoFs,
+  DenoMkdirOptions,
+  DenoOpenOptions,
+  DenoFsFile,
+  DenoMakeTempOptions,
+  DenoRemoveOptions,
   DenoReadFileOptions,
   DenoWriteFileOptions,
   DenoFileInfo,
@@ -208,6 +208,10 @@ export class CoreDeno implements DenoFs {
   };
 
   public readonly watchFs = (paths: string | string[], options?: { recursive: boolean }): DenoFsWatcher => {
+    throw new Error('Not implemented');
+  };
+
+  public readonly umask = (mask?: number): number => {
     throw new Error('Not implemented');
   };
 }

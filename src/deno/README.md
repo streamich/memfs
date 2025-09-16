@@ -71,17 +71,17 @@ Implementation of Deno's fs module on top of memfs.
   - [ ] Deno.writeFileSync
   - [ ] Deno.writeTextFile
   - [ ] Deno.writeTextFileSync
-- [ ] Interfaces
-  - [ ] Deno.DirEntry
-  - [ ] Deno.FileInfo
-  - [ ] Deno.FsEvent
-  - [ ] Deno.FsWatcher
-  - [ ] Deno.MakeTempOptions
-  - [ ] Deno.MkdirOptions
-  - [ ] Deno.OpenOptions
-  - [ ] Deno.ReadFileOptions
-  - [ ] Deno.RemoveOptions
-  - [ ] Deno.SymlinkOptions
-  - [ ] Deno.WriteFileOptions
+- [x] Interfaces
+  - [x] Deno.DirEntry
+  - [x] Deno.FileInfo
+  - [x] Deno.FsEvent
+  - [x] Deno.FsWatcher
+  - [x] Deno.MakeTempOptions
+  - [x] Deno.MkdirOptions
+  - [x] Deno.OpenOptions
+  - [x] Deno.ReadFileOptions
+  - [x] Deno.RemoveOptions
+  - [x] Deno.SymlinkOptions
+  - [x] Deno.WriteFileOptions
 - Type Aliases
-  - [ ] Deno.FsEventFlag
+  - [x] Deno.FsEventFlag

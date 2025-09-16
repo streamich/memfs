@@ -1,4 +1,4 @@
-This folder contains implementation of Deno's fs module on top of memfs. It
+This module implements Deno's fs module on top of memfs (an in-memory Deno-fs API). It
 implements a Deno files system API on top of `Superblock` class `src/core/Superblock.ts`
 from `src/core` folder. Similar to Node implementation in `src/node/` folder and
 File System (Access) API implementation in `src/fsa/` folder.

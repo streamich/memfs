@@ -1,3 +1,10 @@
+# [4.42.0](https://github.com/streamich/memfs/compare/v4.41.0...v4.42.0) (2025-09-16)
+
+
+### Features
+
+* 🎸 implement `.openAsBlob()` for `FsaNodeFs` ([26068e8](https://github.com/streamich/memfs/commit/26068e8ca2e8b2f5b1449a38dfebfd5be2a02e6b))
+
 # [4.41.0](https://github.com/streamich/memfs/compare/v4.40.0...v4.41.0) (2025-09-16)
 
 

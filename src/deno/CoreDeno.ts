@@ -13,4 +13,8 @@ export class CoreDeno implements DenoFs {
     if (recursive) this._core.mkdirp(pathname, mode);
     else this._core.mkdir(pathname, mode);
   };
+
+  public readonly mkdirSync = (path: string | URL, options?: DenoMkdirOptions): void => {
+    throw new Error('Not implemented');
+  };
 }

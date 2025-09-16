@@ -16,6 +16,24 @@ export interface DenoFs {
    * @category File System
    */
   mkdir: (path: string | URL, options?: DenoMkdirOptions) => Promise<void>;
+
+  /**
+   * Synchronously creates a new directory with the specified path.
+   *
+   * ```ts
+   * Deno.mkdirSync("new_dir");
+   * Deno.mkdirSync("nested/directories", { recursive: true });
+   * Deno.mkdirSync("restricted_access_dir", { mode: 0o700 });
+   * ```
+   *
+   * Defaults to throwing error if the directory already exists.
+   *
+   * Requires `allow-write` permission.
+   *
+   * @tags allow-write
+   * @category File System
+   */
+  mkdirSync: (path: string | URL, options?: DenoMkdirOptions) => void;
 }
 
 /**

@@ -1,3 +1,10 @@
+# [4.40.0](https://github.com/streamich/memfs/compare/v4.39.0...v4.40.0) (2025-09-16)
+
+
+### Features
+
+* update Node.js types and add node: prefix to imports ([c3f32bc](https://github.com/streamich/memfs/commit/c3f32bc0cc8f034f8cb60ea6f2c7ab6af2112185))
+
 # [4.39.0](https://github.com/streamich/memfs/compare/v4.38.3...v4.39.0) (2025-09-10)
 
 

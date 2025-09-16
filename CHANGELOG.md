@@ -1,3 +1,10 @@
+# [4.41.0](https://github.com/streamich/memfs/compare/v4.40.0...v4.41.0) (2025-09-16)
+
+
+### Features
+
+* update TypeScript and related packages to latest versions ([988710d](https://github.com/streamich/memfs/commit/988710d453f15d404f72b50264e6d573f29103ae))
+
 # [4.40.0](https://github.com/streamich/memfs/compare/v4.39.0...v4.40.0) (2025-09-16)
 
 

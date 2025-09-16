@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "lib": ["ES2017", "dom"],
+    "lib": ["ES2017", "dom", "deno.ns"],
     "module": "commonjs",
     "removeComments": false,
     "noImplicitAny": false,

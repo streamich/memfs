@@ -671,7 +671,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       this.mkdirSync(dest);
     }
     // Read directory contents
-    const entries = this.readdirSync(src);
+    const entries = this.readdirSync(src) as string[];
     for (const entry of entries) {
       const srcItem = join(src, entry);
       const destItem = join(dest, entry);

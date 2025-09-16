@@ -1,6 +1,7 @@
+import type * as misc from './misc';
+import type * as opts from './options';
+import type {Buffer} from 'node:buffer';
 import type { constants } from '../../constants';
-import * as misc from './misc';
-import * as opts from './options';
 
 export interface FsPromisesApi {
   constants: typeof constants;

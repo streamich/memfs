@@ -1,3 +1,5 @@
+import {BufferEncoding} from '../../encoding';
+import type {Buffer} from 'node:buffer';
 import type * as misc from './misc';
 import type * as opts from './options';
 

@@ -1,6 +1,6 @@
-import type { PathLike as NodePathLike, symlink } from 'fs';
+import type { PathLike as NodePathLike, symlink } from 'node:fs';
 import type { constants } from '../../constants';
-import type { EventEmitter } from 'events';
+import type { EventEmitter } from 'node:events';
 import type { TSetTimeout } from '../../setTimeoutUnref';
 import type {
   IAppendFileOptions,
@@ -11,7 +11,9 @@ import type {
   IStatOptions,
   IWriteFileOptions,
 } from './options';
-import type { Readable, Writable } from 'stream';
+import type { Readable, Writable } from 'node:stream';
+import type { Buffer } from 'node:buffer';
+import {BufferEncoding} from '../../encoding';
 
 export { symlink };
 

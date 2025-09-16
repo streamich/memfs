@@ -1,3 +1,4 @@
+import {BufferEncoding} from '../../encoding';
 import type { IFileHandle, TEncodingExtended, TFlags, TMode } from './misc';
 
 export interface IOptions {

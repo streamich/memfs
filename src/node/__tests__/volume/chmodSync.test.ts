@@ -41,11 +41,11 @@ describe('chmodSync', () => {
   });
 
   it.skip('should throw EPERM when trying to chmod targets not owned by the uid', () => {
-    const uid = process.getuid() + 1;
+    const uid = process.getuid!() + 1;
     // Check for directories
     const vol = create({});
     vol.mkdirSync('/foo');
-    vol.chownSync('/foo', uid, process.getgid());
+    vol.chownSync('/foo', uid, process.getgid!());
     expect(() => {
       vol.chmodSync('/foo', 0o777);
     }).toThrow(/PERM/);

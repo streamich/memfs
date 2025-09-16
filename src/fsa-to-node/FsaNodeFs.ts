@@ -2,7 +2,7 @@ import * as optHelpers from '../node/options';
 import * as util from '../node/util';
 import { Buffer } from '../internal/buffer';
 import { FsPromises } from '../node/FsPromises';
-import { pathToLocation, testDirectoryIsWritable } from './util';
+import { pathToLocation } from './util';
 import { ERRSTR, MODE } from '../node/constants';
 import { strToEncoding } from '../encoding';
 import { FsaToNodeConstants } from './constants';
@@ -791,9 +791,19 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     return stream;
   };
 
+  public openAsBlob = async (path: misc.PathLike, options?: opts.IOpenAsBlobOptions): Promise<Blob> => {
+    const buffer = await new Promise<Buffer>((resolve, reject) => {
+      this.readFile(path, (err, data: Buffer) => {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+    const type = options?.type || '';
+    return new Blob([buffer as BlobPart], { type });
+  };
+
   public readonly cp: FsCallbackApi['cp'] = notImplemented;
   public readonly lutimes: FsCallbackApi['lutimes'] = notImplemented;
-  public readonly openAsBlob: FsCallbackApi['openAsBlob'] = notImplemented;
   public readonly opendir: FsCallbackApi['opendir'] = notImplemented;
   public readonly readv: FsCallbackApi['readv'] = notImplemented;
   public readonly statfs: FsCallbackApi['statfs'] = notImplemented;

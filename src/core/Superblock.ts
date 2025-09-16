@@ -776,4 +776,9 @@ export class Superblock {
     }
     return file.write(buf, offset, length, position === -1 || typeof position !== 'number' ? undefined : position);
   }
+
+  stat(filename: string) {
+    const link = this.getResolvedLinkOrThrow(filename, 'stat');
+    return link.getNode();
+  }
 }

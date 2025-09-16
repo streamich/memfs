@@ -20,15 +20,15 @@ export class CoreDeno implements DenoFs {
   ) {}
 
   public readonly mkdir = async (path: string | URL, options?: DenoMkdirOptions): Promise<void> => {
+    this.mkdirSync(path, options);
+  };
+
+  public readonly mkdirSync = (path: string | URL, options?: DenoMkdirOptions): void => {
     const pathname = path instanceof URL ? path.pathname : path;
     const mode = options?.mode ?? 0o777;
     const recursive = options?.recursive ?? false;
     if (recursive) this._core.mkdirp(pathname, mode);
     else this._core.mkdir(pathname, mode);
-  };
-
-  public readonly mkdirSync = (path: string | URL, options?: DenoMkdirOptions): void => {
-    throw new Error('Not implemented');
   };
 
   public readonly link = async (oldpath: string, newpath: string): Promise<void> => {

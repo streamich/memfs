@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "lib": ["ES2017", "dom"],
+    "target": "es2020",
+    "lib": ["ES2020", "dom"],
     "module": "commonjs",
     "removeComments": false,
     "noImplicitAny": false,
@@ -11,7 +11,9 @@
     "declaration": true,
     "skipLibCheck": true,
     "noEmitHelpers": true,
-    "importHelpers": true
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "types": ["node", "jest"]
   },
   "include": ["src"],
   "exclude": ["src/__tests__", "node_modules", "lib", "es6", "es2020", "esm", "docs", "README.md"],

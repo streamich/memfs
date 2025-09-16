@@ -1,6 +1,6 @@
-import { promisify } from 'util';
+import { promisify } from 'node:util';
 import { Volume } from '../volume';
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
 
 describe('Promises API', () => {
   describe('FileHandle', () => {

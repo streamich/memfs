@@ -85,7 +85,11 @@ export class NodeFileSystemWritableFileStream extends WS implements IFileSystemW
         const handle = swap.handle;
         if (!handle) throw new Error('Invalid state');
         const buffer = Buffer.from(
-          typeof chunk === 'string' ? chunk : chunk instanceof Blob ? await chunk.arrayBuffer() : chunk,
+          typeof chunk === 'string'
+            ? chunk
+            : chunk instanceof Blob
+              ? new Uint8Array(await chunk.arrayBuffer())
+              : (chunk as Uint8Array),
         );
         const { bytesWritten } = await handle.write(buffer, 0, buffer.length, swap.offset);
         swap.offset += bytesWritten;

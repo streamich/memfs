@@ -1,7 +1,7 @@
-import * as pathModule from 'path';
+import * as pathModule from 'node:path';
 import { Buffer, bufferFrom } from '../internal/buffer';
 import process from '../process';
-import { TDataOut, ENCODING_UTF8 } from '../encoding';
+import { TDataOut, TEncodingExtended, ENCODING_UTF8 } from '../encoding';
 import { ERRSTR } from '../node/constants';
 
 export const isWin = process.platform === 'win32';
@@ -63,8 +63,9 @@ export function validateFd(fd) {
   if (!isFd(fd)) throw TypeError(ERRSTR.FD);
 }
 
-export function dataToBuffer(data: TData, encoding: string = ENCODING_UTF8): Buffer {
+export function dataToBuffer(data: TData, encoding: TEncodingExtended = ENCODING_UTF8): Buffer {
   if (Buffer.isBuffer(data)) return data;
   else if (data instanceof Uint8Array) return bufferFrom(data);
+  else if (encoding === 'buffer') return bufferFrom(String(data), 'utf8');
   else return bufferFrom(String(data), encoding);
 }

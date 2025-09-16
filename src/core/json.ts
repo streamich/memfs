@@ -1,5 +1,5 @@
 import { Buffer } from '../internal/buffer';
-import * as pathModule from 'path';
+import * as pathModule from 'node:path';
 
 const { join } = pathModule.posix ? pathModule.posix : pathModule;
 
@@ -21,9 +21,14 @@ export const flattenJSON = (nestedJSON: NestedDirectoryJSON): DirectoryJSON => {
       const joinedPath = join(pathPrefix, path);
       if (typeof contentOrNode === 'string' || contentOrNode instanceof Buffer) {
         flatJSON[joinedPath] = contentOrNode;
-      } else if (typeof contentOrNode === 'object' && contentOrNode !== null && Object.keys(contentOrNode).length > 0) {
+      } else if (
+        typeof contentOrNode === 'object' &&
+        contentOrNode !== null &&
+        !(contentOrNode instanceof Buffer) &&
+        Object.keys(contentOrNode).length > 0
+      ) {
         // empty directories need an explicit entry and therefore get handled in `else`, non-empty ones are implicitly considered
-        flatten(joinedPath, contentOrNode);
+        flatten(joinedPath, contentOrNode as NestedDirectoryJSON<DirectoryContent>);
       } else {
         // without this branch null, empty-object or non-object entries would not be handled in the same way
         // by both fromJSON() and fromNestedJSON()

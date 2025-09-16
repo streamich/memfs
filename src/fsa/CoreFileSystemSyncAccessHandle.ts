@@ -73,7 +73,7 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
     const fd = this._ensureOpen();
     const { at: position = 0 } = options;
 
-    const buf = Buffer.from(buffer);
+    const buf = Buffer.from(buffer as Uint8Array);
     try {
       return this._core.read(fd, buf, 0, buf.length, position);
     } catch (error) {
@@ -118,7 +118,7 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
     const fd = this._ensureOpen();
     const { at: position = 0 } = options;
 
-    const buf = Buffer.from(buffer);
+    const buf = Buffer.from(buffer as Uint8Array);
     try {
       return this._core.write(fd, buf, 0, buf.length, position);
     } catch (error) {

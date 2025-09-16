@@ -5,7 +5,7 @@
 // message may change, the code should not.
 
 import * as assert from 'assert';
-import * as util from 'util';
+import * as util from 'node:util';
 
 const kCode = typeof Symbol === 'undefined' ? '_kCode' : (Symbol as any)('code');
 const messages = {}; // new Map();

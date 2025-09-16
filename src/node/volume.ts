@@ -1,4 +1,4 @@
-import * as pathModule from 'path';
+import * as pathModule from 'node:path';
 import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import { Link, Superblock } from '../core';
 import Stats from './Stats';
@@ -7,12 +7,12 @@ import StatFs from './StatFs';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '../internal/buffer';
 import queueMicrotask from '../queueMicrotask';
 import setTimeoutUnref, { TSetTimeout } from '../setTimeoutUnref';
-import { Readable, Writable } from 'stream';
+import { Readable, Writable } from 'node:stream';
 import { constants } from '../constants';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from '../encoding';
 import { FileHandle } from './FileHandle';
-import * as util from 'util';
+import * as util from 'node:util';
 import * as misc from './types/misc';
 import * as opts from './types/options';
 import { FsCallbackApi, WritevCallback } from './types/FsCallbackApi';
@@ -114,7 +114,7 @@ export function pathToSteps(path: PathLike): string[] {
   return filenameToSteps(pathToFilename(path));
 }
 
-export function dataToStr(data: TData, encoding: string = ENCODING_UTF8): string {
+export function dataToStr(data: TData, encoding: BufferEncoding = ENCODING_UTF8): string {
   if (Buffer.isBuffer(data)) return data.toString(encoding);
   else if (data instanceof Uint8Array) return bufferFrom(data).toString(encoding);
   else return String(data);
@@ -671,10 +671,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       this.mkdirSync(dest);
     }
     // Read directory contents
-    const entries = this.readdirSync(src);
+    const entries = this.readdirSync(src) as string[];
     for (const entry of entries) {
-      const srcItem = join(src, entry);
-      const destItem = join(dest, entry);
+      const srcItem = join(src, String(entry));
+      const destItem = join(dest, String(entry));
       // Apply filter to each item
       if (options.filter && !options.filter(srcItem, destItem)) {
         continue;

@@ -291,6 +291,20 @@ onlyOnNode20('FsaNodeFs', () => {
     });
   });
 
+  describe('.openAsBlob()', () => {
+    test('can read file contents', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      const blob = await fs.openAsBlob('/folder/file');
+      expect(await blob.text()).toBe('test');
+    });
+
+    test('can read file contents', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      const blob = await fs.openAsBlob('/folder/file');
+      expect(await blob.text()).toBe('test');
+    });
+  });
+
   describe('.truncate()', () => {
     test('can truncate a file', async () => {
       const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null });

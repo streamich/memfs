@@ -1492,7 +1492,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const buffer = node.getBuffer();
     const type = options?.type || '';
 
-    return new Blob([buffer], { type });
+    return new Blob([buffer as BlobPart], { type });
   };
 
   public glob: FsCallbackApi['glob'] = (pattern: string, ...args: any[]) => {

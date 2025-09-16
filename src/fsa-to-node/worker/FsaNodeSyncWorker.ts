@@ -127,7 +127,7 @@ export class FsaNodeSyncWorker {
     },
     readFile: async ([filename, opts]): Promise<Uint8Array> => {
       const buf = (await this.fs.promises.readFile(filename, { ...opts, encoding: 'buffer' })) as Buffer;
-      const uint8 = new Uint8Array(buf, buf.byteOffset, buf.byteLength);
+      const uint8 = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
       return uint8;
     },
     writeFile: async ([filename, data, opts]): Promise<void> => {

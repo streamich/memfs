@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1758030128652" clover="3.2.0">
-  <project timestamp="1758030128652" name="All files">
-    <metrics statements="4103" coveredstatements="3436" conditionals="1803" coveredconditionals="1270" methods="849" coveredmethods="666" elements="6755" coveredelements="5372" complexity="0" loc="4103" ncloc="4103" packages="12" files="63" classes="63"/>
+<coverage generated="1758051663654" clover="3.2.0">
+  <project timestamp="1758051663655" name="All files">
+    <metrics statements="4103" coveredstatements="3436" conditionals="1591" coveredconditionals="1089" methods="849" coveredmethods="666" elements="6543" coveredelements="5191" complexity="0" loc="4103" ncloc="4103" packages="12" files="63" classes="63"/>
     <package name="src">
       <metrics statements="72" coveredstatements="63" conditionals="31" coveredconditionals="22" methods="16" coveredmethods="9"/>
       <file name="constants.ts" path="/home/runner/work/memfs/memfs/src/constants.ts">
@@ -99,17 +99,17 @@
       </file>
     </package>
     <package name="src.__tests__">
-      <metrics statements="19" coveredstatements="18" conditionals="9" coveredconditionals="6" methods="6" coveredmethods="6"/>
+      <metrics statements="19" coveredstatements="18" conditionals="7" coveredconditionals="5" methods="6" coveredmethods="6"/>
       <file name="hasBigInt.js" path="/home/runner/work/memfs/memfs/src/__tests__/hasBigInt.js">
         <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="1" type="stmt"/>
       </file>
       <file name="util.ts" path="/home/runner/work/memfs/memfs/src/__tests__/util.ts">
-        <metrics statements="18" coveredstatements="17" conditionals="9" coveredconditionals="6" methods="6" coveredmethods="6"/>
+        <metrics statements="18" coveredstatements="17" conditionals="7" coveredconditionals="5" methods="6" coveredmethods="6"/>
         <line num="1" count="45" type="stmt"/>
         <line num="8" count="45" type="stmt"/>
         <line num="10" count="4" type="stmt"/>
-        <line num="11" count="10" type="cond" truecount="3" falsecount="1"/>
+        <line num="11" count="10" type="cond" truecount="2" falsecount="0"/>
         <line num="12" count="10" type="cond" truecount="1" falsecount="0"/>
         <line num="16" count="45" type="cond" truecount="1" falsecount="0"/>
         <line num="17" count="310" type="stmt"/>
@@ -154,7 +154,7 @@
       </file>
     </package>
     <package name="src.core">
-      <metrics statements="613" coveredstatements="565" conditionals="323" coveredconditionals="256" methods="124" coveredmethods="108"/>
+      <metrics statements="613" coveredstatements="565" conditionals="291" coveredconditionals="229" methods="124" coveredmethods="108"/>
       <file name="File.ts" path="/home/runner/work/memfs/memfs/src/core/File.ts">
         <metrics statements="26" coveredstatements="22" conditionals="8" coveredconditionals="3" methods="12" coveredmethods="8"/>
         <line num="1" count="65" type="stmt"/>
@@ -185,7 +185,7 @@
         <line num="90" count="1" type="stmt"/>
       </file>
       <file name="Link.ts" path="/home/runner/work/memfs/memfs/src/core/Link.ts">
-        <metrics statements="54" coveredstatements="53" conditionals="14" coveredconditionals="12" methods="14" coveredmethods="13"/>
+        <metrics statements="54" coveredstatements="53" conditionals="10" coveredconditionals="9" methods="14" coveredmethods="13"/>
         <line num="1" count="65" type="stmt"/>
         <line num="2" count="65" type="stmt"/>
         <line num="12" count="65" type="stmt"/>
@@ -200,7 +200,7 @@
         <line num="47" count="3074" type="stmt"/>
         <line num="48" count="22" type="cond" truecount="3" falsecount="0"/>
         <line num="49" count="14" type="stmt"/>
-        <line num="51" count="8" type="cond" truecount="3" falsecount="1"/>
+        <line num="51" count="8" type="stmt"/>
         <line num="56" count="3013" type="stmt"/>
         <line num="57" count="3013" type="stmt"/>
         <line num="58" count="3013" type="stmt"/>
@@ -242,14 +242,14 @@
         <line num="141" count="3021" type="cond" truecount="2" falsecount="0"/>
       </file>
       <file name="Node.ts" path="/home/runner/work/memfs/memfs/src/core/Node.ts">
-        <metrics statements="118" coveredstatements="111" conditionals="62" coveredconditionals="52" methods="39" coveredmethods="37"/>
+        <metrics statements="118" coveredstatements="111" conditionals="50" coveredconditionals="42" methods="39" coveredmethods="37"/>
         <line num="1" count="65" type="stmt"/>
         <line num="2" count="65" type="stmt"/>
         <line num="3" count="65" type="stmt"/>
         <line num="4" count="65" type="stmt"/>
         <line num="12" count="65" type="stmt"/>
-        <line num="13" count="21467" type="cond" truecount="6" falsecount="2"/>
-        <line num="14" count="21467" type="cond" truecount="6" falsecount="2"/>
+        <line num="13" count="21467" type="cond" truecount="1" falsecount="1"/>
+        <line num="14" count="21467" type="cond" truecount="1" falsecount="1"/>
         <line num="19" count="65" type="stmt"/>
         <line num="20" count="3027" type="stmt"/>
         <line num="26" count="3027" type="stmt"/>
@@ -363,7 +363,7 @@
         <line num="299" count="0" type="stmt"/>
       </file>
       <file name="Superblock.ts" path="/home/runner/work/memfs/memfs/src/core/Superblock.ts">
-        <metrics statements="349" coveredstatements="329" conditionals="205" coveredconditionals="168" methods="43" coveredmethods="41"/>
+        <metrics statements="349" coveredstatements="329" conditionals="189" coveredconditionals="154" methods="43" coveredmethods="41"/>
         <line num="1" count="64" type="stmt"/>
         <line num="2" count="64" type="stmt"/>
         <line num="3" count="64" type="stmt"/>
@@ -404,7 +404,7 @@
         <line num="110" count="876" type="stmt"/>
         <line num="113" count="1155" type="cond" truecount="0" falsecount="1"/>
         <line num="114" count="0" type="stmt"/>
-        <line num="118" count="1155" type="cond" truecount="6" falsecount="0"/>
+        <line num="118" count="1155" type="cond" truecount="4" falsecount="0"/>
         <line num="121" count="1155" type="cond" truecount="2" falsecount="0"/>
         <line num="122" count="1155" type="cond" truecount="4" falsecount="0"/>
         <line num="123" count="1155" type="stmt"/>
@@ -442,11 +442,11 @@
         <line num="218" count="13570" type="cond" truecount="3" falsecount="0"/>
         <line num="219" count="56" type="stmt"/>
         <line num="222" count="2" type="cond" truecount="1" falsecount="0"/>
-        <line num="225" count="13515" type="cond" truecount="4" falsecount="0"/>
+        <line num="225" count="13515" type="cond" truecount="2" falsecount="0"/>
         <line num="228" count="13515" type="cond" truecount="1" falsecount="0"/>
         <line num="229" count="2066" type="cond" truecount="2" falsecount="0"/>
         <line num="230" count="733" type="stmt"/>
-        <line num="232" count="11449" type="cond" truecount="3" falsecount="1"/>
+        <line num="232" count="11449" type="stmt"/>
         <line num="236" count="11449" type="cond" truecount="4" falsecount="0"/>
         <line num="237" count="75" type="cond" truecount="2" falsecount="0"/>
         <line num="241" count="75" type="stmt"/>
@@ -562,7 +562,7 @@
         <line num="491" count="1156" type="stmt"/>
         <line num="494" count="1156" type="cond" truecount="0" falsecount="1"/>
         <line num="495" count="1156" type="cond" truecount="3" falsecount="0"/>
-        <line num="499" count="1148" type="cond" truecount="3" falsecount="1"/>
+        <line num="499" count="1148" type="cond" truecount="1" falsecount="1"/>
         <line num="501" count="1148" type="stmt"/>
         <line num="502" count="39" type="stmt"/>
         <line num="505" count="1683" type="cond" truecount="1" falsecount="0"/>
@@ -594,7 +594,7 @@
         <line num="554" count="49" type="stmt"/>
         <line num="562" count="873" type="stmt"/>
         <line num="563" count="5" type="stmt"/>
-        <line num="564" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="564" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="565" count="4" type="cond" truecount="0" falsecount="1"/>
         <line num="566" count="4" type="stmt"/>
         <line num="567" count="4" type="stmt"/>
@@ -699,7 +699,7 @@
         <line num="751" count="8" type="cond" truecount="4" falsecount="0"/>
         <line num="752" count="6" type="stmt"/>
         <line num="754" count="27" type="cond" truecount="3" falsecount="0"/>
-        <line num="755" count="23" type="cond" truecount="4" falsecount="1"/>
+        <line num="755" count="23" type="cond" truecount="1" falsecount="0"/>
         <line num="756" count="19" type="stmt"/>
         <line num="760" count="1601" type="cond" truecount="0" falsecount="1"/>
         <line num="761" count="1601" type="stmt"/>
@@ -791,9 +791,9 @@
       </file>
     </package>
     <package name="src.fsa">
-      <metrics statements="330" coveredstatements="193" conditionals="181" coveredconditionals="75" methods="51" coveredmethods="32"/>
+      <metrics statements="330" coveredstatements="193" conditionals="173" coveredconditionals="67" methods="51" coveredmethods="32"/>
       <file name="CoreFileSystemDirectoryHandle.ts" path="/home/runner/work/memfs/memfs/src/fsa/CoreFileSystemDirectoryHandle.ts">
-        <metrics statements="115" coveredstatements="86" conditionals="79" coveredconditionals="48" methods="9" coveredmethods="8"/>
+        <metrics statements="115" coveredstatements="86" conditionals="71" coveredconditionals="40" methods="9" coveredmethods="8"/>
         <line num="1" count="5" type="stmt"/>
         <line num="2" count="5" type="stmt"/>
         <line num="11" count="5" type="stmt"/>
@@ -838,7 +838,7 @@
         <line num="126" count="10" type="cond" truecount="0" falsecount="1"/>
         <line num="127" count="10" type="cond" truecount="3" falsecount="0"/>
         <line num="128" count="10" type="cond" truecount="3" falsecount="0"/>
-        <line num="129" count="10" type="cond" truecount="5" falsecount="0"/>
+        <line num="129" count="10" type="cond" truecount="1" falsecount="0"/>
         <line num="130" count="6" type="stmt"/>
         <line num="131" count="5" type="stmt"/>
         <line num="132" count="5" type="stmt"/>
@@ -862,7 +862,7 @@
         <line num="173" count="8" type="cond" truecount="0" falsecount="1"/>
         <line num="174" count="8" type="cond" truecount="3" falsecount="0"/>
         <line num="175" count="8" type="cond" truecount="3" falsecount="0"/>
-        <line num="176" count="8" type="cond" truecount="5" falsecount="0"/>
+        <line num="176" count="8" type="cond" truecount="1" falsecount="0"/>
         <line num="177" count="5" type="stmt"/>
         <line num="178" count="4" type="stmt"/>
         <line num="179" count="4" type="stmt"/>
@@ -1151,7 +1151,7 @@
       </file>
     </package>
     <package name="src.fsa-to-node">
-      <metrics statements="872" coveredstatements="655" conditionals="252" coveredconditionals="165" methods="218" coveredmethods="136"/>
+      <metrics statements="872" coveredstatements="655" conditionals="238" coveredconditionals="153" methods="218" coveredmethods="136"/>
       <file name="FsaNodeCore.ts" path="/home/runner/work/memfs/memfs/src/fsa-to-node/FsaNodeCore.ts">
         <metrics statements="98" coveredstatements="75" conditionals="43" coveredconditionals="28" methods="16" coveredmethods="12"/>
         <line num="1" count="1" type="stmt"/>
@@ -1267,7 +1267,7 @@
         <line num="34" count="0" type="stmt"/>
       </file>
       <file name="FsaNodeFs.ts" path="/home/runner/work/memfs/memfs/src/fsa-to-node/FsaNodeFs.ts">
-        <metrics statements="587" coveredstatements="427" conditionals="159" coveredconditionals="105" methods="144" coveredmethods="90"/>
+        <metrics statements="587" coveredstatements="427" conditionals="149" coveredconditionals="97" methods="144" coveredmethods="90"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -1526,7 +1526,7 @@
         <line num="461" count="2" type="stmt"/>
         <line num="462" count="2" type="cond" truecount="2" falsecount="0"/>
         <line num="463" count="1" type="stmt"/>
-        <line num="464" count="7" type="stmt"/>
+        <line num="464" count="1" type="stmt"/>
         <line num="465" count="3" type="stmt"/>
         <line num="466" count="3" type="stmt"/>
         <line num="468" count="1" type="cond" truecount="3" falsecount="0"/>
@@ -1536,7 +1536,7 @@
         <line num="472" count="0" type="stmt"/>
         <line num="474" count="1" type="stmt"/>
         <line num="476" count="1" type="stmt"/>
-        <line num="478" count="7" type="stmt"/>
+        <line num="478" count="3" type="stmt"/>
         <line num="480" count="1" type="cond" truecount="3" falsecount="0"/>
         <line num="482" count="1" type="stmt"/>
         <line num="487" count="2" type="stmt"/>
@@ -1575,7 +1575,7 @@
         <line num="570" count="7" type="cond" truecount="2" falsecount="0"/>
         <line num="572" count="7" type="stmt"/>
         <line num="573" count="7" type="stmt"/>
-        <line num="575" count="7" type="cond" truecount="3" falsecount="1"/>
+        <line num="575" count="7" type="cond" truecount="1" falsecount="1"/>
         <line num="576" count="5" type="stmt"/>
         <line num="578" count="5" type="stmt"/>
         <line num="580" count="2" type="cond" truecount="3" falsecount="0"/>
@@ -1594,7 +1594,7 @@
         <line num="605" count="1" type="stmt"/>
         <line num="610" count="2" type="stmt"/>
         <line num="611" count="2" type="stmt"/>
-        <line num="612" count="10" type="stmt"/>
+        <line num="612" count="2" type="stmt"/>
         <line num="613" count="4" type="stmt"/>
         <line num="616" count="2" type="stmt"/>
         <line num="617" count="0" type="stmt"/>
@@ -1605,7 +1605,7 @@
         <line num="629" count="4" type="cond" truecount="3" falsecount="0"/>
         <line num="630" count="3" type="stmt"/>
         <line num="631" count="3" type="stmt"/>
-        <line num="632" count="3" type="cond" truecount="3" falsecount="1"/>
+        <line num="632" count="3" type="cond" truecount="1" falsecount="1"/>
         <line num="634" count="2" type="stmt"/>
         <line num="636" count="1" type="cond" truecount="3" falsecount="0"/>
         <line num="637" count="1" type="cond" truecount="1" falsecount="1"/>
@@ -1621,7 +1621,7 @@
         <line num="661" count="7" type="stmt"/>
         <line num="662" count="7" type="cond" truecount="3" falsecount="0"/>
         <line num="663" count="6" type="stmt"/>
-        <line num="664" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="664" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="666" count="3" type="stmt"/>
         <line num="668" count="3" type="cond" truecount="1" falsecount="0"/>
         <line num="669" count="1" type="stmt"/>
@@ -1651,7 +1651,7 @@
         <line num="746" count="14" type="stmt"/>
         <line num="752" count="14" type="stmt"/>
         <line num="753" count="14" type="stmt"/>
-        <line num="754" count="14" type="cond" truecount="3" falsecount="1"/>
+        <line num="754" count="14" type="cond" truecount="1" falsecount="1"/>
         <line num="755" count="14" type="cond" truecount="3" falsecount="1"/>
         <line num="756" count="14" type="cond" truecount="2" falsecount="0"/>
         <line num="757" count="14" type="stmt"/>
@@ -1688,7 +1688,7 @@
         <line num="822" count="0" type="stmt"/>
         <line num="823" count="0" type="stmt"/>
         <line num="824" count="0" type="stmt"/>
-        <line num="825" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="825" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="826" count="0" type="stmt"/>
         <line num="829" count="84" type="stmt"/>
         <line num="831" count="84" type="stmt"/>
@@ -1962,7 +1962,7 @@
         <line num="78" count="0" type="stmt"/>
       </file>
       <file name="FsaNodeWriteStream.ts" path="/home/runner/work/memfs/memfs/src/fsa-to-node/FsaNodeWriteStream.ts">
-        <metrics statements="65" coveredstatements="54" conditionals="29" coveredconditionals="20" methods="22" coveredmethods="14"/>
+        <metrics statements="65" coveredstatements="54" conditionals="25" coveredconditionals="16" methods="22" coveredmethods="14"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -1987,11 +1987,11 @@
         <line num="57" count="12" type="stmt"/>
         <line num="58" count="12" type="stmt"/>
         <line num="59" count="12" type="cond" truecount="1" falsecount="0"/>
-        <line num="60" count="12" type="cond" truecount="3" falsecount="1"/>
+        <line num="60" count="12" type="cond" truecount="1" falsecount="1"/>
         <line num="61" count="12" type="cond" truecount="2" falsecount="0"/>
         <line num="62" count="12" type="stmt"/>
         <line num="63" count="12" type="cond" truecount="1" falsecount="0"/>
-        <line num="64" count="5" type="cond" truecount="4" falsecount="0"/>
+        <line num="64" count="5" type="cond" truecount="2" falsecount="0"/>
         <line num="65" count="5" type="cond" truecount="1" falsecount="0"/>
         <line num="67" count="12" type="stmt"/>
         <line num="68" count="12" type="stmt"/>
@@ -2216,9 +2216,9 @@
       </file>
     </package>
     <package name="src.node">
-      <metrics statements="1633" coveredstatements="1458" conditionals="769" coveredconditionals="586" methods="350" coveredmethods="309"/>
+      <metrics statements="1633" coveredstatements="1458" conditionals="627" coveredconditionals="467" methods="350" coveredmethods="309"/>
       <file name="Dir.ts" path="/home/runner/work/memfs/memfs/src/node/Dir.ts">
-        <metrics statements="91" coveredstatements="75" conditionals="32" coveredconditionals="26" methods="18" coveredmethods="14"/>
+        <metrics statements="91" coveredstatements="75" conditionals="30" coveredconditionals="24" methods="18" coveredmethods="14"/>
         <line num="2" count="64" type="stmt"/>
         <line num="4" count="64" type="stmt"/>
         <line num="6" count="64" type="stmt"/>
@@ -2275,7 +2275,7 @@
         <line num="122" count="7" type="stmt"/>
         <line num="123" count="7" type="stmt"/>
         <line num="124" count="7" type="cond" truecount="2" falsecount="0"/>
-        <line num="125" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="125" count="6" type="cond" truecount="2" falsecount="0"/>
         <line num="131" count="13" type="stmt"/>
         <line num="133" count="13" type="cond" truecount="1" falsecount="0"/>
         <line num="134" count="2" type="stmt"/>
@@ -2339,7 +2339,7 @@
         <line num="62" count="64" type="stmt"/>
       </file>
       <file name="FileHandle.ts" path="/home/runner/work/memfs/memfs/src/node/FileHandle.ts">
-        <metrics statements="99" coveredstatements="76" conditionals="32" coveredconditionals="23" methods="34" coveredmethods="30"/>
+        <metrics statements="99" coveredstatements="76" conditionals="28" coveredconditionals="20" methods="34" coveredmethods="30"/>
         <line num="1" count="64" type="stmt"/>
         <line num="2" count="64" type="stmt"/>
         <line num="7" count="64" type="stmt"/>
@@ -2392,7 +2392,7 @@
         <line num="113" count="1" type="stmt"/>
         <line num="119" count="9" type="stmt"/>
         <line num="124" count="15" type="stmt"/>
-        <line num="125" count="15" type="cond" truecount="3" falsecount="1"/>
+        <line num="125" count="15" type="stmt"/>
         <line num="126" count="15" type="cond" truecount="0" falsecount="1"/>
         <line num="128" count="0" type="stmt"/>
         <line num="129" count="0" type="stmt"/>
@@ -2633,7 +2633,7 @@
         <line num="61" count="64" type="stmt"/>
       </file>
       <file name="glob.ts" path="/home/runner/work/memfs/memfs/src/node/glob.ts">
-        <metrics statements="44" coveredstatements="42" conditionals="24" coveredconditionals="19" methods="7" coveredmethods="7"/>
+        <metrics statements="44" coveredstatements="42" conditionals="22" coveredconditionals="17" methods="7" coveredmethods="7"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
         <line num="4" count="1" type="stmt"/>
@@ -2646,7 +2646,7 @@
         <line num="27" count="6" type="cond" truecount="1" falsecount="1"/>
         <line num="28" count="6" type="stmt"/>
         <line num="35" count="27" type="stmt"/>
-        <line num="36" count="27" type="cond" truecount="4" falsecount="0"/>
+        <line num="36" count="27" type="cond" truecount="2" falsecount="0"/>
         <line num="37" count="27" type="cond" truecount="1" falsecount="1"/>
         <line num="39" count="27" type="cond" truecount="0" falsecount="1"/>
         <line num="40" count="0" type="stmt"/>
@@ -2912,7 +2912,7 @@
         <line num="289" count="58" type="stmt"/>
       </file>
       <file name="volume.ts" path="/home/runner/work/memfs/memfs/src/node/volume.ts">
-        <metrics statements="969" coveredstatements="872" conditionals="543" coveredconditionals="404" methods="210" coveredmethods="186"/>
+        <metrics statements="969" coveredstatements="872" conditionals="409" coveredconditionals="292" methods="210" coveredmethods="186"/>
         <line num="1" count="64" type="stmt"/>
         <line num="3" count="64" type="stmt"/>
         <line num="4" count="64" type="stmt"/>
@@ -3049,7 +3049,7 @@
         <line num="363" count="1" type="stmt"/>
         <line num="368" count="823" type="stmt"/>
         <line num="369" count="0" type="stmt"/>
-        <line num="370" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="370" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="373" count="823" type="stmt"/>
         <line num="375" count="399" type="stmt"/>
         <line num="376" count="399" type="cond" truecount="2" falsecount="0"/>
@@ -3093,7 +3093,7 @@
         <line num="481" count="1" type="stmt"/>
         <line num="484" count="0" type="stmt"/>
         <line num="490" count="3" type="stmt"/>
-        <line num="491" count="2" type="cond" truecount="3" falsecount="1"/>
+        <line num="491" count="2" type="cond" truecount="1" falsecount="1"/>
         <line num="492" count="2" type="cond" truecount="0" falsecount="1"/>
         <line num="493" count="0" type="stmt"/>
         <line num="495" count="2" type="stmt"/>
@@ -3116,7 +3116,7 @@
         <line num="519" count="1" type="stmt"/>
         <line num="524" count="823" type="stmt"/>
         <line num="525" count="0" type="stmt"/>
-        <line num="526" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="526" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="529" count="823" type="stmt"/>
         <line num="530" count="253" type="stmt"/>
         <line num="531" count="253" type="stmt"/>
@@ -3447,10 +3447,10 @@
         <line num="1208" count="17" type="cond" truecount="2" falsecount="0"/>
         <line num="1209" count="17" type="stmt"/>
         <line num="1212" count="823" type="stmt"/>
-        <line num="1213" count="20" type="cond" truecount="8" falsecount="0"/>
+        <line num="1213" count="20" type="stmt"/>
         <line num="1216" count="823" type="stmt"/>
         <line num="1220" count="15" type="stmt"/>
-        <line num="1221" count="15" type="cond" truecount="6" falsecount="2"/>
+        <line num="1221" count="15" type="stmt"/>
         <line num="1224" count="823" type="stmt"/>
         <line num="1225" count="2" type="stmt"/>
         <line num="1226" count="1" type="stmt"/>
@@ -3582,7 +3582,7 @@
         <line num="1489" count="9" type="stmt"/>
         <line num="1490" count="9" type="cond" truecount="1" falsecount="0"/>
         <line num="1492" count="8" type="stmt"/>
-        <line num="1493" count="8" type="cond" truecount="6" falsecount="0"/>
+        <line num="1493" count="8" type="cond" truecount="2" falsecount="0"/>
         <line num="1495" count="8" type="stmt"/>
         <line num="1498" count="823" type="stmt"/>
         <line num="1499" count="6" type="cond" truecount="2" falsecount="0"/>
@@ -3706,7 +3706,7 @@
         <line num="1735" count="3" type="stmt"/>
         <line num="1736" count="3" type="stmt"/>
         <line num="1738" count="0" type="stmt"/>
-        <line num="1744" count="6" type="cond" truecount="4" falsecount="2"/>
+        <line num="1744" count="6" type="cond" truecount="1" falsecount="1"/>
         <line num="1745" count="6" type="stmt"/>
         <line num="1747" count="0" type="stmt"/>
         <line num="1750" count="6" type="stmt"/>
@@ -3791,7 +3791,7 @@
         <line num="1901" count="5" type="stmt"/>
         <line num="1902" count="5" type="stmt"/>
         <line num="1904" count="0" type="stmt"/>
-        <line num="1910" count="3" type="cond" truecount="4" falsecount="2"/>
+        <line num="1910" count="3" type="cond" truecount="1" falsecount="1"/>
         <line num="1911" count="3" type="stmt"/>
         <line num="1913" count="0" type="stmt"/>
         <line num="1916" count="3" type="stmt"/>
@@ -3836,7 +3836,7 @@
         <line num="2011" count="20" type="stmt"/>
         <line num="2013" count="25" type="stmt"/>
         <line num="2014" count="20" type="cond" truecount="1" falsecount="0"/>
-        <line num="2016" count="25" type="cond" truecount="3" falsecount="1"/>
+        <line num="2016" count="25" type="cond" truecount="2" falsecount="0"/>
         <line num="2017" count="25" type="stmt"/>
         <line num="2018" count="25" type="stmt"/>
         <line num="2021" count="11" type="stmt"/>
@@ -3863,7 +3863,7 @@
         <line num="2062" count="22" type="stmt"/>
         <line num="2063" count="12" type="cond" truecount="2" falsecount="0"/>
         <line num="2064" count="5" type="cond" truecount="1" falsecount="0"/>
-        <line num="2067" count="22" type="cond" truecount="3" falsecount="1"/>
+        <line num="2067" count="22" type="cond" truecount="1" falsecount="1"/>
         <line num="2068" count="22" type="stmt"/>
         <line num="2069" count="22" type="stmt"/>
         <line num="2072" count="22" type="cond" truecount="1" falsecount="0"/>
@@ -3881,13 +3881,13 @@
         <line num="2098" count="11" type="stmt"/>
         <line num="2099" count="39" type="stmt"/>
         <line num="2101" count="11" type="stmt"/>
-        <line num="2102" count="11" type="cond" truecount="3" falsecount="1"/>
+        <line num="2102" count="11" type="stmt"/>
       </file>
     </package>
     <package name="src.node-to-fsa">
-      <metrics statements="260" coveredstatements="241" conditionals="143" coveredconditionals="102" methods="45" coveredmethods="42"/>
+      <metrics statements="260" coveredstatements="241" conditionals="131" coveredconditionals="90" methods="45" coveredmethods="42"/>
       <file name="NodeFileSystemDirectoryHandle.ts" path="/home/runner/work/memfs/memfs/src/node-to-fsa/NodeFileSystemDirectoryHandle.ts">
-        <metrics statements="80" coveredstatements="72" conditionals="52" coveredconditionals="42" methods="8" coveredmethods="8"/>
+        <metrics statements="80" coveredstatements="72" conditionals="44" coveredconditionals="34" methods="8" coveredmethods="8"/>
         <line num="1" count="6" type="stmt"/>
         <line num="2" count="6" type="stmt"/>
         <line num="11" count="6" type="stmt"/>
@@ -3907,7 +3907,7 @@
         <line num="62" count="11" type="stmt"/>
         <line num="63" count="11" type="cond" truecount="2" falsecount="0"/>
         <line num="64" count="5" type="cond" truecount="1" falsecount="0"/>
-        <line num="75" count="12" type="stmt"/>
+        <line num="75" count="4" type="stmt"/>
         <line num="92" count="106" type="stmt"/>
         <line num="93" count="91" type="stmt"/>
         <line num="94" count="91" type="stmt"/>
@@ -3917,7 +3917,7 @@
         <line num="99" count="18" type="cond" truecount="1" falsecount="0"/>
         <line num="100" count="15" type="cond" truecount="3" falsecount="0"/>
         <line num="101" count="15" type="cond" truecount="1" falsecount="2"/>
-        <line num="103" count="15" type="cond" truecount="5" falsecount="0"/>
+        <line num="103" count="15" type="cond" truecount="1" falsecount="0"/>
         <line num="104" count="10" type="stmt"/>
         <line num="105" count="9" type="stmt"/>
         <line num="106" count="9" type="stmt"/>
@@ -3933,7 +3933,7 @@
         <line num="136" count="36" type="cond" truecount="1" falsecount="0"/>
         <line num="137" count="26" type="cond" truecount="3" falsecount="0"/>
         <line num="138" count="26" type="cond" truecount="1" falsecount="2"/>
-        <line num="140" count="26" type="cond" truecount="5" falsecount="0"/>
+        <line num="140" count="26" type="cond" truecount="1" falsecount="0"/>
         <line num="141" count="19" type="stmt"/>
         <line num="142" count="18" type="stmt"/>
         <line num="143" count="18" type="stmt"/>
@@ -4023,7 +4023,7 @@
         <line num="83" count="0" type="stmt"/>
       </file>
       <file name="NodeFileSystemSyncAccessHandle.ts" path="/home/runner/work/memfs/memfs/src/node-to-fsa/NodeFileSystemSyncAccessHandle.ts">
-        <metrics statements="32" coveredstatements="30" conditionals="24" coveredconditionals="20" methods="7" coveredmethods="7"/>
+        <metrics statements="32" coveredstatements="30" conditionals="20" coveredconditionals="16" methods="7" coveredmethods="7"/>
         <line num="1" count="6" type="stmt"/>
         <line num="2" count="6" type="stmt"/>
         <line num="9" count="6" type="stmt"/>
@@ -4038,7 +4038,7 @@
         <line num="40" count="2" type="stmt"/>
         <line num="47" count="4" type="cond" truecount="1" falsecount="1"/>
         <line num="48" count="4" type="stmt"/>
-        <line num="49" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="49" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="50" count="3" type="stmt"/>
         <line num="52" count="1" type="cond" truecount="0" falsecount="1"/>
         <line num="53" count="1" type="cond" truecount="3" falsecount="0"/>
@@ -4050,7 +4050,7 @@
         <line num="85" count="4" type="stmt"/>
         <line num="86" count="4" type="cond" truecount="1" falsecount="1"/>
         <line num="87" count="4" type="stmt"/>
-        <line num="88" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="88" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="90" count="1" type="cond" truecount="0" falsecount="1"/>
         <line num="91" count="1" type="cond" truecount="3" falsecount="0"/>
         <line num="92" count="1" type="cond" truecount="1" falsecount="0"/>
@@ -4183,9 +4183,9 @@
       </file>
     </package>
     <package name="src.print">
-      <metrics statements="20" coveredstatements="20" conditionals="17" coveredconditionals="17" methods="3" coveredmethods="3"/>
+      <metrics statements="20" coveredstatements="20" conditionals="15" coveredconditionals="15" methods="3" coveredmethods="3"/>
       <file name="index.ts" path="/home/runner/work/memfs/memfs/src/print/index.ts">
-        <metrics statements="20" coveredstatements="20" conditionals="17" coveredconditionals="17" methods="3" coveredmethods="3"/>
+        <metrics statements="20" coveredstatements="20" conditionals="15" coveredconditionals="15" methods="3" coveredmethods="3"/>
         <line num="1" count="64" type="stmt"/>
         <line num="2" count="64" type="stmt"/>
         <line num="6" count="64" type="cond" truecount="1" falsecount="0"/>
@@ -4193,7 +4193,7 @@
         <line num="8" count="15" type="cond" truecount="2" falsecount="0"/>
         <line num="9" count="15" type="cond" truecount="1" falsecount="0"/>
         <line num="10" count="15" type="cond" truecount="2" falsecount="0"/>
-        <line num="11" count="15" type="cond" truecount="4" falsecount="0"/>
+        <line num="11" count="15" type="cond" truecount="2" falsecount="0"/>
         <line num="12" count="15" type="stmt"/>
         <line num="13" count="15" type="cond" truecount="1" falsecount="0"/>
         <line num="14" count="14" type="stmt"/>

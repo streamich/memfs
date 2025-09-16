@@ -30,9 +30,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">74.4% </span>
+                <span class="strong">71.39% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>404/543</span>
+                <span class='fraction'>292/409</span>
             </div>
         
             
@@ -5491,7 +5491,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     (path: PathLike, options: opts.IRmOptions, callback: misc.TCallback&lt;void&gt;): void;
   } = (path: PathLike, a: misc.TCallback&lt;void&gt; | opts.IRmOptions, b?: misc.TCallback&lt;void&gt;): void =&gt; {
     const [opts, callback] = getRmOptsAndCb(a, b);
-    this.wrapAsync(this._core.rm, [pathToFilename(path), opts<span class="branch-0 cbranch-no" title="branch not covered" >?.f</span>orce, opts<span class="branch-0 cbranch-no" title="branch not covered" >?.r</span>ecursive], callback);
+    this.wrapAsync(this._core.rm, [pathToFilename(path), opts?.force, opts?.recursive], callback);
   };
 &nbsp;
   private readonly _fchmod = (fd: number, modeNum: number): void =&gt; {
@@ -5695,7 +5695,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       errorOnExist: options?.errorOnExist ?? false,
       filter: options?.filter,
       force: options?.force ?? true,
-      mode: options?.mode<span class="branch-0 cbranch-no" title="branch not covered" > ?? 0</span>,
+      mode: options?.mode ?? 0,
       preserveTimestamps: options?.preserveTimestamps ?? false,
       recursive: options?.recursive ?? false,
       verbatimSymlinks: options?.verbatimSymlinks ?? false,
@@ -5720,14 +5720,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     else [options, callback] = [a || <span class="branch-1 cbranch-no" title="branch not covered" >{},</span> b!];
     validateCallback(callback);
     const opts_: opts.ICpOptions &amp; { filter?: (src: string, dest: string) =&gt; boolean } = {
-      dereference: options<span class="branch-0 cbranch-no" title="branch not covered" >?.d</span>ereference<span class="branch-0 cbranch-no" title="branch not covered" > ?? f</span>alse,
-      errorOnExist: options<span class="branch-0 cbranch-no" title="branch not covered" >?.e</span>rrorOnExist ?? false,
-      filter: options<span class="branch-0 cbranch-no" title="branch not covered" >?.f</span>ilter,
-      force: options<span class="branch-0 cbranch-no" title="branch not covered" >?.f</span>orce ?? true,
-      mode: options<span class="branch-0 cbranch-no" title="branch not covered" >?.m</span>ode<span class="branch-0 cbranch-no" title="branch not covered" > ?? 0</span>,
-      preserveTimestamps: options<span class="branch-0 cbranch-no" title="branch not covered" >?.p</span>reserveTimestamps ?? false,
-      recursive: options<span class="branch-0 cbranch-no" title="branch not covered" >?.r</span>ecursive ?? false,
-      verbatimSymlinks: options<span class="branch-0 cbranch-no" title="branch not covered" >?.v</span>erbatimSymlinks<span class="branch-0 cbranch-no" title="branch not covered" > ?? f</span>alse,
+      dereference: options?.dereference ?? false,
+      errorOnExist: options?.errorOnExist ?? false,
+      filter: options?.filter,
+      force: options?.force ?? true,
+      mode: options?.mode ?? 0,
+      preserveTimestamps: options?.preserveTimestamps ?? false,
+      recursive: options?.recursive ?? false,
+      verbatimSymlinks: options?.verbatimSymlinks ?? false,
     };
     this.wrapAsync(this._cp, [srcFilename, destFilename, opts_], callback);
   };
@@ -5765,7 +5765,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const buffer = node.getBuffer();
     const type = options?.type || '';
 &nbsp;
-    return new Blob([buffer], { type });
+    return new Blob([buffer as BlobPart], { type });
   };
 &nbsp;
   public glob: FsCallbackApi['glob'] = (pattern: string, ...args: any[]) =&gt; {
@@ -6014,7 +6014,7 @@ FsReadStream.prototype.close = function (cb) {
   // Since Node 18, there is only a getter for '.closed'.
   // The first branch mimics other setters from Readable.
   // See https://github.com/nodejs/node/blob/v18.0.0/lib/internal/streams/readable.js#L1243
-  if (typeof this._readableState<span class="branch-0 cbranch-no" title="branch not covered" >?.c</span>losed === 'boolean') {
+  if (typeof this._readableState?.closed === 'boolean') {
     this._readableState.closed = true;
   } else <span class="missing-if-branch" title="else path not taken" >E</span>{
 <span class="cstat-no" title="statement not covered" >    this.closed = true;</span>
@@ -6180,7 +6180,7 @@ FsWriteStream.prototype.close = function (cb) {
   // Since Node 18, there is only a getter for '.closed'.
   // The first branch mimics other setters from Writable.
   // See https://github.com/nodejs/node/blob/v18.0.0/lib/internal/streams/writable.js#L766
-  if (typeof this._writableState<span class="branch-0 cbranch-no" title="branch not covered" >?.c</span>losed === 'boolean') {
+  if (typeof this._writableState?.closed === 'boolean') {
     this._writableState.closed = true;
   } else <span class="missing-if-branch" title="else path not taken" >E</span>{
 <span class="cstat-no" title="statement not covered" >    this.closed = true;</span>
@@ -6286,7 +6286,7 @@ export class FSWatcher extends EventEmitter {
       const unsub = node.changes.listen(([type]) =&gt; {
         if (type === 'modify') onNodeChange();
       });
-      const removers = this._listenerRemovers.get(node.ino)<span class="branch-0 cbranch-no" title="branch not covered" > ?? [</span>];
+      const removers = this._listenerRemovers.get(node.ino) ?? [];
       removers.push(() =&gt; unsub());
       this._listenerRemovers.set(node.ino, removers);
     };
@@ -6372,7 +6372,7 @@ export class FSWatcher extends EventEmitter {
       removers.forEach(r =&gt; r());
     });
     this._listenerRemovers.clear();
-    this._parentChangesUnsub<span class="branch-1 cbranch-no" title="branch not covered" >?.();</span>
+    this._parentChangesUnsub?.();
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -6382,7 +6382,7 @@ export class FSWatcher extends EventEmitter {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-16T13:42:08.591Z
+                at 2025-09-16T19:41:03.593Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

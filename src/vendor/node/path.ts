@@ -1,2 +1,1 @@
-import * as pathModule from 'node:path';
-export = pathModule;
+export { resolve, sep, posix, join, relative, dirname, normalize, isAbsolute, basename } from 'node:path';

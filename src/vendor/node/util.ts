@@ -1,2 +1,1 @@
-import * as utilModule from 'node:util';
-export = utilModule;
+export { inspect, format, inherits, promisify } from 'node:util';

@@ -5,7 +5,7 @@
 // message may change, the code should not.
 
 import * as assert from 'assert';
-import * as util from '../vendor/node/util';
+import { inspect, format } from '../vendor/node/util';
 
 const kCode = typeof Symbol === 'undefined' ? '_kCode' : (Symbol as any)('code');
 const messages = {}; // new Map();
@@ -39,8 +39,8 @@ class AssertionError extends g.Error {
       super(options.message);
     } else {
       super(
-        `${util.inspect(options.actual).slice(0, 128)} ` +
-          `${options.operator} ${util.inspect(options.expected).slice(0, 128)}`,
+        `${inspect(options.actual).slice(0, 128)} ` +
+          `${options.operator} ${inspect(options.expected).slice(0, 128)}`,
       );
     }
 
@@ -63,7 +63,7 @@ function message(key, args) {
   if (typeof msg === 'function') {
     fmt = msg;
   } else {
-    fmt = util.format;
+    fmt = format;
     if (args === undefined || args.length === 0) return msg;
     args.unshift(msg);
   }

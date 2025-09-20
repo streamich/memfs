@@ -1,4 +1,4 @@
-import * as pathModule from '../vendor/node/path';
+import { resolve, sep, relative, join, dirname, normalize, posix, isAbsolute } from '../vendor/node/path';
 import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import { Link, Superblock } from '../core';
 import Stats from './Stats';
@@ -12,7 +12,7 @@ import { constants } from '../constants';
 import { EventEmitter } from '../vendor/node/events';
 import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from '../encoding';
 import { FileHandle } from './FileHandle';
-import * as util from '../vendor/node/util';
+import { inherits } from '../vendor/node/util';
 import * as misc from './types/misc';
 import * as opts from './types/options';
 import { FsCallbackApi, WritevCallback } from './types/FsCallbackApi';
@@ -63,10 +63,14 @@ import { ERROR_CODE } from '../core/constants';
 import { TFileId } from '../core/types';
 import { dataToBuffer, filenameToSteps, isFd, isWin, validateFd } from '../core/util';
 
-const resolveCrossPlatform = pathModule.resolve;
+const resolveCrossPlatform = resolve;
 const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK, COPYFILE_EXCL, COPYFILE_FICLONE_FORCE } = constants;
 
-const { sep, relative, join, dirname, normalize } = pathModule.posix ? pathModule.posix : pathModule;
+const pathSep = posix ? posix.sep : sep;
+const pathRelative = posix ? posix.relative : relative;
+const pathJoin = posix ? posix.join : join;
+const pathDirname = posix ? posix.dirname : dirname;
+const pathNormalize = posix ? posix.normalize : normalize;
 
 // ---------------------------------------- Types
 
@@ -607,7 +611,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     // Check if trying to copy directory to subdirectory of itself
     if (srcStat.isDirectory() && this.isSrcSubdir(src, dest)) throw createError(ERROR_CODE.EINVAL, 'cp', src, dest);
     ENDURE_PARENT_DIR_EXISTS: {
-      const parent = dirname(dest);
+      const parent = pathDirname(dest);
       if (!this.existsSync(parent)) this.mkdirSync(parent, { recursive: true });
     }
     // Handle different file types
@@ -626,14 +630,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   private isSrcSubdir(src: string, dest: string): boolean {
     try {
-      const normalizedSrc = normalize(src.startsWith('/') ? src : '/' + src);
-      const normalizedDest = normalize(dest.startsWith('/') ? dest : '/' + dest);
+      const normalizedSrc = pathNormalize(src.startsWith('/') ? src : '/' + src);
+      const normalizedDest = pathNormalize(dest.startsWith('/') ? dest : '/' + dest);
       if (normalizedSrc === normalizedDest) return true;
       // Check if dest is under src by using relative path
       // If dest is under src, the relative path from src to dest won't start with '..'
-      const relativePath = relative(normalizedSrc, normalizedDest);
+      const relativePath = pathRelative(normalizedSrc, normalizedDest);
       // If relative path is empty or doesn't start with '..', dest is under src
-      return relativePath === '' || (!relativePath.startsWith('..') && !pathModule.isAbsolute(relativePath));
+      return relativePath === '' || (!relativePath.startsWith('..') && !isAbsolute(relativePath));
     } catch (error) {
       // If path operations fail, assume it's safe (don't block the copy)
       return false;
@@ -673,8 +677,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     // Read directory contents
     const entries = this.readdirSync(src) as string[];
     for (const entry of entries) {
-      const srcItem = join(src, String(entry));
-      const destItem = join(dest, String(entry));
+      const srcItem = pathJoin(src, String(entry));
+      const destItem = pathJoin(dest, String(entry));
       // Apply filter to each item
       if (options.filter && !options.filter(srcItem, destItem)) {
         continue;
@@ -692,8 +696,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
   ): void {
     let linkTarget = String(this.readlinkSync(src));
-    if (!options.verbatimSymlinks && !pathModule.isAbsolute(linkTarget))
-      linkTarget = resolveCrossPlatform(dirname(src), linkTarget);
+    if (!options.verbatimSymlinks && !isAbsolute(linkTarget))
+      linkTarget = resolveCrossPlatform(pathDirname(src), linkTarget);
     if (destStat) this.unlinkSync(dest);
     this.symlinkSync(linkTarget, dest);
   }
@@ -969,11 +973,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (isWin) filename2 = filename2.replace(/\\/g, '/');
     return list.map(dirent => {
       if (options.recursive) {
-        let fullPath = pathModule.join(dirent.parentPath, dirent.name.toString());
+        let fullPath = pathJoin(dirent.parentPath, dirent.name.toString());
         if (isWin) {
           fullPath = fullPath.replace(/\\/g, '/');
         }
-        return fullPath.replace(filename2 + pathModule.posix.sep, '');
+        return fullPath.replace(filename2 + posix.sep, '');
       }
       return dirent.name;
     });
@@ -1600,7 +1604,7 @@ function allocNewPool(poolSize) {
   pool.used = 0;
 }
 
-util.inherits(FsReadStream, Readable);
+inherits(FsReadStream, Readable);
 exports.ReadStream = FsReadStream;
 function FsReadStream(vol, path, options) {
   if (!(this instanceof FsReadStream)) return new (FsReadStream as any)(vol, path, options);
@@ -1772,7 +1776,7 @@ export interface IWriteStream extends Writable {
   close();
 }
 
-util.inherits(FsWriteStream, Writable);
+inherits(FsWriteStream, Writable);
 exports.WriteStream = FsWriteStream;
 function FsWriteStream(vol, path, options) {
   if (!(this instanceof FsWriteStream)) return new (FsWriteStream as any)(vol, path, options);
@@ -2006,7 +2010,7 @@ export class FSWatcher extends EventEmitter {
       const filepath = link.getPath();
       const node = link.getNode();
       const onNodeChange = () => {
-        let filename = relative(this._filename, filepath);
+        let filename = pathRelative(this._filename, filepath);
         if (!filename) filename = this._getName();
         return this.emit('change', 'change', filename);
       };
@@ -2023,7 +2027,7 @@ export class FSWatcher extends EventEmitter {
 
       // when a new link added
       const onLinkChildAdd = (l: Link) => {
-        this.emit('change', 'rename', relative(this._filename, l.getPath()));
+        this.emit('change', 'rename', pathRelative(this._filename, l.getPath()));
 
         // 1. watch changes of the new link-node
         watchLinkNodeChanged(l);
@@ -2049,7 +2053,7 @@ export class FSWatcher extends EventEmitter {
         };
         removeLinkNodeListeners(l);
 
-        this.emit('change', 'rename', relative(this._filename, l.getPath()));
+        this.emit('change', 'rename', pathRelative(this._filename, l.getPath()));
       };
 
       // children nodes changed

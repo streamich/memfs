@@ -1,4 +1,4 @@
-import * as pathModule from '../vendor/node/path';
+import { resolve as pathResolve, sep, posix } from '../vendor/node/path';
 import { Buffer, bufferFrom } from '../internal/buffer';
 import process from '../process';
 import { TDataOut, TEncodingExtended, ENCODING_UTF8 } from '../encoding';
@@ -6,8 +6,8 @@ import { ERRSTR } from '../node/constants';
 
 export const isWin = process.platform === 'win32';
 
-const resolveCrossPlatform = pathModule.resolve;
-const { sep } = pathModule.posix ? pathModule.posix : pathModule;
+const resolveCrossPlatform = pathResolve;
+const pathSep = posix ? posix.sep : sep;
 
 type TData = TDataOut | ArrayBufferView | DataView; // Data formats users can give us.
 
@@ -52,7 +52,7 @@ export const filenameToSteps = (filename: string, base?: string): string[] => {
   const fullPath = resolve(filename, base);
   const fullPathSansSlash = fullPath.substring(1);
   if (!fullPathSansSlash) return [];
-  return fullPathSansSlash.split(sep);
+  return fullPathSansSlash.split(pathSep);
 };
 
 export function isFd(path): boolean {

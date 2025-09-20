@@ -1,5 +1,5 @@
 import { Buffer } from '../internal/buffer';
-import * as pathModule from 'node:path';
+import * as pathModule from '../vendor/node/path';
 
 const { join } = pathModule.posix ? pathModule.posix : pathModule;
 

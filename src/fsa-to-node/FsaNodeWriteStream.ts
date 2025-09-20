@@ -1,4 +1,4 @@
-import { Writable } from 'node:stream';
+import { Writable } from '../vendor/node/stream';
 import { Defer } from 'thingies/lib/Defer';
 import { concurrency } from 'thingies/lib/concurrency';
 import { flagsToNumber } from '../node/util';

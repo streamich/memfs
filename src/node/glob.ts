@@ -1,4 +1,4 @@
-import * as pathModule from 'node:path';
+import * as pathModule from '../vendor/node/path';
 import { toRegex } from 'glob-to-regex.js';
 import { IGlobOptions } from './types/options';
 import { pathToFilename } from './util';

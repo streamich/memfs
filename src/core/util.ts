@@ -1,4 +1,4 @@
-import * as pathModule from 'node:path';
+import * as pathModule from '../vendor/node/path';
 import { Buffer, bufferFrom } from '../internal/buffer';
 import process from '../process';
 import { TDataOut, TEncodingExtended, ENCODING_UTF8 } from '../encoding';

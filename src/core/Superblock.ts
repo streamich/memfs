@@ -1,4 +1,4 @@
-import * as NodePath from 'node:path';
+import * as NodePath from '../vendor/node/path';
 import { Node } from './Node';
 import { Link } from './Link';
 import { File } from './File';

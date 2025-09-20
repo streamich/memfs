@@ -1,3 +1,10 @@
+# [4.43.0](https://github.com/streamich/memfs/compare/v4.42.0...v4.43.0) (2025-09-20)
+
+
+### Features
+
+* re-export all Node.js native packages ([4ecc167](https://github.com/streamich/memfs/commit/4ecc16706d83b5fe69fc929434535e62647ee546))
+
 # [4.42.0](https://github.com/streamich/memfs/compare/v4.41.0...v4.42.0) (2025-09-16)
 
 

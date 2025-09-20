@@ -237,9 +237,7 @@ export class Superblock {
       // Resolve symlink if we're resolving all symlinks OR if this is an intermediate path component
       // This allows lstat to traverse through symlinks in intermediate directories while not resolving the final component
       if (node.isSymlink() && (resolveSymlinks || i < steps.length - 1)) {
-        const resolvedPath = isAbsolute(node.symlink)
-          ? node.symlink
-          : pathJoin(dirname(curr.getPath()), node.symlink); // Relative to symlink's parent
+        const resolvedPath = isAbsolute(node.symlink) ? node.symlink : pathJoin(dirname(curr.getPath()), node.symlink); // Relative to symlink's parent
 
         steps = filenameToSteps(resolvedPath).concat(steps.slice(i + 1));
         curr = this.root;

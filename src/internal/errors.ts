@@ -39,8 +39,7 @@ class AssertionError extends g.Error {
       super(options.message);
     } else {
       super(
-        `${inspect(options.actual).slice(0, 128)} ` +
-          `${options.operator} ${inspect(options.expected).slice(0, 128)}`,
+        `${inspect(options.actual).slice(0, 128)} ` + `${options.operator} ${inspect(options.expected).slice(0, 128)}`,
       );
     }
 

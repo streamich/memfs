@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.54% </span>
+                <span class="strong">87.59% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>928/1060</span>
+                <span class='fraction'>932/1064</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">71.39% </span>
+                <span class="strong">70.98% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>292/409</span>
+                <span class='fraction'>296/417</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">89.98% </span>
+                <span class="strong">90.03% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>872/969</span>
+                <span class='fraction'>876/973</span>
             </div>
         
             
@@ -2167,7 +2167,11 @@
 <a name='L2102'></a><a href='#L2102'>2102</a>
 <a name='L2103'></a><a href='#L2103'>2103</a>
 <a name='L2104'></a><a href='#L2104'>2104</a>
-<a name='L2105'></a><a href='#L2105'>2105</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">64x</span>
+<a name='L2105'></a><a href='#L2105'>2105</a>
+<a name='L2106'></a><a href='#L2106'>2106</a>
+<a name='L2107'></a><a href='#L2107'>2107</a>
+<a name='L2108'></a><a href='#L2108'>2108</a>
+<a name='L2109'></a><a href='#L2109'>2109</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">64x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">64x</span>
 <span class="cline-any cline-yes">64x</span>
@@ -2235,6 +2239,10 @@
 <span class="cline-any cline-yes">64x</span>
 <span class="cline-any cline-yes">64x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
 <span class="cline-any cline-yes">64x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -4271,7 +4279,7 @@
 <span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import * as pathModule from 'node:path';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { resolve, sep, relative, join, dirname, normalize, posix, isAbsolute } from '../vendor/node/path';
 import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import { Link, Superblock } from '../core';
 import Stats from './Stats';
@@ -4280,12 +4288,12 @@ import StatFs from './StatFs';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '../internal/buffer';
 import queueMicrotask from '../queueMicrotask';
 import setTimeoutUnref, { TSetTimeout } from '../setTimeoutUnref';
-import { Readable, Writable } from 'node:stream';
+import { Readable, Writable } from '../vendor/node/stream';
 import { constants } from '../constants';
-import { EventEmitter } from 'node:events';
+import { EventEmitter } from '../vendor/node/events';
 import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from '../encoding';
 import { FileHandle } from './FileHandle';
-import * as util from 'node:util';
+import { inherits } from '../vendor/node/util';
 import * as misc from './types/misc';
 import * as opts from './types/options';
 import { FsCallbackApi, WritevCallback } from './types/FsCallbackApi';
@@ -4336,10 +4344,14 @@ import { ERROR_CODE } from '../core/constants';
 import { TFileId } from '../core/types';
 import { dataToBuffer, filenameToSteps, isFd, isWin, validateFd } from '../core/util';
 &nbsp;
-const resolveCrossPlatform = pathModule.resolve;
+const resolveCrossPlatform = resolve;
 const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK, COPYFILE_EXCL, COPYFILE_FICLONE_FORCE } = constants;
 &nbsp;
-const { sep, relative, join, dirname, normalize } = pathModule.posix ? pathModule.posix : <span class="branch-1 cbranch-no" title="branch not covered" >pathModule;</span>
+const pathSep = posix ? posix.sep : <span class="branch-1 cbranch-no" title="branch not covered" >sep;</span>
+const pathRelative = posix ? posix.relative : <span class="branch-1 cbranch-no" title="branch not covered" >relative;</span>
+const pathJoin = posix ? posix.join : <span class="branch-1 cbranch-no" title="branch not covered" >join;</span>
+const pathDirname = posix ? posix.dirname : <span class="branch-1 cbranch-no" title="branch not covered" >dirname;</span>
+const pathNormalize = posix ? posix.normalize : <span class="branch-1 cbranch-no" title="branch not covered" >normalize;</span>
 &nbsp;
 // ---------------------------------------- Types
 &nbsp;
@@ -4880,7 +4892,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     // Check if trying to copy directory to subdirectory of itself
     if (srcStat.isDirectory() &amp;&amp; this.isSrcSubdir(src, dest)) throw createError(ERROR_CODE.EINVAL, 'cp', src, dest);
     ENDURE_PARENT_DIR_EXISTS: {
-      const parent = dirname(dest);
+      const parent = pathDirname(dest);
       if (!this.existsSync(parent)) this.mkdirSync(parent, { recursive: true });
     }
     // Handle different file types
@@ -4899,14 +4911,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 &nbsp;
   private isSrcSubdir(src: string, dest: string): boolean {
     try {
-      const normalizedSrc = normalize(src.startsWith('/') ? src : <span class="branch-1 cbranch-no" title="branch not covered" >'/' + src)</span>;
-      const normalizedDest = normalize(dest.startsWith('/') ? dest : <span class="branch-1 cbranch-no" title="branch not covered" >'/' + dest)</span>;
+      const normalizedSrc = pathNormalize(src.startsWith('/') ? src : <span class="branch-1 cbranch-no" title="branch not covered" >'/' + src)</span>;
+      const normalizedDest = pathNormalize(dest.startsWith('/') ? dest : <span class="branch-1 cbranch-no" title="branch not covered" >'/' + dest)</span>;
       <span class="missing-if-branch" title="if path not taken" >I</span>if (normalizedSrc === normalizedDest) <span class="cstat-no" title="statement not covered" >return true;</span>
       // Check if dest is under src by using relative path
       // If dest is under src, the relative path from src to dest won't start with '..'
-      const relativePath = relative(normalizedSrc, normalizedDest);
+      const relativePath = pathRelative(normalizedSrc, normalizedDest);
       // If relative path is empty or doesn't start with '..', dest is under src
-      return relativePath === '' || (!relativePath.startsWith('..') &amp;&amp; !pathModule.isAbsolute(relativePath));
+      return relativePath === '' || (!relativePath.startsWith('..') &amp;&amp; !isAbsolute(relativePath));
     } catch (error) {
       // If path operations fail, assume it's safe (don't block the copy)
 <span class="cstat-no" title="statement not covered" >      return false;</span>
@@ -4946,8 +4958,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     // Read directory contents
     const entries = this.readdirSync(src) as string[];
     for (const entry of entries) {
-      const srcItem = join(src, String(entry));
-      const destItem = join(dest, String(entry));
+      const srcItem = pathJoin(src, String(entry));
+      const destItem = pathJoin(dest, String(entry));
       // Apply filter to each item
       if (options.filter &amp;&amp; !options.filter(srcItem, destItem)) {
         continue;
@@ -4965,8 +4977,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     options: opts.ICpOptions &amp; { filter?: (src: string, dest: string) =&gt; boolean },
   ): void {
     let linkTarget = String(this.readlinkSync(src));
-    if (!options.verbatimSymlinks &amp;&amp; !pathModule.isAbsolute(linkTarget))
-      linkTarget = resolveCrossPlatform(dirname(src), linkTarget);
+    if (!options.verbatimSymlinks &amp;&amp; !isAbsolute(linkTarget))
+      linkTarget = resolveCrossPlatform(pathDirname(src), linkTarget);
     <span class="missing-if-branch" title="if path not taken" >I</span>if (destStat) <span class="cstat-no" title="statement not covered" >this.unlinkSync(dest);</span>
     this.symlinkSync(linkTarget, dest);
   }
@@ -5242,11 +5254,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     <span class="missing-if-branch" title="if path not taken" >I</span>if (isWin) <span class="cstat-no" title="statement not covered" >filename2 = filename2.replace(/\\/g, '/');</span>
     return list.map(dirent =&gt; {
       if (options.recursive) {
-        let fullPath = pathModule.join(dirent.parentPath, dirent.name.toString());
+        let fullPath = pathJoin(dirent.parentPath, dirent.name.toString());
         <span class="missing-if-branch" title="if path not taken" >I</span>if (isWin) {
 <span class="cstat-no" title="statement not covered" >          fullPath = fullPath.replace(/\\/g, '/');</span>
         }
-        return fullPath.replace(filename2 + pathModule.posix.sep, '');
+        return fullPath.replace(filename2 + posix.sep, '');
       }
       return dirent.name;
     });
@@ -5873,7 +5885,7 @@ function allocNewPool(poolSize) {
   pool.used = 0;
 }
 &nbsp;
-util.inherits(FsReadStream, Readable);
+inherits(FsReadStream, Readable);
 exports.ReadStream = FsReadStream;
 function FsReadStream(vol, path, options) {
   <span class="missing-if-branch" title="if path not taken" >I</span>if (!(this instanceof FsReadStream)) <span class="cstat-no" title="statement not covered" >return new (FsReadStream as any)(vol, path, options);</span>
@@ -6045,7 +6057,7 @@ export interface IWriteStream extends Writable {
   close();
 }
 &nbsp;
-util.inherits(FsWriteStream, Writable);
+inherits(FsWriteStream, Writable);
 exports.WriteStream = FsWriteStream;
 function FsWriteStream(vol, path, options) {
   <span class="missing-if-branch" title="if path not taken" >I</span>if (!(this instanceof FsWriteStream)) <span class="cstat-no" title="statement not covered" >return new (FsWriteStream as any)(vol, path, options);</span>
@@ -6279,7 +6291,7 @@ export class FSWatcher extends EventEmitter {
       const filepath = link.getPath();
       const node = link.getNode();
       const onNodeChange = () =&gt; {
-        let filename = relative(this._filename, filepath);
+        let filename = pathRelative(this._filename, filepath);
         if (!filename) filename = this._getName();
         return this.emit('change', 'change', filename);
       };
@@ -6296,7 +6308,7 @@ export class FSWatcher extends EventEmitter {
 &nbsp;
       // when a new link added
       const onLinkChildAdd = (l: Link) =&gt; {
-        this.emit('change', 'rename', relative(this._filename, l.getPath()));
+        this.emit('change', 'rename', pathRelative(this._filename, l.getPath()));
 &nbsp;
         // 1. watch changes of the new link-node
         watchLinkNodeChanged(l);
@@ -6322,7 +6334,7 @@ export class FSWatcher extends EventEmitter {
         };
         removeLinkNodeListeners(l);
 &nbsp;
-        this.emit('change', 'rename', relative(this._filename, l.getPath()));
+        this.emit('change', 'rename', pathRelative(this._filename, l.getPath()));
       };
 &nbsp;
       // children nodes changed
@@ -6382,7 +6394,7 @@ export class FSWatcher extends EventEmitter {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-16T22:26:21.050Z
+                at 2025-09-20T12:14:09.568Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

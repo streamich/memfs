@@ -1,4 +1,4 @@
-import * as NodePath from 'node:path';
+import { sep, relative, join, dirname, isAbsolute, basename, posix } from '../vendor/node/path';
 import { Node } from './Node';
 import { Link } from './Link';
 import { File } from './File';
@@ -15,7 +15,10 @@ import { TFileId } from './types';
 
 type TCallback<TData> = (error?: any, data?: TData) => void;
 
-const { sep, relative, join, dirname } = NodePath.posix ? NodePath.posix : NodePath;
+const pathSep = posix ? posix.sep : sep;
+const pathRelative = posix ? posix.relative : relative;
+const pathJoin = posix ? posix.join : join;
+const pathDirname = posix ? posix.dirname : dirname;
 
 const {
   O_RDONLY,
@@ -200,13 +203,13 @@ export class Superblock {
     let filename: string;
     if (stepsOrFilenameOrLink instanceof Link) {
       steps = stepsOrFilenameOrLink.steps;
-      filename = sep + steps.join(sep);
+      filename = pathSep + steps.join(pathSep);
     } else if (typeof stepsOrFilenameOrLink === 'string') {
       steps = filenameToSteps(stepsOrFilenameOrLink);
       filename = stepsOrFilenameOrLink;
     } else {
       steps = stepsOrFilenameOrLink;
-      filename = sep + steps.join(sep);
+      filename = pathSep + steps.join(pathSep);
     }
 
     let curr: Link | null = this.root;
@@ -234,9 +237,7 @@ export class Superblock {
       // Resolve symlink if we're resolving all symlinks OR if this is an intermediate path component
       // This allows lstat to traverse through symlinks in intermediate directories while not resolving the final component
       if (node.isSymlink() && (resolveSymlinks || i < steps.length - 1)) {
-        const resolvedPath = NodePath.isAbsolute(node.symlink)
-          ? node.symlink
-          : join(NodePath.dirname(curr.getPath()), node.symlink); // Relative to symlink's parent
+        const resolvedPath = isAbsolute(node.symlink) ? node.symlink : pathJoin(dirname(curr.getPath()), node.symlink); // Relative to symlink's parent
 
         steps = filenameToSteps(resolvedPath).concat(steps.slice(i + 1));
         curr = this.root;
@@ -304,7 +305,7 @@ export class Superblock {
     const steps: string[] = (
       filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps)
     ).slice(0, -1);
-    const filename: string = sep + steps.join(sep);
+    const filename: string = pathSep + steps.join(pathSep);
     const link = this.getLinkOrThrow(filename, funcName);
     if (!link.getNode().isDirectory()) throw createError(ERROR_CODE.ENOTDIR, funcName, filename);
     return link;
@@ -345,7 +346,7 @@ export class Superblock {
       const node = child.getNode();
       if (node.isFile()) {
         let filename = child.getPath();
-        if (path) filename = relative(path, filename);
+        if (path) filename = pathRelative(path, filename);
         json[filename] = asBuffer ? node.getBuffer() : node.getString();
       } else if (node.isDirectory()) {
         this._toJSON(child, json, path, asBuffer);
@@ -354,7 +355,7 @@ export class Superblock {
 
     let dirPath = link.getPath();
 
-    if (path) dirPath = relative(path, dirPath);
+    if (path) dirPath = pathRelative(path, dirPath);
 
     if (dirPath && isEmpty) {
       json[dirPath] = null;
@@ -486,7 +487,7 @@ export class Superblock {
       // Note that this will still throw if the ENOENT came from one of the
       // intermediate directories instead of the file itself.
       if (err.code === ERROR_CODE.ENOENT && flagsNum & O_CREAT) {
-        const dirname: string = NodePath.dirname(filename);
+        const dirname: string = pathDirname(filename);
         const dirLink: Link = this.getResolvedLinkOrThrow(dirname);
         const dirNode = dirLink.getNode();
 
@@ -581,7 +582,7 @@ export class Superblock {
       if (err.code) err = createError(err.code, 'link', filename1, filename2);
       throw err;
     }
-    const dirname2 = NodePath.dirname(filename2);
+    const dirname2 = pathDirname(filename2);
     let dir2: Link;
     try {
       dir2 = this.getLinkOrThrow(dirname2, 'link');
@@ -590,7 +591,7 @@ export class Superblock {
       if (err.code) err = createError(err.code, 'link', filename1, filename2);
       throw err;
     }
-    const name = NodePath.basename(filename2);
+    const name = basename(filename2);
     if (dir2.getChild(name)) throw createError(ERROR_CODE.EEXIST, 'link', filename1, filename2);
     const node = link1.getNode();
     node.nlink++;
@@ -680,7 +681,7 @@ export class Superblock {
     oldLinkParent.deleteChild(link);
 
     // Rename should overwrite the new path, if that exists.
-    const name = NodePath.basename(newPathFilename);
+    const name = basename(newPathFilename);
     link.name = name;
     link.steps = [...newPathDirLink.steps, name];
     newPathDirLink.setChild(link.getName(), link);

@@ -4,7 +4,7 @@ import { Buffer } from '../internal/buffer';
 import { TEncodingExtended } from '../encoding';
 import { bufferFrom } from '../internal/buffer';
 import queueMicrotask from '../queueMicrotask';
-import { Readable } from 'node:stream';
+import { Readable } from '../vendor/node/stream';
 import { dataToBuffer, validateFd } from '../core/util';
 import type { FsCallbackApi } from './types';
 import type * as misc from './types/misc';

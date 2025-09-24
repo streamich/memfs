@@ -73,11 +73,7 @@ export const Error = makeNodeError(g.Error);
 export const TypeError = makeNodeError(g.TypeError);
 export const RangeError = makeNodeError(g.RangeError);
 
-export {
-  message,
-  AssertionError,
-  E,
-};
+export { message, AssertionError, E };
 
 E('ERR_DIR_CLOSED', 'Directory handle was closed');
 E(
@@ -90,5 +86,3 @@ E('ERR_INVALID_OPT_VALUE', (name, value) => {
   return `The value "${String(value)}" is invalid for option "${name}"`;
 });
 E('ERR_INVALID_OPT_VALUE_ENCODING', value => `The value "${String(value)}" is invalid for option "encoding"`);
-
-

@@ -4,7 +4,7 @@ import { Link, Superblock } from '../core';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import StatFs from './StatFs';
-import { Buffer, bufferAllocUnsafe, bufferFrom } from '../internal/buffer';
+import { Buffer, bufferAllocUnsafe, bufferFrom } from '../vendor/node/internal/buffer';
 import queueMicrotask from '../queueMicrotask';
 import setTimeoutUnref, { TSetTimeout } from '../setTimeoutUnref';
 import { Readable, Writable } from '../vendor/node/stream';

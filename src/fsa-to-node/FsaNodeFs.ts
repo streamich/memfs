@@ -1,6 +1,6 @@
 import * as optHelpers from '../node/options';
 import * as util from '../node/util';
-import { Buffer } from '../internal/buffer';
+import { Buffer } from '../vendor/node/internal/buffer';
 import { FsPromises } from '../node/FsPromises';
 import { pathToLocation } from './util';
 import { ERRSTR, MODE } from '../node/constants';

@@ -21,7 +21,7 @@ import type {
 import type { Superblock } from '../core/Superblock';
 import { ERROR_CODE } from '../core/constants';
 import { filenameToSteps } from '../core/util';
-import { Buffer } from '../internal/buffer';
+import { Buffer } from '../vendor/node/internal/buffer';
 import { MODE, FLAGS } from '../node/constants';
 
 /**

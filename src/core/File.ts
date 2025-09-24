@@ -1,5 +1,5 @@
 import { constants } from '../constants';
-import { Buffer } from '../internal/buffer';
+import { Buffer } from '../vendor/node/internal/buffer';
 import type { Link } from './Link';
 import type { Node } from './Node';
 

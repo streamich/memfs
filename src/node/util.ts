@@ -1,8 +1,7 @@
 import { ERRSTR, FLAGS } from './constants';
-import * as errors from '../internal/errors';
-import { Buffer } from '../internal/buffer';
+import * as errors from '../vendor/node/internal/errors';
+import { Buffer, bufferFrom } from '../vendor/node/internal/buffer';
 import { TEncodingExtended } from '../encoding';
-import { bufferFrom } from '../internal/buffer';
 import queueMicrotask from '../queueMicrotask';
 import { Readable } from '../vendor/node/stream';
 import { dataToBuffer, validateFd } from '../core/util';

@@ -1,4 +1,4 @@
-import { Buffer } from '../vendor/node/buffer';
+import { Buffer } from '../buffer';
 
 function bufferV0P12Ponyfill(arg0: any, ...args: any): Buffer {
   return new Buffer(arg0, ...args);

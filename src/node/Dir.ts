@@ -3,7 +3,7 @@ import { validateCallback } from './util';
 import * as opts from './types/options';
 import Dirent from './Dirent';
 import type { IDir, IDirent, TCallback } from './types/misc';
-import * as errors from '../internal/errors';
+import * as errors from '../vendor/node/internal/errors';
 
 /**
  * A directory stream, like `fs.Dir`.

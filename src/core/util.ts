@@ -1,5 +1,5 @@
 import { resolve as pathResolve, sep, posix } from '../vendor/node/path';
-import { Buffer, bufferFrom } from '../internal/buffer';
+import { Buffer, bufferFrom } from '../vendor/node/internal/buffer';
 import process from '../process';
 import { TDataOut, TEncodingExtended, ENCODING_UTF8 } from '../encoding';
 import { ERRSTR } from '../node/constants';

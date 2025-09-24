@@ -1,4 +1,4 @@
-import { Buffer } from '../internal/buffer';
+import { Buffer } from '../vendor/node/internal/buffer';
 import type { Data, FileSystemWritableFileStreamParams, IFileSystemWritableFileStream } from '../fsa/types';
 import type { IFileHandle } from '../node/types/misc';
 import type { NodeFsaFs } from './types';

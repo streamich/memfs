@@ -1,6 +1,6 @@
 import { FanOut } from 'thingies/lib/fanout';
 import process from '../process';
-import { Buffer, bufferAllocUnsafe, bufferFrom } from '../internal/buffer';
+import { Buffer, bufferAllocUnsafe, bufferFrom } from '../vendor/node/internal/buffer';
 import { constants, S } from '../constants';
 
 export type NodeEventModify = [type: 'modify'];

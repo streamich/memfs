@@ -2,7 +2,7 @@ import { sep, relative, join, dirname, isAbsolute, basename, posix } from '../ve
 import { Node } from './Node';
 import { Link } from './Link';
 import { File } from './File';
-import { Buffer } from '../internal/buffer';
+import { Buffer } from '../vendor/node/internal/buffer';
 import process from '../process';
 import { constants } from '../constants';
 import { ERRSTR, FLAGS, MODE } from '../node/constants';

@@ -1,4 +1,4 @@
-import { Buffer } from '../internal/buffer';
+import { Buffer } from '../vendor/node/internal/buffer';
 import { join, posix } from '../vendor/node/path';
 
 const pathJoin = posix ? posix.join : join;

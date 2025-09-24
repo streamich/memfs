@@ -1,5 +1,5 @@
-import { Buffer } from './internal/buffer';
-import * as errors from './internal/errors';
+import { Buffer } from './vendor/node/internal/buffer';
+import * as errors from './vendor/node/internal/errors';
 
 export type TDataOut = string | Buffer; // Data formats we give back to users.
 export type TEncodingExtended = BufferEncoding | 'buffer';

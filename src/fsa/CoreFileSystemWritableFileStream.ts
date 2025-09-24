@@ -1,6 +1,6 @@
 import type { IFileSystemWritableFileStream, FileSystemWritableFileStreamParams, Data } from './types';
 import type { Superblock } from '../core/Superblock';
-import { Buffer } from '../internal/buffer';
+import { Buffer } from '../vendor/node/internal/buffer';
 import { ERROR_CODE } from '../core/constants';
 import { newNotAllowedError } from './util';
 import { FLAGS, MODE } from '../node/constants';

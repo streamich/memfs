@@ -1,14 +1,10 @@
-// The whole point behind this internal module is to allow Node.js to no
-// longer be forced to treat every error message change as a semver-major
-// change. The NodeError classes here all expose a `code` property whose
-// value statically and permanently identifies the error. While the error
-// message may change, the code should not.
+// Adapted from Node.js ../internal/errors.js, used for throwing similar errors to Node.js.
 
 import * as assert from 'assert';
 import { inspect, format } from '../util';
 
 const kCode = typeof Symbol === 'undefined' ? '_kCode' : (Symbol as any)('code');
-const messages = {}; // new Map();
+const messages = {};
 
 function makeNodeError(Base) {
   return class NodeError extends Base {
@@ -82,23 +78,9 @@ export const RangeError = makeNodeError(g.RangeError);
 export {
   message,
   AssertionError,
-  E, // This is exported only to facilitate testing.
+  E,
 };
 
-// To declare an error message, use the E(sym, val) function above. The sym
-// must be an upper case string. The val can be either a function or a string.
-// The return value of the function must be a string.
-// Examples:
-// E('EXAMPLE_KEY1', 'This is the error value');
-// E('EXAMPLE_KEY2', (a, b) => return `${a} ${b}`);
-//
-// Once an error code has been assigned, the code itself MUST NOT change and
-// any given error code must never be reused to identify a different error.
-//
-// Any error code added here should also be added to the documentation
-//
-// Note: Please try to keep these in alphabetical order
-// Only error codes actually used in the memfs project are included below
 E('ERR_DIR_CLOSED', 'Directory handle was closed');
 E(
   'ERR_DIR_CONCURRENT_OPERATION',

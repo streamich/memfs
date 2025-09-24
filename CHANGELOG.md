@@ -1,3 +1,10 @@
+## [4.43.1](https://github.com/streamich/memfs/compare/v4.43.0...v4.43.1) (2025-09-24)
+
+
+### Bug Fixes
+
+* Use cross-platform `dirname` instead of `posix.dirname` ([7a51ac3](https://github.com/streamich/memfs/commit/7a51ac33fce9f14dbb7ed54eff417dc666887222)), closes [#1193](https://github.com/streamich/memfs/issues/1193)
+
 # [4.43.0](https://github.com/streamich/memfs/compare/v4.42.0...v4.43.0) (2025-09-20)
 
 

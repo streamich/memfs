@@ -13,27 +13,11 @@ import type { PathLike } from '../node/types/misc';
 import { ERROR_CODE } from './constants';
 import { TFileId } from './types';
 
-type TCallback<TData> = (error?: any, data?: TData) => void;
-
 const pathSep = posix ? posix.sep : sep;
 const pathRelative = posix ? posix.relative : relative;
 const pathJoin = posix ? posix.join : join;
-const pathDirname = posix ? posix.dirname : dirname;
 
-const {
-  O_RDONLY,
-  O_WRONLY,
-  O_RDWR,
-  O_CREAT,
-  O_EXCL,
-  O_TRUNC,
-  O_APPEND,
-  O_DIRECTORY,
-  O_SYMLINK,
-  F_OK,
-  COPYFILE_EXCL,
-  COPYFILE_FICLONE_FORCE,
-} = constants;
+const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_APPEND, O_DIRECTORY } = constants;
 
 /**
  * Represents a filesystem superblock, which is the root of a virtual
@@ -94,8 +78,6 @@ export class Superblock {
   constructor(props = {}) {
     const root = this.createLink();
     root.setNode(this.createNode(constants.S_IFDIR | 0o777));
-
-    const self = this; // tslint:disable-line no-this-assignment
 
     root.setChild('.', root);
     root.getNode().nlink++;
@@ -487,8 +469,8 @@ export class Superblock {
       // Note that this will still throw if the ENOENT came from one of the
       // intermediate directories instead of the file itself.
       if (err.code === ERROR_CODE.ENOENT && flagsNum & O_CREAT) {
-        const dirname: string = pathDirname(filename);
-        const dirLink: Link = this.getResolvedLinkOrThrow(dirname);
+        const dirName = dirname(filename);
+        const dirLink = this.getResolvedLinkOrThrow(dirName);
         const dirNode = dirLink.getNode();
 
         // Check that the place we create the new file is actually a directory and that we are allowed to do so:
@@ -582,7 +564,7 @@ export class Superblock {
       if (err.code) err = createError(err.code, 'link', filename1, filename2);
       throw err;
     }
-    const dirname2 = pathDirname(filename2);
+    const dirname2 = dirname(filename2);
     let dir2: Link;
     try {
       dir2 = this.getLinkOrThrow(dirname2, 'link');

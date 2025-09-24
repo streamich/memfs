@@ -1,4 +1,5 @@
 import { createFs } from '../../../__tests__/util';
+import { normalize, dirname } from '../../../vendor/node/path';
 
 describe('openSync(path, mode[, flags])', () => {
   it('should return a file descriptor', () => {
@@ -69,6 +70,18 @@ describe('openSync(path, mode[, flags])', () => {
           fs.openSync('/foo/bar', intent);
         }).toThrowError(/EACCES/);
       });
+    });
+
+    it('should open file when using native file seperators', () => {
+      const fs = createFs({});
+      // Normalize the path to match the current operating system's format.
+      // This is crucial for catching path-related issues that arise when using native paths on Windows.
+      const filePath = normalize('/foo/bar.txt');
+
+      fs.mkdirSync(dirname(filePath));
+      fs.writeFileSync(filePath, 'test');
+
+      expect(() => fs.openSync(filePath, 'r')).not.toThrow();
     });
   });
 });

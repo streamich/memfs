@@ -1,4 +1,46 @@
-export { inherits, promisify } from 'node:util';
+/**
+ * Minimal implementation of Node.js util.inherits function.
+ * Sets up prototype inheritance between constructor functions.
+ */
+export function inherits(ctor: any, superCtor: any): void {
+  if (ctor === undefined || ctor === null) {
+    throw new TypeError('The constructor to inherit from is not defined');
+  }
+  if (superCtor === undefined || superCtor === null) {
+    throw new TypeError('The super constructor to inherit from is not defined');
+  }
+  ctor.super_ = superCtor;
+  ctor.prototype = Object.create(superCtor.prototype, {
+    constructor: {
+      value: ctor,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    },
+  });
+}
+
+/**
+ * Minimal implementation of Node.js util.promisify function.
+ * Converts callback-based functions to Promise-based functions.
+ */
+export function promisify(fn: Function): Function {
+  if (typeof fn !== 'function') {
+    throw new TypeError('The "original" argument must be of type function');
+  }
+
+  return function (...args: any[]): Promise<any> {
+    return new Promise((resolve, reject) => {
+      fn.call(this, ...args, (err: any, result: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  };
+}
 
 /**
  * Minimal implementation of Node.js util.inspect function.

@@ -1,3 +1,15 @@
+# [4.44.0](https://github.com/streamich/memfs/compare/v4.43.1...v4.44.0) (2025-09-24)
+
+
+### Bug Fixes
+
+* 🐛 remove dependence on "assert" module ([c7c6f6c](https://github.com/streamich/memfs/commit/c7c6f6c87315ad8c8b886e7a47e8dd553d89df70))
+
+
+### Features
+
+* move internal files to vendor/node/internal and cleanup unused error codes ([3a9ee47](https://github.com/streamich/memfs/commit/3a9ee47eced4cc034e45833eaecd4ed8ad66e94d))
+
 ## [4.43.1](https://github.com/streamich/memfs/compare/v4.43.0...v4.43.1) (2025-09-24)
 
 

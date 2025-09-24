@@ -1,3 +1,11 @@
+# [4.46.0](https://github.com/streamich/memfs/compare/v4.45.0...v4.46.0) (2025-09-24)
+
+
+### Features
+
+* implement inline inspect and format functions to replace node:util imports ([894819e](https://github.com/streamich/memfs/commit/894819ecc0a8f2466580b6d39c2ce580a75e83a1))
+* inline inherits and promisify implementations, remove all node:util dependencies ([4e628bf](https://github.com/streamich/memfs/commit/4e628bf2510779473573077ecce1e63e73dbb434))
+
 # [4.45.0](https://github.com/streamich/memfs/compare/v4.44.0...v4.45.0) (2025-09-24)
 
 

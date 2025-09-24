@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1758709286291" clover="3.2.0">
-  <project timestamp="1758709286291" name="All files">
-    <metrics statements="4011" coveredstatements="3389" conditionals="1587" coveredconditionals="1098" methods="857" coveredmethods="684" elements="6455" coveredelements="5171" complexity="0" loc="4011" ncloc="4011" packages="13" files="69" classes="69"/>
+<coverage generated="1758709914092" clover="3.2.0">
+  <project timestamp="1758709914093" name="All files">
+    <metrics statements="4057" coveredstatements="3402" conditionals="1611" coveredconditionals="1103" methods="863" coveredmethods="686" elements="6531" coveredelements="5191" complexity="0" loc="4057" ncloc="4057" packages="13" files="69" classes="69"/>
     <package name="src">
       <metrics statements="72" coveredstatements="63" conditionals="31" coveredconditionals="22" methods="16" coveredmethods="9"/>
       <file name="constants.ts" path="/home/runner/work/memfs/memfs/src/constants.ts">
@@ -4177,7 +4177,7 @@
       </file>
     </package>
     <package name="src.vendor.node">
-      <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="18" coveredmethods="15"/>
+      <metrics statements="52" coveredstatements="19" conditionals="24" coveredconditionals="5" methods="24" coveredmethods="17"/>
       <file name="buffer.ts" path="/home/runner/work/memfs/memfs/src/vendor/node/buffer.ts">
         <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
         <line num="1" count="2463" type="stmt"/>
@@ -4199,8 +4199,54 @@
         <line num="1" count="2" type="stmt"/>
       </file>
       <file name="util.ts" path="/home/runner/work/memfs/memfs/src/vendor/node/util.ts">
-        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="3"/>
-        <line num="1" count="192" type="stmt"/>
+        <metrics statements="47" coveredstatements="14" conditionals="24" coveredconditionals="5" methods="10" coveredmethods="5"/>
+        <line num="5" count="64" type="stmt"/>
+        <line num="6" count="128" type="cond" truecount="2" falsecount="1"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="9" count="128" type="cond" truecount="2" falsecount="1"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="12" count="128" type="stmt"/>
+        <line num="13" count="128" type="stmt"/>
+        <line num="27" count="64" type="stmt"/>
+        <line num="28" count="4" type="cond" truecount="0" falsecount="1"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="32" count="4" type="stmt"/>
+        <line num="33" count="4" type="stmt"/>
+        <line num="34" count="4" type="stmt"/>
+        <line num="35" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="38" count="4" type="stmt"/>
+        <line num="49" count="64" type="stmt"/>
+        <line num="50" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="51" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="52" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="53" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="54" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="58" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="71" count="64" type="stmt"/>
+        <line num="72" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="79" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="82" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
       </file>
     </package>
     <package name="src.vendor.node.internal">

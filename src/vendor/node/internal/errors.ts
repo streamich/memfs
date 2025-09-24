@@ -1,6 +1,5 @@
 // Adapted from Node.js ../internal/errors.js, used for throwing similar errors to Node.js.
 
-import * as assert from 'assert';
 import { inspect, format } from '../util';
 
 const kCode = typeof Symbol === 'undefined' ? '_kCode' : (Symbol as any)('code');
@@ -50,10 +49,9 @@ class AssertionError extends g.Error {
 }
 
 function message(key, args) {
-  assert.strictEqual(typeof key, 'string');
-  // const msg = messages.get(key);
+  if (typeof key !== 'string') throw new Error('Error message key must be a string');
   const msg = messages[key];
-  assert(msg, `An invalid error message key was used: ${key}.`);
+  if (!msg) throw new Error(`An invalid error message key was used: ${key}.`);
   let fmt;
   if (typeof msg === 'function') {
     fmt = msg;

@@ -46,7 +46,7 @@ describe('.readSync(fd, buffer, offset, length, position)', () => {
     const bytes = vol.readSync(fd, uint8View, 0, 5, 0);
     expect(bytes).toBe(5);
     expect(new TextDecoder().decode(uint8View)).toBe('01234');
-  })
+  });
 
   xit('Negative tests', () => {});
 

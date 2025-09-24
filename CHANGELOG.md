@@ -1,3 +1,15 @@
+# [4.45.0](https://github.com/streamich/memfs/compare/v4.44.0...v4.45.0) (2025-09-24)
+
+
+### Bug Fixes
+
+* 🐛 inline Buffer and URL ([0b6c43a](https://github.com/streamich/memfs/commit/0b6c43a088beb74adbd976071d1672e94a90d5db))
+
+
+### Features
+
+* inline fs.ts types to remove node:fs dependency ([22886c3](https://github.com/streamich/memfs/commit/22886c3ec2a8298e6b18ceb0080c92ed5e5e90bc))
+
 # [4.44.0](https://github.com/streamich/memfs/compare/v4.43.1...v4.44.0) (2025-09-24)
 
 

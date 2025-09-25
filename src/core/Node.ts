@@ -193,7 +193,7 @@ export class Node {
     if (actualLen + pos > this.buf.length) {
       actualLen = this.buf.length - pos;
     }
-    const buf2 = buf instanceof Buffer ? buf : Buffer.from(buf.buffer);
+    const buf2 = buf instanceof Buffer ? buf : Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
     this.buf.copy(buf2, off, pos, pos + actualLen);
     return actualLen;
   }

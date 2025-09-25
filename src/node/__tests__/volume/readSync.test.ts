@@ -38,6 +38,16 @@ describe('.readSync(fd, buffer, offset, length, position)', () => {
     expect(bytes).toBe(0);
     expect(buf.equals(Buffer.from('675'))).toBe(true);
   });
+  it('Read into Uint8Array with non-zero byteOffset', () => {
+    const vol = create({ '/test.txt': '01234567' });
+    const largerBuffer = new ArrayBuffer(20);
+    const uint8View = new Uint8Array(largerBuffer, 10, 5); // offset=10, length=5
+    const fd = vol.openSync('/test.txt', 'r');
+    const bytes = vol.readSync(fd, uint8View, 0, 5, 0);
+    expect(bytes).toBe(5);
+    expect(new TextDecoder().decode(uint8View)).toBe('01234');
+  });
+
   xit('Negative tests', () => {});
 
   /*

@@ -1,3 +1,10 @@
+## [4.46.1](https://github.com/streamich/memfs/compare/v4.46.0...v4.46.1) (2025-09-25)
+
+
+### Bug Fixes
+
+* handle Uint8Array byteOffset and byteLength in readSync ([bba8729](https://github.com/streamich/memfs/commit/bba87296ee748e9fc3ca2466c680eea13f5de51a))
+
 # [4.46.0](https://github.com/streamich/memfs/compare/v4.45.0...v4.46.0) (2025-09-24)
 
 

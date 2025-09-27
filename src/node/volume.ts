@@ -19,6 +19,7 @@ import { FsCallbackApi, WritevCallback } from './types/FsCallbackApi';
 import { FsPromises } from './FsPromises';
 import { ToTreeOptions, toTreeSync } from '../print';
 import { ERRSTR, FLAGS, MODE } from './constants';
+import * as errors from '../vendor/node/internal/errors';
 import {
   getDefaultOpts,
   getDefaultOptsAndCb,
@@ -1489,9 +1490,20 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   public openAsBlob = async (path: PathLike, options?: opts.IOpenAsBlobOptions): Promise<Blob> => {
     const filename = pathToFilename(path);
-    const link = this._core.getResolvedLinkOrThrow(filename, 'open');
+    let link;
+    try {
+      link = this._core.getResolvedLinkOrThrow(filename, 'open');
+    } catch (error) {
+      // Convert ENOENT to Node.js-compatible error for openAsBlob
+      if (error && typeof error === 'object' && error.code === 'ENOENT') {
+        const nodeError = new errors.TypeError('ERR_INVALID_ARG_VALUE');
+        throw nodeError;
+      }
+      throw error;
+    }
+
     const node = link.getNode();
-    if (node.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'open', link.getPath());
+    // Note: Node.js allows opening directories as blobs, so we don't throw EISDIR
 
     const buffer = node.getBuffer();
     const type = options?.type || '';

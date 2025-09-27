@@ -303,6 +303,18 @@ onlyOnNode20('FsaNodeFs', () => {
       const blob = await fs.openAsBlob('/folder/file');
       expect(await blob.text()).toBe('test');
     });
+
+    test('throws TypeError with ERR_INVALID_ARG_VALUE for non-existing files', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      try {
+        await fs.openAsBlob('/nonexistent');
+        throw new Error('Expected error');
+      } catch (error) {
+        expect(error).toBeInstanceOf(TypeError);
+        expect(error.code).toBe('ERR_INVALID_ARG_VALUE');
+        expect(error.message).toContain('Unable to open file as blob');
+      }
+    });
   });
 
   describe('.truncate()', () => {

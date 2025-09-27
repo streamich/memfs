@@ -86,3 +86,4 @@ E('ERR_INVALID_OPT_VALUE', (name, value) => {
   return `The value "${String(value)}" is invalid for option "${name}"`;
 });
 E('ERR_INVALID_OPT_VALUE_ENCODING', value => `The value "${String(value)}" is invalid for option "encoding"`);
+E('ERR_INVALID_ARG_VALUE', 'Unable to open file as blob');

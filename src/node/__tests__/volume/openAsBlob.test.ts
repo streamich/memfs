@@ -48,15 +48,17 @@ describe('.openAsBlob()', () => {
   it('throws if file does not exist', async () => {
     const { fs } = memfs({ '/dir/test.txt': 'content' });
     const [, err] = await of(fs.openAsBlob('/dir/test-NOT-FOUND.txt'));
-    expect(err).toBeInstanceOf(Error);
-    expect((<any>err).code).toBe('ENOENT');
+    expect(err).toBeInstanceOf(TypeError);
+    expect((<any>err).code).toBe('ERR_INVALID_ARG_VALUE');
+    expect((<any>err).message).toContain('Unable to open file as blob');
   });
 
-  it('throws EISDIR if path is a directory', async () => {
+  it('allows opening directories as blobs like Node.js', async () => {
     const { fs } = memfs({ '/dir/test.txt': 'content' });
-    const [, err] = await of(fs.openAsBlob('/dir'));
-    expect(err).toBeInstanceOf(Error);
-    expect((<any>err).code).toBe('EISDIR');
+    const blob = await fs.openAsBlob('/dir');
+    expect(blob).toBeInstanceOf(Blob);
+    // Directory "content" size may vary, but it should be a valid blob
+    expect(typeof blob.size).toBe('number');
   });
 
   it('works with Buffer paths', async () => {

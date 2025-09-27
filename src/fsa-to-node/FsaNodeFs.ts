@@ -17,6 +17,7 @@ import { FsaNodeReadStream } from './FsaNodeReadStream';
 import { FsaNodeCore } from './FsaNodeCore';
 import { FileHandle } from '../node/FileHandle';
 import { dataToBuffer, isFd, isWin, validateFd } from '../core/util';
+import * as errors from '../vendor/node/internal/errors';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';
@@ -792,12 +793,22 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public openAsBlob = async (path: misc.PathLike, options?: opts.IOpenAsBlobOptions): Promise<Blob> => {
-    const buffer = await new Promise<Buffer>((resolve, reject) => {
-      this.readFile(path, (err, data: Buffer) => {
-        if (err) reject(err);
-        else resolve(data);
+    let buffer;
+    try {
+      buffer = await new Promise<Buffer>((resolve, reject) => {
+        this.readFile(path, (err, data: Buffer) => {
+          if (err) reject(err);
+          else resolve(data);
+        });
       });
-    });
+    } catch (error) {
+      // Convert ENOENT to Node.js-compatible error for openAsBlob
+      if (error && typeof error === 'object' && error.code === 'ENOENT') {
+        const nodeError = new errors.TypeError('ERR_INVALID_ARG_VALUE');
+        throw nodeError;
+      }
+      throw error;
+    }
     const type = options?.type || '';
     return new Blob([buffer as BlobPart], { type });
   };

@@ -1,3 +1,10 @@
+# [4.47.0](https://github.com/streamich/memfs/compare/v4.46.1...v4.47.0) (2025-09-27)
+
+
+### Features
+
+* align openAsBlob errors with Node.js behavior ([1f1afb7](https://github.com/streamich/memfs/commit/1f1afb7049edcc0a72c6b0d052c8ac8d85b21d64))
+
 ## [4.46.1](https://github.com/streamich/memfs/compare/v4.46.0...v4.46.1) (2025-09-25)
 
 

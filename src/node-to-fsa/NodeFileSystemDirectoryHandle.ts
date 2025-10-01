@@ -91,10 +91,11 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
   ): Promise<IFileSystemDirectoryHandle> {
     assertName(name, 'getDirectoryHandle', 'FileSystemDirectoryHandle');
     const filename = this.__path + name;
+    const { fs } = this;
     try {
-      const stats = await this.fs.promises.stat(filename);
+      const stats = await fs.promises.stat(filename);
       if (!stats.isDirectory()) throw newTypeMismatchError();
-      return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
+      return new NodeFileSystemDirectoryHandle(fs, filename, this.ctx);
     } catch (error) {
       if (error instanceof DOMException) throw error;
       if (error && typeof error === 'object') {
@@ -103,16 +104,16 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
             if (options?.create) {
               assertCanWrite(this.ctx.mode!);
               try {
-                await this.fs.promises.mkdir(filename);
+                await fs.promises.mkdir(filename);
               } catch (mkdirError) {
                 if (mkdirError && typeof mkdirError === 'object' && mkdirError.code === 'EEXIST') {
-                  const stats = await this.fs.promises.stat(filename);
+                  const stats = await fs.promises.stat(filename);
                   if (!stats.isDirectory()) throw newTypeMismatchError();
-                  return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
+                  return new NodeFileSystemDirectoryHandle(fs, filename, this.ctx);
                 }
                 throw mkdirError;
               }
-              return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
+              return new NodeFileSystemDirectoryHandle(fs, filename, this.ctx);
             }
             throw newNotFoundError();
           }

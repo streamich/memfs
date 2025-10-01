@@ -1,3 +1,10 @@
+# [4.48.0](https://github.com/streamich/memfs/compare/v4.47.0...v4.48.0) (2025-10-01)
+
+
+### Features
+
+* handle EEXIST error when creating directories in parallel ([3c9b2c8](https://github.com/streamich/memfs/commit/3c9b2c89283eb4c00b77e84bc14bf8e029392a36))
+
 # [4.47.0](https://github.com/streamich/memfs/compare/v4.46.1...v4.47.0) (2025-09-27)
 
 

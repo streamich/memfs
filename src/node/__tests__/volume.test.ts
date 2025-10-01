@@ -1507,14 +1507,16 @@ describe('volume', () => {
         const vol = new Volume();
         vol.writeFileSync('/lol.txt', '1');
         setTimeout(() => {
-          vol.watchFile('/lol.txt', { interval: 1 }, (curr, prev) => {
+          vol.watchFile('/lol.txt', { interval: 10 }, (curr, prev) => {
             queueMicrotask(() => {
               vol.unwatchFile('/lol.txt');
               done();
             });
           });
-          vol.writeFileSync('/lol.txt', '2');
-        }, 1);
+          setTimeout(() => {
+            vol.writeFileSync('/lol.txt', '2');
+          }, 5);
+        }, 5);
       });
       xit('Multiple listeners for one file', () => {});
     });

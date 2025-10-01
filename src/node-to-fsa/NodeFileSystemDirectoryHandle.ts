@@ -102,7 +102,16 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
           case 'ENOENT': {
             if (options?.create) {
               assertCanWrite(this.ctx.mode!);
-              await this.fs.promises.mkdir(filename);
+              try {
+                await this.fs.promises.mkdir(filename);
+              } catch (mkdirError) {
+                if (mkdirError && typeof mkdirError === 'object' && mkdirError.code === 'EEXIST') {
+                  const stats = await this.fs.promises.stat(filename);
+                  if (!stats.isDirectory()) throw newTypeMismatchError();
+                  return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
+                }
+                throw mkdirError;
+              }
               return new NodeFileSystemDirectoryHandle(this.fs, filename, this.ctx);
             }
             throw newNotFoundError();

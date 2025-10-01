@@ -227,6 +227,23 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
       expect(subdir.name).toBe('subdir');
       expect(subdir).toBeInstanceOf(NodeFileSystemDirectoryHandle);
     });
+
+    test('does not throw when creating the same folder in parallel', async () => {
+      const { dir, fs } = setup({});
+      expect(fs.existsSync('/test')).toBe(false);
+      const [subdir1, subdir2] = await Promise.all([
+        dir.getDirectoryHandle('test', { create: true }),
+        dir.getDirectoryHandle('test', { create: true }),
+      ]);
+      expect(fs.existsSync('/test')).toBe(true);
+      expect(fs.statSync('/test').isDirectory()).toBe(true);
+      expect(subdir1.kind).toBe('directory');
+      expect(subdir1.name).toBe('test');
+      expect(subdir2.kind).toBe('directory');
+      expect(subdir2.name).toBe('test');
+      expect(subdir1).toBeInstanceOf(NodeFileSystemDirectoryHandle);
+      expect(subdir2).toBeInstanceOf(NodeFileSystemDirectoryHandle);
+    });
   });
 
   describe('.getFileHandle()', () => {

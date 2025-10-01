@@ -439,6 +439,17 @@ onlyOnNode20('FsaNodeFs', () => {
       expect(res2[1]).toBe('bc');
       expect(mfs.readFileSync('/mountpoint/test.txt', 'utf8')).toBe('abc');
     });
+
+    test('throws EISDIR when writing to a directory', async () => {
+      const { fs } = setup({ dir: null });
+      try {
+        await fs.promises.writeFile('/dir', 'hello');
+        throw new Error('should not be here');
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe('EISDIR');
+      }
+    });
   });
 
   describe('.writev()', () => {

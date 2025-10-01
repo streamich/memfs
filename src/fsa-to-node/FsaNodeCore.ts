@@ -100,7 +100,7 @@ export class FsaNodeCore {
               if (error2 && typeof error2 === 'object') {
                 switch (error2.name) {
                   case 'TypeMismatchError':
-                    throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
+                    throw createError('EISDIR', funcName, path.join(FsaToNodeConstants.Separator));
                   case 'NotFoundError':
                     throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
                 }
@@ -154,7 +154,7 @@ export class FsaNodeCore {
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'TypeMismatchError':
-                throw createError('ENOTDIR', 'open', filename);
+                throw createError('EISDIR', 'open', filename);
               case 'NotFoundError':
                 throw createError('ENOENT', 'open', filename);
             }
@@ -171,7 +171,7 @@ export class FsaNodeCore {
       if (error && typeof error === 'object') {
         switch (error.name) {
           case 'TypeMismatchError':
-            throw createError('ENOTDIR', 'open', filename);
+            throw createError('EISDIR', 'open', filename);
           case 'NotFoundError':
             throw createError('ENOENT', 'open', filename);
         }

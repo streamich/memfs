@@ -1,3 +1,15 @@
+# [4.49.0](https://github.com/streamich/memfs/compare/v4.48.1...v4.49.0) (2025-10-06)
+
+
+### Bug Fixes
+
+* harden flaky watchFile test by adding proper timing delays ([092a1ba](https://github.com/streamich/memfs/commit/092a1ba09737246ceeb4c69628c2354d648cdab0))
+
+
+### Features
+
+* handle stream reading past file size in FsaNodeReadStream ([2eac49b](https://github.com/streamich/memfs/commit/2eac49b1d6c490900a3ad183a725546aecfe360a))
+
 ## [4.48.1](https://github.com/streamich/memfs/compare/v4.48.0...v4.48.1) (2025-10-01)
 
 

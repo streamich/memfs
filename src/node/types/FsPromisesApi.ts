@@ -38,5 +38,16 @@ export interface FsPromisesApi {
     options?: opts.IWatchOptions,
   ) => AsyncIterableIterator<{ eventType: string; filename: string | Buffer }>;
   writeFile: (id: misc.TFileHandle, data: misc.TPromisesData, options?: opts.IWriteFileOptions) => Promise<void>;
-  glob: (pattern: string, options?: opts.IGlobOptions) => Promise<string[]>;
+  glob: {
+    (pattern: string | readonly string[]): AsyncIterableIterator<string>;
+    (
+      pattern: string | readonly string[],
+      options: opts.IGlobOptions & { withFileTypes: true },
+    ): AsyncIterableIterator<misc.IDirent>;
+    (
+      pattern: string | readonly string[],
+      options: opts.IGlobOptions & { withFileTypes?: false },
+    ): AsyncIterableIterator<string>;
+    (pattern: string | readonly string[], options?: opts.IGlobOptions): AsyncIterableIterator<misc.IDirent | string>;
+  };
 }

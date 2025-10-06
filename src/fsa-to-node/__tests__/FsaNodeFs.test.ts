@@ -990,5 +990,33 @@ onlyOnNode20('FsaNodeFs', () => {
         '/mountpoint/f.html': 'test',
       });
     });
+
+    test('can read with start position beyond file size', async () => {
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const readStream = fs.createReadStream('/folder/file', { start: 100 });
+      const writeStream = fs.createWriteStream('/folder/file2');
+      readStream.pipe(writeStream);
+      await new Promise(resolve => writeStream.once('close', resolve));
+      expect(vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/folder/file2': '',
+        '/mountpoint/empty-folder': null,
+        '/mountpoint/f.html': 'test',
+      });
+    });
+
+    test('can read with start position at file size', async () => {
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const readStream = fs.createReadStream('/folder/file', { start: 4 });
+      const writeStream = fs.createWriteStream('/folder/file3');
+      readStream.pipe(writeStream);
+      await new Promise(resolve => writeStream.once('close', resolve));
+      expect(vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/folder/file3': '',
+        '/mountpoint/empty-folder': null,
+        '/mountpoint/f.html': 'test',
+      });
+    });
   });
 });

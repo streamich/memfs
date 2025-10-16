@@ -5,7 +5,7 @@
 [npm-url]: https://www.npmjs.com/package/memfs
 [npm-badge]: https://img.shields.io/npm/v/memfs.svg
 
-JavaScript file system utilities for Node.js and browser.
+JavaScript file system utilities for Node.js and browser. Implementation of in-memory [Node.js `fs` module API](https://nodejs.org/api/fs.html) and in-memory [browser File System API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API), as well as adapters from `fs` module to File Sytem API and from File Sytem API to `fs` module.
 
 ## Install
 

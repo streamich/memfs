@@ -142,14 +142,17 @@ describe('Node', () => {
       expect(node.getBuffer().toString()).toBe('chunk'.repeat(20));
     });
 
-    it('should handle write at position beyond current size', () => {
+    it('should handle write at position beyond current size with zero-fill', () => {
       const node = new Node(1, 0o666);
 
       node.write(bufferFrom('hello'), 0, 5, 10);
       expect(node.getSize()).toBe(15);
 
       const result = node.getBuffer();
-      // First 10 bytes should be uninitialized/garbage
+      // First 10 bytes should be zero-filled
+      for (let i = 0; i < 10; i++) {
+        expect(result[i]).toBe(0);
+      }
       expect(result.toString('utf8', 10, 15)).toBe('hello');
     });
   });

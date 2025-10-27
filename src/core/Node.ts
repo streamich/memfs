@@ -187,6 +187,11 @@ export class Node {
       this.bufCapacity = newCapacity;
     }
 
+    // Zero-fill any gap between current used size and write position
+    if (pos > this.bufUsed) {
+      this.buf.fill(0, this.bufUsed, pos);
+    }
+
     buf.copy(this.buf, pos, off, off + len);
 
     // Update used size if we wrote beyond current used size

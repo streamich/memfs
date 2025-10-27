@@ -32,6 +32,8 @@ export class Node {
 
   // data: string = '';
   buf: Buffer;
+  private bufCapacity: number = 0; // Total allocated capacity
+  private bufUsed: number = 0; // Actually used bytes
   rdev: number = 0;
 
   mode: number; // S_IFDIR, S_IFREG, etc..
@@ -116,22 +118,26 @@ export class Node {
   setString(str: string) {
     // this.setBuffer(bufferFrom(str, 'utf8'));
     this.buf = bufferFrom(str, 'utf8');
+    this.bufCapacity = this.buf.length;
+    this.bufUsed = this.buf.length;
     this.touch();
   }
 
   getBuffer(): Buffer {
     this.atime = new Date();
     if (!this.buf) this.buf = bufferAllocUnsafe(0);
-    return bufferFrom(this.buf); // Return a copy.
+    return bufferFrom(this.buf.subarray(0, this.bufUsed)); // Return a copy of used portion.
   }
 
   setBuffer(buf: Buffer) {
     this.buf = bufferFrom(buf); // Creates a copy of data.
+    this.bufCapacity = this.buf.length;
+    this.bufUsed = this.buf.length;
     this.touch();
   }
 
   getSize(): number {
-    return this.buf ? this.buf.length : 0;
+    return this.bufUsed;
   }
 
   setModeProperty(property: number) {
@@ -161,15 +167,32 @@ export class Node {
   }
 
   write(buf: Buffer, off: number = 0, len: number = buf.length, pos: number = 0): number {
-    if (!this.buf) this.buf = bufferAllocUnsafe(0);
+    if (!this.buf) {
+      this.buf = bufferAllocUnsafe(0);
+      this.bufCapacity = 0;
+      this.bufUsed = 0;
+    }
 
-    if (pos + len > this.buf.length) {
-      const newBuf = bufferAllocUnsafe(pos + len);
-      this.buf.copy(newBuf, 0, 0, this.buf.length);
+    const requiredSize = pos + len;
+    if (requiredSize > this.bufCapacity) {
+      // Calculate new capacity: max of 2x current capacity or required size, with minimum of 64 bytes
+      let newCapacity = Math.max(this.bufCapacity * 2, requiredSize);
+      if (newCapacity < 64) newCapacity = 64;
+
+      const newBuf = bufferAllocUnsafe(newCapacity);
+      if (this.bufUsed > 0) {
+        this.buf.copy(newBuf, 0, 0, this.bufUsed);
+      }
       this.buf = newBuf;
+      this.bufCapacity = newCapacity;
     }
 
     buf.copy(this.buf, pos, off, off + len);
+
+    // Update used size if we wrote beyond current used size
+    if (requiredSize > this.bufUsed) {
+      this.bufUsed = requiredSize;
+    }
 
     this.touch();
 
@@ -184,14 +207,18 @@ export class Node {
     pos: number = 0,
   ): number {
     this.atime = new Date();
-    if (!this.buf) this.buf = bufferAllocUnsafe(0);
-    if (pos >= this.buf.length) return 0;
+    if (!this.buf) {
+      this.buf = bufferAllocUnsafe(0);
+      this.bufCapacity = 0;
+      this.bufUsed = 0;
+    }
+    if (pos >= this.bufUsed) return 0;
     let actualLen = len;
     if (actualLen > buf.byteLength) {
       actualLen = buf.byteLength;
     }
-    if (actualLen + pos > this.buf.length) {
-      actualLen = this.buf.length - pos;
+    if (actualLen + pos > this.bufUsed) {
+      actualLen = this.bufUsed - pos;
     }
     const buf2 = buf instanceof Buffer ? buf : Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
     this.buf.copy(buf2, off, pos, pos + actualLen);
@@ -199,16 +226,37 @@ export class Node {
   }
 
   truncate(len: number = 0) {
-    if (!len) this.buf = bufferAllocUnsafe(0);
-    else {
-      if (!this.buf) this.buf = bufferAllocUnsafe(0);
-      if (len <= this.buf.length) {
-        this.buf = this.buf.slice(0, len);
+    if (!len) {
+      this.buf = bufferAllocUnsafe(0);
+      this.bufCapacity = 0;
+      this.bufUsed = 0;
+    } else {
+      if (!this.buf) {
+        this.buf = bufferAllocUnsafe(0);
+        this.bufCapacity = 0;
+        this.bufUsed = 0;
+      }
+      if (len <= this.bufUsed) {
+        // Shrinking: keep capacity but reduce used size
+        this.bufUsed = len;
       } else {
-        const buf = bufferAllocUnsafe(len);
-        this.buf.copy(buf);
-        buf.fill(0, this.buf.length);
-        this.buf = buf;
+        // Growing: may need to allocate more capacity
+        if (len > this.bufCapacity) {
+          // Need more capacity - allocate with some overallocation
+          let newCapacity = len;
+          if (newCapacity < 64) newCapacity = 64;
+          const buf = bufferAllocUnsafe(newCapacity);
+          if (this.bufUsed > 0) {
+            this.buf.copy(buf, 0, 0, this.bufUsed);
+          }
+          buf.fill(0, this.bufUsed, len);
+          this.buf = buf;
+          this.bufCapacity = newCapacity;
+        } else {
+          // Have enough capacity, just zero-fill the new space
+          this.buf.fill(0, this.bufUsed, len);
+        }
+        this.bufUsed = len;
       }
     }
 

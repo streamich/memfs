@@ -1,3 +1,11 @@
+# [4.50.0](https://github.com/streamich/memfs/compare/v4.49.0...v4.50.0) (2025-10-28)
+
+
+### Features
+
+* 🎸 improve Node buffer allocation strategy ([d1edb3f](https://github.com/streamich/memfs/commit/d1edb3fa70f119642fb7fdd603e7e89f752afa11))
+* optimize Node buffer management to prevent O(n^2) overhead ([95d6f09](https://github.com/streamich/memfs/commit/95d6f091fef065abb60b5515754b2c8081117e4f))
+
 # [4.49.0](https://github.com/streamich/memfs/compare/v4.48.1...v4.49.0) (2025-10-06)
 
 

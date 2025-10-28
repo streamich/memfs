@@ -12,6 +12,7 @@ export type NodeEvent = NodeEventModify | NodeEventDelete;
 const { S_IFMT, S_IFDIR, S_IFREG, S_IFLNK, S_IFCHR } = constants;
 const getuid = (): number => process.getuid?.() ?? 0;
 const getgid = (): number => process.getgid?.() ?? 0;
+const EMPTY_BUFFER = bufferAllocUnsafe(0);
 
 /**
  * Node in a file system (like i-node, v-node).
@@ -30,8 +31,14 @@ export class Node {
   private _mtime = new Date();
   private _ctime = new Date();
 
-  // data: string = '';
-  buf: Buffer;
+  buf: Buffer = EMPTY_BUFFER;
+
+  /** Total allocated memory capacity for this node. */
+  private capacity: number = 0;
+
+  /** Actually used bytes to store content. */
+  private size: number = 0;
+
   rdev: number = 0;
 
   mode: number; // S_IFDIR, S_IFREG, etc..
@@ -114,24 +121,30 @@ export class Node {
   }
 
   setString(str: string) {
-    // this.setBuffer(bufferFrom(str, 'utf8'));
-    this.buf = bufferFrom(str, 'utf8');
-    this.touch();
+    this._setBuf(bufferFrom(str, 'utf8'));
   }
 
   getBuffer(): Buffer {
     this.atime = new Date();
     if (!this.buf) this.buf = bufferAllocUnsafe(0);
-    return bufferFrom(this.buf); // Return a copy.
+    return bufferFrom(this.buf.subarray(0, this.size)); // Return a copy of used portion.
   }
 
   setBuffer(buf: Buffer) {
-    this.buf = bufferFrom(buf); // Creates a copy of data.
+    const copy = bufferFrom(buf); // Creates a copy of data.
+    this._setBuf(copy);
+  }
+
+  private _setBuf(buf: Buffer): void {
+    const size = buf.length;
+    this.buf = buf;
+    this.capacity = size;
+    this.size = size;
     this.touch();
   }
 
   getSize(): number {
-    return this.buf ? this.buf.length : 0;
+    return this.size;
   }
 
   setModeProperty(property: number) {
@@ -161,22 +174,34 @@ export class Node {
   }
 
   write(buf: Buffer, off: number = 0, len: number = buf.length, pos: number = 0): number {
-    if (!this.buf) this.buf = bufferAllocUnsafe(0);
-
-    if (pos + len > this.buf.length) {
-      const newBuf = bufferAllocUnsafe(pos + len);
-      this.buf.copy(newBuf, 0, 0, this.buf.length);
+    const bufLength = buf.length;
+    if (off + len > bufLength) len = bufLength - off;
+    if (len <= 0) return 0;
+    const requiredSize = pos + len;
+    if (requiredSize > this.capacity) {
+      let newCapacity = Math.max(this.capacity * 2, 64);
+      while (newCapacity < requiredSize) newCapacity *= 2;
+      const newBuf = bufferAllocUnsafe(newCapacity);
+      if (this.size > 0) this.buf.copy(newBuf, 0, 0, this.size);
       this.buf = newBuf;
+      this.capacity = newCapacity;
     }
-
+    if (pos > this.size) this.buf.fill(0, this.size, pos);
     buf.copy(this.buf, pos, off, off + len);
-
+    if (requiredSize > this.size) this.size = requiredSize;
     this.touch();
-
     return len;
   }
 
-  // Returns the number of bytes read.
+  /**
+   * Read data from the file.
+   *
+   * @param buf Buffer to read data into.
+   * @param off Offset int the `buf` where to start writing data.
+   * @param len How many bytes to read. Equals to `buf.byteLength` by default.
+   * @param pos Position offset in file where to start reading. Defaults to `0`.
+   * @returns Returns the number of bytes read.
+   */
   read(
     buf: Buffer | ArrayBufferView | DataView,
     off: number = 0,
@@ -184,34 +209,37 @@ export class Node {
     pos: number = 0,
   ): number {
     this.atime = new Date();
-    if (!this.buf) this.buf = bufferAllocUnsafe(0);
-    if (pos >= this.buf.length) return 0;
+    if (pos >= this.size) return 0;
     let actualLen = len;
-    if (actualLen > buf.byteLength) {
-      actualLen = buf.byteLength;
-    }
-    if (actualLen + pos > this.buf.length) {
-      actualLen = this.buf.length - pos;
-    }
+    if (actualLen > buf.byteLength) actualLen = buf.byteLength;
+    if (actualLen + pos > this.size) actualLen = this.size - pos;
+    if (actualLen <= 0) return 0;
     const buf2 = buf instanceof Buffer ? buf : Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
     this.buf.copy(buf2, off, pos, pos + actualLen);
     return actualLen;
   }
 
   truncate(len: number = 0) {
-    if (!len) this.buf = bufferAllocUnsafe(0);
-    else {
-      if (!this.buf) this.buf = bufferAllocUnsafe(0);
-      if (len <= this.buf.length) {
-        this.buf = this.buf.slice(0, len);
-      } else {
-        const buf = bufferAllocUnsafe(len);
-        this.buf.copy(buf);
-        buf.fill(0, this.buf.length);
-        this.buf = buf;
-      }
+    if (!len) {
+      this.buf = EMPTY_BUFFER;
+      this.capacity = 0;
+      this.size = 0;
+      this.touch();
+      return;
     }
-
+    if (len <= this.size) this.size = len;
+    else {
+      if (len > this.capacity) {
+        let newCapacity = Math.max(this.capacity * 2, 64);
+        while (newCapacity < len) newCapacity *= 2;
+        const buf = bufferAllocUnsafe(newCapacity);
+        if (this.size > 0) this.buf.copy(buf, 0, 0, this.size);
+        buf.fill(0, this.size, len);
+        this.buf = buf;
+        this.capacity = newCapacity;
+      } else this.buf.fill(0, this.size, len);
+      this.size = len;
+    }
     this.touch();
   }
 

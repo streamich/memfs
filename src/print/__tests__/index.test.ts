@@ -19,10 +19,10 @@ test('can a one level deep directory tree', () => {
   });
   expect(toTreeSync(fs, { dir: '/' })).toMatchInlineSnapshot(`
     "/
-    ├─ file.txt
-    └─ foo/
-       ├─ bar.txt
-       └─ index.php"
+    ├─ foo/
+    │  ├─ bar.txt
+    │  └─ index.php
+    └─ file.txt"
   `);
 });
 
@@ -76,5 +76,41 @@ test('can print starting from subfolder', () => {
     ├─ c/
     │  └─ file.txt
     └─ main.rb"
+  `);
+});
+
+test('can print folders sorted first', () => {
+  const { fs } = memfs({
+    '/a.txt': '...',
+    '/b/file.txt': '...',
+    '/c.txt': '...',
+  });
+  expect(toTreeSync(fs)).toMatchInlineSnapshot(`
+    "/
+    ├─ b/
+    │  └─ file.txt
+    ├─ a.txt
+    └─ c.txt"
+  `);
+});
+
+test('can print files and folders sorted alphabetically', () => {
+  const { fs } = memfs({
+    '/a.txt': '...',
+    '/c.txt': '...',
+    '/b.txt': '...',
+    '/src/a.txt': '...',
+    '/src/c.txt': '...',
+    '/src/b.txt': '...',
+  });
+  expect(toTreeSync(fs)).toMatchInlineSnapshot(`
+    "/
+    ├─ src/
+    │  ├─ a.txt
+    │  ├─ b.txt
+    │  └─ c.txt
+    ├─ a.txt
+    ├─ b.txt
+    └─ c.txt"
   `);
 });

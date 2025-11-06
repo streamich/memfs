@@ -9,9 +9,23 @@ export const toTreeSync = (fs: FsSynchronousApi, opts: ToTreeOptions = {}) => {
   if (dir[dir.length - 1] !== separator) dir += separator;
   const tab = opts.tab || '';
   const depth = opts.depth ?? 10;
+  const sort = opts.sort ?? true;
   let subtree = ' (...)';
   if (depth > 0) {
     const list = fs.readdirSync(dir, { withFileTypes: true }) as IDirent[];
+    if (sort) {
+      list.sort((a, b) => {
+        if (a.isDirectory() && b.isDirectory()) {
+          return a.name.toString().localeCompare(b.name.toString());
+        } else if (a.isDirectory()) {
+          return -1;
+        } else if (b.isDirectory()) {
+          return 1;
+        } else {
+          return a.name.toString().localeCompare(b.name.toString());
+        }
+      });
+    }
     subtree = printTree(
       tab,
       list.map(entry => tab => {
@@ -34,4 +48,5 @@ export interface ToTreeOptions {
   tab?: string;
   depth?: number;
   separator?: '/' | '\\';
+  sort?: boolean;
 }

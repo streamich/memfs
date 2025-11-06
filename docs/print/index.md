@@ -13,14 +13,14 @@ console.log(toTreeSync(fs, { dir: process.cwd() + '/src/fsa-to-node' }));
 
 // Output:
 // src/
-// ├─ Dirent.ts
-// ├─ Stats.ts
 // ├─ __tests__/
 // │  ├─ hasBigInt.js
 // │  ├─ index.test.ts
 // │  ├─ node.test.ts
 // │  ├─ process.test.ts
-// │  ├─ promises.test.ts
+// │  └─ promises.test.ts
+// ├─ Dirent.ts
+// ├─ Stats.ts
 // ...
 ```
 
@@ -47,4 +47,22 @@ console.log(toTreeSync(fs));
 //                └─ src/
 //                   ├─ package.json
 //                   ├─ tsconfig.json
+```
+
+By default the output is sorted alphabetically with folders first, to disable sorting the `sort` option can be disabled:
+
+```
+console.log(toTreeSync(fs, { sort: false }));
+
+// Output:
+// src/
+// ├─ Dirent.ts
+// ├─ Stats.ts
+// ├─ __tests__/
+// │  ├─ hasBigInt.js
+// │  ├─ index.test.ts
+// │  ├─ node.test.ts
+// │  ├─ process.test.ts
+// │  ├─ promises.test.ts
+// ...
 ```

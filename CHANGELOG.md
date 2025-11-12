@@ -1,3 +1,10 @@
+# [4.51.0](https://github.com/streamich/memfs/compare/v4.50.0...v4.51.0) (2025-11-12)
+
+
+### Features
+
+* sort files and folder when using `toTreeSync()` ([673cb7a](https://github.com/streamich/memfs/commit/673cb7a98b2ae7b97a57a0693d8d2dbfc745338c)), closes [#1214](https://github.com/streamich/memfs/issues/1214)
+
 # [4.50.0](https://github.com/streamich/memfs/compare/v4.49.0...v4.50.0) (2025-10-28)
 
 

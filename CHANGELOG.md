@@ -1,3 +1,10 @@
+## [4.51.1](https://github.com/streamich/memfs/compare/v4.51.0...v4.51.1) (2025-11-30)
+
+
+### Bug Fixes
+
+* add glob functions to API lists ([445f337](https://github.com/streamich/memfs/commit/445f33729e6123b52268e92a9d2785d47f7ab2aa))
+
 # [4.51.0](https://github.com/streamich/memfs/compare/v4.50.0...v4.51.0) (2025-11-12)
 
 

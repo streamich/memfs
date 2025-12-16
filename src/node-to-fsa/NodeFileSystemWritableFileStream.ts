@@ -2,6 +2,8 @@ import { Buffer } from '../vendor/node/internal/buffer';
 import type { Data, FileSystemWritableFileStreamParams, IFileSystemWritableFileStream } from '../fsa/types';
 import type { IFileHandle } from '../node/types/misc';
 import type { NodeFsaFs } from './types';
+import { globalLockManager } from '../fsa/FileLockManager';
+import { newNoModificationAllowedError } from './util';
 
 /**
  * When Chrome writes to the file, it creates a copy of the file with extension
@@ -74,11 +76,20 @@ export class NodeFileSystemWritableFileStream extends WS implements IFileSystemW
     const swap: SwapFile = { handle: undefined, path: '', offset: 0 };
     super({
       async start() {
-        const promise = createSwapFile(fs, path, keepExistingData);
-        swap.ready = promise.then(() => undefined);
-        const [handle, swapPath] = await promise;
-        swap.handle = handle;
-        swap.path = swapPath;
+        if (globalLockManager.isLocked(path)) {
+          throw newNoModificationAllowedError();
+        }
+        globalLockManager.acquireLock(path);
+        try {
+          const promise = createSwapFile(fs, path, keepExistingData);
+          swap.ready = promise.then(() => undefined);
+          const [handle, swapPath] = await promise;
+          swap.handle = handle;
+          swap.path = swapPath;
+        } catch (error) {
+          globalLockManager.releaseLock(path);
+          throw error;
+        }
       },
       async write(chunk: Data) {
         await swap.ready;
@@ -100,6 +111,7 @@ export class NodeFileSystemWritableFileStream extends WS implements IFileSystemW
         if (!handle) return;
         await handle.close();
         await fs.promises.rename(swap.path, path);
+        globalLockManager.releaseLock(path);
       },
       async abort() {
         await swap.ready;
@@ -107,6 +119,7 @@ export class NodeFileSystemWritableFileStream extends WS implements IFileSystemW
         if (!handle) return;
         await handle.close();
         await fs.promises.unlink(swap.path);
+        globalLockManager.releaseLock(path);
       },
     });
     this.swap = swap;

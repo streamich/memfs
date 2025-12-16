@@ -1,6 +1,6 @@
 import { CoreFileSystemHandle } from './CoreFileSystemHandle';
 import { CoreFileSystemSyncAccessHandle } from './CoreFileSystemSyncAccessHandle';
-import { assertCanWrite, basename, ctx as createCtx, newNotAllowedError } from './util';
+import { assertCanWrite, basename, ctx as createCtx, newNotAllowedError, newNoModificationAllowedError } from './util';
 import { CoreFileSystemWritableFileStream } from './CoreFileSystemWritableFileStream';
 import type {
   CoreFsaContext,
@@ -10,6 +10,7 @@ import type {
 } from './types';
 import type { Superblock } from '../core/Superblock';
 import { ERROR_CODE } from '../core/constants';
+import { globalLockManager } from './FileLockManager';
 
 export class CoreFileSystemFileHandle extends CoreFileSystemHandle implements IFileSystemFileHandle {
   protected readonly ctx: CoreFsaContext;
@@ -66,7 +67,12 @@ export class CoreFileSystemFileHandle extends CoreFileSystemHandle implements IF
    */
   public get createSyncAccessHandle(): undefined | (() => Promise<IFileSystemSyncAccessHandle>) {
     if (!this.ctx.syncHandleAllowed) return undefined;
-    return async () => new CoreFileSystemSyncAccessHandle(this._core, this.__path, this.ctx);
+    return async () => {
+      if (globalLockManager.isLocked(this.__path)) {
+        throw newNoModificationAllowedError();
+      }
+      return new CoreFileSystemSyncAccessHandle(this._core, this.__path, this.ctx);
+    };
   }
 
   /**
@@ -76,6 +82,9 @@ export class CoreFileSystemFileHandle extends CoreFileSystemHandle implements IF
     { keepExistingData = false }: CreateWritableOptions = { keepExistingData: false },
   ): Promise<CoreFileSystemWritableFileStream> {
     assertCanWrite(this.ctx.mode);
+    if (globalLockManager.isLocked(this.__path)) {
+      throw newNoModificationAllowedError();
+    }
     return new CoreFileSystemWritableFileStream(this._core, this.__path, keepExistingData);
   }
 }

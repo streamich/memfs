@@ -2,6 +2,7 @@ import { assertCanWrite } from './util';
 import { Buffer } from '../vendor/node/internal/buffer';
 import type { FileSystemReadWriteOptions, IFileSystemSyncAccessHandle } from '../fsa/types';
 import type { NodeFsaContext, NodeFsaFs } from './types';
+import { globalLockManager } from '../fsa/FileLockManager';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle
@@ -15,6 +16,7 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
     protected readonly ctx: NodeFsaContext,
   ) {
     this.fd = fs.openSync(path, 'r+');
+    globalLockManager.acquireLock(this.path);
   }
 
   /**
@@ -23,6 +25,7 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
   public async close(): Promise<void> {
     assertCanWrite(this.ctx.mode);
     this.fs.closeSync(this.fd);
+    globalLockManager.releaseLock(this.path);
   }
 
   /**

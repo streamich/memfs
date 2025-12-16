@@ -4,6 +4,7 @@ import { Buffer } from '../vendor/node/internal/buffer';
 import { ERROR_CODE } from '../core/constants';
 import { newNotAllowedError } from './util';
 import { FLAGS } from '../node/constants';
+import { globalLockManager } from './FileLockManager';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle
@@ -16,7 +17,9 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
     private readonly _core: Superblock,
     private readonly _path: string,
     private readonly _ctx: CoreFsaContext,
-  ) {}
+  ) {
+    globalLockManager.acquireLock(this._path);
+  }
 
   private _ensureOpen(): number {
     if (this._closed) {
@@ -39,6 +42,7 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
       this._fd = null;
     }
     this._closed = true;
+    globalLockManager.releaseLock(this._path);
   }
 
   /**

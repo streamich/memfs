@@ -2,8 +2,9 @@ import type { IFileSystemWritableFileStream, FileSystemWritableFileStreamParams,
 import type { Superblock } from '../core/Superblock';
 import { Buffer } from '../vendor/node/internal/buffer';
 import { ERROR_CODE } from '../core/constants';
-import { newNotAllowedError } from './util';
+import { newNotAllowedError, newNoModificationAllowedError } from './util';
 import { FLAGS, MODE } from '../node/constants';
+import { globalLockManager } from './FileLockManager';
 
 declare const require: any;
 const WS = (
@@ -25,11 +26,15 @@ export class CoreFileSystemWritableFileStream extends WS implements IFileSystemW
 
     super({
       start: controller => {
-        // Open file for writing
+        if (globalLockManager.isLocked(path)) {
+          throw newNoModificationAllowedError();
+        }
+        globalLockManager.acquireLock(path);
         const flags = keepExistingData ? FLAGS['r+'] : FLAGS.w;
         try {
           fd = core.open(path, flags, MODE.FILE);
         } catch (error) {
+          globalLockManager.releaseLock(path);
           if (error && typeof error === 'object' && error.code === ERROR_CODE.EACCES) {
             throw newNotAllowedError();
           }
@@ -43,12 +48,14 @@ export class CoreFileSystemWritableFileStream extends WS implements IFileSystemW
         if (!this._closed && this._fd !== undefined) {
           core.close(this._fd);
           this._closed = true;
+          globalLockManager.releaseLock(path);
         }
       },
       abort: async () => {
         if (!this._closed && this._fd !== undefined) {
           core.close(this._fd);
           this._closed = true;
+          globalLockManager.releaseLock(path);
         }
       },
     });

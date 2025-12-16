@@ -1,9 +1,10 @@
 import { NodeFileSystemHandle } from './NodeFileSystemHandle';
 import { NodeFileSystemSyncAccessHandle } from './NodeFileSystemSyncAccessHandle';
-import { assertCanWrite, basename, ctx as createCtx, newNotAllowedError } from './util';
+import { assertCanWrite, basename, ctx as createCtx, newNotAllowedError, newNoModificationAllowedError } from './util';
 import { NodeFileSystemWritableFileStream } from './NodeFileSystemWritableFileStream';
 import type { NodeFsaContext, NodeFsaFs } from './types';
 import type { IFileSystemFileHandle, IFileSystemSyncAccessHandle } from '../fsa/types';
+import { globalLockManager } from '../fsa/FileLockManager';
 
 export class NodeFileSystemFileHandle extends NodeFileSystemHandle implements IFileSystemFileHandle {
   protected readonly ctx: NodeFsaContext;
@@ -51,7 +52,12 @@ export class NodeFileSystemFileHandle extends NodeFileSystemHandle implements IF
    */
   public get createSyncAccessHandle(): undefined | (() => Promise<IFileSystemSyncAccessHandle>) {
     if (!this.ctx.syncHandleAllowed) return undefined;
-    return async () => new NodeFileSystemSyncAccessHandle(this.fs, this.__path, this.ctx);
+    return async () => {
+      if (globalLockManager.isLocked(this.__path)) {
+        throw newNoModificationAllowedError();
+      }
+      return new NodeFileSystemSyncAccessHandle(this.fs, this.__path, this.ctx);
+    };
   }
 
   /**
@@ -61,6 +67,9 @@ export class NodeFileSystemFileHandle extends NodeFileSystemHandle implements IF
     { keepExistingData = false }: CreateWritableOptions = { keepExistingData: false },
   ): Promise<NodeFileSystemWritableFileStream> {
     assertCanWrite(this.ctx.mode);
+    if (globalLockManager.isLocked(this.__path)) {
+      throw newNoModificationAllowedError();
+    }
     return new NodeFileSystemWritableFileStream(this.fs, this.__path, keepExistingData);
   }
 }

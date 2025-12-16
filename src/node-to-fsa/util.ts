@@ -43,3 +43,6 @@ export const newTypeMismatchError = () =>
   new DOMException('The path supplied exists, but was not an entry of requested type.', 'TypeMismatchError');
 
 export const newNotAllowedError = () => new DOMException('Permission not granted.', 'NotAllowedError');
+
+export const newNoModificationAllowedError = () =>
+  new DOMException('The file is locked and cannot be modified.', 'NoModificationAllowedError');

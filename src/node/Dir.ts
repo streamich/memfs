@@ -197,4 +197,12 @@ export class Dir implements IDir {
       },
     };
   }
+
+  [Symbol.dispose](): void {
+    this.closeSync();
+  }
+
+  [Symbol.asyncDispose](): Promise<void> {
+    return this.close()
+  }
 }

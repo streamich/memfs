@@ -342,7 +342,7 @@ onlyOnNode20('FsaNodeFs', () => {
 
   describe('.readdir()', () => {
     test('can read directory contents as strings', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const res = (await fs.promises.readdir('/')) as string[];
       expect(res.length).toBe(3);
       expect(res.includes('folder')).toBe(true);
@@ -351,17 +351,27 @@ onlyOnNode20('FsaNodeFs', () => {
     });
 
     test('can read directory contents with "withFileTypes" flag set', async () => {
-      const { fs, mfs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
-      const list = (await fs.promises.readdir('/', { withFileTypes: true })) as IDirent[];
-      expect(list.length).toBe(3);
-      const names = list.map(item => item.name);
-      expect(names.includes('folder')).toBe(true);
-      expect(names.includes('empty-folder')).toBe(true);
-      expect(names.includes('f.html')).toBe(true);
-      expect(list.find(item => item.name === 'folder')?.isDirectory()).toBe(true);
-      expect(list.find(item => item.name === 'empty-folder')?.isDirectory()).toBe(true);
-      expect(list.find(item => item.name === 'f.html')?.isFile()).toBe(true);
-      expect(list.find(item => item.name === 'f.html')?.isDirectory()).toBe(false);
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const direntList = (await fs.promises.readdir('/', { withFileTypes: true })) as IDirent[];
+      expect(direntList.length).toBe(3);
+      const [ folder, emptyFolder, fhtml ] = direntList;
+
+      expect(folder.name).toBe('folder');
+      expect(emptyFolder.name).toBe('empty-folder');
+      expect(fhtml.name).toBe('f.html');
+
+      expect(folder.isDirectory()).toBeTruthy();
+      expect(emptyFolder.isDirectory()).toBeTruthy();
+      expect(fhtml.isDirectory()).toBeFalsy();
+      expect(fhtml.isFile()).toBeTruthy();
+
+      expect(folder.parentPath).toBe('/');
+      expect(emptyFolder.parentPath).toBe('/');
+      expect(fhtml.parentPath).toBe('/');
+
+      expect(folder.parentPath).toBe(folder.path);
+      expect(emptyFolder.parentPath).toBe(emptyFolder.path);
+      expect(fhtml.parentPath).toBe(fhtml.path);
     });
   });
 

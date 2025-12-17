@@ -1,6 +1,9 @@
 import { promisify } from '../../vendor/node/util';
 import { Volume } from '../volume';
 import { Readable } from '../../vendor/node/stream';
+import { fs } from '../..';
+import { Dir } from '../Dir';
+import { ERROR_CODE } from '../../core/constants';
 
 describe('Promises API', () => {
   describe('FileHandle', () => {
@@ -550,6 +553,23 @@ describe('Promises API', () => {
     });
     it('Reject when file does not exist', () => {
       return expect(promises.open('/bar', 'r')).rejects.toBeInstanceOf(Error);
+    });
+  });
+  describe('opendir(path[, options])', () => {
+    const vol = new Volume();
+    const { promises } = vol;
+    vol.fromJSON({
+      '/foo/bar': 'bar',
+      '/foo/baz/bar': 'bazbar',
+    });
+    it('Open an existing directory', async () => {
+      expect(await promises.opendir('/foo')).toBeInstanceOf(Dir);
+    });
+    it('Reject when directory does not exist', () => {
+      return expect(promises.opendir('/bar')).rejects.toBeInstanceOf(Error);
+    });
+    it('Reject when directory is a file', () => {
+      return expect(promises.opendir('/foo/bar')).rejects.toThrow(/ENOTDIR/)
     });
   });
   describe('readdir(path[, options])', () => {

@@ -88,7 +88,7 @@ export interface IDir extends Disposable, AsyncDisposable {
 }
 
 export interface IDirent {
-  name: string | TDataOut;
+  name: string;
   path: string;
   parentPath: string;
   isDirectory(): boolean;

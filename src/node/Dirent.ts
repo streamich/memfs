@@ -13,7 +13,7 @@ export class Dirent implements IDirent {
     const dirent = new Dirent();
     const { mode } = link.getNode();
 
-    dirent.name = strToEncoding(link.getName(), encoding);
+    dirent.name = link.getName();
     dirent.mode = mode;
     dirent.path = link.getParentPath();
     dirent.parentPath = dirent.path;
@@ -21,7 +21,7 @@ export class Dirent implements IDirent {
     return dirent;
   }
 
-  name: TDataOut = '';
+  name = '';
   path = '';
   parentPath = '';
   private mode: number = 0;

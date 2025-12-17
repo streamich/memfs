@@ -50,7 +50,7 @@
     "demo/runkit.js"
   ],
   "scripts": {
-    "build": "tsc -p . && rimraf --glob lib/__tests__ 'lib/**/__tests__'",
+    "build": "rimraf lib && tsc -p .",
     "build:webfs": "NODE_ENV=production webpack --config ./src/webfs/webpack.config.js",
     "clean": "rimraf lib types typedocs gh-pages coverage",
     "demo:crud-and-cas": "webpack serve --config ./demo/crud-and-cas/webpack.config.js",
@@ -65,7 +65,7 @@
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "tslint": "tslint \"src/**/*.ts\" -t verbose",
-    "typecheck": "tsc -p .",
+    "typecheck": "tsc -p . --noEmit",
     "watch": "watch \"npm run build\" ./src",
     "coverage": "yarn test --collectCoverage",
     "typedoc": "npx typedoc@0.25.13 --tsconfig tsconfig.json",

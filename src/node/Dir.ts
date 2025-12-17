@@ -177,7 +177,7 @@ export class Dir implements IDir {
     return this.readBase(this.iteratorInfo);
   }
 
-  [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
+  [Symbol.asyncIterator](): NodeJS.AsyncIterator<IDirent>{
     return {
       next: async () => {
         try {
@@ -192,9 +192,12 @@ export class Dir implements IDir {
           throw err;
         }
       },
-      [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
+      [Symbol.asyncIterator](): NodeJS.AsyncIterator<IDirent> {
         return this;
       },
+      [Symbol.asyncDispose](): Promise<void> {
+        return this.close();
+      }
     };
   }
 

@@ -84,7 +84,8 @@ export interface IDir extends Disposable, AsyncDisposable {
   read(): Promise<IDirent | null>;
   read(callback?: (err: Error | null, dir?: IDirent | null) => void): void;
   readSync(): IDirent | null;
-  [Symbol.asyncIterator](): AsyncIterableIterator<IDirent>;
+  [Symbol.asyncIterator](): NodeJS.AsyncIterator<IDirent>;
+  [Symbol.asyncDispose](): Promise<void>;
 }
 
 export interface IDirent {

@@ -178,7 +178,7 @@ describe('Dir API Error Handling', () => {
     it('should be closed for disposable', done => {
       const dir = vol.opendirSync('/test');
 
-      dir[Symbol.dispose]()
+      dir[Symbol.dispose]();
       dir.close(err => {
         expect(err).toBeTruthy();
         expect((err as any)?.code).toBe('ERR_DIR_CLOSED');
@@ -197,7 +197,7 @@ describe('Dir API Error Handling', () => {
           expect((err as any)?.name).toMatch(/ERR_DIR_CLOSED/);
           done();
         });
-      })
+      });
     });
   });
 });

@@ -1011,7 +1011,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const list = adapter.call('readdir', [filename]);
     if (opts.withFileTypes) {
       const res: misc.IDirent[] = [];
-      for (const entry of list) res.push(new FsaNodeDirent(entry.name, folder.join(FsaToNodeConstants.Separator), entry.kind));
+      for (const entry of list)
+        res.push(new FsaNodeDirent(entry.name, folder.join(FsaToNodeConstants.Separator), entry.kind));
       return res;
     } else {
       const res: misc.TDataOut[] = [];

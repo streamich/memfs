@@ -569,7 +569,7 @@ describe('Promises API', () => {
       return expect(promises.opendir('/bar')).rejects.toBeInstanceOf(Error);
     });
     it('Reject when directory is a file', () => {
-      return expect(promises.opendir('/foo/bar')).rejects.toThrow(/ENOTDIR/)
+      return expect(promises.opendir('/foo/bar')).rejects.toThrow(/ENOTDIR/);
     });
   });
   describe('readdir(path[, options])', () => {

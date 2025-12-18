@@ -76,6 +76,10 @@ export interface IStatFs<T = TStatNumber> {
   type: T;
 }
 
+export interface NodeJSAsyncIterator<T, TReturn = undefined, TNext = any>
+  extends AsyncIterator<T, TReturn, TNext>,
+    AsyncIteratorObject<T, TReturn, TNext> {}
+
 export interface IDir extends Disposable, AsyncDisposable {
   path: string;
   close(): Promise<void>;
@@ -84,7 +88,7 @@ export interface IDir extends Disposable, AsyncDisposable {
   read(): Promise<IDirent | null>;
   read(callback?: (err: Error | null, dir?: IDirent | null) => void): void;
   readSync(): IDirent | null;
-  [Symbol.asyncIterator](): NodeJS.AsyncIterator<IDirent>;
+  [Symbol.asyncIterator](): NodeJSAsyncIterator<IDirent>;
   [Symbol.asyncDispose](): Promise<void>;
 }
 

@@ -1,7 +1,7 @@
 import type { IDirent, TDataOut } from '../node/types/misc';
 
 export class FsaNodeDirent implements IDirent {
-  public readonly path: string
+  public readonly path: string;
   public constructor(
     public readonly name: string,
     public readonly parentPath: string,

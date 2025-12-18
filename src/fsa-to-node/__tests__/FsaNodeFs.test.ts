@@ -354,7 +354,7 @@ onlyOnNode20('FsaNodeFs', () => {
       const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
       const direntList = (await fs.promises.readdir('/', { withFileTypes: true })) as IDirent[];
       expect(direntList.length).toBe(3);
-      const [ folder, emptyFolder, fhtml ] = direntList;
+      const [folder, emptyFolder, fhtml] = direntList;
 
       expect(folder.name).toBe('folder');
       expect(emptyFolder.name).toBe('empty-folder');

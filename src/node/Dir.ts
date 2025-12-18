@@ -2,7 +2,7 @@ import { Link } from '../node';
 import { validateCallback } from './util';
 import * as opts from './types/options';
 import Dirent from './Dirent';
-import type { IDir, IDirent, TCallback } from './types/misc';
+import type { IDir, IDirent, NodeJSAsyncIterator, TCallback } from './types/misc';
 import * as errors from '../vendor/node/internal/errors';
 
 /**
@@ -177,7 +177,7 @@ export class Dir implements IDir {
     return this.readBase(this.iteratorInfo);
   }
 
-  [Symbol.asyncIterator](): NodeJS.AsyncIterator<IDirent>{
+  [Symbol.asyncIterator](): NodeJSAsyncIterator<IDirent> {
     return {
       next: async () => {
         try {
@@ -192,12 +192,12 @@ export class Dir implements IDir {
           throw err;
         }
       },
-      [Symbol.asyncIterator](): NodeJS.AsyncIterator<IDirent> {
+      [Symbol.asyncIterator](): NodeJSAsyncIterator<IDirent> {
         return this;
       },
       [Symbol.asyncDispose](): Promise<void> {
         return this.close();
-      }
+      },
     };
   }
 
@@ -206,6 +206,6 @@ export class Dir implements IDir {
   }
 
   [Symbol.asyncDispose](): Promise<void> {
-    return this.close()
+    return this.close();
   }
 }

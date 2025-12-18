@@ -984,7 +984,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _readdir = (filename: string, options: opts.IReaddirOptions): TDataOut[] | Dirent[] => {
-    const steps = filenameToSteps(filename);
     const link: Link = this._core.getResolvedLinkOrThrow(filename, 'scandir');
     const node = link.getNode();
     if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'scandir', filename);

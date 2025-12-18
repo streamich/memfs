@@ -97,6 +97,8 @@ export class Superblock {
     this.root = root;
   }
 
+  protected cwd: string = process.cwd();
+
   createLink(): Link;
   createLink(parent: Link, name: string, isDirectory?: boolean, mode?: number): Link;
   createLink(parent?: Link, name?: string, isDirectory: boolean = false, mode?: number): Link {
@@ -196,7 +198,7 @@ export class Superblock {
       steps = stepsOrFilenameOrLink.steps;
       filename = pathSep + steps.join(pathSep);
     } else if (typeof stepsOrFilenameOrLink === 'string') {
-      steps = filenameToSteps(stepsOrFilenameOrLink);
+      steps = filenameToSteps(stepsOrFilenameOrLink, this.cwd);
       filename = stepsOrFilenameOrLink;
     } else {
       steps = stepsOrFilenameOrLink;
@@ -235,7 +237,7 @@ export class Superblock {
       if (node.isSymlink() && (resolveSymlinks || i < steps.length - 1)) {
         const resolvedPath = isAbsolute(node.symlink) ? node.symlink : pathJoin(dirname(curr.getPath()), node.symlink); // Relative to symlink's parent
 
-        steps = filenameToSteps(resolvedPath).concat(steps.slice(i + 1));
+        steps = filenameToSteps(resolvedPath, this.cwd).concat(steps.slice(i + 1));
         curr = this.root;
         i = 0;
         continue;
@@ -323,7 +325,7 @@ export class Superblock {
 
   getLinkParentAsDirOrThrow(filenameOrSteps: string | string[], funcName?: string): Link {
     const steps: string[] = (
-      filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps)
+      filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps, this.cwd)
     ).slice(0, -1);
     const filename: string = pathSep + steps.join(pathSep);
     const link = this.getLinkOrThrow(filename, funcName);
@@ -406,6 +408,7 @@ export class Superblock {
 
   // TODO: `cwd` should probably not invoke `process.cwd()`.
   fromJSON(json: DirectoryJSON, cwd: string = process.cwd()) {
+    this.cwd = cwd;
     for (let filename in json) {
       const data = json[filename];
       filename = resolve(filename, cwd);
@@ -493,7 +496,7 @@ export class Superblock {
     modeNum: number | undefined,
     resolveSymlinks: boolean = true,
   ): File {
-    const steps = filenameToSteps(filename);
+    const steps = filenameToSteps(filename, this.cwd);
     let link: Link | null;
     try {
       link = resolveSymlinks ? this.getResolvedLinkOrThrow(filename, 'open') : this.getLinkOrThrow(filename, 'open');
@@ -632,7 +635,7 @@ export class Superblock {
   };
 
   public readonly symlink = (targetFilename: string, pathFilename: string): Link => {
-    const pathSteps = filenameToSteps(pathFilename);
+    const pathSteps = filenameToSteps(pathFilename, this.cwd);
     // Check if directory exists, where we about to create a symlink.
     let dirLink;
     try {
@@ -708,7 +711,7 @@ export class Superblock {
   };
 
   public readonly mkdir = (filename: string, modeNum: number): void => {
-    const steps = filenameToSteps(filename);
+    const steps = filenameToSteps(filename, this.cwd);
     // This will throw if user tries to create root dir `fs.mkdirSync('/')`.
     if (!steps.length) throw createError(ERROR_CODE.EEXIST, 'mkdir', filename);
     const dir = this.getLinkParentAsDirOrThrow(filename, 'mkdir');
@@ -725,7 +728,7 @@ export class Superblock {
    */
   public readonly mkdirp = (filename: string, modeNum: number): string | undefined => {
     let created = false;
-    const steps = filenameToSteps(filename);
+    const steps = filenameToSteps(filename, this.cwd);
     let curr: Link | null = null;
     let i = steps.length;
     // Find the longest subpath of filename that still exists:

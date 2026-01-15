@@ -76,7 +76,7 @@ export interface IStatFs<T = TStatNumber> {
   type: T;
 }
 
-export interface IDir {
+export interface IDir extends Disposable, AsyncDisposable {
   path: string;
   close(): Promise<void>;
   close(callback?: (err?: Error) => void): void;
@@ -89,6 +89,7 @@ export interface IDir {
 
 export interface IDirent {
   name: TDataOut;
+  parentPath: string;
   isDirectory(): boolean;
   isFile(): boolean;
   isBlockDevice(): boolean;

@@ -3,6 +3,7 @@ import type { IDirent, TDataOut } from '../node/types/misc';
 export class FsaNodeDirent implements IDirent {
   public constructor(
     public readonly name: TDataOut,
+    public readonly parentPath: string,
     protected readonly kind: 'file' | 'directory',
   ) {}
 

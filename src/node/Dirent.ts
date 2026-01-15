@@ -12,17 +12,13 @@ export class Dirent implements IDirent {
   static build(link: Link, encoding: TEncodingExtended | undefined) {
     const dirent = new Dirent();
     const { mode } = link.getNode();
-
     dirent.name = strToEncoding(link.getName(), encoding);
     dirent.mode = mode;
-    dirent.path = link.getParentPath();
-    dirent.parentPath = dirent.path;
-
+    dirent.parentPath = link.getParentPath();
     return dirent;
   }
 
   name: TDataOut = '';
-  path = '';
   parentPath = '';
   private mode: number = 0;
 

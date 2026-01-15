@@ -2,7 +2,7 @@ import { Link } from '../node';
 import { validateCallback } from './util';
 import * as opts from './types/options';
 import Dirent from './Dirent';
-import type { IDir, IDirent, TCallback } from './types/misc';
+import type { IDir, IDirent } from './types/misc';
 import * as errors from '../internal/errors';
 
 /**
@@ -196,5 +196,13 @@ export class Dir implements IDir {
         return this;
       },
     };
+  }
+
+  [Symbol.asyncDispose](): Promise<void> {
+    return this.close();
+  }
+
+  [Symbol.dispose](): void {
+    this.closeSync();
   }
 }

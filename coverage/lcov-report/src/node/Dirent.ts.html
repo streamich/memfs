@@ -125,44 +125,50 @@
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
-<a name='L63'></a><a href='#L63'>63</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">64x</span>
-<span class="cline-any cline-yes">64x</span>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">66x</span>
+<span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">64x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">64x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-yes">452x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">189x</span>
+<span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">164x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">66x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">477x</span>
+<span class="cline-any cline-yes">477x</span>
+<span class="cline-any cline-yes">477x</span>
+<span class="cline-any cline-yes">477x</span>
+<span class="cline-any cline-yes">477x</span>
+<span class="cline-any cline-yes">477x</span>
+<span class="cline-any cline-yes">477x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">206x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">173x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -186,7 +192,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Link } from '../node';
 import { constants } from '../constants';
 import { TEncodingExtended, strToEncoding, TDataOut } from '../encoding';
@@ -201,19 +207,22 @@ export class Dirent implements IDirent {
   static build(link: Link, encoding: TEncodingExtended | undefined) {
     const dirent = new Dirent();
     const { mode } = link.getNode();
-&nbsp;
     dirent.name = strToEncoding(link.getName(), encoding);
     dirent.mode = mode;
-    dirent.path = link.getParentPath();
-    dirent.parentPath = dirent.path;
-&nbsp;
+    dirent.parentPath = link.getParentPath();
+    dirent.path = dirent.parentPath;
     return dirent;
   }
 &nbsp;
   name: TDataOut = '';
-  path = '';
   parentPath = '';
   private mode: number = 0;
+&nbsp;
+  /**
+   * @deprecated Will be removed at any time.
+   * @see https://nodejs.org/api/deprecations.html#DEP0178
+   */
+  path: string = '';
 &nbsp;
   private _checkModeProperty(property: number): boolean {
     return (this.mode &amp; S_IFMT) === property;
@@ -256,7 +265,7 @@ export default Dirent;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-30T19:01:20.290Z
+                at 2026-01-15T12:15:33.490Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

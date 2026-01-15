@@ -10,6 +10,9 @@ on:
       - master
       - next
 
+permissions:
+  contents: read # for checkout
+
 jobs:
   prepare-yarn-cache:
     name: Prepare yarn cache
@@ -95,6 +98,11 @@ jobs:
     name: Release new version
     needs: [typecheck, test-node, test-os]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for trusted publishing and npm provenance
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -109,6 +117,3 @@ jobs:
         run: yarn build
       - name: Release
         run: npx semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

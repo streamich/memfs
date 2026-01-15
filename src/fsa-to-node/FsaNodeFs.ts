@@ -462,8 +462,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
         (async () => {
           if (options.withFileTypes) {
             const list: misc.IDirent[] = [];
+            const parentPath = folder.length ? '/' + folder.join(FsaToNodeConstants.Separator) : '/';
             for await (const [name, handle] of dir.entries()) {
-              const dirent = new FsaNodeDirent(name, handle.kind);
+              const dirent = new FsaNodeDirent(name, parentPath, handle.kind);
               list.push(dirent);
             }
             if (!isWin && options.encoding !== 'buffer')
@@ -581,7 +582,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                const err = util.createError('ENOENT', 'mkdir', folder.join('/'));
+                const err = util.createError('ENOENT', 'mkdir', folder.join(FsaToNodeConstants.Separator));
                 callback(err);
                 return;
               }
@@ -637,12 +638,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                const err = util.createError('ENOENT', 'rmdir', folder.join('/'));
+                const err = util.createError('ENOENT', 'rmdir', folder.join(FsaToNodeConstants.Separator));
                 callback(err);
                 return;
               }
               case 'InvalidModificationError': {
-                const err = util.createError('ENOTEMPTY', 'rmdir', folder.join('/'));
+                const err = util.createError('ENOTEMPTY', 'rmdir', folder.join(FsaToNodeConstants.Separator));
                 callback(err);
                 return;
               }
@@ -673,12 +674,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                const err = util.createError('ENOENT', 'rmdir', folder.join('/'));
+                const err = util.createError('ENOENT', 'rmdir', folder.join(FsaToNodeConstants.Separator));
                 callback(err);
                 return;
               }
               case 'InvalidModificationError': {
-                const err = util.createError('ENOTEMPTY', 'rmdir', folder.join('/'));
+                const err = util.createError('ENOTEMPTY', 'rmdir', folder.join(FsaToNodeConstants.Separator));
                 callback(err);
                 return;
               }
@@ -1006,11 +1007,13 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   ): misc.TDataOut[] | misc.IDirent[] => {
     const opts = optHelpers.getReaddirOptions(options);
     const filename = util.pathToFilename(path);
+    const [folder] = pathToLocation(filename);
     const adapter = this.getSyncAdapter();
     const list = adapter.call('readdir', [filename]);
     if (opts.withFileTypes) {
       const res: misc.IDirent[] = [];
-      for (const entry of list) res.push(new FsaNodeDirent(entry.name, entry.kind));
+      const parentPath = folder.length ? '/' + folder.join(FsaToNodeConstants.Separator) : '/';
+      for (const entry of list) res.push(new FsaNodeDirent(entry.name, parentPath, entry.kind));
       return res;
     } else {
       const res: misc.TDataOut[] = [];

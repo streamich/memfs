@@ -173,4 +173,37 @@ describe('Dir API Error Handling', () => {
       expect(entries.length).toBe(2);
     });
   });
+
+  describe('disposable', () => {
+    it('should be closed for disposable', done => {
+      const dir = vol.opendirSync('/test');
+
+      dir[Symbol.dispose]();
+      dir.close(err => {
+        expect(err).toBeTruthy();
+        expect((err as any)?.code).toBe('ERR_DIR_CLOSED');
+        expect((err as any)?.name).toMatch(/ERR_DIR_CLOSED/);
+        done();
+      });
+    });
+
+    it('should be closed for async disposable', done => {
+      const dir = vol.opendirSync('/test');
+
+      if (typeof Symbol.asyncDispose === 'undefined') {
+        // Symbol.asyncDispose is not available in Node 18
+        done();
+        return;
+      }
+
+      dir[Symbol.asyncDispose]().then(() => {
+        dir.close(err => {
+          expect(err).toBeTruthy();
+          expect((err as any)?.code).toBe('ERR_DIR_CLOSED');
+          expect((err as any)?.name).toMatch(/ERR_DIR_CLOSED/);
+          done();
+        });
+      });
+    });
+  });
 });

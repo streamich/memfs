@@ -122,7 +122,8 @@ export class Link {
   }
 
   getParentPath(): string {
-    return this.steps.slice(0, -1).join(PATH.SEP);
+    const parent = this.steps.slice(0, -1).join(PATH.SEP);
+    return parent ? parent : PATH.SEP;
   }
 
   getName(): string {

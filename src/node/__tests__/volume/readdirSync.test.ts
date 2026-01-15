@@ -63,12 +63,12 @@ describe('readdirSync()', () => {
     });
     const all = vol.readdirSync('/x', { withFileTypes: true });
     const mapped = all.map(dirent => {
-      return { ...dirent };
+      return { ...(dirent as any) };
     });
     expect(mapped).toEqual([
-      { mode: 33206, name: 'af', parentPath: '/x' },
-      { mode: 16895, name: 'b', parentPath: '/x' },
-      { mode: 16895, name: 'c', parentPath: '/x' },
+      { mode: 33206, name: 'af', parentPath: '/x', path: '/x' },
+      { mode: 16895, name: 'b', parentPath: '/x', path: '/x' },
+      { mode: 16895, name: 'c', parentPath: '/x', path: '/x' },
     ]);
   });
 
@@ -100,20 +100,20 @@ describe('readdirSync()', () => {
     const all = vol.readdirSync('/z', { recursive: true, withFileTypes: true });
     const mapped = all
       .map(dirent => {
-        return { ...dirent };
+        return { ...(dirent as any) };
       })
       .sort((a, b) => a.parentPath.localeCompare(b.parentPath));
     expect(mapped).toEqual([
-      { mode: 33206, name: 'af1', parentPath: '/z' },
-      { mode: 33206, name: 'af2', parentPath: '/z' },
-      { mode: 16895, name: 'b', parentPath: '/z' },
-      { mode: 16895, name: 'c', parentPath: '/z' },
-      { mode: 33206, name: 'bf1', parentPath: '/z/b' },
-      { mode: 33206, name: 'bf2', parentPath: '/z/b' },
-      { mode: 16895, name: 'c', parentPath: '/z/c' },
-      { mode: 33206, name: '.cf0', parentPath: '/z/c/c' },
-      { mode: 33206, name: 'cf1', parentPath: '/z/c/c' },
-      { mode: 33206, name: 'cf2', parentPath: '/z/c/c' },
+      { mode: 33206, name: 'af1', parentPath: '/z', path: '/z' },
+      { mode: 33206, name: 'af2', parentPath: '/z', path: '/z' },
+      { mode: 16895, name: 'b', parentPath: '/z', path: '/z' },
+      { mode: 16895, name: 'c', parentPath: '/z', path: '/z' },
+      { mode: 33206, name: 'bf1', parentPath: '/z/b', path: '/z/b' },
+      { mode: 33206, name: 'bf2', parentPath: '/z/b', path: '/z/b' },
+      { mode: 16895, name: 'c', parentPath: '/z/c', path: '/z/c' },
+      { mode: 33206, name: '.cf0', parentPath: '/z/c/c', path: '/z/c/c' },
+      { mode: 33206, name: 'cf1', parentPath: '/z/c/c', path: '/z/c/c' },
+      { mode: 33206, name: 'cf2', parentPath: '/z/c/c', path: '/z/c/c' },
     ]);
   });
 

@@ -1,4 +1,4 @@
-import { Readable } from 'node:stream';
+import { Readable } from '../vendor/node/stream';
 import { Defer } from 'thingies/lib/Defer';
 import { concurrency } from 'thingies/lib/concurrency';
 import type { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
@@ -44,6 +44,7 @@ export class FsaNodeReadStream extends Readable implements IReadStream {
       const start = this.options.start || 0;
       let end = typeof this.options.end === 'number' ? this.options.end + 1 : buffer.byteLength;
       if (end > buffer.byteLength) end = buffer.byteLength;
+      if (start >= buffer.byteLength) return new Uint8Array(0);
       const uint8 = new Uint8Array(buffer, start, end - start);
       return uint8;
     });

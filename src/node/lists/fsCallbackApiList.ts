@@ -18,6 +18,7 @@ export const fsCallbackApiList: Array<keyof FsCallbackApi> = [
   'fsync',
   'ftruncate',
   'futimes',
+  'glob',
   'lchmod',
   'lchown',
   'link',

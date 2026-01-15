@@ -1,3 +1,111 @@
+## [4.51.1](https://github.com/streamich/memfs/compare/v4.51.0...v4.51.1) (2025-11-30)
+
+
+### Bug Fixes
+
+* add glob functions to API lists ([445f337](https://github.com/streamich/memfs/commit/445f33729e6123b52268e92a9d2785d47f7ab2aa))
+
+# [4.51.0](https://github.com/streamich/memfs/compare/v4.50.0...v4.51.0) (2025-11-12)
+
+
+### Features
+
+* sort files and folder when using `toTreeSync()` ([673cb7a](https://github.com/streamich/memfs/commit/673cb7a98b2ae7b97a57a0693d8d2dbfc745338c)), closes [#1214](https://github.com/streamich/memfs/issues/1214)
+
+# [4.50.0](https://github.com/streamich/memfs/compare/v4.49.0...v4.50.0) (2025-10-28)
+
+
+### Features
+
+* 🎸 improve Node buffer allocation strategy ([d1edb3f](https://github.com/streamich/memfs/commit/d1edb3fa70f119642fb7fdd603e7e89f752afa11))
+* optimize Node buffer management to prevent O(n^2) overhead ([95d6f09](https://github.com/streamich/memfs/commit/95d6f091fef065abb60b5515754b2c8081117e4f))
+
+# [4.49.0](https://github.com/streamich/memfs/compare/v4.48.1...v4.49.0) (2025-10-06)
+
+
+### Bug Fixes
+
+* harden flaky watchFile test by adding proper timing delays ([092a1ba](https://github.com/streamich/memfs/commit/092a1ba09737246ceeb4c69628c2354d648cdab0))
+
+
+### Features
+
+* handle stream reading past file size in FsaNodeReadStream ([2eac49b](https://github.com/streamich/memfs/commit/2eac49b1d6c490900a3ad183a725546aecfe360a))
+
+## [4.48.1](https://github.com/streamich/memfs/compare/v4.48.0...v4.48.1) (2025-10-01)
+
+
+### Bug Fixes
+
+* 🐛 throw EISDIR when writing over folder ([d20095e](https://github.com/streamich/memfs/commit/d20095e0c6476a4e01ffaed52e00ef5d09f9e444))
+
+# [4.48.0](https://github.com/streamich/memfs/compare/v4.47.0...v4.48.0) (2025-10-01)
+
+
+### Features
+
+* handle EEXIST error when creating directories in parallel ([3c9b2c8](https://github.com/streamich/memfs/commit/3c9b2c89283eb4c00b77e84bc14bf8e029392a36))
+
+# [4.47.0](https://github.com/streamich/memfs/compare/v4.46.1...v4.47.0) (2025-09-27)
+
+
+### Features
+
+* align openAsBlob errors with Node.js behavior ([1f1afb7](https://github.com/streamich/memfs/commit/1f1afb7049edcc0a72c6b0d052c8ac8d85b21d64))
+
+## [4.46.1](https://github.com/streamich/memfs/compare/v4.46.0...v4.46.1) (2025-09-25)
+
+
+### Bug Fixes
+
+* handle Uint8Array byteOffset and byteLength in readSync ([bba8729](https://github.com/streamich/memfs/commit/bba87296ee748e9fc3ca2466c680eea13f5de51a))
+
+# [4.46.0](https://github.com/streamich/memfs/compare/v4.45.0...v4.46.0) (2025-09-24)
+
+
+### Features
+
+* implement inline inspect and format functions to replace node:util imports ([894819e](https://github.com/streamich/memfs/commit/894819ecc0a8f2466580b6d39c2ce580a75e83a1))
+* inline inherits and promisify implementations, remove all node:util dependencies ([4e628bf](https://github.com/streamich/memfs/commit/4e628bf2510779473573077ecce1e63e73dbb434))
+
+# [4.45.0](https://github.com/streamich/memfs/compare/v4.44.0...v4.45.0) (2025-09-24)
+
+
+### Bug Fixes
+
+* 🐛 inline Buffer and URL ([0b6c43a](https://github.com/streamich/memfs/commit/0b6c43a088beb74adbd976071d1672e94a90d5db))
+
+
+### Features
+
+* inline fs.ts types to remove node:fs dependency ([22886c3](https://github.com/streamich/memfs/commit/22886c3ec2a8298e6b18ceb0080c92ed5e5e90bc))
+
+# [4.44.0](https://github.com/streamich/memfs/compare/v4.43.1...v4.44.0) (2025-09-24)
+
+
+### Bug Fixes
+
+* 🐛 remove dependence on "assert" module ([c7c6f6c](https://github.com/streamich/memfs/commit/c7c6f6c87315ad8c8b886e7a47e8dd553d89df70))
+
+
+### Features
+
+* move internal files to vendor/node/internal and cleanup unused error codes ([3a9ee47](https://github.com/streamich/memfs/commit/3a9ee47eced4cc034e45833eaecd4ed8ad66e94d))
+
+## [4.43.1](https://github.com/streamich/memfs/compare/v4.43.0...v4.43.1) (2025-09-24)
+
+
+### Bug Fixes
+
+* Use cross-platform `dirname` instead of `posix.dirname` ([7a51ac3](https://github.com/streamich/memfs/commit/7a51ac33fce9f14dbb7ed54eff417dc666887222)), closes [#1193](https://github.com/streamich/memfs/issues/1193)
+
+# [4.43.0](https://github.com/streamich/memfs/compare/v4.42.0...v4.43.0) (2025-09-20)
+
+
+### Features
+
+* re-export all Node.js native packages ([4ecc167](https://github.com/streamich/memfs/commit/4ecc16706d83b5fe69fc929434535e62647ee546))
+
 # [4.42.0](https://github.com/streamich/memfs/compare/v4.41.0...v4.42.0) (2025-09-16)
 
 

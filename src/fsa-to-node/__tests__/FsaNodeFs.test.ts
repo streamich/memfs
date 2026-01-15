@@ -303,6 +303,18 @@ onlyOnNode20('FsaNodeFs', () => {
       const blob = await fs.openAsBlob('/folder/file');
       expect(await blob.text()).toBe('test');
     });
+
+    test('throws TypeError with ERR_INVALID_ARG_VALUE for non-existing files', async () => {
+      const { fs } = setup({ folder: { file: 'test' }, 'empty-folder': null });
+      try {
+        await fs.openAsBlob('/nonexistent');
+        throw new Error('Expected error');
+      } catch (error) {
+        expect(error).toBeInstanceOf(TypeError);
+        expect(error.code).toBe('ERR_INVALID_ARG_VALUE');
+        expect(error.message).toContain('Unable to open file as blob');
+      }
+    });
   });
 
   describe('.truncate()', () => {
@@ -426,6 +438,17 @@ onlyOnNode20('FsaNodeFs', () => {
       expect(res2[0]).toBe(2);
       expect(res2[1]).toBe('bc');
       expect(mfs.readFileSync('/mountpoint/test.txt', 'utf8')).toBe('abc');
+    });
+
+    test('throws EISDIR when writing to a directory', async () => {
+      const { fs } = setup({ dir: null });
+      try {
+        await fs.promises.writeFile('/dir', 'hello');
+        throw new Error('should not be here');
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect(error.code).toBe('EISDIR');
+      }
     });
   });
 
@@ -963,6 +986,34 @@ onlyOnNode20('FsaNodeFs', () => {
       expect(vol.toJSON()).toStrictEqual({
         '/mountpoint/folder/file': 'test',
         '/mountpoint/folder/file2': 'es',
+        '/mountpoint/empty-folder': null,
+        '/mountpoint/f.html': 'test',
+      });
+    });
+
+    test('can read with start position beyond file size', async () => {
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const readStream = fs.createReadStream('/folder/file', { start: 100 });
+      const writeStream = fs.createWriteStream('/folder/file2');
+      readStream.pipe(writeStream);
+      await new Promise(resolve => writeStream.once('close', resolve));
+      expect(vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/folder/file2': '',
+        '/mountpoint/empty-folder': null,
+        '/mountpoint/f.html': 'test',
+      });
+    });
+
+    test('can read with start position at file size', async () => {
+      const { fs, vol } = setup({ folder: { file: 'test' }, 'empty-folder': null, 'f.html': 'test' });
+      const readStream = fs.createReadStream('/folder/file', { start: 4 });
+      const writeStream = fs.createWriteStream('/folder/file3');
+      readStream.pipe(writeStream);
+      await new Promise(resolve => writeStream.once('close', resolve));
+      expect(vol.toJSON()).toStrictEqual({
+        '/mountpoint/folder/file': 'test',
+        '/mountpoint/folder/file3': '',
         '/mountpoint/empty-folder': null,
         '/mountpoint/f.html': 'test',
       });

@@ -1,10 +1,12 @@
-import * as pathModule from 'node:path';
+import { join, relative, resolve, posix, isAbsolute, dirname, basename } from '../vendor/node/path';
 import { toRegex } from 'glob-to-regex.js';
 import { IGlobOptions } from './types/options';
 import { pathToFilename } from './util';
 import Dirent from './Dirent';
 
-const { join, relative, resolve } = pathModule.posix;
+const pathJoin = posix.join;
+const pathRelative = posix.relative;
+const pathResolve = posix.resolve;
 
 /**
  * Check if a path matches a glob pattern
@@ -44,8 +46,8 @@ function walkDirectory(fs: any, dir: string, patterns: string[], options: IGlobO
     const entries = fs.readdirSync(dir, { withFileTypes: true }) as Dirent[];
 
     for (const entry of entries) {
-      const fullPath = join(dir, entry.name.toString());
-      const relativePath = relative(baseCwd, fullPath);
+      const fullPath = pathJoin(dir, entry.name.toString());
+      const relativePath = pathRelative(baseCwd, fullPath);
 
       // Skip if excluded
       if (isExcluded(relativePath, options.exclude)) {
@@ -76,7 +78,7 @@ function walkDirectory(fs: any, dir: string, patterns: string[], options: IGlobO
  */
 export function globSync(fs: any, pattern: string, options: IGlobOptions = {}): string[] {
   const cwd = options.cwd ? pathToFilename(options.cwd as any) : process.cwd();
-  const resolvedCwd = resolve(cwd);
+  const resolvedCwd = pathResolve(cwd);
 
   const globOptions: IGlobOptions = {
     cwd: resolvedCwd,
@@ -88,11 +90,11 @@ export function globSync(fs: any, pattern: string, options: IGlobOptions = {}): 
   let results: string[] = [];
 
   // Handle absolute patterns
-  if (pathModule.posix.isAbsolute(pattern)) {
-    const dir = pathModule.posix.dirname(pattern);
-    const basename = pathModule.posix.basename(pattern);
-    const dirResults = walkDirectory(fs, dir, [basename], { ...globOptions, cwd: dir });
-    results.push(...dirResults.map(r => pathModule.posix.resolve(dir, r)));
+  if (posix.isAbsolute(pattern)) {
+    const dir = posix.dirname(pattern);
+    const patternBasename = posix.basename(pattern);
+    const dirResults = walkDirectory(fs, dir, [patternBasename], { ...globOptions, cwd: dir });
+    results.push(...dirResults.map(r => posix.resolve(dir, r)));
   } else {
     // Handle relative patterns
     const dirResults = walkDirectory(fs, resolvedCwd, [pattern], globOptions);

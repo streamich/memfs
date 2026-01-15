@@ -1,5 +1,5 @@
 import { assertCanWrite } from './util';
-import { Buffer } from '../internal/buffer';
+import { Buffer } from '../vendor/node/internal/buffer';
 import type { FileSystemReadWriteOptions, IFileSystemSyncAccessHandle } from '../fsa/types';
 import type { NodeFsaContext, NodeFsaFs } from './types';
 

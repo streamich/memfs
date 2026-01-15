@@ -15,6 +15,7 @@ export const fsSynchronousApiList: Array<keyof FsSynchronousApi> = [
   'fsyncSync',
   'ftruncateSync',
   'futimesSync',
+  'globSync',
   'lchmodSync',
   'lchownSync',
   'linkSync',

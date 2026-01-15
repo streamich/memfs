@@ -1,7 +1,7 @@
-import { Buffer } from '../internal/buffer';
-import * as pathModule from 'node:path';
+import { Buffer } from '../vendor/node/internal/buffer';
+import { join, posix } from '../vendor/node/path';
 
-const { join } = pathModule.posix ? pathModule.posix : pathModule;
+const pathJoin = posix ? posix.join : join;
 
 export type DirectoryContent = string | Buffer | null;
 
@@ -18,7 +18,7 @@ export const flattenJSON = (nestedJSON: NestedDirectoryJSON): DirectoryJSON => {
     for (const path in node) {
       const contentOrNode = node[path];
       // TODO: Can we avoid using `join` here? Just concatenate?
-      const joinedPath = join(pathPrefix, path);
+      const joinedPath = pathJoin(pathPrefix, path);
       if (typeof contentOrNode === 'string' || contentOrNode instanceof Buffer) {
         flatJSON[joinedPath] = contentOrNode;
       } else if (

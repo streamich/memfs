@@ -1,11 +1,19 @@
 import type { IDirent, TDataOut } from '../node/types/misc';
 
 export class FsaNodeDirent implements IDirent {
+  /**
+   * @deprecated Will be removed at any time.
+   * @see https://nodejs.org/api/deprecations.html#DEP0178
+   */
+  path: string = '';
+
   public constructor(
     public readonly name: TDataOut,
     public readonly parentPath: string,
     protected readonly kind: 'file' | 'directory',
-  ) {}
+  ) {
+    this.path = parentPath;
+  }
 
   public isDirectory(): boolean {
     return this.kind === 'directory';

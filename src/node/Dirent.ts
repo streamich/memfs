@@ -15,12 +15,19 @@ export class Dirent implements IDirent {
     dirent.name = strToEncoding(link.getName(), encoding);
     dirent.mode = mode;
     dirent.parentPath = link.getParentPath();
+    dirent.path = dirent.parentPath;
     return dirent;
   }
 
   name: TDataOut = '';
   parentPath = '';
   private mode: number = 0;
+
+  /**
+   * @deprecated Will be removed at any time.
+   * @see https://nodejs.org/api/deprecations.html#DEP0178
+   */
+  path: string = '';
 
   private _checkModeProperty(property: number): boolean {
     return (this.mode & S_IFMT) === property;

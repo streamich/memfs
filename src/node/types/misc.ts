@@ -89,6 +89,11 @@ export interface IDir extends Disposable, AsyncDisposable {
 
 export interface IDirent {
   name: TDataOut;
+  /**
+   * @deprecated
+   * @see https://nodejs.org/api/deprecations.html#DEP0178
+   */
+  parent?: string;
   parentPath: string;
   isDirectory(): boolean;
   isFile(): boolean;

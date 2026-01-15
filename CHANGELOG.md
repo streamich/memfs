@@ -1,3 +1,16 @@
+# [4.52.0](https://github.com/streamich/memfs/compare/v4.51.1...v4.52.0) (2026-01-15)
+
+
+### Bug Fixes
+
+* 🐛 add deprecated `Dirent.path` with deprecation notice ([ebf8ea9](https://github.com/streamich/memfs/commit/ebf8ea917e8248ff29ad5f975137f89004404d6b))
+
+
+### Features
+
+* 🎸 add *disposable* methods to `Dir` ([d237aa9](https://github.com/streamich/memfs/commit/d237aa9db26b027887963a935098f17466109669))
+* 🎸 add `Dirent.parentPath` ([f72f9fe](https://github.com/streamich/memfs/commit/f72f9fe00bf11b622894335e1e0a0a981636cad4))
+
 ## [4.51.1](https://github.com/streamich/memfs/compare/v4.51.0...v4.51.1) (2025-11-30)
 
 

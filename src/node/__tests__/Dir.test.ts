@@ -190,6 +190,12 @@ describe('Dir API Error Handling', () => {
     it('should be closed for async disposable', done => {
       const dir = vol.opendirSync('/test');
 
+      if (typeof Symbol.asyncDispose === 'undefined') {
+        // Symbol.asyncDispose is not available in Node 18
+        done();
+        return;
+      }
+
       dir[Symbol.asyncDispose]().then(() => {
         dir.close(err => {
           expect(err).toBeTruthy();

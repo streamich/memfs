@@ -6,12 +6,13 @@ import { Buffer } from '../vendor/node/internal/buffer';
 import process from '../process';
 import { constants } from '../constants';
 import { ERRSTR, FLAGS, MODE } from '../node/constants';
-import { pathToFilename, createError } from '../node/util';
+import { pathToFilename, createError, createStatError } from '../node/util';
 import { dataToBuffer, filenameToSteps, isFd, resolve, validateFd } from './util';
 import { DirectoryJSON, flattenJSON, NestedDirectoryJSON } from './json';
 import type { PathLike } from '../node/types/misc';
 import { ERROR_CODE } from './constants';
-import { TFileId } from './types';
+import { TFileId, StatError } from './types';
+import { Err, Ok, Result } from './result';
 
 const pathSep = posix ? posix.sep : sep;
 const pathRelative = posix ? posix.relative : relative;
@@ -152,35 +153,35 @@ export class Superblock {
     checkExistence: boolean,
     checkAccess: boolean,
     funcName?: string,
-  ): Link | null;
+  ): Result<Link | null, StatError>;
   walk(
     filename: string,
     resolveSymlinks: boolean,
     checkExistence: boolean,
     checkAccess: boolean,
     funcName?: string,
-  ): Link | null;
+  ): Result<Link | null, StatError>;
   walk(
     link: Link,
     resolveSymlinks: boolean,
     checkExistence: boolean,
     checkAccess: boolean,
     funcName?: string,
-  ): Link | null;
+  ): Result<Link | null, StatError>;
   walk(
     stepsOrFilenameOrLink: string[] | string | Link,
     resolveSymlinks: boolean,
     checkExistence: boolean,
     checkAccess: boolean,
     funcName?: string,
-  ): Link | null;
+  ): Result<Link | null, StatError>;
   walk(
     stepsOrFilenameOrLink: string[] | string | Link,
     resolveSymlinks: boolean = false,
     checkExistence: boolean = false,
     checkAccess: boolean = false,
     funcName?: string,
-  ): Link | null {
+  ): Result<Link | null, StatError> {
     let steps: string[];
     let filename: string;
     if (stepsOrFilenameOrLink instanceof Link) {
@@ -201,18 +202,23 @@ export class Superblock {
       // Check access permissions if current link is a directory
       if (node.isDirectory()) {
         if (checkAccess && !node.canExecute()) {
-          throw createError(ERROR_CODE.EACCES, funcName, filename);
+          return Err(createStatError(ERROR_CODE.EACCES, funcName, filename));
         }
       } else {
-        if (i < steps.length - 1) throw createError(ERROR_CODE.ENOTDIR, funcName, filename);
+        if (i < steps.length - 1) {
+          return Err(createStatError(ERROR_CODE.ENOTDIR, funcName, filename));
+        }
       }
 
       curr = curr.getChild(steps[i]) ?? null;
 
       // Check existence of current link
       if (!curr)
-        if (checkExistence) throw createError(ERROR_CODE.ENOENT, funcName, filename);
-        else return null;
+        if (checkExistence) {
+          return Err(createStatError(ERROR_CODE.ENOENT, funcName, filename));
+        } else {
+          return Ok(null);
+        }
 
       node = curr?.getNode();
 
@@ -234,35 +240,59 @@ export class Superblock {
         // On Windows, use ENOENT for consistency with Node.js behavior
         // On other platforms, use ENOTDIR which is more semantically correct
         const errorCode = process.platform === 'win32' ? ERROR_CODE.ENOENT : ERROR_CODE.ENOTDIR;
-        throw createError(errorCode, funcName, filename);
+        return Err(createStatError(errorCode, funcName, filename));
       }
 
       i++;
     }
 
-    return curr;
+    return Ok(curr);
   }
 
   // Returns a `Link` (hard link) referenced by path "split" into steps.
   getLink(steps: string[]): Link | null {
-    return this.walk(steps, false, false, false);
+    const result = this.walk(steps, false, false, false);
+    if (result.ok) {
+      return result.value
+    }
+    throw result.err.toError()
   }
 
   // Just link `getLink`, but throws a correct user error, if link to found.
   getLinkOrThrow(filename: string, funcName?: string): Link {
-    return this.walk(filename, false, true, true, funcName)!;
+    const result = this.walk(filename, false, true, true, funcName);
+    if (result.ok) {
+      return result.value!
+    }
+    throw result.err.toError()
   }
 
   // Just like `getLink`, but also dereference/resolves symbolic links.
   getResolvedLink(filenameOrSteps: string | string[]): Link | null {
-    return this.walk(filenameOrSteps, true, false, false);
+    const result = this.walk(filenameOrSteps, true, false, false);
+    if (result.ok) {
+      return result.value
+    }
+    throw result.err.toError()
   }
 
   /**
    * Just like `getLinkOrThrow`, but also dereference/resolves symbolic links.
    */
   getResolvedLinkOrThrow(filename: string, funcName?: string): Link {
-    return this.walk(filename, true, true, true, funcName)!;
+    const result = this.walk(filename, true, true, true, funcName);
+    if (result.ok) {
+      return result.value!
+    }
+    throw result.err.toError()
+  }
+
+  getResolvedLinkResult(filename: string, funcName?: string): Result<Link, StatError> {
+    const result = this.walk(filename, true, true, true, funcName)
+    if (result.ok) {
+      return Ok(result.value!)
+    }
+    return result
   }
 
   resolveSymlinks(link: Link): Link | null {

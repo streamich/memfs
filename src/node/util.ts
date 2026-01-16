@@ -164,11 +164,11 @@ export function createStatError(errorCode: string, func = '', path = '', path2 =
       const error = new Error(this.message);
       (error as any).code = this.code;
       if (this.path) {
-        (error as any).path = this.path
+        (error as any).path = this.path;
       }
-      return error
-    }
-  } as StatError
+      return error;
+    },
+  } as StatError;
 }
 
 export function genRndStr6(): string {

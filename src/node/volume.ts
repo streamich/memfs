@@ -790,7 +790,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   private _stat(filename: string, bigint: true, throwIfNoEntry: true): Result<Stats<bigint>, StatError>;
   private _stat(filename: string, bigint: true, throwIfNoEntry: false): Result<Stats<bigint> | undefined, StatError>;
   private _stat(filename: string, bigint: false, throwIfNoEntry: false): Result<Stats<number> | undefined, StatError>;
-  private _stat(filename: string, bigint: boolean, throwIfNoEntry: boolean): Result<Stats<number> | undefined, StatError>;
+  private _stat(
+    filename: string,
+    bigint: boolean,
+    throwIfNoEntry: boolean,
+  ): Result<Stats<number> | undefined, StatError>;
   private _stat(filename: string, bigint = false, throwIfNoEntry = true): Result<Stats | undefined, StatError> {
     const result = this._core.getResolvedLinkResult(filename, 'stat');
     if (result.ok) {
@@ -800,7 +804,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (result.err.code === ERROR_CODE.ENOENT && !throwIfNoEntry) {
       return Ok(undefined);
     } else {
-      return result
+      return result;
     }
   }
 

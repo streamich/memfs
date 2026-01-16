@@ -253,27 +253,27 @@ export class Superblock {
   getLink(steps: string[]): Link | null {
     const result = this.walk(steps, false, false, false);
     if (result.ok) {
-      return result.value
+      return result.value;
     }
-    throw result.err.toError()
+    throw result.err.toError();
   }
 
   // Just link `getLink`, but throws a correct user error, if link to found.
   getLinkOrThrow(filename: string, funcName?: string): Link {
     const result = this.walk(filename, false, true, true, funcName);
     if (result.ok) {
-      return result.value!
+      return result.value!;
     }
-    throw result.err.toError()
+    throw result.err.toError();
   }
 
   // Just like `getLink`, but also dereference/resolves symbolic links.
   getResolvedLink(filenameOrSteps: string | string[]): Link | null {
     const result = this.walk(filenameOrSteps, true, false, false);
     if (result.ok) {
-      return result.value
+      return result.value;
     }
-    throw result.err.toError()
+    throw result.err.toError();
   }
 
   /**
@@ -282,17 +282,17 @@ export class Superblock {
   getResolvedLinkOrThrow(filename: string, funcName?: string): Link {
     const result = this.walk(filename, true, true, true, funcName);
     if (result.ok) {
-      return result.value!
+      return result.value!;
     }
-    throw result.err.toError()
+    throw result.err.toError();
   }
 
   getResolvedLinkResult(filename: string, funcName?: string): Result<Link, StatError> {
-    const result = this.walk(filename, true, true, true, funcName)
+    const result = this.walk(filename, true, true, true, funcName);
     if (result.ok) {
-      return Ok(result.value!)
+      return Ok(result.value!);
     }
-    return result
+    return result;
   }
 
   resolveSymlinks(link: Link): Link | null {

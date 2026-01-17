@@ -1,3 +1,10 @@
+# [4.53.0](https://github.com/streamich/memfs/compare/v4.52.0...v4.53.0) (2026-01-17)
+
+
+### Features
+
+* implement Result type and improve error handling for exists methods ([f95531f](https://github.com/streamich/memfs/commit/f95531fb3382d5aa23e8dc9c233d7b47dd7fbbc1)), closes [#1218](https://github.com/streamich/memfs/issues/1218)
+
 # [4.52.0](https://github.com/streamich/memfs/compare/v4.51.1...v4.52.0) (2026-01-15)
 
 

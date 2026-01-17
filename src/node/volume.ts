@@ -61,8 +61,9 @@ import type { FsPromisesApi, FsSynchronousApi } from './types';
 import { Dir } from './Dir';
 import { DirectoryJSON, NestedDirectoryJSON } from '../core/json';
 import { ERROR_CODE } from '../core/constants';
-import { TFileId } from '../core/types';
+import { StatError, TFileId } from '../core/types';
 import { dataToBuffer, filenameToSteps, isFd, isWin, validateFd } from '../core/util';
+import { Ok, Result } from '../core/result';
 
 const resolveCrossPlatform = resolve;
 const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK, COPYFILE_EXCL, COPYFILE_FICLONE_FORCE } = constants;
@@ -784,20 +785,36 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   // TODO: make it prop
-  private _stat(filename: string): Stats<number>;
-  private _stat(filename: string, bigint: false, throwIfNoEntry: true): Stats<number>;
-  private _stat(filename: string, bigint: true, throwIfNoEntry: true): Stats<bigint>;
-  private _stat(filename: string, bigint: true, throwIfNoEntry: false): Stats<bigint> | undefined;
-  private _stat(filename: string, bigint: false, throwIfNoEntry: false): Stats<number> | undefined;
-  private _stat(filename: string, bigint = false, throwIfNoEntry = true): Stats | undefined {
-    let link: Link;
-    try {
-      link = this._core.getResolvedLinkOrThrow(filename, 'stat');
-    } catch (err) {
-      if (err.code === ERROR_CODE.ENOENT && !throwIfNoEntry) return undefined;
-      else throw err;
+  private _stat(filename: string): Result<Stats<number>, StatError>;
+  private _stat(filename: string, bigint: false, throwIfNoEntry: true): Result<Stats<number>, StatError>;
+  private _stat(filename: string, bigint: true, throwIfNoEntry: true): Result<Stats<bigint>, StatError>;
+  private _stat(filename: string, bigint: true, throwIfNoEntry: false): Result<Stats<bigint> | undefined, StatError>;
+  private _stat(filename: string, bigint: false, throwIfNoEntry: false): Result<Stats<number> | undefined, StatError>;
+  private _stat(
+    filename: string,
+    bigint: boolean,
+    throwIfNoEntry: boolean,
+  ): Result<Stats<number> | undefined, StatError>;
+  private _stat(filename: string, bigint = false, throwIfNoEntry = true): Result<Stats | undefined, StatError> {
+    const result = this._core.getResolvedLinkResult(filename, 'stat');
+    if (result.ok) {
+      return Ok(Stats.build(result.value.getNode(), bigint));
     }
-    return Stats.build(link.getNode(), bigint);
+
+    if (result.err.code === ERROR_CODE.ENOENT && !throwIfNoEntry) {
+      return Ok(undefined);
+    } else {
+      return result;
+    }
+  }
+
+  private _statOrThrow(filename: string, bigint = false, throwIfNoEntry = true): Stats<number | bigint> {
+    const result = this._stat(filename, bigint, throwIfNoEntry);
+    if (result.ok) {
+      return result.value!;
+    } else {
+      throw result.err.toError();
+    }
   }
 
   // TODO: make it prop
@@ -811,7 +828,12 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   statSync(path: PathLike, options?: opts.IStatOptions): Stats | undefined {
     const { bigint = true, throwIfNoEntry = true } = getStatOptions(options);
 
-    return this._stat(pathToFilename(path), bigint as any, throwIfNoEntry as any);
+    const result = this._stat(pathToFilename(path), bigint, throwIfNoEntry);
+    if (result.ok) {
+      return result.value;
+    } else {
+      throw result.err.toError();
+    }
   }
 
   // TODO: make it prop
@@ -819,7 +841,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   stat(path: PathLike, options: opts.IStatOptions, callback: misc.TCallback<Stats>): void;
   stat(path: PathLike, a: misc.TCallback<Stats> | opts.IStatOptions, b?: misc.TCallback<Stats>): void {
     const [{ bigint = false, throwIfNoEntry = true }, callback] = getStatOptsAndCb(a, b);
-    this.wrapAsync(this._stat, [pathToFilename(path), bigint, throwIfNoEntry], callback);
+    this.wrapAsync(this._statOrThrow, [pathToFilename(path), bigint, throwIfNoEntry], callback);
   }
 
   // TODO: make it prop
@@ -860,13 +882,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this._core.rename, [oldPathFilename, newPathFilename], callback);
   };
 
-  private _exists(filename: string): boolean {
-    return !!this._stat(filename);
+  private _exists(filename: string): Result<true, StatError> {
+    const result = this._stat(filename);
+    return result.ok ? Ok(true) : result;
   }
 
   public existsSync = (path: PathLike): boolean => {
     try {
-      return this._exists(pathToFilename(path));
+      return this._exists(pathToFilename(path)).ok;
     } catch (err) {
       return false;
     }
@@ -877,7 +900,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (typeof callback !== 'function') throw Error(ERRSTR.CB);
     Promise.resolve().then(() => {
       try {
-        callback(this._exists(filename));
+        callback(this._exists(filename).ok);
       } catch (err) {
         callback(false);
       }

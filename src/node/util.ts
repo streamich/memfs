@@ -7,6 +7,7 @@ import { Readable } from '../vendor/node/stream';
 import { dataToBuffer, validateFd } from '../core/util';
 import type { FsCallbackApi } from './types';
 import type * as misc from './types/misc';
+import { StatError } from '../core/types';
 
 export function promisify(
   fs: FsCallbackApi,
@@ -152,6 +153,22 @@ export function createError(errorCode: string, func = '', path = '', path2 = '',
   }
 
   return error;
+}
+
+export function createStatError(errorCode: string, func = '', path = '', path2 = ''): StatError {
+  return {
+    code: errorCode,
+    message: formatError(errorCode, func, path, path2),
+    path,
+    toError() {
+      const error = new Error(this.message);
+      (error as any).code = this.code;
+      if (this.path) {
+        (error as any).path = this.path;
+      }
+      return error;
+    },
+  } as StatError;
 }
 
 export function genRndStr6(): string {

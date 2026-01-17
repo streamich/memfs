@@ -2,6 +2,17 @@ import { of } from 'thingies';
 import { memfs } from '../../../';
 
 describe('.readFile()', () => {
+  it('can read a file in cwd', async () => {
+    const { fs } = memfs({ 'test.txt': '01234567' }, '/dir');
+    await expect(fs.promises.readFile('/dir/test.txt', { encoding: 'utf8' })).resolves.toBe('01234567');
+  });
+
+  it('can read a relative file in cwd', async () => {
+    const { fs } = memfs({ 'test.txt': '01234567' }, '/dir');
+    await expect(fs.promises.readFile('test.txt', { encoding: 'utf8' })).resolves.toBe('01234567');
+    await expect(fs.promises.readFile('./test.txt', { encoding: 'utf8' })).resolves.toBe('01234567');
+  });
+
   it('can read a file', async () => {
     const { fs } = memfs({ '/dir/test.txt': '01234567' });
     const data = await fs.promises.readFile('/dir/test.txt', { encoding: 'utf8' });

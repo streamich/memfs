@@ -38,9 +38,9 @@ export const unixify = (filepath: string, stripTrailing: boolean = true): string
   return filepath;
 };
 
-type TResolve = (filename: string, base?: string) => string;
+type TResolve = (filename: string, base: string) => string;
 
-let resolve: TResolve = (filename, base = process.cwd()) => resolveCrossPlatform(base, filename);
+let resolve: TResolve = (filename, base) => resolveCrossPlatform(base, filename);
 if (isWin) {
   const _resolve = resolve;
   resolve = (filename, base) => unixify(_resolve(filename, base));
@@ -48,7 +48,7 @@ if (isWin) {
 
 export { resolve };
 
-export const filenameToSteps = (filename: string, base?: string): string[] => {
+export const filenameToSteps = (filename: string, base: string = process.cwd()): string[] => {
   const fullPath = resolve(filename, base);
   const fullPathSansSlash = fullPath.substring(1);
   if (!fullPathSansSlash) return [];

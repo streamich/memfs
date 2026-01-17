@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">89.24% </span>
+                <span class="strong">89.63% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>166/186</span>
+                <span class='fraction'>173/193</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.13% </span>
+                <span class="strong">82.75% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>69/83</span>
+                <span class='fraction'>72/87</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">92% </span>
+                <span class="strong">92.59% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>23/25</span>
+                <span class='fraction'>25/27</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">89.09% </span>
+                <span class="strong">89.53% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>147/165</span>
+                <span class='fraction'>154/172</span>
             </div>
         
             
@@ -358,13 +358,31 @@
 <a name='L293'></a><a href='#L293'>293</a>
 <a name='L294'></a><a href='#L294'>294</a>
 <a name='L295'></a><a href='#L295'>295</a>
-<a name='L296'></a><a href='#L296'>296</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">66x</span>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">66x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">66x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -504,14 +522,30 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">66x</span>
-<span class="cline-any cline-yes">1592x</span>
-<span class="cline-any cline-yes">1592x</span>
+<span class="cline-any cline-yes">139x</span>
+<span class="cline-any cline-yes">139x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1592x</span>
-<span class="cline-any cline-yes">1573x</span>
+<span class="cline-any cline-yes">139x</span>
+<span class="cline-any cline-yes">120x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1592x</span>
+<span class="cline-any cline-yes">139x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">66x</span>
+<span class="cline-any cline-yes">1453x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1433x</span>
+<span class="cline-any cline-yes">1433x</span>
+<span class="cline-any cline-yes">1433x</span>
+<span class="cline-any cline-yes">1433x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1433x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">66x</span>
@@ -662,6 +696,7 @@ import { Readable } from '../vendor/node/stream';
 import { dataToBuffer, validateFd } from '../core/util';
 import type { FsCallbackApi } from './types';
 import type * as misc from './types/misc';
+import { StatError } from '../core/types';
 &nbsp;
 export function promisify(
   fs: FsCallbackApi,
@@ -807,6 +842,22 @@ export function createError(errorCode: string, func = '', path = '', path2 = '',
   }
 &nbsp;
   return error;
+}
+&nbsp;
+export function createStatError(errorCode: string, func = '', path = <span class="branch-0 cbranch-no" title="branch not covered" >'',</span> path2 = ''): StatError {
+  return {
+    code: errorCode,
+    message: formatError(errorCode, func, path, path2),
+    path,
+    toError() {
+      const error = new Error(this.message);
+      (error as any).code = this.code;
+      if (this.path) {
+        (error as any).path = this.path;
+      }
+      return error;
+    },
+  } as StatError;
 }
 &nbsp;
 export function genRndStr6(): string {
@@ -955,7 +1006,7 @@ export function isReadableStream(stream): stream is Readable {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-15T12:57:45.108Z
+                at 2026-01-17T12:50:57.587Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

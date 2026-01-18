@@ -1,3 +1,10 @@
+# [4.54.0](https://github.com/streamich/memfs/compare/v4.53.0...v4.54.0) (2026-01-18)
+
+
+### Features
+
+* 🎸 add locking for FSA writable handles ([35d3519](https://github.com/streamich/memfs/commit/35d3519d90f018905df61396af9325d992a65768))
+
 # [4.53.0](https://github.com/streamich/memfs/compare/v4.52.0...v4.53.0) (2026-01-17)
 
 

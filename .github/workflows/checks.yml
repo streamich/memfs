@@ -17,14 +17,12 @@ jobs:
   prepare-yarn-cache:
     name: Prepare yarn cache
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
           cache: yarn
-
       - name: Validate cache
         env:
           # Use PnP and disable postinstall scripts as this just needs to
@@ -33,28 +31,13 @@ jobs:
           YARN_ENABLE_SCRIPTS: false
         run: yarn --immutable
 
-  typecheck:
-    needs: prepare-yarn-cache
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: yarn
-      - name: install
-        run: yarn
-      - name: run typecheck
-        run: yarn typecheck
-      - name: run Prettier
-        run: yarn prettier:check
-
-  test-node:
+  test:
     name: Test on Node.js v${{ matrix.node-version }}
     needs: prepare-yarn-cache
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
         node-version: [22.x, 24.x]
     runs-on: ubuntu-latest
 
@@ -66,28 +49,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: yarn
       - name: install
-        run: yarn install
-      - name: run tests
-        run: yarn test
-        env:
-          CI: true
-  test-os:
-    name: Test on ${{ matrix.os }} using Node.js LTS
-    needs: prepare-yarn-cache
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: yarn
-      - name: install
-        run: yarn install
+        run: yarn
+      - name: run typecheck
+        run: yarn typecheck
+      - name: run Prettier
+        run: yarn prettier:check
       - name: run tests
         run: yarn test
         env:

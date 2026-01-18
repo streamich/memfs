@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">96.42% </span>
+                <span class="strong">96.87% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>27/28</span>
+                <span class='fraction'>31/32</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>6/7</span>
+                <span class='fraction'>7/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>18/18</span>
+                <span class='fraction'>21/21</span>
             </div>
         
             
@@ -108,35 +108,42 @@
 <a name='L43'></a><a href='#L43'>43</a>
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
-<a name='L46'></a><a href='#L46'>46</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">67x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">67x</span>
-<span class="cline-any cline-yes">425x</span>
+<span class="cline-any cline-yes">449x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">67x</span>
-<span class="cline-any cline-yes">458x</span>
-<span class="cline-any cline-yes">458x</span>
-<span class="cline-any cline-yes">458x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">67x</span>
+<span class="cline-any cline-yes">482x</span>
+<span class="cline-any cline-yes">482x</span>
+<span class="cline-any cline-yes">482x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">67x</span>
-<span class="cline-any cline-yes">288x</span>
-<span class="cline-any cline-yes">288x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">67x</span>
+<span class="cline-any cline-yes">300x</span>
+<span class="cline-any cline-yes">300x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">67x</span>
-<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">143x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -153,7 +160,11 @@
 <span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">67x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">67x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { NodeFsaContext } from './types';
+import { FileLockManager } from '../fsa/FileLockManager';
 &nbsp;
 /**
  * Creates a new {@link NodeFsaContext}.
@@ -163,6 +174,7 @@ export const ctx = (partial: Partial&lt;NodeFsaContext&gt; = <span class="branch
     separator: '/',
     syncHandleAllowed: false,
     mode: 'read',
+    locks: new FileLockManager(),
     ...partial,
   };
 };
@@ -198,6 +210,9 @@ export const newTypeMismatchError = () =&gt;
   new DOMException('The path supplied exists, but was not an entry of requested type.', 'TypeMismatchError');
 &nbsp;
 export const newNotAllowedError = <span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" >new DOMException('Permission not granted.', 'NotAllowedError');</span>
+&nbsp;
+export const newNoModificationAllowedError = () =&gt;
+  new DOMException('The file is locked and cannot be modified.', 'NoModificationAllowedError');
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -205,7 +220,7 @@ export const newNotAllowedError = <span class="fstat-no" title="function not cov
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-17T12:50:57.587Z
+                at 2026-01-18T11:58:46.711Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

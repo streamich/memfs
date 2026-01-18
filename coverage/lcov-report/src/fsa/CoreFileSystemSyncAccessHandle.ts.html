@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">7.4% </span>
+                <span class="strong">23.21% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>4/54</span>
+                <span class='fraction'>13/56</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">25% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>2/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">7.4% </span>
+                <span class="strong">23.21% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>4/54</span>
+                <span class='fraction'>13/56</span>
             </div>
         
             
@@ -194,7 +194,10 @@
 <a name='L129'></a><a href='#L129'>129</a>
 <a name='L130'></a><a href='#L130'>130</a>
 <a name='L131'></a><a href='#L131'>131</a>
-<a name='L132'></a><a href='#L132'>132</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -205,36 +208,39 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -336,14 +342,16 @@ import { FLAGS } from '../node/constants';
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle
  */
 export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHandle {
-  private <span class="cstat-no" title="statement not covered" >_fd: number | null = null;</span>
-  private <span class="cstat-no" title="statement not covered" >_closed = false;</span>
+  private _fd: number | null = null;
+  private _closed = false;
 &nbsp;
-<span class="fstat-no" title="function not covered" >  constructor(</span>
-    private readonly <span class="cstat-no" title="statement not covered" >_core: Superblock,</span>
-    private readonly <span class="cstat-no" title="statement not covered" >_path: string,</span>
-    private readonly <span class="cstat-no" title="statement not covered" >_ctx: CoreFsaContext,</span>
-  ) {}
+  constructor(
+    private readonly _core: Superblock,
+    private readonly _path: string,
+    private readonly _ctx: CoreFsaContext,
+  ) {
+    this._ctx.locks.acquireLock(this._path);
+  }
 &nbsp;
   private <span class="fstat-no" title="function not covered" >_ensureOpen(</span>): number {
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (this._closed) {</span>
@@ -360,12 +368,13 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
   /**
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle/close
    */
-  public <span class="fstat-no" title="function not covered" >async </span>close(): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (this._fd !== null) {</span>
+  public async close(): Promise&lt;void&gt; {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (this._fd !== null) {
 <span class="cstat-no" title="statement not covered" >      this._core.close(this._fd);</span>
 <span class="cstat-no" title="statement not covered" >      this._fd = null;</span>
     }
-<span class="cstat-no" title="statement not covered" >    this._closed = true;</span>
+    this._closed = true;
+    this._ctx.locks.releaseLock(this._path);
   }
 &nbsp;
   /**
@@ -463,7 +472,7 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-17T12:50:57.587Z
+                at 2026-01-18T11:58:46.711Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -33,13 +33,13 @@ jobs:
         run: corepack enable
       - name: install
         run: yarn
+      - name: run build
+        run: yarn build
       - name: run typecheck
         run: yarn typecheck
       - name: run Prettier
         run: yarn prettier:check
       - name: run tests
         run: yarn test
-      - name: run build
-        run: yarn build
         env:
           CI: true

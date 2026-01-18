@@ -21,4 +21,3 @@ export class FileLockManager {
     this.locks.clear();
   }
 }
-

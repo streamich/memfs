@@ -1,3 +1,4 @@
+import { FileLockManager } from './FileLockManager';
 import type { CoreFsaContext } from './types';
 
 /**
@@ -8,6 +9,7 @@ export const ctx = (partial: Partial<CoreFsaContext> = {}): CoreFsaContext => {
     separator: '/',
     syncHandleAllowed: false,
     mode: 'read',
+    locks: new FileLockManager(),
     ...partial,
   };
 };
@@ -43,3 +45,6 @@ export const newTypeMismatchError = () =>
   new DOMException('The path supplied exists, but was not an entry of requested type.', 'TypeMismatchError');
 
 export const newNotAllowedError = () => new DOMException('Permission not granted.', 'NotAllowedError');
+
+export const newNoModificationAllowedError = () =>
+  new DOMException('The file is locked and cannot be modified.', 'NoModificationAllowedError');

@@ -16,7 +16,9 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
     private readonly _core: Superblock,
     private readonly _path: string,
     private readonly _ctx: CoreFsaContext,
-  ) {}
+  ) {
+    this._ctx.locks.acquireLock(this._path);
+  }
 
   private _ensureOpen(): number {
     if (this._closed) {
@@ -39,6 +41,7 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
       this._fd = null;
     }
     this._closed = true;
+    this._ctx.locks.releaseLock(this._path);
   }
 
   /**

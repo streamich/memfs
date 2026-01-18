@@ -1,5 +1,6 @@
 import type { FsPromisesApi, FsSynchronousApi } from '../node/types';
 import type { FsCommonObjects } from '../node/types/FsCommonObjects';
+import type { FileLockManager } from '../fsa/FileLockManager';
 
 /**
  * Required Node.js `fs` module functions for File System Access API.
@@ -15,4 +16,6 @@ export interface NodeFsaContext {
   syncHandleAllowed: boolean;
   /** Whether writes are allowed, defaults to `read`. */
   mode: 'read' | 'readwrite';
+  /** File lock manager for this context. */
+  locks: FileLockManager;
 }

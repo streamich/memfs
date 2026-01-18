@@ -180,4 +180,45 @@ onlyOnNode20('NodeFileSystemSyncAccessHandle', () => {
       }
     });
   });
+
+  describe('file locking', () => {
+    describe('sync access handle acquiring and releasing locks', () => {
+      test('acquires lock when sync handle is created', async () => {
+        const { dir } = setup({ 'file.txt': 'content' });
+        const entry = await dir.getFileHandle('file.txt');
+        const lockManager = (entry as any).ctx.locks; // Access the context's lock manager
+        expect(lockManager.isLocked('/file.txt')).toBe(false);
+        const sync = await entry.createSyncAccessHandle!();
+        expect(lockManager.isLocked('/file.txt')).toBe(true);
+        await sync.close();
+        expect(lockManager.isLocked('/file.txt')).toBe(false);
+      });
+
+      test('releases lock when sync handle is closed', async () => {
+        const { dir } = setup({ 'file.txt': 'content' });
+        const entry = await dir.getFileHandle('file.txt');
+        const lockManager = (entry as any).ctx.locks; // Access the context's lock manager
+        const sync = await entry.createSyncAccessHandle!();
+        expect(lockManager.isLocked('/file.txt')).toBe(true);
+        await sync.close();
+        expect(lockManager.isLocked('/file.txt')).toBe(false);
+      });
+
+      test('prevents creating writable stream while sync handle is open', async () => {
+        const { dir } = setup({ 'file.txt': 'content' });
+        const entry = await dir.getFileHandle('file.txt');
+        const sync = await entry.createSyncAccessHandle!();
+
+        try {
+          await entry.createWritable();
+          throw new Error('Expected NoModificationAllowedError');
+        } catch (error) {
+          expect(error).toBeInstanceOf(DOMException);
+          expect((error as any).name).toBe('NoModificationAllowedError');
+        }
+
+        await sync.close();
+      });
+    });
+  });
 });

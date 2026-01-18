@@ -1,7 +1,8 @@
 import { Buffer } from '../vendor/node/internal/buffer';
 import type { Data, FileSystemWritableFileStreamParams, IFileSystemWritableFileStream } from '../fsa/types';
 import type { IFileHandle } from '../node/types/misc';
-import type { NodeFsaFs } from './types';
+import type { NodeFsaFs, NodeFsaContext } from './types';
+import { newNoModificationAllowedError } from './util';
 
 /**
  * When Chrome writes to the file, it creates a copy of the file with extension
@@ -70,15 +71,25 @@ export class NodeFileSystemWritableFileStream extends WS implements IFileSystemW
     protected readonly fs: NodeFsaFs,
     protected readonly path: string,
     keepExistingData: boolean,
+    protected readonly ctx: NodeFsaContext,
   ) {
     const swap: SwapFile = { handle: undefined, path: '', offset: 0 };
     super({
       async start() {
-        const promise = createSwapFile(fs, path, keepExistingData);
-        swap.ready = promise.then(() => undefined);
-        const [handle, swapPath] = await promise;
-        swap.handle = handle;
-        swap.path = swapPath;
+        if (ctx.locks.isLocked(path)) {
+          throw newNoModificationAllowedError();
+        }
+        ctx.locks.acquireLock(path);
+        try {
+          const promise = createSwapFile(fs, path, keepExistingData);
+          swap.ready = promise.then(() => undefined);
+          const [handle, swapPath] = await promise;
+          swap.handle = handle;
+          swap.path = swapPath;
+        } catch (error) {
+          ctx.locks.releaseLock(path);
+          throw error;
+        }
       },
       async write(chunk: Data) {
         await swap.ready;
@@ -100,6 +111,7 @@ export class NodeFileSystemWritableFileStream extends WS implements IFileSystemW
         if (!handle) return;
         await handle.close();
         await fs.promises.rename(swap.path, path);
+        ctx.locks.releaseLock(path);
       },
       async abort() {
         await swap.ready;
@@ -107,6 +119,7 @@ export class NodeFileSystemWritableFileStream extends WS implements IFileSystemW
         if (!handle) return;
         await handle.close();
         await fs.promises.unlink(swap.path);
+        ctx.locks.releaseLock(path);
       },
     });
     this.swap = swap;

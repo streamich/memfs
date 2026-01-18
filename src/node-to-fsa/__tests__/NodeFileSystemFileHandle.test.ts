@@ -193,4 +193,164 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
       });
     });
   });
+
+  describe('file locking', () => {
+    describe('sync access handle locking', () => {
+      test('creates sync access handle successfully', async () => {
+        const { fs } = memfs({ 'test.txt': 'content' }, '/');
+        const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
+          syncHandleAllowed: true,
+          mode: 'readwrite',
+        });
+        const fileHandle = await dir.getFileHandle('test.txt');
+        const syncHandle = await fileHandle.createSyncAccessHandle!();
+        expect(syncHandle).toBeDefined();
+        await syncHandle.close();
+      });
+
+      test('throws NoModificationAllowedError when creating sync handle while file is locked', async () => {
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
+        const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
+          syncHandleAllowed: true,
+          mode: 'readwrite',
+        });
+        const fileHandle = await dir.getFileHandle('file.txt');
+        const syncHandle1 = await fileHandle.createSyncAccessHandle!();
+
+        // Try to create another sync handle while first is open
+        try {
+          await fileHandle.createSyncAccessHandle!();
+          throw new Error('Expected NoModificationAllowedError');
+        } catch (error) {
+          expect(error).toBeInstanceOf(DOMException);
+          expect((error as any).name).toBe('NoModificationAllowedError');
+        }
+
+        await syncHandle1.close();
+      });
+
+      test('allows creating sync handle after previous one is closed', async () => {
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
+        const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
+          syncHandleAllowed: true,
+          mode: 'readwrite',
+        });
+        const fileHandle = await dir.getFileHandle('file.txt');
+
+        const syncHandle1 = await fileHandle.createSyncAccessHandle!();
+        await syncHandle1.close();
+
+        // Should not throw
+        const syncHandle2 = await fileHandle.createSyncAccessHandle!();
+        expect(syncHandle2).toBeDefined();
+        await syncHandle2.close();
+      });
+    });
+
+    describe('writable stream locking', () => {
+      test('creates writable stream successfully', async () => {
+        const { dir } = setup({ 'test.txt': 'content' });
+        const fileHandle = await dir.getFileHandle('test.txt');
+        const writable = await fileHandle.createWritable();
+        expect(writable).toBeDefined();
+        await writable.close();
+      });
+
+      test('throws NoModificationAllowedError when creating writable stream while sync handle is open', async () => {
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
+        const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
+          syncHandleAllowed: true,
+          mode: 'readwrite',
+        });
+        const fileHandle = await dir.getFileHandle('file.txt');
+        const syncHandle = await fileHandle.createSyncAccessHandle!();
+
+        // Try to create writable stream while sync handle is open
+        try {
+          await fileHandle.createWritable();
+          throw new Error('Expected NoModificationAllowedError');
+        } catch (error) {
+          expect(error).toBeInstanceOf(DOMException);
+          expect((error as any).name).toBe('NoModificationAllowedError');
+        }
+
+        await syncHandle.close();
+      });
+
+      test('allows creating writable stream after sync handle is closed', async () => {
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
+        const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
+          syncHandleAllowed: true,
+          mode: 'readwrite',
+        });
+        const fileHandle = await dir.getFileHandle('file.txt');
+
+        const syncHandle = await fileHandle.createSyncAccessHandle!();
+        await syncHandle.close();
+
+        // Should not throw
+        const writable = await fileHandle.createWritable();
+        expect(writable).toBeDefined();
+        await writable.close();
+      });
+
+      test('throws NoModificationAllowedError when creating sync handle while writable stream is open', async () => {
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
+        const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
+          syncHandleAllowed: true,
+          mode: 'readwrite',
+        });
+        const fileHandle = await dir.getFileHandle('file.txt');
+        const writable = await fileHandle.createWritable();
+
+        // Try to create sync handle while writable stream is open
+        try {
+          await fileHandle.createSyncAccessHandle!();
+          throw new Error('Expected NoModificationAllowedError');
+        } catch (error) {
+          expect(error).toBeInstanceOf(DOMException);
+          expect((error as any).name).toBe('NoModificationAllowedError');
+        }
+
+        await writable.close();
+      });
+
+      test('allows creating sync handle after writable stream is closed', async () => {
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
+        const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
+          syncHandleAllowed: true,
+          mode: 'readwrite',
+        });
+        const fileHandle = await dir.getFileHandle('file.txt');
+
+        const writable = await fileHandle.createWritable();
+        await writable.close();
+
+        // Should not throw
+        const syncHandle = await fileHandle.createSyncAccessHandle!();
+        expect(syncHandle).toBeDefined();
+        await syncHandle.close();
+      });
+    });
+
+    describe('multiple writable streams', () => {
+      test('throws NoModificationAllowedError when creating second writable stream', async () => {
+        const { dir } = setup({ 'test.txt': 'content' });
+        const fileHandle = await dir.getFileHandle('test.txt');
+
+        const writable1 = await fileHandle.createWritable();
+
+        // Try to create second writable stream
+        try {
+          await fileHandle.createWritable();
+          throw new Error('Expected NoModificationAllowedError');
+        } catch (error) {
+          expect(error).toBeInstanceOf(DOMException);
+          expect((error as any).name).toBe('NoModificationAllowedError');
+        }
+
+        await writable1.close();
+      });
+    });
+  });
 });

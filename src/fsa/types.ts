@@ -1,3 +1,5 @@
+import type { FileLockManager } from './FileLockManager';
+
 export interface IPermissionStatus {
   name: string;
   state: 'granted' | 'denied' | 'prompt';
@@ -37,6 +39,8 @@ export interface CoreFsaContext {
   syncHandleAllowed: boolean;
   /** Whether writes are allowed, defaults to `read`. */
   mode: 'read' | 'readwrite';
+  /** File lock manager for this context. */
+  locks: FileLockManager;
 }
 
 export interface CreateWritableOptions {

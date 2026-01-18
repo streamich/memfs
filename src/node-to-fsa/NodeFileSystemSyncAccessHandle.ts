@@ -15,6 +15,7 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
     protected readonly ctx: NodeFsaContext,
   ) {
     this.fd = fs.openSync(path, 'r+');
+    this.ctx.locks.acquireLock(this.path);
   }
 
   /**
@@ -23,6 +24,7 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
   public async close(): Promise<void> {
     assertCanWrite(this.ctx.mode);
     this.fs.closeSync(this.fd);
+    this.ctx.locks.releaseLock(this.path);
   }
 
   /**

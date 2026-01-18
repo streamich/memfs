@@ -14,34 +14,14 @@ permissions:
   contents: read # for checkout
 
 jobs:
-  prepare-yarn-cache:
-    name: Prepare yarn cache
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: yarn
-      - name: Enable corepack
-        run: corepack enable
-      - name: Validate cache
-        env:
-          # Use PnP and disable postinstall scripts as this just needs to
-          # populate the cache for the other jobs
-          YARN_NODE_LINKER: pnp
-          YARN_ENABLE_SCRIPTS: false
-        run: yarn --immutable
-
   test:
     name: Test on Node.js v${{ matrix.node-version }}
-    needs: prepare-yarn-cache
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         node-version: [22.x, 24.x]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +29,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: yarn
       - name: Enable corepack
         run: corepack enable
       - name: install
@@ -60,5 +39,7 @@ jobs:
         run: yarn prettier:check
       - name: run tests
         run: yarn test
+      - name: run build
+        run: yarn build
         env:
           CI: true

@@ -9,3 +9,20 @@ package-lock.json
 /dist
 /fs-test/
 /typedocs/
+
+
+# Build folders
+lib/
+es6/
+es2020/
+esm/
+typedocs/
+
+.DS_Store
+out.bin
+
+/gh-pages/
+
+.claude/
+
+.yarn/install-state.gz

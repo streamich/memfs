@@ -1,8 +1,8 @@
-import type { IFileSystemWritableFileStream, FileSystemWritableFileStreamParams, Data } from './types';
+import type { IFileSystemWritableFileStream, FileSystemWritableFileStreamParams, Data, CoreFsaContext } from './types';
 import type { Superblock } from '../core/Superblock';
 import { Buffer } from '../vendor/node/internal/buffer';
 import { ERROR_CODE } from '../core/constants';
-import { newNotAllowedError } from './util';
+import { newNotAllowedError, newNoModificationAllowedError } from './util';
 import { FLAGS, MODE } from '../node/constants';
 
 declare const require: any;
@@ -19,17 +19,22 @@ export class CoreFileSystemWritableFileStream extends WS implements IFileSystemW
   private _closed = false;
   private readonly _core: Superblock;
   private readonly _path: string;
+  private readonly _ctx: CoreFsaContext;
 
-  constructor(core: Superblock, path: string, keepExistingData: boolean = false) {
+  constructor(core: Superblock, path: string, keepExistingData: boolean = false, ctx: CoreFsaContext) {
     let fd: number | undefined;
 
     super({
       start: controller => {
-        // Open file for writing
+        if (ctx.locks.isLocked(path)) {
+          throw newNoModificationAllowedError();
+        }
+        ctx.locks.acquireLock(path);
         const flags = keepExistingData ? FLAGS['r+'] : FLAGS.w;
         try {
           fd = core.open(path, flags, MODE.FILE);
         } catch (error) {
+          ctx.locks.releaseLock(path);
           if (error && typeof error === 'object' && error.code === ERROR_CODE.EACCES) {
             throw newNotAllowedError();
           }
@@ -43,12 +48,14 @@ export class CoreFileSystemWritableFileStream extends WS implements IFileSystemW
         if (!this._closed && this._fd !== undefined) {
           core.close(this._fd);
           this._closed = true;
+          ctx.locks.releaseLock(path);
         }
       },
       abort: async () => {
         if (!this._closed && this._fd !== undefined) {
           core.close(this._fd);
           this._closed = true;
+          ctx.locks.releaseLock(path);
         }
       },
     });
@@ -56,6 +63,7 @@ export class CoreFileSystemWritableFileStream extends WS implements IFileSystemW
     this._core = core;
     this._path = path;
     this._fd = fd;
+    this._ctx = ctx;
   }
 
   /**

@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "4.56.1",
+  "version": "4.56.2",
   "description": "Utility functions for Node.js fs module",
   "author": {
     "name": "streamich",

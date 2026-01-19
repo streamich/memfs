@@ -6,7 +6,7 @@ import Dirent from './Dirent';
 import StatFs from './StatFs';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '../vendor/node/internal/buffer';
 import queueMicrotask from '../queueMicrotask';
-import setTimeoutUnref, { TSetTimeout } from '../setTimeoutUnref';
+import setTimeoutUnref, { TSetTimeout } from '@jsonjoy.com/node-fs-utils/lib/setTimeoutUnref';
 import { Readable, Writable } from '../vendor/node/stream';
 import { constants } from '../constants';
 import { EventEmitter } from '../vendor/node/events';

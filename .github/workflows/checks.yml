@@ -14,50 +14,14 @@ permissions:
   contents: read # for checkout
 
 jobs:
-  prepare-yarn-cache:
-    name: Prepare yarn cache
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: yarn
-
-      - name: Validate cache
-        env:
-          # Use PnP and disable postinstall scripts as this just needs to
-          # populate the cache for the other jobs
-          YARN_NODE_LINKER: pnp
-          YARN_ENABLE_SCRIPTS: false
-        run: yarn --immutable
-
-  typecheck:
-    needs: prepare-yarn-cache
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: yarn
-      - name: install
-        run: yarn
-      - name: run typecheck
-        run: yarn typecheck
-      - name: run Prettier
-        run: yarn prettier:check
-
-  test-node:
+  test:
     name: Test on Node.js v${{ matrix.node-version }}
-    needs: prepare-yarn-cache
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
         node-version: [22.x, 24.x]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -65,57 +29,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: yarn
+      - name: Enable corepack
+        run: corepack enable
       - name: install
-        run: yarn install
-      - name: run tests
-        run: yarn test
-        env:
-          CI: true
-  test-os:
-    name: Test on ${{ matrix.os }} using Node.js LTS
-    needs: prepare-yarn-cache
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: yarn
-      - name: install
-        run: yarn install
-      - name: run tests
-        run: yarn test
-        env:
-          CI: true
-  release:
-    if: ${{ github.event_name == 'push' && (github.event.ref == 'refs/heads/master' || github.event.ref == 'refs/heads/next') }}
-    name: Release new version
-    needs: [typecheck, test-node, test-os]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write # to be able to publish a GitHub release
-      issues: write # to be able to comment on released issues
-      pull-requests: write # to be able to comment on released pull requests
-      id-token: write # to enable use of OIDC for trusted publishing and npm provenance
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: yarn
-      - name: Install
         run: yarn
-      - name: Test
-        run: yarn test
-      - name: Build
+      - name: run build
         run: yarn build
-      - name: Release
+      - name: run typecheck
+        run: yarn typecheck
+      - name: run Prettier
+        if: runner.os != 'Windows'
+        run: yarn prettier:check
+      - name: run tests
+        run: yarn test
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+          CI: true

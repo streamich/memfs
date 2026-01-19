@@ -1,7 +1,7 @@
 import type { PathLike as NodePathLike, symlink } from '../../vendor/node/fs';
 import type { constants } from '../../constants';
 import type { EventEmitter } from '../../vendor/node/events';
-import type { TSetTimeout } from '../../setTimeoutUnref';
+import type { TSetTimeout } from '@jsonjoy.com/node-fs-utils/lib/setTimeoutUnref';
 import type {
   IAppendFileOptions,
   IFileHandleReadStreamOptions,

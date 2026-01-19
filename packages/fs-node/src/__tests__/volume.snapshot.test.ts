@@ -61,7 +61,7 @@ describe('Volume.Snapshot - Native Format', () => {
       vol.mkdirSync('/app', { recursive: true });
       vol.writeFileSync('/app/file.txt', 'content');
       vol.writeFileSync('/other.txt', 'other');
-      
+
       const snapshot = vol.toSnapshot('/app');
       expect('file.txt' in (snapshot![2] as any)).toBe(true);
       expect('other.txt' in (snapshot![2] as any)).toBe(false);
@@ -95,7 +95,7 @@ describe('Volume.Snapshot - Native Format', () => {
       vol.writeFileSync('/src/components/Button.tsx', 'export Button');
       vol.writeFileSync('/src/hooks/useForm.ts', 'export useForm');
       vol.writeFileSync('/public/index.html', '<html></html>');
-      
+
       const snapshot = vol.toSnapshot();
       expect('src' in (snapshot![2] as any)).toBe(true);
       expect('public' in (snapshot![2] as any)).toBe(true);
@@ -107,11 +107,11 @@ describe('Volume.Snapshot - Native Format', () => {
       vol.writeFileSync('/file.txt', 'hello');
       vol.mkdirSync('/dir', { recursive: true });
       vol.writeFileSync('/dir/nested.txt', 'nested');
-      
+
       const snapshot = vol.toSnapshot();
       const vol2 = new Volume();
       vol2.fromSnapshot(snapshot);
-      
+
       expect(vol2.readFileSync('/file.txt', 'utf8')).toBe('hello');
       expect(vol2.readFileSync('/dir/nested.txt', 'utf8')).toBe('nested');
     });
@@ -120,11 +120,11 @@ describe('Volume.Snapshot - Native Format', () => {
       vol.writeFileSync('/file.txt', 'content');
       vol.mkdirSync('/subdir', { recursive: true });
       vol.writeFileSync('/subdir/file2.txt', 'content2');
-      
+
       const snapshot = vol.toSnapshot();
       const vol2 = new Volume();
       vol2.fromSnapshot(snapshot, '/restored');
-      
+
       expect(vol2.readFileSync('/restored/file.txt', 'utf8')).toBe('content');
       expect(vol2.readFileSync('/restored/subdir/file2.txt', 'utf8')).toBe('content2');
     });
@@ -133,7 +133,7 @@ describe('Volume.Snapshot - Native Format', () => {
       const vol2 = new Volume();
       const snapshot = vol.toSnapshot();
       vol2.fromSnapshot(snapshot);
-      
+
       const contents = vol2.readdirSync('/');
       expect(contents).toEqual([]);
     });
@@ -141,11 +141,11 @@ describe('Volume.Snapshot - Native Format', () => {
     it('should restore symbolic links', () => {
       vol.writeFileSync('/target.txt', 'original');
       vol.symlinkSync('/target.txt', '/link.txt');
-      
+
       const snapshot = vol.toSnapshot();
       const vol2 = new Volume();
       vol2.fromSnapshot(snapshot);
-      
+
       expect(vol2.readFileSync('/link.txt', 'utf8')).toBe('original');
     });
 
@@ -153,34 +153,34 @@ describe('Volume.Snapshot - Native Format', () => {
       vol.writeFileSync('/file.txt', 'content');
       vol.mkdirSync('/dir', { recursive: true });
       vol.writeFileSync('/dir/file2.txt', 'content2');
-      
+
       const snapshot = vol.toSnapshot();
       const vol2 = new Volume();
       vol2.mkdirSync('/existing', { recursive: true });
       vol2.fromSnapshot(snapshot, '/existing/restored');
-      
+
       expect(vol2.readFileSync('/existing/restored/file.txt', 'utf8')).toBe('content');
     });
 
     it('should overwrite existing files during restore', () => {
       const vol2 = new Volume();
       vol2.writeFileSync('/file.txt', 'old content');
-      
+
       vol.writeFileSync('/file.txt', 'new content');
       const snapshot = vol.toSnapshot();
       vol2.fromSnapshot(snapshot);
-      
+
       expect(vol2.readFileSync('/file.txt', 'utf8')).toBe('new content');
     });
 
     it('should handle binary content in restore', () => {
       const buffer = Buffer.from([0xff, 0xfe, 0x00, 0x01]);
       vol.writeFileSync('/binary.bin', buffer);
-      
+
       const snapshot = vol.toSnapshot();
       const vol2 = new Volume();
       vol2.fromSnapshot(snapshot);
-      
+
       const restored = vol2.readFileSync('/binary.bin') as Buffer;
       expect(restored).toEqual(buffer);
     });
@@ -198,7 +198,7 @@ describe('Volume.Snapshot - Binary Format', () => {
     it('should create binary snapshot', () => {
       vol.writeFileSync('/file.txt', 'hello');
       const binary = vol.toBinarySnapshot();
-      
+
       expect(binary).toBeInstanceOf(Uint8Array);
       expect(binary.length).toBeGreaterThan(0);
     });
@@ -212,7 +212,7 @@ describe('Volume.Snapshot - Binary Format', () => {
       vol.mkdirSync('/app/src', { recursive: true });
       vol.writeFileSync('/app/src/file.ts', 'export default');
       vol.writeFileSync('/other.txt', 'other');
-      
+
       const binary = vol.toBinarySnapshot('/app');
       expect(binary).toBeInstanceOf(Uint8Array);
     });
@@ -223,11 +223,11 @@ describe('Volume.Snapshot - Binary Format', () => {
       vol.writeFileSync('/file.txt', 'hello');
       vol.mkdirSync('/dir', { recursive: true });
       vol.writeFileSync('/dir/file2.txt', 'world');
-      
+
       const binary = vol.toBinarySnapshot();
       const vol2 = new Volume();
       vol2.fromBinarySnapshot(binary);
-      
+
       expect(vol2.readFileSync('/file.txt', 'utf8')).toBe('hello');
       expect(vol2.readFileSync('/dir/file2.txt', 'utf8')).toBe('world');
     });
@@ -236,15 +236,15 @@ describe('Volume.Snapshot - Binary Format', () => {
       vol.writeFileSync('/file.txt', 'content');
       vol.mkdirSync('/nested/deep', { recursive: true });
       vol.writeFileSync('/nested/deep/file.txt', 'nested content');
-      
+
       const binary1 = vol.toBinarySnapshot();
       const vol2 = new Volume();
       vol2.fromBinarySnapshot(binary1);
-      
+
       const binary2 = vol2.toBinarySnapshot();
       const vol3 = new Volume();
       vol3.fromBinarySnapshot(binary2);
-      
+
       expect(vol3.readFileSync('/file.txt', 'utf8')).toBe('content');
       expect(vol3.readFileSync('/nested/deep/file.txt', 'utf8')).toBe('nested content');
     });
@@ -252,21 +252,21 @@ describe('Volume.Snapshot - Binary Format', () => {
     it('should restore to different path', () => {
       vol.writeFileSync('/file.txt', 'content');
       const binary = vol.toBinarySnapshot();
-      
+
       const vol2 = new Volume();
       vol2.fromBinarySnapshot(binary, '/restored');
-      
+
       expect(vol2.readFileSync('/restored/file.txt', 'utf8')).toBe('content');
     });
 
     it('should preserve binary file content', () => {
       const buffer = Buffer.from([0x00, 0x01, 0x02, 0x03, 0xff, 0xfe, 0xfd]);
       vol.writeFileSync('/binary.bin', buffer);
-      
+
       const binary = vol.toBinarySnapshot();
       const vol2 = new Volume();
       vol2.fromBinarySnapshot(binary);
-      
+
       const restored = vol2.readFileSync('/binary.bin') as Buffer;
       expect(restored).toEqual(buffer);
     });
@@ -284,7 +284,7 @@ describe('Volume.Snapshot - JSON Format', () => {
     it('should serialize to JSON string', () => {
       vol.writeFileSync('/file.txt', 'hello');
       const json = vol.toJsonSnapshot();
-      
+
       expect(typeof json).toBe('string');
       expect(() => JSON.parse(json)).not.toThrow();
     });
@@ -292,20 +292,20 @@ describe('Volume.Snapshot - JSON Format', () => {
     it('should deserialize from JSON string', () => {
       vol.writeFileSync('/file.txt', 'hello');
       const json = vol.toJsonSnapshot();
-      
+
       const vol2 = new Volume();
       vol2.fromJsonSnapshot(json);
-      
+
       expect(vol2.readFileSync('/file.txt', 'utf8')).toBe('hello');
     });
 
     it('should preserve UTF-8 text content', () => {
       vol.writeFileSync('/emoji.txt', '😀🎉🚀');
       const json = vol.toJsonSnapshot();
-      
+
       const vol2 = new Volume();
       vol2.fromJsonSnapshot(json);
-      
+
       expect(vol2.readFileSync('/emoji.txt', 'utf8')).toBe('😀🎉🚀');
     });
 
@@ -313,11 +313,11 @@ describe('Volume.Snapshot - JSON Format', () => {
       vol.mkdirSync('/src/components/ui', { recursive: true });
       vol.writeFileSync('/src/index.ts', 'export default');
       vol.writeFileSync('/src/components/Button.tsx', 'export Button');
-      
+
       const json = vol.toJsonSnapshot();
       const vol2 = new Volume();
       vol2.fromJsonSnapshot(json);
-      
+
       expect(vol2.readFileSync('/src/index.ts', 'utf8')).toBe('export default');
       expect(vol2.readFileSync('/src/components/Button.tsx', 'utf8')).toBe('export Button');
     });
@@ -325,15 +325,15 @@ describe('Volume.Snapshot - JSON Format', () => {
     it('should round-trip JSON snapshot', () => {
       vol.writeFileSync('/file.txt', 'content');
       vol.mkdirSync('/dir', { recursive: true });
-      
+
       const json1 = vol.toJsonSnapshot();
       const vol2 = new Volume();
       vol2.fromJsonSnapshot(json1);
-      
+
       const json2 = vol2.toJsonSnapshot();
       const vol3 = new Volume();
       vol3.fromJsonSnapshot(json2);
-      
+
       expect(vol3.readFileSync('/file.txt', 'utf8')).toBe('content');
     });
   });
@@ -349,11 +349,11 @@ describe('Volume.Snapshot - Edge Cases', () => {
   it('should handle large files', () => {
     const largeContent = 'x'.repeat(1024 * 1024); // 1MB
     vol.writeFileSync('/large.txt', largeContent);
-    
+
     const snapshot = vol.toSnapshot();
     const vol2 = new Volume();
     vol2.fromSnapshot(snapshot);
-    
+
     expect(vol2.readFileSync('/large.txt', 'utf8')).toHaveLength(1024 * 1024);
   });
 
@@ -361,11 +361,11 @@ describe('Volume.Snapshot - Edge Cases', () => {
     for (let i = 0; i < 100; i++) {
       vol.writeFileSync(`/file${i}.txt`, `content${i}`);
     }
-    
+
     const snapshot = vol.toSnapshot();
     const vol2 = new Volume();
     vol2.fromSnapshot(snapshot);
-    
+
     expect((vol2.readdirSync('/') as string[]).length).toBe(100);
   });
 
@@ -376,11 +376,11 @@ describe('Volume.Snapshot - Edge Cases', () => {
     }
     vol.mkdirSync(path, { recursive: true });
     vol.writeFileSync(path + 'deep.txt', 'deeply nested');
-    
+
     const snapshot = vol.toSnapshot();
     const vol2 = new Volume();
     vol2.fromSnapshot(snapshot);
-    
+
     expect(vol2.readFileSync(path + 'deep.txt', 'utf8')).toBe('deeply nested');
   });
 
@@ -389,11 +389,11 @@ describe('Volume.Snapshot - Edge Cases', () => {
     vol.writeFileSync('/file-with-dashes.txt', 'content');
     vol.writeFileSync('/file_with_underscores.txt', 'content');
     vol.writeFileSync('/file.multiple.dots.txt', 'content');
-    
+
     const snapshot = vol.toSnapshot();
     const vol2 = new Volume();
     vol2.fromSnapshot(snapshot);
-    
+
     expect(vol2.existsSync('/file with spaces.txt')).toBe(true);
     expect(vol2.existsSync('/file-with-dashes.txt')).toBe(true);
     expect(vol2.existsSync('/file_with_underscores.txt')).toBe(true);
@@ -409,7 +409,7 @@ describe('Volume.Snapshot - Edge Cases', () => {
   it('should handle symlinks to non-existent targets', () => {
     vol.symlinkSync('/nonexistent', '/link');
     const snapshot = vol.toSnapshot();
-    
+
     const vol2 = new Volume();
     vol2.fromSnapshot(snapshot);
     expect(vol2.readlinkSync('/link')).toBe('/nonexistent');
@@ -427,22 +427,22 @@ describe('Volume.Snapshot - Format Conversion', () => {
     vol.writeFileSync('/file.txt', 'content');
     vol.mkdirSync('/dir', { recursive: true });
     vol.writeFileSync('/dir/file2.txt', 'content2');
-    
+
     // Native to Binary
     const snapshot = vol.toSnapshot();
     const vol2 = new Volume();
     vol2.fromSnapshot(snapshot);
     const binary = vol2.toBinarySnapshot();
-    
+
     // Binary to JSON
     const vol3 = new Volume();
     vol3.fromBinarySnapshot(binary);
     const json = vol3.toJsonSnapshot();
-    
+
     // JSON back to Native
     const vol4 = new Volume();
     vol4.fromJsonSnapshot(json);
-    
+
     expect(vol4.readFileSync('/file.txt', 'utf8')).toBe('content');
     expect(vol4.readFileSync('/dir/file2.txt', 'utf8')).toBe('content2');
   });
@@ -453,20 +453,20 @@ describe('Volume.Snapshot - Format Conversion', () => {
     vol.writeFileSync('/text.txt', '😀 Unicode');
     vol.symlinkSync('/text.txt', '/link');
     vol.mkdirSync('/empty', { recursive: true });
-    
+
     // Round-trip through all formats
     let snapshot = vol.toSnapshot();
     let vol2 = new Volume();
     vol2.fromSnapshot(snapshot);
-    
+
     let binary = vol2.toBinarySnapshot();
     vol2 = new Volume();
     vol2.fromBinarySnapshot(binary);
-    
+
     let json = vol2.toJsonSnapshot();
     vol2 = new Volume();
     vol2.fromJsonSnapshot(json);
-    
+
     expect(vol2.readFileSync('/binary.bin') as Buffer).toEqual(buffer);
     expect(vol2.readFileSync('/text.txt', 'utf8')).toBe('😀 Unicode');
     expect(vol2.readlinkSync('/link')).toBe('/text.txt');

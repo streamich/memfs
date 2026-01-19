@@ -26,9 +26,6 @@ yarn typecheck
 echo "Running tests..."
 yarn test
 
-echo "Generating typedoc..."
-yarn typedoc
-
 echo -e "${GREEN}✓ Code quality verification completed${NC}\n"
 
 # Step 2: Prepare for release

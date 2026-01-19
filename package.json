@@ -48,7 +48,6 @@
     "tslint": "tslint \"src/**/*.ts\" -t verbose",
     "watch": "watch \"npm run build\" ./src",
     "coverage": "yarn test --collectCoverage",
-    "typedoc": "npx typedoc@0.25.13 --tsconfig tsconfig.json",
     "build:pages": "npx rimraf@5.0.5 gh-pages && mkdir -p gh-pages && cp -r typedocs/* gh-pages && cp -r coverage gh-pages/coverage"
   },
   "commitlint": {

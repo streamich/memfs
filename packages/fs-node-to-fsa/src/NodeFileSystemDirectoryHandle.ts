@@ -10,7 +10,7 @@ import {
 } from './util';
 import { NodeFileSystemFileHandle } from './NodeFileSystemFileHandle';
 import type { NodeFsaContext, NodeFsaFs } from './types';
-import type { Dirent } from '@jsonjoy.com/fs-node';
+import type { IDirent } from '@jsonjoy.com/fs-node-utils';
 import type {
   GetDirectoryHandleOptions,
   GetFileHandleOptions,
@@ -57,7 +57,7 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
     const { __path: path, fs, ctx } = this;
     const list = await fs.promises.readdir(path, { withFileTypes: true });
     for (const d of list) {
-      const dirent = d as Dirent;
+      const dirent = d as IDirent;
       const name = dirent.name + '';
       const newPath = path + name;
       if (dirent.isDirectory()) yield [name, new NodeFileSystemDirectoryHandle(fs, newPath, ctx)];

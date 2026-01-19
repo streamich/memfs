@@ -1,4 +1,4 @@
-import { IFsWithVolume, memfs } from '../..';
+import { memfs } from 'memfs';
 import { FileHandle } from '@jsonjoy.com/fs-node';
 import { createSwapFile } from '../NodeFileSystemWritableFileStream';
 

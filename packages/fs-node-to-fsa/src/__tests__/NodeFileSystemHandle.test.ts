@@ -1,6 +1,6 @@
-import { DirectoryJSON, memfs } from '../..';
+import { DirectoryJSON, memfs } from 'memfs';
 import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
-import { onlyOnNode20 } from '../../__tests__/util';
+import { onlyOnNode20 } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const { fs } = memfs(json, '/');

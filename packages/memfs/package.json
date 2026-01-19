@@ -127,6 +127,7 @@
     "tslib": "2"
   },
   "dependencies": {
+    "@jsonjoy.com/fs-core": "workspace:*",
     "@jsonjoy.com/json-pack": "^1.11.0",
     "@jsonjoy.com/node-fs-dependencies": "workspace:*",
     "@jsonjoy.com/node-fs-utils": "workspace:*",

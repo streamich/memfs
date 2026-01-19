@@ -1,3 +1,3 @@
-export { Node } from './core/Node';
-export { Link } from './core/Link';
-export { File } from './core/File';
+export { Node } from '@jsonjoy.com/fs-core';
+export { Link } from '@jsonjoy.com/fs-core';
+export { File } from '@jsonjoy.com/fs-core';

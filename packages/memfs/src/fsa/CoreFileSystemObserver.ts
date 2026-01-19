@@ -6,7 +6,7 @@ import type {
   IFileSystemObserverObserveOptions,
   IFileSystemSyncAccessHandle,
 } from './types';
-import type { Superblock } from '../core';
+import type { Superblock } from '@jsonjoy.com/fs-core';
 
 export class CoreFileSystemObserver implements IFileSystemObserver {
   constructor(

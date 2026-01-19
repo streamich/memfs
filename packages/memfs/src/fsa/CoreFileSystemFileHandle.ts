@@ -8,8 +8,8 @@ import type {
   IFileSystemFileHandle,
   IFileSystemSyncAccessHandle,
 } from './types';
-import type { Superblock } from '../core/Superblock';
-import { ERROR_CODE } from '../core/constants';
+import type { Superblock } from '@jsonjoy.com/fs-core';
+import { ERROR_CODE } from '@jsonjoy.com/fs-core';
 
 export class CoreFileSystemFileHandle extends CoreFileSystemHandle implements IFileSystemFileHandle {
   protected readonly ctx: CoreFsaContext;

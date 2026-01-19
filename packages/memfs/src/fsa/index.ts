@@ -5,7 +5,7 @@ import {
   IFileSystemObserver,
   IFileSystemObserverConstructable,
 } from './types';
-import { Superblock } from '../core/Superblock';
+import { Superblock } from '@jsonjoy.com/fs-core';
 import { CoreFileSystemObserver } from './CoreFileSystemObserver';
 
 export * from './types';

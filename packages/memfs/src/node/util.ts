@@ -4,10 +4,9 @@ import { Buffer, bufferFrom } from '@jsonjoy.com/node-fs-dependencies/lib/intern
 import { TEncodingExtended } from '../encoding';
 import queueMicrotask from '../queueMicrotask';
 import { Readable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
-import { dataToBuffer, validateFd } from '../core/util';
+import { dataToBuffer, validateFd, StatError } from '@jsonjoy.com/fs-core';
 import type { FsCallbackApi } from '@jsonjoy.com/node-fs-utils';
 import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
-import { StatError } from '../core/types';
 
 export function promisify(
   fs: FsCallbackApi,

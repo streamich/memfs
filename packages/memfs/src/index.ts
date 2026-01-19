@@ -1,7 +1,7 @@
 import Stats from './node/Stats';
 import Dirent from './node/Dirent';
 import { Volume, StatWatcher, FSWatcher, toUnixTimestamp, IWriteStream } from './node/volume';
-import { DirectoryJSON, NestedDirectoryJSON } from './core';
+import { DirectoryJSON, NestedDirectoryJSON } from '@jsonjoy.com/fs-core';
 import { constants } from '@jsonjoy.com/node-fs-utils';
 import type { FsPromisesApi } from '@jsonjoy.com/node-fs-utils';
 import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';

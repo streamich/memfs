@@ -10,7 +10,7 @@ import type {
   IReadFileOptions,
   IStatOptions,
   IWriteFileOptions,
-} from './options';
+} from '@jsonjoy.com/node-fs-utils/lib/types/options';
 import type { Readable, Writable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
 
 export { symlink };

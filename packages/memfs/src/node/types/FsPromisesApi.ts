@@ -1,6 +1,6 @@
 import type { constants } from '@jsonjoy.com/node-fs-utils';
+import type * as opts from '@jsonjoy.com/node-fs-utils/lib/types/options';
 import * as misc from './misc';
-import * as opts from './options';
 
 export interface FsPromisesApi {
   constants: typeof constants;

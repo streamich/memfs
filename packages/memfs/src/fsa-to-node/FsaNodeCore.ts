@@ -8,7 +8,7 @@ import * as util from '../node/util';
 import type * as fsa from '../fsa/types';
 import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import type { FsaNodeSyncAdapter } from './types';
-import { isFd } from '../core/util';
+import { isFd } from '@jsonjoy.com/fs-core';
 
 export class FsaNodeCore {
   protected static fd: number = 0x7fffffff;

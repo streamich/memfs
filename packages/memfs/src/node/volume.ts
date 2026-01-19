@@ -9,7 +9,8 @@ import {
   isAbsolute,
 } from '@jsonjoy.com/node-fs-dependencies/lib/path';
 import { FanOutUnsubscribe } from 'thingies/lib/fanout';
-import { Link, Superblock } from '../core';
+import { Link, Superblock, DirectoryJSON, NestedDirectoryJSON, ERROR_CODE, StatError, TFileId, dataToBuffer, filenameToSteps, isFd, validateFd, Ok, Result } from '@jsonjoy.com/fs-core';
+import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import StatFs from './StatFs';
@@ -68,11 +69,6 @@ import {
 import type { PathLike, symlink } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/node-fs-utils';
 import { Dir } from './Dir';
-import { DirectoryJSON, NestedDirectoryJSON } from '../core/json';
-import { ERROR_CODE } from '../core/constants';
-import { StatError, TFileId } from '../core/types';
-import { dataToBuffer, filenameToSteps, isFd, isWin, validateFd } from '../core/util';
-import { Ok, Result } from '../core/result';
 
 const resolveCrossPlatform = resolve;
 const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK, COPYFILE_EXCL, COPYFILE_FICLONE_FORCE } = constants;

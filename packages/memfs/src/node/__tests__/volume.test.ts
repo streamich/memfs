@@ -1,6 +1,6 @@
 import { promisify } from '@jsonjoy.com/node-fs-dependencies/lib/util';
 import { URL } from '@jsonjoy.com/node-fs-dependencies/lib/url';
-import { Link } from '../../core';
+import { Link, filenameToSteps } from '@jsonjoy.com/fs-core';
 import Stats from '../Stats';
 import Dirent from '../Dirent';
 import { Volume, StatWatcher } from '../volume';
@@ -9,7 +9,6 @@ import { tryGetChild, tryGetChildNode } from '../../__tests__/util';
 import { genRndStr6 } from '../util';
 import queueMicrotask from '../../queueMicrotask';
 import { constants } from '@jsonjoy.com/node-fs-utils';
-import { filenameToSteps } from '../../core/util';
 
 const { O_RDWR, O_SYMLINK } = constants;
 

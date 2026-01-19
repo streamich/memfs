@@ -1,7 +1,7 @@
 import type { IFileSystemSyncAccessHandle, FileSystemReadWriteOptions, CoreFsaContext } from './types';
-import type { Superblock } from '../core/Superblock';
+import type { Superblock } from '@jsonjoy.com/fs-core';
+import { ERROR_CODE } from '@jsonjoy.com/fs-core';
 import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
-import { ERROR_CODE } from '../core/constants';
 import { newNotAllowedError } from './util';
 import { FLAGS } from '@jsonjoy.com/node-fs-utils';
 

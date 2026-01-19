@@ -5,8 +5,8 @@ Yarn workspaces monorepo with packages:
 ## Packages
 
 - **memfs** - In-memory file system with Node.js `fs` API
-- **node-fs-dependencies** - Node.js standard library polyfills (fs, events, stream)
-- **node-fs-utils** - Utility types and helpers for `fs` operations
+- **fs-node-builtins** - Node.js standard library polyfills (fs, events, stream)
+- **fs-node-utils** - Utility types and helpers for `fs` operations
 
 ## Common Commands
 

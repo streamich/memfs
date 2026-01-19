@@ -1,0 +1,50 @@
+import { printTree } from 'tree-dump';
+import { basename, FsSynchronousApi, type IDirent } from '@jsonjoy.com/fs-node-utils';
+
+export const toTreeSync = (fs: FsSynchronousApi, opts: ToTreeOptions = {}) => {
+  const separator = opts.separator || '/';
+  let dir = opts.dir || separator;
+  if (dir[dir.length - 1] !== separator) dir += separator;
+  const tab = opts.tab || '';
+  const depth = opts.depth ?? 10;
+  const sort = opts.sort ?? true;
+  let subtree = ' (...)';
+  if (depth > 0) {
+    const list = fs.readdirSync(dir, { withFileTypes: true }) as IDirent[];
+    if (sort) {
+      list.sort((a, b) => {
+        if (a.isDirectory() && b.isDirectory()) {
+          return a.name.toString().localeCompare(b.name.toString());
+        } else if (a.isDirectory()) {
+          return -1;
+        } else if (b.isDirectory()) {
+          return 1;
+        } else {
+          return a.name.toString().localeCompare(b.name.toString());
+        }
+      });
+    }
+    subtree = printTree(
+      tab,
+      list.map(entry => tab => {
+        if (entry.isDirectory()) {
+          return toTreeSync(fs, { dir: dir + entry.name, depth: depth - 1, tab });
+        } else if (entry.isSymbolicLink()) {
+          return '' + entry.name + ' → ' + fs.readlinkSync(dir + entry.name);
+        } else {
+          return '' + entry.name;
+        }
+      }),
+    );
+  }
+  const base = basename(dir, separator) + separator;
+  return base + subtree;
+};
+
+export interface ToTreeOptions {
+  dir?: string;
+  tab?: string;
+  depth?: number;
+  separator?: '/' | '\\';
+  sort?: boolean;
+}

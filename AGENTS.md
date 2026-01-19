@@ -2,3 +2,4 @@
 - Use Angular style commits, e.g `feat: implemented xyz`.
 - Make sure tests (`yarn test`) pass.
 - In the end, make sure linter and formatter pass.
+- Do not every Git commit or push without explicit review by USER.

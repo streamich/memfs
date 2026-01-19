@@ -1,0 +1,88 @@
+{
+  "name": "@jsonjoy.com/fs-fsa",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "4.55.0",
+  "description": "File System Access API implementation backed by core filesystem primitives",
+  "author": {
+    "name": "streamich",
+    "url": "https://github.com/streamich"
+  },
+  "homepage": "https://github.com/streamich/memfs/tree/master/packages/fs-fsa",
+  "repository": "streamich/memfs",
+  "license": "Apache-2.0",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/streamich"
+  },
+  "keywords": [
+    "fsa",
+    "file system access",
+    "native file system",
+    "webfs",
+    "opfs",
+    "fs",
+    "filesystem",
+    "virtual",
+    "memory"
+  ],
+  "engines": {
+    "node": ">=10.0"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "LICENSE",
+    "lib/"
+  ],
+  "scripts": {
+    "clean": "rimraf lib typedocs coverage gh-pages yarn-error.log",
+    "build": "tsc --project tsconfig.build.json --module commonjs --target es2020 --outDir lib",
+    "jest": "node -r ts-node/register ./node_modules/.bin/jest",
+    "test": "jest --maxWorkers 7",
+    "test:ci": "yarn jest --maxWorkers 3 --no-cache",
+    "coverage": "yarn test --collectCoverage",
+    "typedoc": "typedoc",
+    "typecheck": "tsc -p ."
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "tsx"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "transformIgnorePatterns": [
+      ".*/node_modules/.*"
+    ],
+    "testRegex": ".*/(__tests__|__jest__|demo)/.*\\.(test|spec)\\.tsx?$",
+    "rootDir": ".",
+    "testPathIgnorePatterns": [
+      "node_modules"
+    ]
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0",
+    "rimraf": "^5.0.0",
+    "ts-jest": "^29.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "peerDependencies": {
+    "tslib": "2"
+  },
+  "dependencies": {
+    "@jsonjoy.com/fs-core": "workspace:*",
+    "@jsonjoy.com/fs-node-builtins": "workspace:*",
+    "@jsonjoy.com/fs-node-utils": "workspace:*",
+    "thingies": "^2.5.0"
+  }
+}

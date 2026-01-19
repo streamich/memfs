@@ -1,12 +1,19 @@
-import Stats from './node/Stats';
-import Dirent from './node/Dirent';
-import { Volume, StatWatcher, FSWatcher, toUnixTimestamp, IWriteStream } from './node/volume';
-import { DirectoryJSON, NestedDirectoryJSON } from './core';
-import { constants } from './constants';
-import type { FsPromisesApi } from './node/types';
-import type * as misc from './node/types/misc';
-import { fsSynchronousApiList } from './node/lists/fsSynchronousApiList';
-import { fsCallbackApiList } from './node/lists/fsCallbackApiList';
+import {
+  Stats,
+  Dirent,
+  Volume,
+  StatWatcher,
+  FSWatcher,
+  toUnixTimestamp,
+  fsSynchronousApiList,
+  fsCallbackApiList,
+} from '@jsonjoy.com/fs-node';
+import type { IWriteStream } from '@jsonjoy.com/fs-node';
+import { DirectoryJSON, NestedDirectoryJSON } from '@jsonjoy.com/fs-core';
+import { constants } from '@jsonjoy.com/fs-node-utils';
+import type { FsPromisesApi } from '@jsonjoy.com/fs-node-utils';
+import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
+
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
 export { DirectoryJSON, NestedDirectoryJSON, Volume };

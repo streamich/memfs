@@ -1,5 +1,5 @@
-import { Node, Link } from '../node';
-import { constants } from '../constants';
+import { Node } from '@jsonjoy.com/fs-core';
+import { constants } from '@jsonjoy.com/fs-node-utils';
 
 describe('node.ts', () => {
   describe('Node', () => {

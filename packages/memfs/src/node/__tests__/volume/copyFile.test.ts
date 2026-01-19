@@ -1,5 +1,5 @@
 import { create, multitest } from '../../../__tests__/util';
-import { constants } from '@jsonjoy.com/node-fs-utils';
+import { constants } from '@jsonjoy.com/fs-node-utils';
 
 describe('copyFile(src, dest[, flags], callback)', () => {
   it('method exists', () => {

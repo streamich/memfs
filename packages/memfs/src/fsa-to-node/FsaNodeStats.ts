@@ -1,4 +1,4 @@
-import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
+import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 
 const time: number = 0;
 const timex: bigint = typeof BigInt === 'function' ? BigInt(time) : (time as any as bigint);

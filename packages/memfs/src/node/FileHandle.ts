@@ -1,6 +1,6 @@
 import { promisify } from './util';
-import { EventEmitter } from '@jsonjoy.com/node-fs-dependencies/lib/events';
-import type * as opts from '@jsonjoy.com/node-fs-utils/lib/types/options';
+import { EventEmitter } from '@jsonjoy.com/fs-node-builtins/lib/events';
+import type * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import type {
   IFileHandle,
   IReadStream,
@@ -10,8 +10,8 @@ import type {
   TDataOut,
   TMode,
   TTime,
-} from '@jsonjoy.com/node-fs-utils/lib/types/misc';
-import type { FsCallbackApi } from '@jsonjoy.com/node-fs-utils';
+} from '@jsonjoy.com/fs-node-utils/lib/types/misc';
+import type { FsCallbackApi } from '@jsonjoy.com/fs-node-utils';
 
 export class FileHandle extends EventEmitter implements IFileHandle {
   private fs: FsCallbackApi;

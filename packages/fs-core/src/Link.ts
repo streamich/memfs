@@ -1,4 +1,4 @@
-import { constants, PATH } from '@jsonjoy.com/node-fs-utils';
+import { constants, PATH } from '@jsonjoy.com/fs-node-utils';
 import { FanOut } from 'thingies/lib/fanout';
 import type { Node } from './Node';
 import type { Superblock } from './Superblock';

@@ -7,7 +7,7 @@ import {
   normalize,
   posix,
   isAbsolute,
-} from '@jsonjoy.com/node-fs-dependencies/lib/path';
+} from '@jsonjoy.com/fs-node-builtins/lib/path';
 import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import {
   Link,
@@ -28,22 +28,22 @@ import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import StatFs from './StatFs';
-import { Buffer, bufferAllocUnsafe, bufferFrom } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
+import { Buffer, bufferAllocUnsafe, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import queueMicrotask from '../queueMicrotask';
-import setTimeoutUnref, { TSetTimeout } from '@jsonjoy.com/node-fs-utils/lib/setTimeoutUnref';
-import { Readable, Writable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
-import { constants } from '@jsonjoy.com/node-fs-utils';
-import { EventEmitter } from '@jsonjoy.com/node-fs-dependencies/lib/events';
+import setTimeoutUnref, { TSetTimeout } from '@jsonjoy.com/fs-node-utils/lib/setTimeoutUnref';
+import { Readable, Writable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
+import { constants } from '@jsonjoy.com/fs-node-utils';
+import { EventEmitter } from '@jsonjoy.com/fs-node-builtins/lib/events';
 import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from '../encoding';
 import { FileHandle } from './FileHandle';
-import { inherits } from '@jsonjoy.com/node-fs-dependencies/lib/util';
-import * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
-import * as opts from '@jsonjoy.com/node-fs-utils/lib/types/options';
-import { FsCallbackApi, WritevCallback } from '@jsonjoy.com/node-fs-utils/lib/types/FsCallbackApi';
+import { inherits } from '@jsonjoy.com/fs-node-builtins/lib/util';
+import * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
+import * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
+import { FsCallbackApi, WritevCallback } from '@jsonjoy.com/fs-node-utils/lib/types/FsCallbackApi';
 import { FsPromises } from './FsPromises';
 import { ToTreeOptions, toTreeSync } from '../print';
-import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/node-fs-utils';
-import * as errors from '@jsonjoy.com/node-fs-dependencies/lib/internal/errors';
+import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/fs-node-utils';
+import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import {
   getDefaultOpts,
   getDefaultOptsAndCb,
@@ -80,8 +80,8 @@ import {
   bufferToEncoding,
   getWriteSyncArgs,
 } from './util';
-import type { PathLike, symlink } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
-import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/node-fs-utils';
+import type { PathLike, symlink } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
+import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/fs-node-utils';
 import { Dir } from './Dir';
 
 const resolveCrossPlatform = resolve;

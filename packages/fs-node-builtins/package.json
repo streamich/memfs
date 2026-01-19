@@ -1,5 +1,5 @@
 {
-  "name": "@jsonjoy.com/node-fs-dependencies",
+  "name": "@jsonjoy.com/fs-node-builtins",
   "publishConfig": {
     "access": "public"
   },
@@ -9,7 +9,7 @@
     "name": "streamich",
     "url": "https://github.com/streamich"
   },
-  "homepage": "https://github.com/streamich/memfs/tree/master/packages/node-fs-dependencies",
+  "homepage": "https://github.com/streamich/memfs/tree/master/packages/fs-node-builtins",
   "repository": "streamich/memfs",
   "license": "Apache-2.0",
   "funding": {

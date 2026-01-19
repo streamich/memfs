@@ -1,5 +1,5 @@
 import { create } from '../../../__tests__/util';
-import { constants } from '@jsonjoy.com/node-fs-utils';
+import { constants } from '@jsonjoy.com/fs-node-utils';
 
 describe('copyFileSync(src, dest[, flags])', () => {
   it('method exists', () => {

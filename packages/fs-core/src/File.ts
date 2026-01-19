@@ -1,5 +1,5 @@
-import { constants } from '@jsonjoy.com/node-fs-utils';
-import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
+import { constants } from '@jsonjoy.com/fs-node-utils';
+import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import type { Link } from './Link';
 import type { Node } from './Node';
 

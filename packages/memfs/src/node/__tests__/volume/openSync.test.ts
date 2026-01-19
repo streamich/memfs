@@ -1,5 +1,5 @@
 import { createFs } from '../../../__tests__/util';
-import { normalize, dirname } from '@jsonjoy.com/node-fs-dependencies/lib/path';
+import { normalize, dirname } from '@jsonjoy.com/fs-node-builtins/lib/path';
 
 describe('openSync(path, mode[, flags])', () => {
   it('should return a file descriptor', () => {

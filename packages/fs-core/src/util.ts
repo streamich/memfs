@@ -1,10 +1,10 @@
-import { resolve as pathResolve, sep, posix } from '@jsonjoy.com/node-fs-dependencies/lib/path';
-import { Buffer, bufferFrom } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
-import * as errors from '@jsonjoy.com/node-fs-dependencies/lib/internal/errors';
+import { resolve as pathResolve, sep, posix } from '@jsonjoy.com/fs-node-builtins/lib/path';
+import { Buffer, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
+import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import process from './process';
 import { TDataOut, TEncodingExtended, ENCODING_UTF8 } from './encoding';
-import { ERRSTR } from '@jsonjoy.com/node-fs-utils';
-import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
+import { ERRSTR } from '@jsonjoy.com/fs-node-utils';
+import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import type { StatError } from './types';
 
 export const isWin = process.platform === 'win32';

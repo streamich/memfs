@@ -1,7 +1,7 @@
-import type { PathLike as NodePathLike, symlink } from '@jsonjoy.com/node-fs-dependencies/lib/fs';
-import type { constants } from '@jsonjoy.com/node-fs-utils';
-import type { EventEmitter } from '@jsonjoy.com/node-fs-dependencies/lib/events';
-import type { TSetTimeout } from '@jsonjoy.com/node-fs-utils/lib/setTimeoutUnref';
+import type { PathLike as NodePathLike, symlink } from '@jsonjoy.com/fs-node-builtins/lib/fs';
+import type { constants } from '@jsonjoy.com/fs-node-utils';
+import type { EventEmitter } from '@jsonjoy.com/fs-node-builtins/lib/events';
+import type { TSetTimeout } from '@jsonjoy.com/fs-node-utils/lib/setTimeoutUnref';
 import type {
   IAppendFileOptions,
   IFileHandleReadStreamOptions,
@@ -10,8 +10,8 @@ import type {
   IReadFileOptions,
   IStatOptions,
   IWriteFileOptions,
-} from '@jsonjoy.com/node-fs-utils/lib/types/options';
-import type { Readable, Writable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
+} from '@jsonjoy.com/fs-node-utils/lib/types/options';
+import type { Readable, Writable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 
 export { symlink };
 

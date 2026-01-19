@@ -1,11 +1,11 @@
-import { sep, relative, join, dirname, isAbsolute, basename, posix } from '@jsonjoy.com/node-fs-dependencies/lib/path';
+import { sep, relative, join, dirname, isAbsolute, basename, posix } from '@jsonjoy.com/fs-node-builtins/lib/path';
 import { Node } from './Node';
 import { Link } from './Link';
 import { File } from './File';
-import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
+import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import process from './process';
-import { constants } from '@jsonjoy.com/node-fs-utils';
-import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/node-fs-utils';
+import { constants } from '@jsonjoy.com/fs-node-utils';
+import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/fs-node-utils';
 import {
   pathToFilename,
   createError,
@@ -17,7 +17,7 @@ import {
   validateFd,
 } from './util';
 import { DirectoryJSON, flattenJSON, NestedDirectoryJSON } from './json';
-import type { PathLike } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
+import type { PathLike } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import { ERROR_CODE } from './constants';
 import { TFileId, StatError } from './types';
 import { Err, Ok, Result } from './result';

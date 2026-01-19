@@ -1,5 +1,5 @@
-import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
-import { join, posix } from '@jsonjoy.com/node-fs-dependencies/lib/path';
+import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
+import { join, posix } from '@jsonjoy.com/fs-node-builtins/lib/path';
 
 const pathJoin = posix ? posix.join : join;
 

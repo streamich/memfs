@@ -20,8 +20,8 @@ import type {
 } from './types';
 import type { Superblock } from '@jsonjoy.com/fs-core';
 import { ERROR_CODE } from '@jsonjoy.com/fs-core';
-import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
-import { MODE, FLAGS } from '@jsonjoy.com/node-fs-utils';
+import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
+import { MODE, FLAGS } from '@jsonjoy.com/fs-node-utils';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle

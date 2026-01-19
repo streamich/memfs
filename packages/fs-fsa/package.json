@@ -81,8 +81,8 @@
   },
   "dependencies": {
     "@jsonjoy.com/fs-core": "workspace:*",
-    "@jsonjoy.com/node-fs-dependencies": "workspace:*",
-    "@jsonjoy.com/node-fs-utils": "workspace:*",
+    "@jsonjoy.com/fs-node-builtins": "workspace:*",
+    "@jsonjoy.com/fs-node-utils": "workspace:*",
     "thingies": "^2.5.0"
   }
 }

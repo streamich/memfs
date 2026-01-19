@@ -1,7 +1,7 @@
 import { NestedDirectoryJSON, memfs } from '../..';
-import { AMODE, FLAG } from '@jsonjoy.com/node-fs-utils';
+import { AMODE, FLAG } from '@jsonjoy.com/fs-node-utils';
 import { nodeToFsa } from '../../node-to-fsa';
-import { IDirent, IStats } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
+import { IDirent, IStats } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
 import { of } from 'thingies';
 import { onlyOnNode20 } from '../../__tests__/util';

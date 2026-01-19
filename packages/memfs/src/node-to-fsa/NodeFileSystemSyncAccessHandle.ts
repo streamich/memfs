@@ -1,5 +1,5 @@
 import { assertCanWrite } from './util';
-import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
+import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import type { FileSystemReadWriteOptions, IFileSystemSyncAccessHandle } from '@jsonjoy.com/fs-fsa';
 import type { NodeFsaContext, NodeFsaFs } from './types';
 

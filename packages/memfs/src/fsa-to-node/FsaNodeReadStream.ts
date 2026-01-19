@@ -1,9 +1,9 @@
-import { Readable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
+import { Readable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 import { Defer } from 'thingies/lib/Defer';
 import { concurrency } from 'thingies/lib/concurrency';
 import type { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
-import type { IReadStream } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
-import type { IReadStreamOptions } from '@jsonjoy.com/node-fs-utils/lib/types/options';
+import type { IReadStream } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
+import type { IReadStreamOptions } from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import type { FsaNodeFs } from './FsaNodeFs';
 
 export class FsaNodeReadStream extends Readable implements IReadStream {

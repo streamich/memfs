@@ -1,6 +1,6 @@
-import type { PathLike as NodePathLike, symlink } from '@jsonjoy.com/node-fs-dependencies/lib/fs';
+import type { PathLike as NodePathLike, symlink } from '@jsonjoy.com/fs-node-builtins/lib/fs';
 import type { constants } from '../constants';
-import type { EventEmitter } from '@jsonjoy.com/node-fs-dependencies/lib/events';
+import type { EventEmitter } from '@jsonjoy.com/fs-node-builtins/lib/events';
 import type { TSetTimeout } from '../setTimeoutUnref';
 import type {
   IAppendFileOptions,
@@ -11,7 +11,7 @@ import type {
   IStatOptions,
   IWriteFileOptions,
 } from './options';
-import type { Readable, Writable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
+import type { Readable, Writable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 
 export { symlink };
 

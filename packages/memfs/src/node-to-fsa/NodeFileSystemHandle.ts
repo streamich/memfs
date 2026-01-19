@@ -1,4 +1,4 @@
-import { AMODE } from '@jsonjoy.com/node-fs-utils';
+import { AMODE } from '@jsonjoy.com/fs-node-utils';
 import { NodePermissionStatus } from './NodePermissionStatus';
 import type { IFileSystemHandle, FileSystemHandlePermissionDescriptor } from '@jsonjoy.com/fs-fsa';
 import type { NodeFsaFs, NodeFsaContext } from './types';

@@ -1,5 +1,5 @@
-import { promisify } from '@jsonjoy.com/node-fs-dependencies/lib/util';
-import { URL } from '@jsonjoy.com/node-fs-dependencies/lib/url';
+import { promisify } from '@jsonjoy.com/fs-node-builtins/lib/util';
+import { URL } from '@jsonjoy.com/fs-node-builtins/lib/url';
 import { Link, filenameToSteps } from '@jsonjoy.com/fs-core';
 import Stats from '../Stats';
 import Dirent from '../Dirent';
@@ -8,7 +8,7 @@ import hasBigInt from '../../__tests__/hasBigInt';
 import { tryGetChild, tryGetChildNode } from '../../__tests__/util';
 import { genRndStr6 } from '../util';
 import queueMicrotask from '../../queueMicrotask';
-import { constants } from '@jsonjoy.com/node-fs-utils';
+import { constants } from '@jsonjoy.com/fs-node-utils';
 
 const { O_RDWR, O_SYMLINK } = constants;
 

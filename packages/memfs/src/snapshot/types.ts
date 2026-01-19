@@ -1,4 +1,4 @@
-import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/node-fs-utils';
+import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/fs-node-utils';
 import type { SnapshotNodeType } from './constants';
 
 export interface SnapshotOptions {

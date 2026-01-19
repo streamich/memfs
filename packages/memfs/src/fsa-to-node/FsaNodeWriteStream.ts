@@ -1,13 +1,13 @@
-import { Writable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
+import { Writable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 import { Defer } from 'thingies/lib/Defer';
 import { concurrency } from 'thingies/lib/concurrency';
 import { flagsToNumber } from '../node/util';
-import { FLAG_CON } from '@jsonjoy.com/node-fs-utils';
+import { FLAG_CON } from '@jsonjoy.com/fs-node-utils';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import queueMicrotask from '../queueMicrotask';
 import type { IFileSystemWritableFileStream } from '@jsonjoy.com/fs-fsa';
-import type { IWriteStream } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
-import type { IWriteStreamOptions } from '@jsonjoy.com/node-fs-utils/lib/types/options';
+import type { IWriteStream } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
+import type { IWriteStreamOptions } from '@jsonjoy.com/fs-node-utils/lib/types/options';
 
 /**
  * This WriteStream implementation does not build on top of the `fs` module,

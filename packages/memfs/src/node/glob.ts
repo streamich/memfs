@@ -1,6 +1,6 @@
-import { posix } from '@jsonjoy.com/node-fs-dependencies/lib/path';
+import { posix } from '@jsonjoy.com/fs-node-builtins/lib/path';
 import { toRegex } from 'glob-to-regex.js';
-import { IGlobOptions } from '@jsonjoy.com/node-fs-utils/lib/types/options';
+import { IGlobOptions } from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import { pathToFilename } from './util';
 import Dirent from './Dirent';
 

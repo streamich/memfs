@@ -1,5 +1,5 @@
-import type { constants } from '@jsonjoy.com/node-fs-utils';
-import type * as opts from '@jsonjoy.com/node-fs-utils/lib/types/options';
+import type { constants } from '@jsonjoy.com/fs-node-utils';
+import type * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import * as misc from './misc';
 
 export interface FsPromisesApi {

@@ -1,12 +1,12 @@
 import { createError, pathToFilename } from '../node/util';
 import { pathToLocation } from './util';
-import { ERRSTR } from '@jsonjoy.com/node-fs-utils';
+import { ERRSTR } from '@jsonjoy.com/fs-node-utils';
 import { FsaToNodeConstants } from './constants';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
-import { FLAG_CON } from '@jsonjoy.com/node-fs-utils';
+import { FLAG_CON } from '@jsonjoy.com/fs-node-utils';
 import * as util from '../node/util';
 import type * as fsa from '@jsonjoy.com/fs-fsa';
-import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
+import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import type { FsaNodeSyncAdapter } from './types';
 import { isFd } from '@jsonjoy.com/fs-core';
 

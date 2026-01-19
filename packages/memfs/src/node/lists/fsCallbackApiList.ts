@@ -1,4 +1,4 @@
-import type { FsCallbackApi } from '@jsonjoy.com/node-fs-utils';
+import type { FsCallbackApi } from '@jsonjoy.com/fs-node-utils';
 
 export const fsCallbackApiList: Array<keyof FsCallbackApi> = [
   'access',

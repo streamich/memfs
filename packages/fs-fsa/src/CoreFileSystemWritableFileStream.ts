@@ -1,9 +1,9 @@
 import type { IFileSystemWritableFileStream, FileSystemWritableFileStreamParams, Data, CoreFsaContext } from './types';
 import type { Superblock } from '@jsonjoy.com/fs-core';
 import { ERROR_CODE } from '@jsonjoy.com/fs-core';
-import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
+import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import { newNotAllowedError, newNoModificationAllowedError } from './util';
-import { FLAGS, MODE } from '@jsonjoy.com/node-fs-utils';
+import { FLAGS, MODE } from '@jsonjoy.com/fs-node-utils';
 
 declare const require: any;
 const WS = (

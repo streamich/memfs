@@ -1,5 +1,5 @@
-import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/node-fs-utils';
-import type { FsCommonObjects } from '@jsonjoy.com/node-fs-utils/lib/types/FsCommonObjects';
+import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/fs-node-utils';
+import type { FsCommonObjects } from '@jsonjoy.com/fs-node-utils/lib/types/FsCommonObjects';
 import type { FileLockManager } from '@jsonjoy.com/fs-fsa';
 
 /**

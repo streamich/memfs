@@ -1,7 +1,7 @@
 import { FanOut } from 'thingies/lib/fanout';
 import process from './process';
-import { Buffer, bufferAllocUnsafe, bufferFrom } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
-import { constants, S } from '@jsonjoy.com/node-fs-utils';
+import { Buffer, bufferAllocUnsafe, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
+import { constants, S } from '@jsonjoy.com/fs-node-utils';
 
 export type NodeEventModify = [type: 'modify'];
 

@@ -1,4 +1,5 @@
 import { createError, pathToFilename } from '@jsonjoy.com/fs-node';
+import { isFd } from '@jsonjoy.com/fs-core';
 import { pathToLocation } from './util';
 import { ERRSTR } from '@jsonjoy.com/fs-node-utils';
 import { FsaToNodeConstants } from './constants';
@@ -8,7 +9,6 @@ import * as util from '@jsonjoy.com/fs-node';
 import type * as fsa from '@jsonjoy.com/fs-fsa';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import type { FsaNodeSyncAdapter } from './types';
-import { isFd } from '@jsonjoy.com/fs-core';
 
 export class FsaNodeCore {
   protected static fd: number = 0x7fffffff;

@@ -1,8 +1,9 @@
-import { memfs, NestedDirectoryJSON } from '../..';
-import { nodeToFsa } from '../../node-to-fsa';
+import { memfs } from 'memfs';
+import type { NestedDirectoryJSON } from 'memfs';
+import { nodeToFsa } from '@jsonjoy.com/fs-node-to-fsa';
 import { IDirent } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
-import { onlyOnNode20 } from '../../__tests__/util';
+import { onlyOnNode20 } from './util';
 
 const setup = (json: NestedDirectoryJSON | null = null, mode: 'read' | 'readwrite' = 'readwrite') => {
   const { fs: mfs, vol } = memfs({ mountpoint: json });

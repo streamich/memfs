@@ -1,2 +1,1 @@
-export { FsaNodeFs } from './FsaNodeFs';
-export { FsaNodeSyncAdapterWorker } from './worker/FsaNodeSyncAdapterWorker';
+export * from '@jsonjoy.com/fs-fsa-to-node';

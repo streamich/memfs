@@ -4,7 +4,6 @@ import { concurrency } from 'thingies/lib/concurrency';
 import { flagsToNumber } from '../node/util';
 import { FLAG_CON } from '@jsonjoy.com/fs-node-utils';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
-import queueMicrotask from '../queueMicrotask';
 import type { IFileSystemWritableFileStream } from '@jsonjoy.com/fs-fsa';
 import type { IWriteStream } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import type { IWriteStreamOptions } from '@jsonjoy.com/fs-node-utils/lib/types/options';

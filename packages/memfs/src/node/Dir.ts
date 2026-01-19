@@ -1,4 +1,4 @@
-import { Link } from '../node';
+import { Link } from '@jsonjoy.com/fs-core';
 import { validateCallback } from './util';
 import * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import Dirent from './Dirent';

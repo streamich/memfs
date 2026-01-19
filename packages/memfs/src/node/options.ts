@@ -1,6 +1,5 @@
 import type * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
-import { FLAGS, MODE } from '@jsonjoy.com/fs-node-utils';
-import { assertEncoding } from '../encoding';
+import { FLAGS, MODE, assertEncoding } from '@jsonjoy.com/fs-node-utils';
 import * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import { validateCallback } from './util';
 import { IAppendFileOptions } from './volume';

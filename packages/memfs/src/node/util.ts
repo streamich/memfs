@@ -1,8 +1,6 @@
-import { ERRSTR, FLAGS } from '@jsonjoy.com/fs-node-utils';
+import { ERRSTR, FLAGS, TEncodingExtended } from '@jsonjoy.com/fs-node-utils';
 import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import { Buffer, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
-import { TEncodingExtended } from '../encoding';
-import queueMicrotask from '../queueMicrotask';
 import { Readable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 import { dataToBuffer, validateFd, StatError } from '@jsonjoy.com/fs-core';
 import type { FsCallbackApi } from '@jsonjoy.com/fs-node-utils';

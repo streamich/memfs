@@ -1,5 +1,5 @@
 import { create, tryGetChildNode } from '../../../__tests__/util';
-import { Node } from '../../../node';
+import { Node } from '@jsonjoy.com/fs-core';
 
 describe('writeFileSync(path, data[, options])', () => {
   const data = 'asdfasidofjasdf';

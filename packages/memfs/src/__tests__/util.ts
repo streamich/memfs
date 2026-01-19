@@ -1,5 +1,5 @@
 import { createFsFromVolume, Volume } from '..';
-import { Link, Node } from '../node';
+import { Link, Node } from '@jsonjoy.com/fs-core';
 
 // Turn the done callback into an incremental one that will only fire after being called
 // `times` times, failing with the first reported error if such exists.

@@ -1,6 +1,5 @@
-import { Link } from '../node';
-import { constants } from '@jsonjoy.com/fs-node-utils';
-import { TEncodingExtended, strToEncoding, TDataOut } from '../encoding';
+import { Link } from '@jsonjoy.com/fs-core';
+import { constants, TEncodingExtended, strToEncoding, TDataOut } from '@jsonjoy.com/fs-node-utils';
 import type { IDirent } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 
 const { S_IFMT, S_IFDIR, S_IFREG, S_IFBLK, S_IFCHR, S_IFLNK, S_IFIFO, S_IFSOCK } = constants;

@@ -7,7 +7,6 @@ import { Volume, StatWatcher } from '../volume';
 import hasBigInt from '../../__tests__/hasBigInt';
 import { tryGetChild, tryGetChildNode } from '../../__tests__/util';
 import { genRndStr6 } from '../util';
-import queueMicrotask from '../../queueMicrotask';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 
 const { O_RDWR, O_SYMLINK } = constants;

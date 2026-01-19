@@ -1,4 +1,4 @@
-import { memfs } from '../..';
+import { createMockFs } from './testUtils';
 import * as binary from '../binary';
 
 const data = {
@@ -21,7 +21,7 @@ const data = {
 };
 
 test('sync and async snapshots are equivalent', async () => {
-  const { fs } = memfs(data);
+  const { fs } = createMockFs(data);
   fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
   fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
   const snapshot1 = binary.toBinarySnapshotSync({ fs: fs, path: '/start' })!;
@@ -31,11 +31,11 @@ test('sync and async snapshots are equivalent', async () => {
 
 describe('synchronous', () => {
   test('can create a binary snapshot and un-snapshot it back', () => {
-    const { fs } = memfs(data);
+    const { fs } = createMockFs(data);
     fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
     fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
     const snapshot = binary.toBinarySnapshotSync({ fs, path: '/start' })!;
-    const { fs: fs2, vol: vol2 } = memfs();
+    const { fs: fs2 } = createMockFs();
     fs2.mkdirSync('/start', { recursive: true });
     binary.fromBinarySnapshotSync(snapshot, { fs: fs2, path: '/start' });
     expect(fs2.readFileSync('/start/binary')).toStrictEqual(Buffer.from([1, 2, 3]));
@@ -46,11 +46,11 @@ describe('synchronous', () => {
 
 describe('asynchronous', () => {
   test('can create a binary snapshot and un-snapshot it back', async () => {
-    const { fs } = memfs(data);
+    const { fs } = createMockFs(data);
     fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
     fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
     const snapshot = await binary.toBinarySnapshot({ fs: fs.promises, path: '/start' })!;
-    const { fs: fs2, vol: vol2 } = memfs();
+    const { fs: fs2 } = createMockFs();
     fs2.mkdirSync('/start', { recursive: true });
     await binary.fromBinarySnapshot(snapshot, { fs: fs2.promises, path: '/start' });
     expect(fs2.readFileSync('/start/binary')).toStrictEqual(Buffer.from([1, 2, 3]));

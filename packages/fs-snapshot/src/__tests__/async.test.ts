@@ -1,9 +1,9 @@
 import { fromSnapshot, toSnapshot } from '../async';
-import { memfs } from '../..';
+import { createMockFs } from './testUtils';
 import { SnapshotNodeType } from '../constants';
 
 test('can snapshot a single file', async () => {
-  const { fs } = memfs({
+  const { fs } = createMockFs({
     '/foo': 'bar',
   });
   const snapshot = await toSnapshot({ fs: fs.promises, path: '/foo' });
@@ -11,7 +11,7 @@ test('can snapshot a single file', async () => {
 });
 
 test('can snapshot a single folder', async () => {
-  const { fs } = memfs({
+  const { fs } = createMockFs({
     '/foo': null,
   });
   const snapshot = await toSnapshot({ fs: fs.promises, path: '/foo' });
@@ -19,7 +19,7 @@ test('can snapshot a single folder', async () => {
 });
 
 test('can snapshot a folder with a file and symlink', async () => {
-  const { fs } = memfs({
+  const { fs } = createMockFs({
     '/foo': 'bar',
   });
   fs.symlinkSync('/foo', '/baz');
@@ -28,14 +28,14 @@ test('can snapshot a folder with a file and symlink', async () => {
     SnapshotNodeType.Folder,
     expect.any(Object),
     {
-      foo: [SnapshotNodeType.File, expect.any(Object), new Uint8Array([98, 97, 114])],
       baz: [SnapshotNodeType.Symlink, { target: '/foo' }],
+      foo: [SnapshotNodeType.File, expect.any(Object), new Uint8Array([98, 97, 114])],
     },
   ]);
 });
 
 test('can create a snapshot and un-snapshot a complex fs tree', async () => {
-  const { fs } = memfs({
+  const { fs } = createMockFs({
     '/start': {
       file1: 'file1',
       file2: 'file2',
@@ -56,7 +56,7 @@ test('can create a snapshot and un-snapshot a complex fs tree', async () => {
   fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
   fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
   const snapshot = await toSnapshot({ fs: fs.promises, path: '/start' })!;
-  const { fs: fs2, vol: vol2 } = memfs();
+  const { fs: fs2 } = createMockFs();
   fs2.mkdirSync('/start', { recursive: true });
   await fromSnapshot(snapshot, { fs: fs2.promises, path: '/start' });
   expect(fs2.readFileSync('/start/binary')).toStrictEqual(Buffer.from([1, 2, 3]));

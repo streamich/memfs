@@ -1,4 +1,4 @@
-import { memfs } from '../..';
+import { createMockFs } from './testUtils';
 import { SnapshotNodeType } from '../constants';
 import * as json from '../json';
 
@@ -22,7 +22,7 @@ const data = {
 };
 
 test('snapshot is a valid JSON', () => {
-  const { fs } = memfs(data);
+  const { fs } = createMockFs(data);
   fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
   fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
   const snapshot = json.toJsonSnapshotSync({ fs, path: '/start' })!;
@@ -32,7 +32,7 @@ test('snapshot is a valid JSON', () => {
 });
 
 test('sync and async snapshots are equivalent', async () => {
-  const { fs } = memfs(data);
+  const { fs } = createMockFs(data);
   fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
   fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
   const snapshot1 = await json.toJsonSnapshotSync({ fs: fs, path: '/start' })!;
@@ -41,12 +41,12 @@ test('sync and async snapshots are equivalent', async () => {
 });
 
 describe('synchronous', () => {
-  test('can create a binary snapshot and un-snapshot it back', () => {
-    const { fs } = memfs(data);
+  test('can create a JSON snapshot and un-snapshot it back', () => {
+    const { fs } = createMockFs(data);
     fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
     fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
     const snapshot = json.toJsonSnapshotSync({ fs, path: '/start' })!;
-    const { fs: fs2, vol: vol2 } = memfs();
+    const { fs: fs2 } = createMockFs();
     fs2.mkdirSync('/start', { recursive: true });
     json.fromJsonSnapshotSync(snapshot, { fs: fs2, path: '/start' });
     expect(fs2.readFileSync('/start/binary')).toStrictEqual(Buffer.from([1, 2, 3]));
@@ -56,12 +56,12 @@ describe('synchronous', () => {
 });
 
 describe('asynchronous', () => {
-  test('can create a binary snapshot and un-snapshot it back', async () => {
-    const { fs } = memfs(data);
+  test('can create a JSON snapshot and un-snapshot it back', async () => {
+    const { fs } = createMockFs(data);
     fs.symlinkSync('/start/folder1/folder2/file6', '/start/folder1/symlink');
     fs.writeFileSync('/start/binary', new Uint8Array([1, 2, 3]));
     const snapshot = await json.toJsonSnapshot({ fs: fs.promises, path: '/start' })!;
-    const { fs: fs2, vol: vol2 } = memfs();
+    const { fs: fs2 } = createMockFs();
     fs2.mkdirSync('/start', { recursive: true });
     await json.fromJsonSnapshot(snapshot, { fs: fs2.promises, path: '/start' });
     expect(fs2.readFileSync('/start/binary')).toStrictEqual(Buffer.from([1, 2, 3]));

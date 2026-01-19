@@ -1,7 +1,7 @@
 import { Writable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 import { Defer } from 'thingies/lib/Defer';
 import { concurrency } from 'thingies/lib/concurrency';
-import { flagsToNumber } from '../node/util';
+import { flagsToNumber } from '@jsonjoy.com/fs-node';
 import { FLAG_CON } from '@jsonjoy.com/fs-node-utils';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import type { IFileSystemWritableFileStream } from '@jsonjoy.com/fs-fsa';

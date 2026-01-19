@@ -1,6 +1,6 @@
 import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
-import {TDataOut, TEncodingExtended} from './types';
+import { TDataOut, TEncodingExtended } from './types';
 
 export const ENCODING_UTF8: BufferEncoding = 'utf8';
 

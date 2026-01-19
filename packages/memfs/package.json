@@ -129,6 +129,7 @@
   "dependencies": {
     "@jsonjoy.com/fs-core": "workspace:*",
     "@jsonjoy.com/fs-fsa": "workspace:*",
+    "@jsonjoy.com/fs-node": "workspace:*",
     "@jsonjoy.com/fs-node-builtins": "workspace:*",
     "@jsonjoy.com/fs-node-utils": "workspace:*",
     "@jsonjoy.com/fs-print": "workspace:*",

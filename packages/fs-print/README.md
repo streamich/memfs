@@ -42,11 +42,11 @@ You can customize the output with options:
 
 ```ts
 toTreeSync(fs, {
-  dir: '/src',           // Starting directory (default: '/')
-  depth: 2,              // Maximum depth to traverse (default: 10)
-  separator: '/',        // Path separator (default: '/')
-  tab: '  ',             // Indentation string (default: '')
-  sort: true,            // Sort entries (default: true)
+  dir: '/src', // Starting directory (default: '/')
+  depth: 2, // Maximum depth to traverse (default: 10)
+  separator: '/', // Path separator (default: '/')
+  tab: '  ', // Indentation string (default: '')
+  sort: true, // Sort entries (default: true)
 });
 ```
 

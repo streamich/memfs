@@ -1,5 +1,5 @@
 import { IFsWithVolume, memfs } from '../..';
-import { FileHandle } from '../../node/FileHandle';
+import { FileHandle } from '@jsonjoy.com/fs-node';
 import { createSwapFile } from '../NodeFileSystemWritableFileStream';
 
 describe('createSwapFile()', () => {

@@ -876,6 +876,28 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@jsonjoy.com/fs-node@workspace:*, @jsonjoy.com/fs-node@workspace:packages/fs-node":
+  version: 0.0.0-use.local
+  resolution: "@jsonjoy.com/fs-node@workspace:packages/fs-node"
+  dependencies:
+    "@jsonjoy.com/fs-core": "workspace:*"
+    "@jsonjoy.com/fs-node-builtins": "workspace:*"
+    "@jsonjoy.com/fs-node-utils": "workspace:*"
+    "@jsonjoy.com/fs-print": "workspace:*"
+    "@types/jest": "npm:^29.0.0"
+    "@types/node": "npm:^20.0.0"
+    glob-to-regex.js: "npm:^1.0.0"
+    jest: "npm:^29.0.0"
+    rimraf: "npm:^5.0.0"
+    thingies: "npm:^2.5.0"
+    ts-jest: "npm:^29.4.2"
+    ts-node: "npm:^10.9.2"
+    typescript: "npm:^5.9.2"
+  peerDependencies:
+    tslib: 2
+  languageName: unknown
+  linkType: soft
+
 "@jsonjoy.com/fs-print@workspace:*, @jsonjoy.com/fs-print@workspace:packages/fs-print":
   version: 0.0.0-use.local
   resolution: "@jsonjoy.com/fs-print@workspace:packages/fs-print"
@@ -3358,6 +3380,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"glob-to-regex.js@npm:^1.0.0":
+  version: 1.2.0
+  resolution: "glob-to-regex.js@npm:1.2.0"
+  peerDependencies:
+    tslib: 2
+  checksum: 10c0/011c81ae2a4d7ac5fd617038209fd9639d54c76211cc88fe8dd85d1a0850bc683a63cf5b1eae370141fca7dd2c834dfb9684dfdd8bf7472f2c1e4ef6ab6e34f9
+  languageName: node
+  linkType: hard
+
 "glob-to-regex.js@npm:^1.0.1":
   version: 1.0.1
   resolution: "glob-to-regex.js@npm:1.0.1"
@@ -4795,6 +4826,7 @@ __metadata:
   dependencies:
     "@jsonjoy.com/fs-core": "workspace:*"
     "@jsonjoy.com/fs-fsa": "workspace:*"
+    "@jsonjoy.com/fs-node": "workspace:*"
     "@jsonjoy.com/fs-node-builtins": "workspace:*"
     "@jsonjoy.com/fs-node-utils": "workspace:*"
     "@jsonjoy.com/fs-print": "workspace:*"

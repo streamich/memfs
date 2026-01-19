@@ -2,7 +2,7 @@ import { Writable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
 import { Defer } from 'thingies/lib/Defer';
 import { concurrency } from 'thingies/lib/concurrency';
 import { flagsToNumber } from '../node/util';
-import { FLAG_CON } from '../consts/FLAG';
+import { FLAG_CON } from '@jsonjoy.com/node-fs-utils';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import queueMicrotask from '../queueMicrotask';
 import type { IFileSystemWritableFileStream } from '@jsonjoy.com/fs-fsa';

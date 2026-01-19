@@ -1,4 +1,4 @@
-import { FLAG_CON } from '../consts/FLAG';
+import { FLAG_CON } from '@jsonjoy.com/node-fs-utils';
 import type * as fsa from '@jsonjoy.com/fs-fsa';
 import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 

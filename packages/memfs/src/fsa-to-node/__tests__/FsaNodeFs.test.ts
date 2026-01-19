@@ -1,11 +1,10 @@
 import { NestedDirectoryJSON, memfs } from '../..';
-import { AMODE } from '../../consts/AMODE';
+import { AMODE, FLAG } from '@jsonjoy.com/node-fs-utils';
 import { nodeToFsa } from '../../node-to-fsa';
 import { IDirent, IStats } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
 import { of } from 'thingies';
 import { onlyOnNode20 } from '../../__tests__/util';
-import { FLAG } from '../../consts/FLAG';
 
 const tick = (ms: number = 1) => new Promise(r => setTimeout(r, ms));
 

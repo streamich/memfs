@@ -1,5 +1,5 @@
 import { create } from '../../../__tests__/util';
-import { AMODE } from '../../../consts/AMODE';
+import { AMODE } from '@jsonjoy.com/node-fs-utils';
 
 describe('chmod 0 permission issue reproduction', () => {
   describe('existsSync()', () => {

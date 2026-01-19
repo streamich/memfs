@@ -40,6 +40,7 @@ import * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import { FsCallbackApi, WritevCallback } from '@jsonjoy.com/fs-node-utils/lib/types/FsCallbackApi';
 import { FsPromises } from './FsPromises';
 import { ToTreeOptions, toTreeSync } from '@jsonjoy.com/fs-print';
+import * as fsSnapshot from '@jsonjoy.com/fs-snapshot';
 import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/fs-node-utils';
 import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import {
@@ -91,7 +92,9 @@ const pathJoin = posix ? posix.join : join;
 const pathDirname = posix ? posix.dirname : dirname;
 const pathNormalize = posix ? posix.normalize : normalize;
 
-// ---------------------------------------- Types
+// ---------------------------------------------------------------------- Types
+
+export type { SnapshotNode } from '@jsonjoy.com/fs-snapshot';
 
 // Node-style errors with a `code` property.
 export interface IError extends Error {
@@ -103,18 +106,18 @@ export type TFlags = string | number;
 export type TMode = string | number; // Mode can be a String, although docs say it should be a Number.
 export type TTime = number | string | Date;
 
-// ---------------------------------------- Constants
+// ------------------------------------------------------------------ Constants
 
 const kMinPoolSpace = 128;
 
-// ---------------------------------------- Flags
+// ---------------------------------------------------------------------- Flags
 
 export type TFlagsCopy =
   | typeof constants.COPYFILE_EXCL
   | typeof constants.COPYFILE_FICLONE
   | typeof constants.COPYFILE_FICLONE_FORCE;
 
-// ---------------------------------------- Options
+// -------------------------------------------------------------------- Options
 
 // Options for `fs.appendFile` and `fs.appendFileSync`
 export interface IAppendFileOptions extends opts.IFileOptions {}
@@ -131,7 +134,7 @@ export interface IWatchOptions extends opts.IOptions {
   recursive?: boolean;
 }
 
-// ---------------------------------------- Utility functions
+// ---------------------------------------------------------- Utility functions
 
 export function pathToSteps(path: PathLike): string[] {
   return filenameToSteps(pathToFilename(path));
@@ -262,10 +265,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       }
       callback(null, result);
     });
-  }
-
-  public toTree(opts: ToTreeOptions = { separator: <'/' | '\\'>sep }): string {
-    return toTreeSync(this, opts);
   }
 
   reset() {
@@ -1586,6 +1585,40 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const filename = pathToFilename(path);
     this.wrapAsync(this._opendir, [filename, options], callback);
   };
+
+  // ---------------------------------------------------------------- Tree View
+
+  public toTree(opts: ToTreeOptions = { separator: <'/' | '\\'>sep }): string {
+    return toTreeSync(this, opts);
+  }
+
+  // ---------------------------------------------------------------- Snapshots
+
+  public toSnapshot(path: string = '/'): fsSnapshot.SnapshotNode {
+    return fsSnapshot.toSnapshotSync({ fs: this, path });
+  }
+
+  public fromSnapshot(snapshot: fsSnapshot.SnapshotNode, path: string = '/'): void {
+    return fsSnapshot.fromSnapshotSync(snapshot, { fs: this, path });
+  }
+
+  public toBinarySnapshot(path: string = '/'): Uint8Array {
+    return fsSnapshot.toBinarySnapshotSync({ fs: this, path });
+  }
+
+  public fromBinarySnapshot(binary: Uint8Array, path: string = '/'): void {
+    return fsSnapshot.fromBinarySnapshotSync(binary as any, { fs: this, path });
+  }
+
+  public toJsonSnapshot(path: string = '/'): string {
+    const uint8 = fsSnapshot.toJsonSnapshotSync({ fs: this, path });
+    return Buffer.from(uint8).toString('utf8');
+  }
+
+  public fromJsonSnapshot(json: string, path: string = '/'): void {
+    const uint8 = new Uint8Array(Buffer.from(json, 'utf8'));
+    return fsSnapshot.fromJsonSnapshotSync(uint8 as any, { fs: this, path });
+  }
 }
 
 function emitStop(self) {

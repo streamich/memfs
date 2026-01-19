@@ -1,5 +1,5 @@
-import { resolve as pathResolve, sep, posix } from '../vendor/node/path';
-import { Buffer, bufferFrom } from '../vendor/node/internal/buffer';
+import { resolve as pathResolve, sep, posix } from '@jsonjoy.com/node-fs-dependencies/lib/path';
+import { Buffer, bufferFrom } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import process from '../process';
 import { TDataOut, TEncodingExtended, ENCODING_UTF8 } from '../encoding';
 import { ERRSTR } from '../node/constants';

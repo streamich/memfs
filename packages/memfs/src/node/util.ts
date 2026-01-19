@@ -1,9 +1,9 @@
 import { ERRSTR, FLAGS } from './constants';
-import * as errors from '../vendor/node/internal/errors';
-import { Buffer, bufferFrom } from '../vendor/node/internal/buffer';
+import * as errors from '@jsonjoy.com/node-fs-dependencies/lib/internal/errors';
+import { Buffer, bufferFrom } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import { TEncodingExtended } from '../encoding';
 import queueMicrotask from '../queueMicrotask';
-import { Readable } from '../vendor/node/stream';
+import { Readable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
 import { dataToBuffer, validateFd } from '../core/util';
 import type { FsCallbackApi } from './types';
 import type * as misc from './types/misc';

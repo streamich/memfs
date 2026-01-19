@@ -1,5 +1,5 @@
 import { Node } from '../Node';
-import { bufferFrom } from '../../vendor/node/internal/buffer';
+import { bufferFrom } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 
 describe('Node', () => {
   describe('buffer management with capacity tracking', () => {

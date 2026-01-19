@@ -1,4 +1,4 @@
-import { join, relative, resolve, posix, isAbsolute, dirname, basename } from '../vendor/node/path';
+import { posix } from '@jsonjoy.com/node-fs-dependencies/lib/path';
 import { toRegex } from 'glob-to-regex.js';
 import { IGlobOptions } from './types/options';
 import { pathToFilename } from './util';

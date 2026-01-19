@@ -2,8 +2,8 @@ import { Link } from '../node';
 import { validateCallback } from './util';
 import * as opts from './types/options';
 import Dirent from './Dirent';
-import type { IDir, IDirent, TCallback } from './types/misc';
-import * as errors from '../vendor/node/internal/errors';
+import type { IDir, IDirent } from './types/misc';
+import * as errors from '@jsonjoy.com/node-fs-dependencies/lib/internal/errors';
 
 /**
  * A directory stream, like `fs.Dir`.

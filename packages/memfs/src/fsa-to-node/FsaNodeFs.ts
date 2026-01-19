@@ -1,6 +1,6 @@
 import * as optHelpers from '../node/options';
 import * as util from '../node/util';
-import { Buffer } from '../vendor/node/internal/buffer';
+import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import { FsPromises } from '../node/FsPromises';
 import { pathToLocation } from './util';
 import { ERRSTR, MODE } from '../node/constants';
@@ -17,7 +17,7 @@ import { FsaNodeReadStream } from './FsaNodeReadStream';
 import { FsaNodeCore } from './FsaNodeCore';
 import { FileHandle } from '../node/FileHandle';
 import { dataToBuffer, isFd, isWin, validateFd } from '../core/util';
-import * as errors from '../vendor/node/internal/errors';
+import * as errors from '@jsonjoy.com/node-fs-dependencies/lib/internal/errors';
 import type { FsCallbackApi, FsPromisesApi } from '../node/types';
 import type * as misc from '../node/types/misc';
 import type * as opts from '../node/types/options';

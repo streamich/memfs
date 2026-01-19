@@ -20,8 +20,7 @@ import type {
 } from './types';
 import type { Superblock } from '../core/Superblock';
 import { ERROR_CODE } from '../core/constants';
-import { filenameToSteps } from '../core/util';
-import { Buffer } from '../vendor/node/internal/buffer';
+import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import { MODE, FLAGS } from '../node/constants';
 
 /**

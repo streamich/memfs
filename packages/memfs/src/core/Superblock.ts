@@ -1,8 +1,8 @@
-import { sep, relative, join, dirname, isAbsolute, basename, posix } from '../vendor/node/path';
+import { sep, relative, join, dirname, isAbsolute, basename, posix } from '@jsonjoy.com/node-fs-dependencies/lib/path';
 import { Node } from './Node';
 import { Link } from './Link';
 import { File } from './File';
-import { Buffer } from '../vendor/node/internal/buffer';
+import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import process from '../process';
 import { constants } from '../constants';
 import { ERRSTR, FLAGS, MODE } from '../node/constants';

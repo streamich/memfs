@@ -1,6 +1,6 @@
-import { promisify } from '../../vendor/node/util';
+import { promisify } from '@jsonjoy.com/node-fs-dependencies/lib/util';
 import { Volume } from '../volume';
-import { Readable } from '../../vendor/node/stream';
+import { Readable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
 import { Dir } from '../Dir';
 
 describe('Promises API', () => {

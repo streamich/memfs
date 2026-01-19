@@ -1,5 +1,5 @@
 import { promisify } from './util';
-import { EventEmitter } from '../vendor/node/events';
+import { EventEmitter } from '@jsonjoy.com/node-fs-dependencies/lib/events';
 import type * as opts from './types/options';
 import type { IFileHandle, IReadStream, IWriteStream, IStats, TData, TDataOut, TMode, TTime } from './types/misc';
 import type { FsCallbackApi } from './types';

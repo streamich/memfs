@@ -1,5 +1,5 @@
-import { promisify } from '../../vendor/node/util';
-import { URL } from '../../vendor/node/url';
+import { promisify } from '@jsonjoy.com/node-fs-dependencies/lib/util';
+import { URL } from '@jsonjoy.com/node-fs-dependencies/lib/url';
 import { Link } from '../../core';
 import Stats from '../Stats';
 import Dirent from '../Dirent';

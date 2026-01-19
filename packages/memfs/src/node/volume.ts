@@ -1,25 +1,34 @@
-import { resolve, sep, relative, join, dirname, normalize, posix, isAbsolute } from '../vendor/node/path';
+import {
+  resolve,
+  sep,
+  relative,
+  join,
+  dirname,
+  normalize,
+  posix,
+  isAbsolute,
+} from '@jsonjoy.com/node-fs-dependencies/lib/path';
 import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import { Link, Superblock } from '../core';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import StatFs from './StatFs';
-import { Buffer, bufferAllocUnsafe, bufferFrom } from '../vendor/node/internal/buffer';
+import { Buffer, bufferAllocUnsafe, bufferFrom } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import queueMicrotask from '../queueMicrotask';
 import setTimeoutUnref, { TSetTimeout } from '@jsonjoy.com/node-fs-utils/lib/setTimeoutUnref';
-import { Readable, Writable } from '../vendor/node/stream';
+import { Readable, Writable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
 import { constants } from '../constants';
-import { EventEmitter } from '../vendor/node/events';
+import { EventEmitter } from '@jsonjoy.com/node-fs-dependencies/lib/events';
 import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from '../encoding';
 import { FileHandle } from './FileHandle';
-import { inherits } from '../vendor/node/util';
+import { inherits } from '@jsonjoy.com/node-fs-dependencies/lib/util';
 import * as misc from './types/misc';
 import * as opts from './types/options';
 import { FsCallbackApi, WritevCallback } from './types/FsCallbackApi';
 import { FsPromises } from './FsPromises';
 import { ToTreeOptions, toTreeSync } from '../print';
 import { ERRSTR, FLAGS, MODE } from './constants';
-import * as errors from '../vendor/node/internal/errors';
+import * as errors from '@jsonjoy.com/node-fs-dependencies/lib/internal/errors';
 import {
   getDefaultOpts,
   getDefaultOptsAndCb,

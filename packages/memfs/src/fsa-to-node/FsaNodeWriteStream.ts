@@ -1,4 +1,4 @@
-import { Writable } from '../vendor/node/stream';
+import { Writable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
 import { Defer } from 'thingies/lib/Defer';
 import { concurrency } from 'thingies/lib/concurrency';
 import { flagsToNumber } from '../node/util';

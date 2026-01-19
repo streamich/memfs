@@ -1,4 +1,4 @@
-import { Readable } from '../vendor/node/stream';
+import { Readable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
 import { Defer } from 'thingies/lib/Defer';
 import { concurrency } from 'thingies/lib/concurrency';
 import type { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';

@@ -23,7 +23,7 @@ import type { FsCallbackApi, FsPromisesApi } from '@jsonjoy.com/node-fs-utils';
 import type { WritevCallback } from '@jsonjoy.com/node-fs-utils/lib/types/FsCallbackApi';
 import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import type * as opts from '@jsonjoy.com/node-fs-utils/lib/types/options';
-import type * as fsa from '../fsa/types';
+import type * as fsa from '@jsonjoy.com/fs-fsa';
 import type { FsCommonObjects } from '@jsonjoy.com/node-fs-utils/lib/types/FsCommonObjects';
 
 const notSupported: (...args: any[]) => any = () => {

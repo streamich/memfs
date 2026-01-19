@@ -1,4 +1,4 @@
-import type { IFileSystemDirectoryHandle } from '../../fsa/types';
+import type { IFileSystemDirectoryHandle } from '@jsonjoy.com/fs-fsa';
 import type { FsaNodeWorkerMessageCode } from './constants';
 
 export type FsaNodeWorkerMsgInit = [type: FsaNodeWorkerMessageCode.Init, sab: SharedArrayBuffer];

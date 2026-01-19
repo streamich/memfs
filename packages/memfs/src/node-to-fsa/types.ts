@@ -1,6 +1,6 @@
 import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/node-fs-utils';
 import type { FsCommonObjects } from '@jsonjoy.com/node-fs-utils/lib/types/FsCommonObjects';
-import type { FileLockManager } from '../fsa/FileLockManager';
+import type { FileLockManager } from '@jsonjoy.com/fs-fsa';
 
 /**
  * Required Node.js `fs` module functions for File System Access API.

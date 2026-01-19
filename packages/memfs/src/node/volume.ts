@@ -9,7 +9,21 @@ import {
   isAbsolute,
 } from '@jsonjoy.com/node-fs-dependencies/lib/path';
 import { FanOutUnsubscribe } from 'thingies/lib/fanout';
-import { Link, Superblock, DirectoryJSON, NestedDirectoryJSON, ERROR_CODE, StatError, TFileId, dataToBuffer, filenameToSteps, isFd, validateFd, Ok, Result } from '@jsonjoy.com/fs-core';
+import {
+  Link,
+  Superblock,
+  DirectoryJSON,
+  NestedDirectoryJSON,
+  ERROR_CODE,
+  StatError,
+  TFileId,
+  dataToBuffer,
+  filenameToSteps,
+  isFd,
+  validateFd,
+  Ok,
+  Result,
+} from '@jsonjoy.com/fs-core';
 import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import Stats from './Stats';
 import Dirent from './Dirent';

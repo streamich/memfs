@@ -1,4 +1,4 @@
-import { IFileSystemDirectoryHandle } from '../fsa/types';
+import { IFileSystemDirectoryHandle } from '@jsonjoy.com/fs-fsa';
 import { FsaToNodeConstants } from './constants';
 import type { FsLocation } from './types';
 

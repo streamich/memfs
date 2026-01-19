@@ -2,7 +2,7 @@ import { Defer } from 'thingies/lib/Defer';
 import { FsaNodeWorkerMessageCode } from './constants';
 import { SyncMessenger } from './SyncMessenger';
 import { decoder, encoder } from '../json';
-import type * as fsa from '../../fsa/types';
+import type * as fsa from '@jsonjoy.com/fs-fsa';
 import type { FsaNodeSyncAdapter, FsaNodeSyncAdapterApi } from '../types';
 import type {
   FsaNodeWorkerMsg,

@@ -1,4 +1,4 @@
-import type { IFileSystemFileHandle } from '../fsa/types';
+import type { IFileSystemFileHandle } from '@jsonjoy.com/fs-fsa';
 import type * as opts from '@jsonjoy.com/node-fs-utils/lib/types/options';
 import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 

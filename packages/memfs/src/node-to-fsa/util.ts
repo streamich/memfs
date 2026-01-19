@@ -1,5 +1,5 @@
 import type { NodeFsaContext } from './types';
-import { FileLockManager } from '../fsa/FileLockManager';
+import { FileLockManager } from '@jsonjoy.com/fs-fsa';
 
 /**
  * Creates a new {@link NodeFsaContext}.

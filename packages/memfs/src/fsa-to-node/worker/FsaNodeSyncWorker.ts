@@ -2,7 +2,7 @@ import { AsyncCallback, SyncMessenger } from './SyncMessenger';
 import { FsaNodeWorkerMessageCode } from './constants';
 import { FsaNodeFs } from '../FsaNodeFs';
 import { decoder, encoder } from '../json';
-import type * as fsa from '../../fsa/types';
+import type * as fsa from '@jsonjoy.com/fs-fsa';
 import type {
   FsaNodeWorkerError,
   FsaNodeWorkerMsg,

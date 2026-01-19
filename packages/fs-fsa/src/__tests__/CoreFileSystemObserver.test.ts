@@ -1,5 +1,5 @@
 import { fsa, IFileSystemChangeRecord } from '..';
-import { onlyOnNode20 } from '../../__tests__/util';
+import { onlyOnNode20 } from './util';
 
 onlyOnNode20('CoreFileSystemObserver', () => {
   test.skip('can listen to file writes', async () => {

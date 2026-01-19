@@ -1,7 +1,7 @@
 import { Superblock } from '@jsonjoy.com/fs-core';
 import { CoreFsaContext, fsa } from '../index';
 import { CoreFileSystemDirectoryHandle } from '../CoreFileSystemDirectoryHandle';
-import { onlyOnNode20 } from '../../__tests__/util';
+import { onlyOnNode20 } from './util';
 
 const coreToFsa = (
   core: Superblock,

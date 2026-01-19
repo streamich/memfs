@@ -18,7 +18,7 @@ import type {
   IFileSystemFileHandle,
   IFileSystemHandle,
   RemoveEntryOptions,
-} from '../fsa/types';
+} from '@jsonjoy.com/fs-fsa';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle

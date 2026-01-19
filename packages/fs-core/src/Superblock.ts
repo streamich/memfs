@@ -6,7 +6,16 @@ import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import process from './process';
 import { constants } from '@jsonjoy.com/node-fs-utils';
 import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/node-fs-utils';
-import { pathToFilename, createError, createStatError, dataToBuffer, filenameToSteps, isFd, resolve, validateFd } from './util';
+import {
+  pathToFilename,
+  createError,
+  createStatError,
+  dataToBuffer,
+  filenameToSteps,
+  isFd,
+  resolve,
+  validateFd,
+} from './util';
 import { DirectoryJSON, flattenJSON, NestedDirectoryJSON } from './json';
 import type { PathLike } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import { ERROR_CODE } from './constants';

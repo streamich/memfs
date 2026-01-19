@@ -2,7 +2,7 @@ import { Superblock, DirectoryJSON } from '@jsonjoy.com/fs-core';
 import { CoreFileSystemDirectoryHandle } from '../CoreFileSystemDirectoryHandle';
 import { CoreFileSystemFileHandle } from '../CoreFileSystemFileHandle';
 import { CoreFileSystemHandle } from '../CoreFileSystemHandle';
-import { onlyOnNode20 } from '../../__tests__/util';
+import { onlyOnNode20 } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
   const core = Superblock.fromJSON(json, '/');

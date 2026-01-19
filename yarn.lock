@@ -796,6 +796,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@jsonjoy.com/fs-fsa@workspace:*, @jsonjoy.com/fs-fsa@workspace:packages/fs-fsa":
+  version: 0.0.0-use.local
+  resolution: "@jsonjoy.com/fs-fsa@workspace:packages/fs-fsa"
+  dependencies:
+    "@jsonjoy.com/fs-core": "workspace:*"
+    "@jsonjoy.com/node-fs-dependencies": "workspace:*"
+    "@jsonjoy.com/node-fs-utils": "workspace:*"
+    "@types/jest": "npm:^29.0.0"
+    "@types/node": "npm:^20.0.0"
+    jest: "npm:^29.0.0"
+    rimraf: "npm:^5.0.0"
+    thingies: "npm:^2.5.0"
+    ts-jest: "npm:^29.4.2"
+    ts-node: "npm:^10.9.2"
+    typescript: "npm:^5.9.2"
+  peerDependencies:
+    tslib: 2
+  languageName: unknown
+  linkType: soft
+
 "@jsonjoy.com/json-pack@npm:^1.11.0":
   version: 1.11.0
   resolution: "@jsonjoy.com/json-pack@npm:1.11.0"
@@ -4669,6 +4689,7 @@ __metadata:
   resolution: "memfs@workspace:packages/memfs"
   dependencies:
     "@jsonjoy.com/fs-core": "workspace:*"
+    "@jsonjoy.com/fs-fsa": "workspace:*"
     "@jsonjoy.com/json-pack": "npm:^1.11.0"
     "@jsonjoy.com/node-fs-dependencies": "workspace:*"
     "@jsonjoy.com/node-fs-utils": "workspace:*"

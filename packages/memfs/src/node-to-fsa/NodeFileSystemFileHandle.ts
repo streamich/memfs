@@ -3,7 +3,7 @@ import { NodeFileSystemSyncAccessHandle } from './NodeFileSystemSyncAccessHandle
 import { assertCanWrite, basename, ctx as createCtx, newNotAllowedError, newNoModificationAllowedError } from './util';
 import { NodeFileSystemWritableFileStream } from './NodeFileSystemWritableFileStream';
 import type { NodeFsaContext, NodeFsaFs } from './types';
-import type { IFileSystemFileHandle, IFileSystemSyncAccessHandle } from '../fsa/types';
+import type { IFileSystemFileHandle, IFileSystemSyncAccessHandle } from '@jsonjoy.com/fs-fsa';
 
 export class NodeFileSystemFileHandle extends NodeFileSystemHandle implements IFileSystemFileHandle {
   protected readonly ctx: NodeFsaContext;

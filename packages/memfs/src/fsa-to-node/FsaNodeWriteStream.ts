@@ -5,7 +5,7 @@ import { flagsToNumber } from '../node/util';
 import { FLAG_CON } from '../consts/FLAG';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import queueMicrotask from '../queueMicrotask';
-import type { IFileSystemWritableFileStream } from '../fsa/types';
+import type { IFileSystemWritableFileStream } from '@jsonjoy.com/fs-fsa';
 import type { IWriteStream } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import type { IWriteStreamOptions } from '@jsonjoy.com/node-fs-utils/lib/types/options';
 

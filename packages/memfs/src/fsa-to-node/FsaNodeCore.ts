@@ -5,7 +5,7 @@ import { FsaToNodeConstants } from './constants';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FLAG_CON } from '../consts/FLAG';
 import * as util from '../node/util';
-import type * as fsa from '../fsa/types';
+import type * as fsa from '@jsonjoy.com/fs-fsa';
 import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import type { FsaNodeSyncAdapter } from './types';
 import { isFd } from '@jsonjoy.com/fs-core';

@@ -1,5 +1,5 @@
 import { Superblock } from '../core';
-import type { IStatFs } from './types/misc';
+import type { IStatFs } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 
 export type TStatNumber = number | bigint;
 

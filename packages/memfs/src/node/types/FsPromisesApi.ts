@@ -1,4 +1,4 @@
-import type { constants } from '../../constants';
+import type { constants } from '@jsonjoy.com/node-fs-utils';
 import * as misc from './misc';
 import * as opts from './options';
 

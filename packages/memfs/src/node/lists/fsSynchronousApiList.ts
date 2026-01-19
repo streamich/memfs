@@ -1,4 +1,4 @@
-import type { FsSynchronousApi } from '../types';
+import type { FsSynchronousApi } from '@jsonjoy.com/node-fs-utils';
 
 export const fsSynchronousApiList: Array<keyof FsSynchronousApi> = [
   'accessSync',

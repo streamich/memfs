@@ -1,4 +1,4 @@
-import type { FsCommonObjects } from '../types/FsCommonObjects';
+import type { FsCommonObjects } from '@jsonjoy.com/node-fs-utils';
 
 export const fsCommonObjectsList: Array<keyof FsCommonObjects> = [
   'F_OK',

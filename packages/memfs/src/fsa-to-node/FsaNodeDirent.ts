@@ -1,4 +1,5 @@
-import type { IDirent, TDataOut } from '../node/types/misc';
+
+import type { IDirent, TDataOut } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 
 export class FsaNodeDirent implements IDirent {
   /**

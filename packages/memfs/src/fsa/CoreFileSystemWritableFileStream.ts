@@ -3,7 +3,7 @@ import type { Superblock } from '../core/Superblock';
 import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import { ERROR_CODE } from '../core/constants';
 import { newNotAllowedError, newNoModificationAllowedError } from './util';
-import { FLAGS, MODE } from '../node/constants';
+import { FLAGS, MODE } from '@jsonjoy.com/node-fs-utils';
 
 declare const require: any;
 const WS = (

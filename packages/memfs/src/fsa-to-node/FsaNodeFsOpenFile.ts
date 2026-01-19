@@ -1,6 +1,6 @@
 import { FLAG_CON } from '../consts/FLAG';
 import type * as fsa from '../fsa/types';
-import type * as misc from '../node/types/misc';
+import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 
 /**
  * Represents an open file. Stores additional metadata about the open file, such

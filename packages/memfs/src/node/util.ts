@@ -1,12 +1,12 @@
-import { ERRSTR, FLAGS } from './constants';
+import { ERRSTR, FLAGS } from '@jsonjoy.com/node-fs-utils';
 import * as errors from '@jsonjoy.com/node-fs-dependencies/lib/internal/errors';
 import { Buffer, bufferFrom } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import { TEncodingExtended } from '../encoding';
 import queueMicrotask from '../queueMicrotask';
 import { Readable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
 import { dataToBuffer, validateFd } from '../core/util';
-import type { FsCallbackApi } from './types';
-import type * as misc from './types/misc';
+import type { FsCallbackApi } from '@jsonjoy.com/node-fs-utils';
+import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import { StatError } from '../core/types';
 
 export function promisify(

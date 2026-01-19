@@ -1,8 +1,8 @@
 import { Link } from '../node';
 import { validateCallback } from './util';
-import * as opts from './types/options';
+import * as opts from '@jsonjoy.com/node-fs-utils/lib/types/options';
 import Dirent from './Dirent';
-import type { IDir, IDirent } from './types/misc';
+import type { IDir, IDirent } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import * as errors from '@jsonjoy.com/node-fs-dependencies/lib/internal/errors';
 
 /**

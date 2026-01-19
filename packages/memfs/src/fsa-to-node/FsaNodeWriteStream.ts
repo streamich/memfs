@@ -6,8 +6,8 @@ import { FLAG_CON } from '../consts/FLAG';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import queueMicrotask from '../queueMicrotask';
 import type { IFileSystemWritableFileStream } from '../fsa/types';
-import type { IWriteStream } from '../node/types/misc';
-import type { IWriteStreamOptions } from '../node/types/options';
+import type { IWriteStream } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
+import type { IWriteStreamOptions } from '@jsonjoy.com/node-fs-utils/lib/types/options';
 
 /**
  * This WriteStream implementation does not build on top of the `fs` module,

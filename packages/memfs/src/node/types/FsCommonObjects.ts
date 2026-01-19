@@ -1,4 +1,4 @@
-import type { constants } from '../../constants';
+import type { constants } from '@jsonjoy.com/node-fs-utils';
 import type * as misc from './misc';
 
 export interface FsCommonObjects {

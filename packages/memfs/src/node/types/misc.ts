@@ -1,5 +1,5 @@
 import type { PathLike as NodePathLike, symlink } from '@jsonjoy.com/node-fs-dependencies/lib/fs';
-import type { constants } from '../../constants';
+import type { constants } from '@jsonjoy.com/node-fs-utils';
 import type { EventEmitter } from '@jsonjoy.com/node-fs-dependencies/lib/events';
 import type { TSetTimeout } from '@jsonjoy.com/node-fs-utils/lib/setTimeoutUnref';
 import type {

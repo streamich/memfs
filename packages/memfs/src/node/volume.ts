@@ -17,17 +17,17 @@ import { Buffer, bufferAllocUnsafe, bufferFrom } from '@jsonjoy.com/node-fs-depe
 import queueMicrotask from '../queueMicrotask';
 import setTimeoutUnref, { TSetTimeout } from '@jsonjoy.com/node-fs-utils/lib/setTimeoutUnref';
 import { Readable, Writable } from '@jsonjoy.com/node-fs-dependencies/lib/stream';
-import { constants } from '../constants';
+import { constants } from '@jsonjoy.com/node-fs-utils';
 import { EventEmitter } from '@jsonjoy.com/node-fs-dependencies/lib/events';
 import { TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from '../encoding';
 import { FileHandle } from './FileHandle';
 import { inherits } from '@jsonjoy.com/node-fs-dependencies/lib/util';
-import * as misc from './types/misc';
-import * as opts from './types/options';
-import { FsCallbackApi, WritevCallback } from './types/FsCallbackApi';
+import * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
+import * as opts from '@jsonjoy.com/node-fs-utils/lib/types/options';
+import { FsCallbackApi, WritevCallback } from '@jsonjoy.com/node-fs-utils/lib/types/FsCallbackApi';
 import { FsPromises } from './FsPromises';
 import { ToTreeOptions, toTreeSync } from '../print';
-import { ERRSTR, FLAGS, MODE } from './constants';
+import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/node-fs-utils';
 import * as errors from '@jsonjoy.com/node-fs-dependencies/lib/internal/errors';
 import {
   getDefaultOpts,
@@ -65,8 +65,8 @@ import {
   bufferToEncoding,
   getWriteSyncArgs,
 } from './util';
-import type { PathLike, symlink } from './types/misc';
-import type { FsPromisesApi, FsSynchronousApi } from './types';
+import type { PathLike, symlink } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
+import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/node-fs-utils';
 import { Dir } from './Dir';
 import { DirectoryJSON, NestedDirectoryJSON } from '../core/json';
 import { ERROR_CODE } from '../core/constants';

@@ -1,5 +1,5 @@
 import { Node } from '../node';
-import { constants } from '../constants';
+import { constants } from '@jsonjoy.com/node-fs-utils';
 
 const { S_IFMT, S_IFDIR, S_IFREG, S_IFBLK, S_IFCHR, S_IFLNK, S_IFIFO, S_IFSOCK } = constants;
 

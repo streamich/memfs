@@ -2,7 +2,7 @@ import { resolve as pathResolve, sep, posix } from '@jsonjoy.com/node-fs-depende
 import { Buffer, bufferFrom } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import process from '../process';
 import { TDataOut, TEncodingExtended, ENCODING_UTF8 } from '../encoding';
-import { ERRSTR } from '../node/constants';
+import { ERRSTR } from '@jsonjoy.com/node-fs-utils';
 
 export const isWin = process.platform === 'win32';
 

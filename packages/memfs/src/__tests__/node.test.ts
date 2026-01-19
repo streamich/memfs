@@ -1,5 +1,5 @@
 import { Node, Link } from '../node';
-import { constants } from '../constants';
+import { constants } from '@jsonjoy.com/node-fs-utils';
 
 describe('node.ts', () => {
   describe('Node', () => {

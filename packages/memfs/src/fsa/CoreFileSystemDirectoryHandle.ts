@@ -21,7 +21,7 @@ import type {
 import type { Superblock } from '../core/Superblock';
 import { ERROR_CODE } from '../core/constants';
 import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
-import { MODE, FLAGS } from '../node/constants';
+import { MODE, FLAGS } from '@jsonjoy.com/node-fs-utils';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle

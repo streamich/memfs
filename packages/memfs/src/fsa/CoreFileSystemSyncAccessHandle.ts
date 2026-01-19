@@ -3,7 +3,7 @@ import type { Superblock } from '../core/Superblock';
 import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import { ERROR_CODE } from '../core/constants';
 import { newNotAllowedError } from './util';
-import { FLAGS } from '../node/constants';
+import { FLAGS } from '@jsonjoy.com/node-fs-utils';
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle

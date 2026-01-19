@@ -1,5 +1,5 @@
 import { Volume } from '../volume';
-import { constants } from '../../constants';
+import { constants } from '@jsonjoy.com/node-fs-utils';
 import { fsCallbackApiList } from '../lists/fsCallbackApiList';
 import { fsSynchronousApiList } from '../lists/fsSynchronousApiList';
 

@@ -1,8 +1,8 @@
 import { isReadableStream, promisify, streamToBuffer } from './util';
-import { constants } from '../constants';
-import type * as opts from './types/options';
-import type * as misc from './types/misc';
-import type { FsCallbackApi, FsPromisesApi } from './types';
+import { constants } from '@jsonjoy.com/node-fs-utils';
+import type * as opts from '@jsonjoy.com/node-fs-utils/lib/types/options';
+import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
+import type { FsCallbackApi, FsPromisesApi } from '@jsonjoy.com/node-fs-utils';
 
 // AsyncIterator implementation for promises.watch
 class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string; filename: string | Buffer }> {

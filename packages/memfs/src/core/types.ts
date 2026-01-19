@@ -1,4 +1,4 @@
-import type { PathLike } from '../node/types/misc';
+import type { PathLike } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 
 export type TFileId = PathLike | number; // Number is used as a file descriptor.
 

@@ -1,6 +1,6 @@
 import type { IFileSystemFileHandle } from '../fsa/types';
-import type * as opts from '../node/types/options';
-import type * as misc from '../node/types/misc';
+import type * as opts from '@jsonjoy.com/node-fs-utils/lib/types/options';
+import type * as misc from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 
 export type FsLocation = [folder: string[], file: string];
 

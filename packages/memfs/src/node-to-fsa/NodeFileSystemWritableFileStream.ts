@@ -1,6 +1,6 @@
 import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import type { Data, FileSystemWritableFileStreamParams, IFileSystemWritableFileStream } from '../fsa/types';
-import type { IFileHandle } from '../node/types/misc';
+import type { IFileHandle } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import type { NodeFsaFs, NodeFsaContext } from './types';
 import { newNoModificationAllowedError } from './util';
 

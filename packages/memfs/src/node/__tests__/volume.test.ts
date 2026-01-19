@@ -8,7 +8,7 @@ import hasBigInt from '../../__tests__/hasBigInt';
 import { tryGetChild, tryGetChildNode } from '../../__tests__/util';
 import { genRndStr6 } from '../util';
 import queueMicrotask from '../../queueMicrotask';
-import { constants } from '../../constants';
+import { constants } from '@jsonjoy.com/node-fs-utils';
 import { filenameToSteps } from '../../core/util';
 
 const { O_RDWR, O_SYMLINK } = constants;

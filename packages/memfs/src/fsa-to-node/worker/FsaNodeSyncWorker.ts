@@ -11,7 +11,7 @@ import type {
   FsaNodeWorkerMsgRootSet,
 } from './types';
 import type { FsLocation, FsaNodeSyncAdapterApi, FsaNodeSyncAdapterStats, FsaNodeSyncAdapterEntry } from '../types';
-import type { IDirent } from '../../node/types/misc';
+import type { IDirent } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 
 export class FsaNodeSyncWorker {
   protected readonly sab: SharedArrayBuffer = new SharedArrayBuffer(1024 * 1024);

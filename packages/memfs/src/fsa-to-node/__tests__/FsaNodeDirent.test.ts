@@ -1,6 +1,6 @@
 import { memfs, NestedDirectoryJSON } from '../..';
 import { nodeToFsa } from '../../node-to-fsa';
-import { IDirent } from '../../node/types/misc';
+import { IDirent } from '@jsonjoy.com/node-fs-utils/lib/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
 import { onlyOnNode20 } from '../../__tests__/util';
 

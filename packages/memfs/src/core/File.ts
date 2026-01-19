@@ -1,4 +1,4 @@
-import { constants } from '../constants';
+import { constants } from '@jsonjoy.com/node-fs-utils';
 import { Buffer } from '@jsonjoy.com/node-fs-dependencies/lib/internal/buffer';
 import type { Link } from './Link';
 import type { Node } from './Node';

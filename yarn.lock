@@ -849,6 +849,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@jsonjoy.com/fs-print@workspace:packages/fs-print":
+  version: 0.0.0-use.local
+  resolution: "@jsonjoy.com/fs-print@workspace:packages/fs-print"
+  dependencies:
+    "@jsonjoy.com/fs-node-utils": "workspace:*"
+    "@types/jest": "npm:^29.0.0"
+    "@types/node": "npm:^20.0.0"
+    jest: "npm:^29.0.0"
+    rimraf: "npm:^5.0.0"
+    tree-dump: "npm:^1.1.0"
+    ts-jest: "npm:^29.4.2"
+    ts-node: "npm:^10.9.2"
+    typescript: "npm:^5.9.2"
+  peerDependencies:
+    tslib: 2
+  languageName: unknown
+  linkType: soft
+
 "@jsonjoy.com/json-pack@npm:^1.11.0":
   version: 1.11.0
   resolution: "@jsonjoy.com/json-pack@npm:1.11.0"
@@ -6464,6 +6482,15 @@ __metadata:
   peerDependencies:
     tslib: 2
   checksum: 10c0/05d8138f43c48589475f1cac516dcc93b1b6123474a9e1c2ddcaefe0c75105aa5fabee5874a2458c4ab78bde9f01a8d54ff560c4e04089b5325de5ff7f57b2ee
+  languageName: node
+  linkType: hard
+
+"tree-dump@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "tree-dump@npm:1.1.0"
+  peerDependencies:
+    tslib: 2
+  checksum: 10c0/079f0f0163b68ee2eedc65cab1de6fb121487eba9ae135c106a8bc5e4ab7906ae0b57d86016e4a7da8c0ee906da1eae8c6a1490cd6e2a5e5ccbca321e1f959ca
   languageName: node
   linkType: hard
 

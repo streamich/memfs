@@ -131,6 +131,7 @@
     "@jsonjoy.com/fs-fsa": "workspace:*",
     "@jsonjoy.com/fs-node-builtins": "workspace:*",
     "@jsonjoy.com/fs-node-utils": "workspace:*",
+    "@jsonjoy.com/fs-print": "workspace:*",
     "@jsonjoy.com/json-pack": "^1.11.0",
     "@jsonjoy.com/util": "^1.9.0",
     "glob-to-regex.js": "^1.0.1",

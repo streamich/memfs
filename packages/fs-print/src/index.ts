@@ -1,7 +1,5 @@
 import { printTree } from 'tree-dump';
-import { basename } from '../node-to-fsa/util';
-import type { FsSynchronousApi } from '@jsonjoy.com/fs-node-utils';
-import type { IDirent } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
+import { basename, FsSynchronousApi, type IDirent } from '@jsonjoy.com/fs-node-utils';
 
 export const toTreeSync = (fs: FsSynchronousApi, opts: ToTreeOptions = {}) => {
   const separator = opts.separator || '/';

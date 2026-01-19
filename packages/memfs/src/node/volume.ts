@@ -39,7 +39,7 @@ import * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import { FsCallbackApi, WritevCallback } from '@jsonjoy.com/fs-node-utils/lib/types/FsCallbackApi';
 import { FsPromises } from './FsPromises';
-import { ToTreeOptions, toTreeSync } from '../print';
+import { ToTreeOptions, toTreeSync } from '@jsonjoy.com/fs-print';
 import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/fs-node-utils';
 import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import {

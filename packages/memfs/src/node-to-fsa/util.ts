@@ -1,6 +1,8 @@
 import type { NodeFsaContext } from './types';
 import { FileLockManager } from '@jsonjoy.com/fs-fsa';
 
+export { basename } from '@jsonjoy.com/fs-node-utils';
+
 /**
  * Creates a new {@link NodeFsaContext}.
  */
@@ -12,12 +14,6 @@ export const ctx = (partial: Partial<NodeFsaContext> = {}): NodeFsaContext => {
     locks: new FileLockManager(),
     ...partial,
   };
-};
-
-export const basename = (path: string, separator: string) => {
-  if (path[path.length - 1] === separator) path = path.slice(0, -1);
-  const lastSlashIndex = path.lastIndexOf(separator);
-  return lastSlashIndex === -1 ? path : path.slice(lastSlashIndex + 1);
 };
 
 const nameRegex = /^(\.{1,2})$|^(.*([\/\\]).*)$/;

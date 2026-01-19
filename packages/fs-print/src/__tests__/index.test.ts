@@ -1,8 +1,8 @@
 import { toTreeSync } from '..';
-import { memfs } from '../..';
+import { createTestFs } from './testUtils';
 
 test('can print a single file', () => {
-  const { fs } = memfs({
+  const fs = createTestFs({
     '/file.txt': '...',
   });
   expect(toTreeSync(fs, { dir: '/' })).toMatchInlineSnapshot(`
@@ -12,7 +12,7 @@ test('can print a single file', () => {
 });
 
 test('can a one level deep directory tree', () => {
-  const { fs } = memfs({
+  const fs = createTestFs({
     '/file.txt': '...',
     '/foo/bar.txt': '...',
     '/foo/index.php': '...',
@@ -27,7 +27,7 @@ test('can a one level deep directory tree', () => {
 });
 
 test('can print two-levels of folders', () => {
-  const { fs } = memfs({
+  const fs = createTestFs({
     '/level1/level2/file.txt': '...',
   });
   expect(toTreeSync(fs, { dir: '/' })).toMatchInlineSnapshot(`
@@ -39,7 +39,7 @@ test('can print two-levels of folders', () => {
 });
 
 test('can stop recursion at specified depth', () => {
-  const { fs } = memfs({
+  const fs = createTestFs({
     '/dir1/dir2/dir3/file.txt': '...',
   });
   expect(toTreeSync(fs, { dir: '/', depth: 2 })).toMatchInlineSnapshot(`
@@ -50,7 +50,7 @@ test('can stop recursion at specified depth', () => {
 });
 
 test('can print symlinks', () => {
-  const { fs } = memfs({
+  const fs = createTestFs({
     '/a/b/c/file.txt': '...',
     '/a/b/main.rb': '...',
   });
@@ -67,7 +67,7 @@ test('can print symlinks', () => {
 });
 
 test('can print starting from subfolder', () => {
-  const { fs } = memfs({
+  const fs = createTestFs({
     '/a/b/c/file.txt': '...',
     '/a/b/main.rb': '...',
   });
@@ -80,7 +80,7 @@ test('can print starting from subfolder', () => {
 });
 
 test('can print folders sorted first', () => {
-  const { fs } = memfs({
+  const fs = createTestFs({
     '/a.txt': '...',
     '/b/file.txt': '...',
     '/c.txt': '...',
@@ -95,7 +95,7 @@ test('can print folders sorted first', () => {
 });
 
 test('can print files and folders sorted alphabetically', () => {
-  const { fs } = memfs({
+  const fs = createTestFs({
     '/a.txt': '...',
     '/c.txt': '...',
     '/b.txt': '...',

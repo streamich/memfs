@@ -4,12 +4,12 @@
     "access": "public"
   },
   "version": "4.54.0",
-  "description": "",
+  "description": "Utility functions for Node.js fs module",
   "author": {
     "name": "streamich",
     "url": "https://github.com/streamich"
   },
-  "homepage": "https://github.com/streamich/memfs/tree/master/packages/node-fs-types",
+  "homepage": "https://github.com/streamich/memfs/tree/master/packages/node-fs-utils",
   "repository": "streamich/memfs",
   "license": "Apache-2.0",
   "funding": {

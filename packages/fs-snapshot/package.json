@@ -81,6 +81,7 @@
     "tslib": "2"
   },
   "dependencies": {
+    "@jsonjoy.com/buffers": "^17.65.0",
     "@jsonjoy.com/fs-node-utils": "workspace:*",
     "@jsonjoy.com/json-pack": "^17.65.0",
     "@jsonjoy.com/util": "^17.65.0"

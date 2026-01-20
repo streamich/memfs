@@ -165,7 +165,7 @@ export interface IFileSystemChangeRecord {
    * The type of change that occurred.
    */
   type: /** The file or directory was created or moved into the `root` file structure. */
-  | 'appeared'
+    | 'appeared'
 
     /**
      * The file or directory was deleted or moved out of the root file structure.

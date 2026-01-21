@@ -95,6 +95,10 @@ jobs:
 
       - name: Publish to NPM with provenance
         if: steps.version-bump.outputs.bump != 'no-bump'
-        run: yarn workspaces foreach -A --no-private npm publish --provenance --access public
-        env:
-          NPM_CONFIG_PROVENANCE: true
+        run: |
+          for pkg in packages/*/; do
+            if [ -f "$pkg/package.json" ] && [ "$(jq -r '.private // false' "$pkg/package.json")" != "true" ]; then
+              echo "Publishing $pkg..."
+              (cd "$pkg" && npm publish --provenance --access public)
+            fi
+          done

@@ -102,3 +102,12 @@ jobs:
               (cd "$pkg" && npm publish --provenance --access public)
             fi
           done
+
+      - name: Create GitHub Release
+        if: steps.version-bump.outputs.bump != 'no-bump'
+        run: |
+          gh release create "v${{ steps.new-version.outputs.version }}" \
+            --title "Release v${{ steps.new-version.outputs.version }}" \
+            --generate-notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

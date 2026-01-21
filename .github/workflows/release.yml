@@ -72,7 +72,7 @@ jobs:
 
       - name: Sync versions across all packages
         if: steps.version-bump.outputs.bump != 'no-bump'
-        run: ./scripts/sync-versions.ts
+        run: node --experimental-strip-types --no-warnings=ExperimentalWarning ./scripts/sync-versions.ts
 
       - name: Configure Git
         if: steps.version-bump.outputs.bump != 'no-bump'

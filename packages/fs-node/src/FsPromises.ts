@@ -59,7 +59,6 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
       } else {
         // 'ignore' - drop the oldest event
         this.eventQueue.shift();
-        console.warn(`Watch queue overflow: dropping event due to exceeding maxQueue of ${this.maxQueue}`);
       }
     }
 

@@ -99,7 +99,13 @@ jobs:
           for pkg in packages/*/; do
             if [ -f "$pkg/package.json" ] && [ "$(jq -r '.private // false' "$pkg/package.json")" != "true" ]; then
               echo "Publishing $pkg..."
-              (cd "$pkg" && npm publish --provenance --access public)
+              cd "$pkg"
+              # Use yarn pack to resolve workspace:* dependencies
+              yarn pack -o package.tgz
+              # Use npm publish for OIDC provenance support
+              npm publish package.tgz --provenance --access public
+              rm package.tgz
+              cd - > /dev/null
             fi
           done
 

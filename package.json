@@ -1,6 +1,6 @@
 {
   "name": "memfs-monorepo",
-  "version": "4.56.6",
+  "version": "4.56.7",
   "private": true,
   "description": "In-memory file-system with Node's fs API.",
   "keywords": [

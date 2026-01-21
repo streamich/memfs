@@ -1,6 +1,6 @@
 {
   "name": "memfs",
-  "version": "4.56.6",
+  "version": "4.56.7",
   "publishConfig": {
     "access": "public"
   },

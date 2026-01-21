@@ -34,11 +34,6 @@ jobs:
       - name: Run Prettier check
         run: yarn prettier:check
 
-      - name: Run tests
-        run: yarn test
-        env:
-          CI: true
-
       - name: Clean
         run: yarn clean
 
@@ -47,6 +42,11 @@ jobs:
 
       - name: Run typecheck
         run: yarn typecheck
+
+      - name: Run tests
+        run: yarn test
+        env:
+          CI: true
 
       - name: Determine version bump
         id: version-bump

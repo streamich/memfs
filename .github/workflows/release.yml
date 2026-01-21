@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Run Prettier check
+        run: yarn prettier:check
+
+      - name: Run typecheck
+        run: yarn typecheck
+
+      - name: Run tests
+        run: yarn test
+        env:
+          CI: true
+
+      - name: Clean
+        run: yarn clean
+
+      - name: Build
+        run: yarn build
+
+      - name: Determine version bump
+        id: version-bump
+        run: |
+          VERSION_BUMP=$(./scripts/version-bump.sh)
+          echo "bump=$VERSION_BUMP" >> $GITHUB_OUTPUT
+          echo "Version bump type: $VERSION_BUMP"
+
+      - name: Check if release is needed
+        if: steps.version-bump.outputs.bump == 'no-bump'
+        run: |
+          echo "No version bump needed based on commit messages. Skipping release."
+          exit 0
+
+      - name: Update version in root package.json
+        if: steps.version-bump.outputs.bump != 'no-bump'
+        run: npm version --allow-same-version --no-git-tag-version "${{ steps.version-bump.outputs.bump }}"
+
+      - name: Get new version
+        if: steps.version-bump.outputs.bump != 'no-bump'
+        id: new-version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Sync versions across all packages
+        if: steps.version-bump.outputs.bump != 'no-bump'
+        run: ./scripts/sync-versions.ts
+
+      - name: Configure Git
+        if: steps.version-bump.outputs.bump != 'no-bump'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and tag release
+        if: steps.version-bump.outputs.bump != 'no-bump'
+        run: |
+          git add .
+          git commit -m "chore: release v${{ steps.new-version.outputs.version }}"
+          git tag "v${{ steps.new-version.outputs.version }}"
+
+      - name: Push changes
+        if: steps.version-bump.outputs.bump != 'no-bump'
+        run: |
+          git push origin master
+          git push origin "v${{ steps.new-version.outputs.version }}"
+
+      - name: Publish to NPM with provenance
+        if: steps.version-bump.outputs.bump != 'no-bump'
+        run: yarn workspaces foreach -A --no-private npm publish --provenance --access public
+        env:
+          NPM_CONFIG_PROVENANCE: true

@@ -34,9 +34,6 @@ jobs:
       - name: Run Prettier check
         run: yarn prettier:check
 
-      - name: Run typecheck
-        run: yarn typecheck
-
       - name: Run tests
         run: yarn test
         env:
@@ -47,6 +44,9 @@ jobs:
 
       - name: Build
         run: yarn build
+
+      - name: Run typecheck
+        run: yarn typecheck
 
       - name: Determine version bump
         id: version-bump

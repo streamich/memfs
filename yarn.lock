@@ -930,6 +930,7 @@ __metadata:
     "@jsonjoy.com/fs-node-builtins": "workspace:*"
     "@jsonjoy.com/fs-node-utils": "workspace:*"
     "@jsonjoy.com/fs-print": "workspace:*"
+    "@jsonjoy.com/fs-snapshot": "workspace:*"
     "@types/jest": "npm:^29.0.0"
     "@types/node": "npm:^20.0.0"
     glob-to-regex.js: "npm:^1.0.0"
@@ -962,7 +963,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jsonjoy.com/fs-snapshot@workspace:^, @jsonjoy.com/fs-snapshot@workspace:packages/fs-snapshot":
+"@jsonjoy.com/fs-snapshot@workspace:*, @jsonjoy.com/fs-snapshot@workspace:packages/fs-snapshot":
   version: 0.0.0-use.local
   resolution: "@jsonjoy.com/fs-snapshot@workspace:packages/fs-snapshot"
   dependencies:
@@ -4940,7 +4941,7 @@ __metadata:
     "@jsonjoy.com/fs-node-to-fsa": "workspace:*"
     "@jsonjoy.com/fs-node-utils": "workspace:*"
     "@jsonjoy.com/fs-print": "workspace:*"
-    "@jsonjoy.com/fs-snapshot": "workspace:^"
+    "@jsonjoy.com/fs-snapshot": "workspace:*"
     "@jsonjoy.com/json-pack": "npm:^1.11.0"
     "@jsonjoy.com/util": "npm:^1.9.0"
     "@types/jest": "npm:^29.0.0"

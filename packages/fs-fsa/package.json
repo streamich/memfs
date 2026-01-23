@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "4.56.9",
+  "version": "4.56.10",
   "description": "File System Access API implementation backed by core filesystem primitives",
   "author": {
     "name": "streamich",

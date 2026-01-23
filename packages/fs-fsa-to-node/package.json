@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "4.56.9",
+  "version": "4.56.10",
   "description": "Adapter to convert File System Access API to Node.js fs API",
   "author": {
     "name": "streamich",

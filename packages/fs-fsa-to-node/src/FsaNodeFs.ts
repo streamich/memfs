@@ -39,6 +39,18 @@ const noop: (...args: any[]) => any = () => {};
  * [`FileSystemDirectoryHandle` object](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle).
  */
 export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchronousApi, FsCommonObjects {
+
+  // NOTE this constructor is needed to avoid tsc from creating a contructor calling super(...arguments); leading to an assertation error in next:
+  // _assert_this_initialized.js:2 Uncaught ReferenceError: this hasn't been initialised - super() hasn't been called
+  constructor(
+    protected readonly root:
+      | fsa.IFileSystemDirectoryHandle
+      | Promise<fsa.IFileSystemDirectoryHandle>,
+    public syncAdapter?: FsaNodeSyncAdapter
+  ) {
+    super(root, syncAdapter);
+  }
+  
   // ------------------------------------------------------------ FsPromisesApi
 
   public readonly promises: FsPromisesApi = new FsPromises(this, FileHandle);

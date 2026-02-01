@@ -31,7 +31,7 @@ const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_APPEND, O_DIRECT
 /**
  * Represents options for creating a Superblock from JSON.
  */
-export type SuperBlockFromJsonOptions = {
+export type SuperblockFromJsonOptions = {
   /**
    * Current working directory, absolute path.
    * Methods will use this as the base path for relative paths.
@@ -43,7 +43,7 @@ export type SuperBlockFromJsonOptions = {
    * This is the mount point where the JSON structure will be mounted.
    * It is used as the base path for all paths in the JSON structure.
    *
-   * @default SuperBlockFromJsonOptions.cwd
+   * @default SuperblockFromJsonOptions.cwd
    */
   mountpoint?: string;
 };
@@ -54,13 +54,13 @@ export type SuperBlockFromJsonOptions = {
  * @see https://lxr.linux.no/linux+v3.11.2/include/linux/fs.h#L1242
  */
 export class Superblock {
-  static fromJSON(json: DirectoryJSON, options?: SuperBlockFromJsonOptions): Superblock {
+  static fromJSON(json: DirectoryJSON, options?: SuperblockFromJsonOptions): Superblock {
     const vol = new Superblock();
     vol.fromJSON(json, options);
     return vol;
   }
 
-  static fromNestedJSON(json: NestedDirectoryJSON, options?: SuperBlockFromJsonOptions): Superblock {
+  static fromNestedJSON(json: NestedDirectoryJSON, options?: SuperblockFromJsonOptions): Superblock {
     const vol = new Superblock();
     vol.fromNestedJSON(json, options);
     return vol;
@@ -432,7 +432,7 @@ export class Superblock {
     return json;
   }
 
-  fromJSON(json: DirectoryJSON, options?: SuperBlockFromJsonOptions) {
+  fromJSON(json: DirectoryJSON, options?: SuperblockFromJsonOptions) {
     this.cwd = options?.cwd ?? process.cwd();
     for (let filename in json) {
       const data = json[filename];
@@ -448,7 +448,7 @@ export class Superblock {
     }
   }
 
-  fromNestedJSON(json: NestedDirectoryJSON, options?: SuperBlockFromJsonOptions) {
+  fromNestedJSON(json: NestedDirectoryJSON, options?: SuperblockFromJsonOptions) {
     this.fromJSON(flattenJSON(json), options);
   }
 

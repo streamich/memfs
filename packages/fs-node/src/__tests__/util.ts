@@ -1,6 +1,6 @@
 import { Volume } from '..';
 import { Link, Node, NestedDirectoryJSON } from '@jsonjoy.com/fs-core';
-import type { SuperBlockFromJsonOptions } from '@jsonjoy.com/fs-core/lib/Superblock';
+import type { SuperblockFromJsonOptions } from '@jsonjoy.com/fs-core/lib/Superblock';
 
 export const multitest = (_done: (err?: Error) => void, times: number) => {
   let err;
@@ -10,19 +10,19 @@ export const multitest = (_done: (err?: Error) => void, times: number) => {
   };
 };
 
-export const create = (json: { [s: string]: string } = { '/foo': 'bar' }, options?: SuperBlockFromJsonOptions) => {
+export const create = (json: { [s: string]: string } = { '/foo': 'bar' }, options?: SuperblockFromJsonOptions) => {
   options ??= {};
   options.cwd ??= '/';
   const vol = Volume.fromJSON(json, options);
   return vol;
 };
 
-export const createFs = (json?, options?: SuperBlockFromJsonOptions) => {
+export const createFs = (json?, options?: SuperblockFromJsonOptions) => {
   const vol = create(json, options);
   return vol;
 };
 
-export const memfs = (json: NestedDirectoryJSON = {}, options?: SuperBlockFromJsonOptions) => {
+export const memfs = (json: NestedDirectoryJSON = {}, options?: SuperblockFromJsonOptions) => {
   const vol = Volume.fromNestedJSON(json, options);
   return { fs: vol, vol };
 };

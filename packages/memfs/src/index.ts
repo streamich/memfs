@@ -13,7 +13,7 @@ import { DirectoryJSON, NestedDirectoryJSON } from '@jsonjoy.com/fs-core';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 import type { FsPromisesApi } from '@jsonjoy.com/fs-node-utils';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
-import type { SuperBlockFromJsonOptions } from '@jsonjoy.com/fs-core/lib/Superblock';
+import type { SuperblockFromJsonOptions } from '@jsonjoy.com/fs-core/lib/Superblock';
 
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
@@ -81,7 +81,7 @@ export const fs: IFs = createFsFromVolume(vol);
  */
 export const memfs = (
   json: NestedDirectoryJSON = {},
-  options?: SuperBlockFromJsonOptions,
+  options?: SuperblockFromJsonOptions,
 ): { fs: IFs; vol: Volume } => {
   const vol = Volume.fromNestedJSON(json, options);
   const fs = createFsFromVolume(vol);

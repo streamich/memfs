@@ -12,7 +12,7 @@ import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import {
   Link,
   Superblock,
-  SuperBlockFromJsonOptions,
+  SuperblockFromJsonOptions,
   DirectoryJSON,
   NestedDirectoryJSON,
   ERROR_CODE,
@@ -177,10 +177,10 @@ function validateGid(gid: number) {
  * `Volume` represents a file system.
  */
 export class Volume implements FsCallbackApi, FsSynchronousApi {
-  public static readonly fromJSON = (json: DirectoryJSON, options?: SuperBlockFromJsonOptions): Volume =>
+  public static readonly fromJSON = (json: DirectoryJSON, options?: SuperblockFromJsonOptions): Volume =>
     new Volume(Superblock.fromJSON(json, options));
 
-  public static readonly fromNestedJSON = (json: NestedDirectoryJSON, options?: SuperBlockFromJsonOptions): Volume =>
+  public static readonly fromNestedJSON = (json: NestedDirectoryJSON, options?: SuperblockFromJsonOptions): Volume =>
     new Volume(Superblock.fromNestedJSON(json, options));
 
   StatWatcher: new () => StatWatcher;
@@ -282,11 +282,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return this._core.toJSON(paths, json, isRelative, asBuffer);
   }
 
-  fromJSON(json: DirectoryJSON, options?: SuperBlockFromJsonOptions) {
+  fromJSON(json: DirectoryJSON, options?: SuperblockFromJsonOptions) {
     return this._core.fromJSON(json, options);
   }
 
-  fromNestedJSON(json: NestedDirectoryJSON, options?: SuperBlockFromJsonOptions) {
+  fromNestedJSON(json: NestedDirectoryJSON, options?: SuperblockFromJsonOptions) {
     return this._core.fromNestedJSON(json, options);
   }
 

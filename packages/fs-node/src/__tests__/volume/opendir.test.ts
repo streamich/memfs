@@ -24,10 +24,13 @@ describe('opendir', () => {
   });
 
   it('should provide relative fs.opendirSync (synchronous)', () => {
-    const vol = Volume.fromJSON({
-      '/test/file1.txt': 'content1',
-      '/test/file2.txt': 'content2',
-    }, '/test');
+    const vol = Volume.fromJSON(
+      {
+        '/test/file1.txt': 'content1',
+        '/test/file2.txt': 'content2',
+      },
+      '/test',
+    );
 
     const dir = vol.opendirSync('.');
     expect(dir).toBeDefined();

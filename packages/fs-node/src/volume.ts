@@ -12,6 +12,7 @@ import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import {
   Link,
   Superblock,
+  SuperBlockFromJsonOptions,
   DirectoryJSON,
   NestedDirectoryJSON,
   ERROR_CODE,
@@ -23,7 +24,7 @@ import {
   validateFd,
   Ok,
   Result,
-} from '@jsonjoy.com/fs-core';
+} from '@jsonjoy.com/fs-core/lib/index';
 import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import Stats from './Stats';
 import Dirent from './Dirent';
@@ -176,11 +177,11 @@ function validateGid(gid: number) {
  * `Volume` represents a file system.
  */
 export class Volume implements FsCallbackApi, FsSynchronousApi {
-  public static readonly fromJSON = (json: DirectoryJSON, cwd: string = '/'): Volume =>
-    new Volume(Superblock.fromJSON(json, cwd));
+  public static readonly fromJSON = (json: DirectoryJSON, options?: SuperBlockFromJsonOptions): Volume =>
+    new Volume(Superblock.fromJSON(json, options));
 
-  public static readonly fromNestedJSON = (json: NestedDirectoryJSON, cwd: string = '/'): Volume =>
-    new Volume(Superblock.fromNestedJSON(json, cwd));
+  public static readonly fromNestedJSON = (json: NestedDirectoryJSON, options?: SuperBlockFromJsonOptions): Volume =>
+    new Volume(Superblock.fromNestedJSON(json, options));
 
   StatWatcher: new () => StatWatcher;
   ReadStream: new (...args) => misc.IReadStream;
@@ -253,6 +254,12 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.realpathSync.native = realpathSyncImpl as any;
   }
 
+  get cwd(): string {
+    return this._core.cwd;
+  }
+  set cwd(value: string) {
+    this._core.cwd = value;
+  }
   private wrapAsync<Args extends any[]>(method: (...args: Args) => void, args: Args, callback: misc.TCallback<any>) {
     validateCallback(callback);
     Promise.resolve().then(() => {
@@ -275,17 +282,17 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return this._core.toJSON(paths, json, isRelative, asBuffer);
   }
 
-  fromJSON(json: DirectoryJSON, cwd?: string) {
-    return this._core.fromJSON(json, cwd);
+  fromJSON(json: DirectoryJSON, options?: SuperBlockFromJsonOptions) {
+    return this._core.fromJSON(json, options);
   }
 
-  fromNestedJSON(json: NestedDirectoryJSON, cwd?: string) {
-    return this._core.fromNestedJSON(json, cwd);
+  fromNestedJSON(json: NestedDirectoryJSON, options?: SuperBlockFromJsonOptions) {
+    return this._core.fromNestedJSON(json, options);
   }
 
   // Legacy interface
   mountSync(mountpoint: string, json: DirectoryJSON) {
-    this._core.fromJSON(json, mountpoint);
+    this._core.fromJSON(json, { mountpoint: mountpoint });
   }
 
   public openSync = (path: PathLike, flags: TFlags, mode: TMode = MODE.DEFAULT): number => {

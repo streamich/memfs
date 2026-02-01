@@ -29,20 +29,40 @@ const pathJoin = posix ? posix.join : join;
 const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_APPEND, O_DIRECTORY } = constants;
 
 /**
+ * Represents options for creating a Superblock from JSON.
+ */
+export type SuperBlockFromJsonOptions = {
+  /**
+   * Current working directory, absolute path.
+   * Methods will use this as the base path for relative paths.
+   *
+   * @default process.cwd()
+   */
+  cwd?: string;
+  /**
+   * This is the mount point where the JSON structure will be mounted.
+   * It is used as the base path for all paths in the JSON structure.
+   *
+   * @default SuperBlockFromJsonOptions.cwd
+   */
+  mountpoint?: string;
+};
+
+/**
  * Represents a filesystem superblock, which is the root of a virtual
  * filesystem in Linux.
  * @see https://lxr.linux.no/linux+v3.11.2/include/linux/fs.h#L1242
  */
 export class Superblock {
-  static fromJSON(json: DirectoryJSON, cwd?: string): Superblock {
+  static fromJSON(json: DirectoryJSON, options?: SuperBlockFromJsonOptions): Superblock {
     const vol = new Superblock();
-    vol.fromJSON(json, cwd);
+    vol.fromJSON(json, options);
     return vol;
   }
 
-  static fromNestedJSON(json: NestedDirectoryJSON, cwd?: string): Superblock {
+  static fromNestedJSON(json: NestedDirectoryJSON, options?: SuperBlockFromJsonOptions): Superblock {
     const vol = new Superblock();
-    vol.fromNestedJSON(json, cwd);
+    vol.fromNestedJSON(json, options);
     return vol;
   }
 
@@ -97,7 +117,13 @@ export class Superblock {
     this.root = root;
   }
 
-  protected cwd: string = process.cwd();
+  protected _cwd: string = process.cwd();
+  get cwd(): string {
+    return this._cwd;
+  }
+  set cwd(value: string) {
+    this._cwd = value;
+  }
 
   createLink(): Link;
   createLink(parent: Link, name: string, isDirectory?: boolean, mode?: number): Link;
@@ -406,12 +432,11 @@ export class Superblock {
     return json;
   }
 
-  // TODO: `cwd` should probably not invoke `process.cwd()`.
-  fromJSON(json: DirectoryJSON, cwd: string = process.cwd()) {
-    this.cwd = cwd;
+  fromJSON(json: DirectoryJSON, options?: SuperBlockFromJsonOptions) {
+    this.cwd = options?.cwd ?? process.cwd();
     for (let filename in json) {
       const data = json[filename];
-      filename = resolve(filename, cwd);
+      filename = resolve(filename, options?.mountpoint ?? this.cwd);
       if (typeof data === 'string' || data instanceof Buffer) {
         const dir = dirname(filename);
         this.mkdirp(dir, MODE.DIR);
@@ -423,8 +448,8 @@ export class Superblock {
     }
   }
 
-  fromNestedJSON(json: NestedDirectoryJSON, cwd?: string) {
-    this.fromJSON(flattenJSON(json), cwd);
+  fromNestedJSON(json: NestedDirectoryJSON, options?: SuperBlockFromJsonOptions) {
+    this.fromJSON(flattenJSON(json), options);
   }
 
   reset() {
@@ -441,7 +466,7 @@ export class Superblock {
 
   // Legacy interface
   mountSync(mountpoint: string, json: DirectoryJSON) {
-    this.fromJSON(json, mountpoint);
+    this.fromJSON(json, { mountpoint: mountpoint });
   }
 
   openLink(link: Link, flagsNum: number, resolveSymlinks: boolean = true): File {

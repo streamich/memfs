@@ -31,13 +31,16 @@ describe('readdirSync()', () => {
   });
 
   it('reads relative dir', () => {
-    const vol = create({
-      '/foo/bar/file': 'content',
-      '/foo/bar/file2': 'content2',
-    }, '/foo');
+    const vol = create(
+      {
+        '/foo/bar/file': 'content',
+        '/foo/bar/file2': 'content2',
+      },
+      '/foo',
+    );
     const files = vol.readdirSync('bar');
 
-    expect(files).toEqual(["file", "file2"]);
+    expect(files).toEqual(['file', 'file2']);
   });
 
   it('respects symlinks', () => {

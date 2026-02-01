@@ -30,5 +30,6 @@ PR [1124](https://github.com/streamich/memfs/pull/1224) adds partial support for
 relative paths. Tests are passing on the following methods:
 
 - `fs.promises.readFile`
+- `fs.readFileSync`
 - `vol.readdirSync`
 - `vol.opendir`

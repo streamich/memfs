@@ -5,12 +5,15 @@ describe('.readFile()', () => {
   it('can read a file in cwd', async () => {
     const { fs } = memfs({ 'test.txt': '01234567' }, '/dir');
     await expect(fs.promises.readFile('/dir/test.txt', { encoding: 'utf8' })).resolves.toBe('01234567');
+    await expect(fs.readFileSync('/dir/test.txt', { encoding: 'utf8' })).toBe('01234567');
   });
 
   it('can read a relative file in cwd', async () => {
     const { fs } = memfs({ 'test.txt': '01234567' }, '/dir');
     await expect(fs.promises.readFile('test.txt', { encoding: 'utf8' })).resolves.toBe('01234567');
     await expect(fs.promises.readFile('./test.txt', { encoding: 'utf8' })).resolves.toBe('01234567');
+    await expect(fs.readFileSync('test.txt', { encoding: 'utf8' })).toBe('01234567');
+    await expect(fs.readFileSync('./test.txt', { encoding: 'utf8' })).toBe('01234567');
   });
 
   it('can read a file', async () => {

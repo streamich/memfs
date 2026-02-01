@@ -5,7 +5,7 @@ import { CoreFileSystemHandle } from '../CoreFileSystemHandle';
 import { onlyOnNode20 } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
-  const core = Superblock.fromJSON(json, '/');
+  const core = Superblock.fromJSON(json, { cwd: '/' });
   const dir = new CoreFileSystemDirectoryHandle(core, '/', { mode: 'readwrite' });
   return { dir, core };
 };
@@ -192,7 +192,7 @@ onlyOnNode20('CoreFileSystemDirectoryHandle', () => {
       const { dir: dir1 } = setup({ 'file1.txt': 'content' });
 
       // Create completely different core and root path
-      const core2 = Superblock.fromJSON({ 'different/file2.txt': 'content' }, '/');
+      const core2 = Superblock.fromJSON({ 'different/file2.txt': 'content' }, { cwd: '/' });
       // Use a different path that does not start with dir1's path
       const dir2 = new CoreFileSystemDirectoryHandle(core2, '/some-completely-different-path/', { mode: 'readwrite' });
 

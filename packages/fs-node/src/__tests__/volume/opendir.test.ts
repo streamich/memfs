@@ -29,7 +29,7 @@ describe('opendir', () => {
         '/test/file1.txt': 'content1',
         '/test/file2.txt': 'content2',
       },
-      '/test',
+      { cwd: '/test' },
     );
 
     const dir = vol.opendirSync('.');

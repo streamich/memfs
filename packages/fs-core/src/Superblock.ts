@@ -117,7 +117,7 @@ export class Superblock {
     this.root = root;
   }
 
-  protected _cwd: string = process.cwd();
+  protected _cwd: string = '/';
   get cwd(): string {
     return this._cwd;
   }
@@ -433,10 +433,11 @@ export class Superblock {
   }
 
   fromJSON(json: DirectoryJSON, options?: SuperblockFromJsonOptions) {
-    this.cwd = options?.cwd ?? process.cwd();
+    this.cwd = options?.cwd ?? '/';
+    const mountpoint = options?.mountpoint ?? this.cwd;
     for (let filename in json) {
       const data = json[filename];
-      filename = resolve(filename, options?.mountpoint ?? this.cwd);
+      filename = resolve(filename, mountpoint);
       if (typeof data === 'string' || data instanceof Buffer) {
         const dir = dirname(filename);
         this.mkdirp(dir, MODE.DIR);

@@ -36,7 +36,7 @@ describe('readdirSync()', () => {
         '/foo/bar/file': 'content',
         '/foo/bar/file2': 'content2',
       },
-      '/foo',
+      { cwd: '/foo' },
     );
     const files = vol.readdirSync('bar');
 

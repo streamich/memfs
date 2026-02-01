@@ -33,14 +33,14 @@ const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_APPEND, O_DIRECT
  */
 export type SuperblockFromJsonOptions = {
   /**
-   * Current working directory, absolute path.
+   * Current working directory; absolute or relative path.
    * Methods will use this as the base path for relative paths.
    *
    * @default process.cwd()
    */
   cwd?: string;
   /**
-   * This is the mount point where the JSON structure will be mounted.
+   * This is the mount point; absolute or relative path.
    * It is used as the base path for all paths in the JSON structure.
    *
    * @default SuperblockFromJsonOptions.cwd

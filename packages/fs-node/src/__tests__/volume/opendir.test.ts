@@ -23,6 +23,32 @@ describe('opendir', () => {
     });
   });
 
+  it('should provide relative fs.opendirSync (synchronous)', () => {
+    const vol = Volume.fromJSON({
+      '/test/file1.txt': 'content1',
+      '/test/file2.txt': 'content2',
+    }, '/test');
+
+    const dir = vol.opendirSync('.');
+    expect(dir).toBeDefined();
+    expect(typeof dir.read).toBe('function');
+    expect(typeof dir.close).toBe('function');
+    expect(typeof dir.readSync).toBe('function');
+    expect(typeof dir.closeSync).toBe('function');
+
+    const entries: string[] = [];
+    let entry;
+    while ((entry = dir.readSync()) !== null) {
+      entries.push(entry.name);
+    }
+
+    expect(entries).toContain('file1.txt');
+    expect(entries).toContain('file2.txt');
+    expect(entries.length).toBe(2);
+
+    dir.closeSync();
+  });
+
   it('should provide fs.opendirSync (synchronous)', () => {
     const vol = new Volume();
     vol.mkdirSync('/test');

@@ -33,3 +33,4 @@ relative paths. Tests are passing on the following methods:
 - `fs.readFileSync`
 - `vol.readdirSync`
 - `vol.opendir`
+- `vol.statSync`

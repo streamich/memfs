@@ -176,10 +176,10 @@ function validateGid(gid: number) {
  * `Volume` represents a file system.
  */
 export class Volume implements FsCallbackApi, FsSynchronousApi {
-  public static readonly fromJSON = (json: DirectoryJSON, cwd?: string): Volume =>
+  public static readonly fromJSON = (json: DirectoryJSON, cwd: string = '/'): Volume =>
     new Volume(Superblock.fromJSON(json, cwd));
 
-  public static readonly fromNestedJSON = (json: NestedDirectoryJSON, cwd?: string): Volume =>
+  public static readonly fromNestedJSON = (json: NestedDirectoryJSON, cwd: string = '/'): Volume =>
     new Volume(Superblock.fromNestedJSON(json, cwd));
 
   StatWatcher: new () => StatWatcher;

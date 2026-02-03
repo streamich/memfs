@@ -10,7 +10,7 @@ export const multitest = (_done: (err?: Error) => void, times: number) => {
 };
 
 export const create = (json: { [s: string]: string } = { '/foo': 'bar' }, cwd?: string) => {
-  const vol = Volume.fromJSON(json, cwd ?? '/');
+  const vol = Volume.fromJSON(json, cwd);
   return vol;
 };
 

@@ -23,7 +23,7 @@ import {
   validateFd,
   Ok,
   Result,
-} from '@jsonjoy.com/fs-core/lib/index';
+} from '@jsonjoy.com/fs-core';
 import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import Stats from './Stats';
 import Dirent from './Dirent';

@@ -8,9 +8,7 @@ describe('Volume.cwd', () => {
         '/a/file': 'a',
         '/a/b/file': 'b',
       },
-      {
-        cwd: '/',
-      },
+      '/',
     );
     expect(vol.readFileSync('./file', 'utf8')).toEqual('root');
     vol.cwd = '/a';
@@ -25,9 +23,7 @@ describe('Volume.cwd', () => {
         'a/file': 'a',
         'a/b/file': 'b',
       },
-      {
-        cwd: process.cwd(),
-      },
+      process.cwd(),
     );
     expect(vol.readFileSync('./file', 'utf8')).toEqual('root');
     vol.cwd = 'a';

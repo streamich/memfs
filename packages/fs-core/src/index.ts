@@ -5,7 +5,7 @@ export * from './result';
 export { Node, type NodeEvent } from './Node';
 export { Link, type LinkEvent } from './Link';
 export { File } from './File';
-export { Superblock, SuperblockFromJsonOptions } from './Superblock';
+export { Superblock } from './Superblock';
 export {
   dataToBuffer,
   filenameToSteps,

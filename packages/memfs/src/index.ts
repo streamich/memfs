@@ -13,7 +13,6 @@ import { DirectoryJSON, NestedDirectoryJSON } from '@jsonjoy.com/fs-core';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 import type { FsPromisesApi } from '@jsonjoy.com/fs-node-utils';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
-import type { SuperblockFromJsonOptions } from '@jsonjoy.com/fs-core/lib/Superblock';
 
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
@@ -79,11 +78,8 @@ export const fs: IFs = createFsFromVolume(vol);
  * @returns A `memfs` file system instance, which is a drop-in replacement for
  *          the `fs` module.
  */
-export const memfs = (
-  json: NestedDirectoryJSON = {},
-  options?: SuperblockFromJsonOptions,
-): { fs: IFs; vol: Volume } => {
-  const vol = Volume.fromNestedJSON(json, options);
+export const memfs = (json: NestedDirectoryJSON = {}, cwd?: string): { fs: IFs; vol: Volume } => {
+  const vol = Volume.fromNestedJSON(json, cwd);
   const fs = createFsFromVolume(vol);
   return { fs, vol };
 };

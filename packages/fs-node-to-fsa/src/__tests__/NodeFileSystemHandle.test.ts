@@ -3,7 +3,7 @@ import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle'
 import { onlyOnNode20 } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
-  const { fs } = memfs(json, { cwd: '/' });
+  const { fs } = memfs(json, '/');
   const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'readwrite' });
   return { dir, fs };
 };

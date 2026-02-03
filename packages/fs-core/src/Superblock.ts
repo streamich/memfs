@@ -29,40 +29,20 @@ const pathJoin = posix ? posix.join : join;
 const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_APPEND, O_DIRECTORY } = constants;
 
 /**
- * Represents options for creating a Superblock from JSON.
- */
-export type SuperblockFromJsonOptions = {
-  /**
-   * Current working directory; absolute or relative path.
-   * Methods will use this as the base path for relative paths.
-   *
-   * @default process.cwd()
-   */
-  cwd?: string;
-  /**
-   * This is the mount point; absolute or relative path.
-   * It is used as the base path for all paths in the JSON structure.
-   *
-   * @default SuperblockFromJsonOptions.cwd
-   */
-  mountpoint?: string;
-};
-
-/**
  * Represents a filesystem superblock, which is the root of a virtual
  * filesystem in Linux.
  * @see https://lxr.linux.no/linux+v3.11.2/include/linux/fs.h#L1242
  */
 export class Superblock {
-  static fromJSON(json: DirectoryJSON, options?: SuperblockFromJsonOptions): Superblock {
+  static fromJSON(json: DirectoryJSON, cwd?: string): Superblock {
     const vol = new Superblock();
-    vol.fromJSON(json, options);
+    vol.fromJSON(json, cwd);
     return vol;
   }
 
-  static fromNestedJSON(json: NestedDirectoryJSON, options?: SuperblockFromJsonOptions): Superblock {
+  static fromNestedJSON(json: NestedDirectoryJSON, cwd?: string): Superblock {
     const vol = new Superblock();
-    vol.fromNestedJSON(json, options);
+    vol.fromNestedJSON(json, cwd);
     return vol;
   }
 
@@ -432,12 +412,11 @@ export class Superblock {
     return json;
   }
 
-  fromJSON(json: DirectoryJSON, options?: SuperblockFromJsonOptions) {
-    this.cwd = options?.cwd ?? '/';
-    const mountpoint = options?.mountpoint ?? this.cwd;
+  fromJSON(json: DirectoryJSON, cwd?: string) {
+    this.cwd = cwd ?? '/';
     for (let filename in json) {
       const data = json[filename];
-      filename = resolve(filename, mountpoint);
+      filename = resolve(filename, this.cwd);
       if (typeof data === 'string' || data instanceof Buffer) {
         const dir = dirname(filename);
         this.mkdirp(dir, MODE.DIR);
@@ -449,8 +428,8 @@ export class Superblock {
     }
   }
 
-  fromNestedJSON(json: NestedDirectoryJSON, options?: SuperblockFromJsonOptions) {
-    this.fromJSON(flattenJSON(json), options);
+  fromNestedJSON(json: NestedDirectoryJSON, cwd?: string) {
+    this.fromJSON(flattenJSON(json), cwd);
   }
 
   reset() {
@@ -467,7 +446,7 @@ export class Superblock {
 
   // Legacy interface
   mountSync(mountpoint: string, json: DirectoryJSON) {
-    this.fromJSON(json, { mountpoint: mountpoint });
+    this.fromJSON(json, mountpoint);
   }
 
   openLink(link: Link, flagsNum: number, resolveSymlinks: boolean = true): File {

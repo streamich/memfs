@@ -3,7 +3,7 @@ import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle'
 import { onlyOnNode20 } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
-  const { fs, vol } = memfs(json, { cwd: '/' });
+  const { fs, vol } = memfs(json, '/');
   const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'readwrite' });
   return { dir, fs, vol };
 };
@@ -27,7 +27,7 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
 
   describe('.createWritable()', () => {
     test('throws if not in "readwrite" mode', async () => {
-      const { fs } = memfs({ 'file.txt': 'abc' }, { cwd: '/' });
+      const { fs } = memfs({ 'file.txt': 'abc' }, '/');
       const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'read' });
       const entry = await dir.getFileHandle('file.txt');
       try {
@@ -197,7 +197,7 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
   describe('file locking', () => {
     describe('sync access handle locking', () => {
       test('creates sync access handle successfully', async () => {
-        const { fs } = memfs({ 'test.txt': 'content' }, { cwd: '/' });
+        const { fs } = memfs({ 'test.txt': 'content' }, '/');
         const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
           syncHandleAllowed: true,
           mode: 'readwrite',
@@ -209,7 +209,7 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
       });
 
       test('throws NoModificationAllowedError when creating sync handle while file is locked', async () => {
-        const { fs } = memfs({ 'file.txt': 'content' }, { cwd: '/' });
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
         const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
           syncHandleAllowed: true,
           mode: 'readwrite',
@@ -230,7 +230,7 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
       });
 
       test('allows creating sync handle after previous one is closed', async () => {
-        const { fs } = memfs({ 'file.txt': 'content' }, { cwd: '/' });
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
         const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
           syncHandleAllowed: true,
           mode: 'readwrite',
@@ -257,7 +257,7 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
       });
 
       test('throws NoModificationAllowedError when creating writable stream while sync handle is open', async () => {
-        const { fs } = memfs({ 'file.txt': 'content' }, { cwd: '/' });
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
         const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
           syncHandleAllowed: true,
           mode: 'readwrite',
@@ -278,7 +278,7 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
       });
 
       test('allows creating writable stream after sync handle is closed', async () => {
-        const { fs } = memfs({ 'file.txt': 'content' }, { cwd: '/' });
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
         const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
           syncHandleAllowed: true,
           mode: 'readwrite',
@@ -295,7 +295,7 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
       });
 
       test('throws NoModificationAllowedError when creating sync handle while writable stream is open', async () => {
-        const { fs } = memfs({ 'file.txt': 'content' }, { cwd: '/' });
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
         const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
           syncHandleAllowed: true,
           mode: 'readwrite',
@@ -316,7 +316,7 @@ onlyOnNode20('NodeFileSystemFileHandle', () => {
       });
 
       test('allows creating sync handle after writable stream is closed', async () => {
-        const { fs } = memfs({ 'file.txt': 'content' }, { cwd: '/' });
+        const { fs } = memfs({ 'file.txt': 'content' }, '/');
         const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', {
           syncHandleAllowed: true,
           mode: 'readwrite',

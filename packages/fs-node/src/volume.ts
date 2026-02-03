@@ -12,7 +12,6 @@ import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import {
   Link,
   Superblock,
-  SuperblockFromJsonOptions,
   DirectoryJSON,
   NestedDirectoryJSON,
   ERROR_CODE,
@@ -177,11 +176,11 @@ function validateGid(gid: number) {
  * `Volume` represents a file system.
  */
 export class Volume implements FsCallbackApi, FsSynchronousApi {
-  public static readonly fromJSON = (json: DirectoryJSON, options?: SuperblockFromJsonOptions): Volume =>
-    new Volume(Superblock.fromJSON(json, options));
+  public static readonly fromJSON = (json: DirectoryJSON, cwd?: string): Volume =>
+    new Volume(Superblock.fromJSON(json, cwd));
 
-  public static readonly fromNestedJSON = (json: NestedDirectoryJSON, options?: SuperblockFromJsonOptions): Volume =>
-    new Volume(Superblock.fromNestedJSON(json, options));
+  public static readonly fromNestedJSON = (json: NestedDirectoryJSON, cwd?: string): Volume =>
+    new Volume(Superblock.fromNestedJSON(json, cwd));
 
   StatWatcher: new () => StatWatcher;
   ReadStream: new (...args) => misc.IReadStream;
@@ -282,17 +281,17 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return this._core.toJSON(paths, json, isRelative, asBuffer);
   }
 
-  fromJSON(json: DirectoryJSON, options?: SuperblockFromJsonOptions) {
-    return this._core.fromJSON(json, options);
+  fromJSON(json: DirectoryJSON, cwd?: string) {
+    return this._core.fromJSON(json, cwd);
   }
 
-  fromNestedJSON(json: NestedDirectoryJSON, options?: SuperblockFromJsonOptions) {
-    return this._core.fromNestedJSON(json, options);
+  fromNestedJSON(json: NestedDirectoryJSON, cwd?: string) {
+    return this._core.fromNestedJSON(json, cwd);
   }
 
   // Legacy interface
   mountSync(mountpoint: string, json: DirectoryJSON) {
-    this._core.fromJSON(json, { mountpoint: mountpoint });
+    this._core.fromJSON(json, mountpoint);
   }
 
   public openSync = (path: PathLike, flags: TFlags, mode: TMode = MODE.DEFAULT): number => {

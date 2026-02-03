@@ -3,7 +3,7 @@ import { CoreFileSystemDirectoryHandle } from '../CoreFileSystemDirectoryHandle'
 import { onlyOnNode20 } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
-  const core = Superblock.fromJSON(json, { cwd: '/' });
+  const core = Superblock.fromJSON(json, '/');
   const dir = new CoreFileSystemDirectoryHandle(core, '/', { mode: 'readwrite' });
   return { dir, core };
 };
@@ -66,7 +66,7 @@ onlyOnNode20('CoreFileSystemHandle', () => {
   });
 
   test('queryPermission denies readwrite when context only allows read', async () => {
-    const core = Superblock.fromJSON({ 'test.txt': 'content' }, { cwd: '/' });
+    const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
     const dir = new CoreFileSystemDirectoryHandle(core, '/', { mode: 'read' });
     const file = await dir.getFileHandle('test.txt');
 

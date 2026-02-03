@@ -4,7 +4,7 @@ import { CoreFileSystemFileHandle } from '../CoreFileSystemFileHandle';
 import { onlyOnNode20 } from './util';
 
 const setup = (json: DirectoryJSON = {}) => {
-  const core = Superblock.fromJSON(json, { cwd: '/' });
+  const core = Superblock.fromJSON(json, '/');
   const dir = new CoreFileSystemDirectoryHandle(core, '/', { mode: 'readwrite' });
   return { dir, core };
 };
@@ -84,7 +84,7 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
     });
 
     test('returns function when sync handle allowed', async () => {
-      const core = Superblock.fromJSON({ 'test.txt': 'content' }, { cwd: '/' });
+      const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
       const dir = new CoreFileSystemDirectoryHandle(core, '/', {
         mode: 'readwrite',
         syncHandleAllowed: true,
@@ -116,7 +116,7 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
   describe('file locking', () => {
     describe('sync access handle locking', () => {
       test('creates sync access handle successfully', async () => {
-        const core = Superblock.fromJSON({ 'test.txt': 'content' }, { cwd: '/' });
+        const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
         const dir = new CoreFileSystemDirectoryHandle(core, '/', {
           mode: 'readwrite',
           syncHandleAllowed: true,
@@ -128,7 +128,7 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
       });
 
       test('throws NoModificationAllowedError when creating sync handle while file is locked', async () => {
-        const core = Superblock.fromJSON({ 'test.txt': 'content' }, { cwd: '/' });
+        const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
         const dir = new CoreFileSystemDirectoryHandle(core, '/', {
           mode: 'readwrite',
           syncHandleAllowed: true,
@@ -153,7 +153,7 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
       });
 
       test('allows creating sync handle after previous one is closed', async () => {
-        const core = Superblock.fromJSON({ 'test.txt': 'content' }, { cwd: '/' });
+        const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
         const dir = new CoreFileSystemDirectoryHandle(core, '/', {
           mode: 'readwrite',
           syncHandleAllowed: true,
@@ -180,7 +180,7 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
       });
 
       test('throws NoModificationAllowedError when creating writable stream while sync handle is open', async () => {
-        const core = Superblock.fromJSON({ 'test.txt': 'content' }, { cwd: '/' });
+        const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
         const dir = new CoreFileSystemDirectoryHandle(core, '/', {
           mode: 'readwrite',
           syncHandleAllowed: true,
@@ -205,7 +205,7 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
       });
 
       test('allows creating writable stream after sync handle is closed', async () => {
-        const core = Superblock.fromJSON({ 'test.txt': 'content' }, { cwd: '/' });
+        const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
         const dir = new CoreFileSystemDirectoryHandle(core, '/', {
           mode: 'readwrite',
           syncHandleAllowed: true,
@@ -222,7 +222,7 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
       });
 
       test('throws NoModificationAllowedError when creating sync handle while writable stream is open', async () => {
-        const core = Superblock.fromJSON({ 'test.txt': 'content' }, { cwd: '/' });
+        const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
         const dir = new CoreFileSystemDirectoryHandle(core, '/', {
           mode: 'readwrite',
           syncHandleAllowed: true,
@@ -247,7 +247,7 @@ onlyOnNode20('CoreFileSystemFileHandle', () => {
       });
 
       test('allows creating sync handle after writable stream is closed', async () => {
-        const core = Superblock.fromJSON({ 'test.txt': 'content' }, { cwd: '/' });
+        const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
         const dir = new CoreFileSystemDirectoryHandle(core, '/', {
           mode: 'readwrite',
           syncHandleAllowed: true,

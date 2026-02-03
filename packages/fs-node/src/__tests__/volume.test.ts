@@ -225,7 +225,7 @@ describe('volume', () => {
           'app.js': 'console.log(123)',
           dir: null,
         };
-        vol.fromJSON(json, { cwd: '/' });
+        vol.fromJSON(json, '/');
         expect(vol.toJSON()).toEqual({
           '/hello': 'world',
           '/app.js': 'console.log(123)',

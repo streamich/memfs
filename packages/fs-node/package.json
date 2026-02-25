@@ -54,7 +54,7 @@
       "tsx"
     ],
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.tsx?$": ["ts-jest", {"diagnostics": false}]
     },
     "transformIgnorePatterns": [
       ".*/node_modules/.*"

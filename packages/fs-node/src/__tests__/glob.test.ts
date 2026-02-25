@@ -71,6 +71,24 @@ describe('glob APIs', () => {
       const results = vol.globSync('*.xyz', { cwd: '/test' });
       expect(results).toEqual([]);
     });
+
+    it('should match files with leading ./ in pattern', () => {
+      const { vol } = setup();
+      const results = vol.globSync('./file1.js', { cwd: '/test' });
+      expect(results).toEqual(['file1.js']);
+    });
+
+    it('should match files with leading ./ wildcard pattern', () => {
+      const { vol } = setup();
+      const results = vol.globSync('./*.js', { cwd: '/test' });
+      expect(results).toEqual(['file1.js']);
+    });
+
+    it('should match nested files with leading ./ and ** pattern', () => {
+      const { vol } = setup();
+      const results = vol.globSync('./**/*.js', { cwd: '/test' });
+      expect(results.sort()).toEqual(['file1.js', 'subdir/nested.js']);
+    });
   });
 
   describe('glob (callback)', () => {

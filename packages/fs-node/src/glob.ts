@@ -96,8 +96,9 @@ export function globSync(fs: any, pattern: string, options: IGlobOptions = {}): 
     const dirResults = walkDirectory(fs, dir, [patternBasename], { ...globOptions, cwd: dir });
     results.push(...dirResults.map(r => posix.resolve(dir, r)));
   } else {
-    // Handle relative patterns
-    const dirResults = walkDirectory(fs, resolvedCwd, [pattern], globOptions);
+    // Handle relative patterns - normalize by stripping leading './'
+    const normalizedPattern = pattern.replace(/^\.\//, '');
+    const dirResults = walkDirectory(fs, resolvedCwd, [normalizedPattern], globOptions);
     results.push(...dirResults);
   }
 

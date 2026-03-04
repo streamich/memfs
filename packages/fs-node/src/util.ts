@@ -82,6 +82,7 @@ export function pathToFilename(path: misc.PathLike): string {
   }
 
   const pathString = String(path);
+  if (pathString === '.') return './';
   nullCheck(pathString);
   // return slash(pathString);
   return pathString;

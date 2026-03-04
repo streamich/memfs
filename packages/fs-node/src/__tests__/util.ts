@@ -9,17 +9,17 @@ export const multitest = (_done: (err?: Error) => void, times: number) => {
   };
 };
 
-export const create = (json: { [s: string]: string } = { '/foo': 'bar' }) => {
-  const vol = Volume.fromJSON(json);
+export const create = (json: { [s: string]: string } = { '/foo': 'bar' }, cwd?: string) => {
+  const vol = Volume.fromJSON(json, cwd);
   return vol;
 };
 
-export const createFs = (json?) => {
-  const vol = create(json);
+export const createFs = (json?, cwd?: string) => {
+  const vol = create(json, cwd);
   return vol;
 };
 
-export const memfs = (json: NestedDirectoryJSON = {}, cwd: string = '/') => {
+export const memfs = (json: NestedDirectoryJSON = {}, cwd?: string) => {
   const vol = Volume.fromNestedJSON(json, cwd);
   return { fs: vol, vol };
 };

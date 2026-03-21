@@ -23,6 +23,7 @@ import {
   validateFd,
   Ok,
   Result,
+  type IProcess,
 } from '@jsonjoy.com/fs-core';
 import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import Stats from './Stats';
@@ -176,11 +177,14 @@ function validateGid(gid: number) {
  * `Volume` represents a file system.
  */
 export class Volume implements FsCallbackApi, FsSynchronousApi {
-  public static readonly fromJSON = (json: DirectoryJSON, cwd?: string): Volume =>
-    new Volume(Superblock.fromJSON(json, cwd));
+  public static readonly fromJSON = (json: DirectoryJSON, cwd?: string, opts?: { process?: IProcess }): Volume =>
+    new Volume(Superblock.fromJSON(json, cwd, opts));
 
-  public static readonly fromNestedJSON = (json: NestedDirectoryJSON, cwd?: string): Volume =>
-    new Volume(Superblock.fromNestedJSON(json, cwd));
+  public static readonly fromNestedJSON = (
+    json: NestedDirectoryJSON,
+    cwd?: string,
+    opts?: { process?: IProcess },
+  ): Volume => new Volume(Superblock.fromNestedJSON(json, cwd, opts));
 
   StatWatcher: new () => StatWatcher;
   ReadStream: new (...args) => misc.IReadStream;

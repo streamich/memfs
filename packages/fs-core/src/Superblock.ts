@@ -3,7 +3,7 @@ import { Node } from './Node';
 import { Link } from './Link';
 import { File } from './File';
 import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
-import process from './process';
+import defaultProcess, { type IProcess } from './process';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/fs-node-utils';
 import {
@@ -34,14 +34,14 @@ const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_APPEND, O_DIRECT
  * @see https://lxr.linux.no/linux+v3.11.2/include/linux/fs.h#L1242
  */
 export class Superblock {
-  static fromJSON(json: DirectoryJSON, cwd?: string): Superblock {
-    const vol = new Superblock();
+  static fromJSON(json: DirectoryJSON, cwd?: string, opts?: { process?: IProcess }): Superblock {
+    const vol = new Superblock(opts);
     vol.fromJSON(json, cwd);
     return vol;
   }
 
-  static fromNestedJSON(json: NestedDirectoryJSON, cwd?: string): Superblock {
-    const vol = new Superblock();
+  static fromNestedJSON(json: NestedDirectoryJSON, cwd?: string, opts?: { process?: IProcess }): Superblock {
+    const vol = new Superblock(opts);
     vol.fromNestedJSON(json, cwd);
     return vol;
   }
@@ -84,7 +84,11 @@ export class Superblock {
   // Current number of open files.
   openFiles = 0;
 
-  constructor(props = {}) {
+  /** The `process`-like object used by this filesystem instance. */
+  readonly process: IProcess;
+
+  constructor(opts: { process?: IProcess } = {}) {
+    this.process = opts.process ?? defaultProcess;
     const root = this.createLink();
     root.setNode(this.createNode(constants.S_IFDIR | 0o777));
 
@@ -144,7 +148,9 @@ export class Superblock {
   }
 
   createNode(mode: number): Node {
-    const node = new Node(this.newInoNumber(), mode);
+    const uid = this.process.getuid?.() ?? 0;
+    const gid = this.process.getgid?.() ?? 0;
+    const node = new Node(this.newInoNumber(), mode, uid, gid);
     this.inodes[node.ino] = node;
     return node;
   }
@@ -205,11 +211,13 @@ export class Superblock {
 
     let curr: Link | null = this.root;
     let i = 0;
+    const uid = this.process.getuid?.() ?? 0;
+    const gid = this.process.getgid?.() ?? 0;
     while (i < steps.length) {
       let node: Node = curr.getNode();
       // Check access permissions if current link is a directory
       if (node.isDirectory()) {
-        if (checkAccess && !node.canExecute()) {
+        if (checkAccess && !node.canExecute(uid, gid)) {
           return Err(createStatError(ERROR_CODE.EACCES, funcName, filename));
         }
       } else {
@@ -247,7 +255,7 @@ export class Superblock {
       if (checkExistence && !node.isDirectory() && i < steps.length - 1) {
         // On Windows, use ENOENT for consistency with Node.js behavior
         // On other platforms, use ENOTDIR which is more semantically correct
-        const errorCode = process.platform === 'win32' ? ERROR_CODE.ENOENT : ERROR_CODE.ENOTDIR;
+        const errorCode = this.process.platform === 'win32' ? ERROR_CODE.ENOENT : ERROR_CODE.ENOTDIR;
         return Err(createStatError(errorCode, funcName, filename));
       }
 
@@ -404,8 +412,7 @@ export class Superblock {
     return json;
   }
 
-  // TODO: `cwd` should probably not invoke `process.cwd()`.
-  fromJSON(json: DirectoryJSON, cwd: string = process.cwd()) {
+  fromJSON(json: DirectoryJSON, cwd: string = this.process.cwd()) {
     for (let filename in json) {
       const data = json[filename];
       filename = resolve(filename, cwd);

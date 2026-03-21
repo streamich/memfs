@@ -49,9 +49,11 @@ export class Node {
   // Path to another node, if this is a symlink.
   symlink: string;
 
-  constructor(ino: number, mode: number = 0o666) {
+  constructor(ino: number, mode: number = 0o666, uid: number = getuid(), gid: number = getgid()) {
     this.mode = mode;
     this.ino = ino;
+    this._uid = uid;
+    this._gid = gid;
   }
 
   public set ctime(ctime: Date) {

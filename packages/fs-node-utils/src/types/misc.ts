@@ -148,8 +148,8 @@ export interface IFileHandle extends EventEmitter {
   chmod(mode: TMode): Promise<void>;
   chown(uid: number, gid: number): Promise<void>;
   close(): Promise<void>;
-  createReadStream(options: IFileHandleReadStreamOptions): IReadStream;
-  createWriteStream(options: IFileHandleWriteStreamOptions): IWriteStream;
+  createReadStream(options?: IFileHandleReadStreamOptions): IReadStream;
+  createWriteStream(options?: IFileHandleWriteStreamOptions): IWriteStream;
   datasync(): Promise<void>;
   readableWebStream(options?: IReadableWebStreamOptions): ReadableStream;
   read(

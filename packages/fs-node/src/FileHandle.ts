@@ -86,11 +86,11 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     return promisify(this.fs, 'fdatasync')(this.fd);
   }
 
-  createReadStream(options: opts.IFileHandleReadStreamOptions): IReadStream {
+  createReadStream(options?: opts.IFileHandleReadStreamOptions): IReadStream {
     return this.fs.createReadStream('', { ...options, fd: this });
   }
 
-  createWriteStream(options: opts.IFileHandleWriteStreamOptions): IWriteStream {
+  createWriteStream(options?: opts.IFileHandleWriteStreamOptions): IWriteStream {
     return this.fs.createWriteStream('', { ...options, fd: this });
   }
 

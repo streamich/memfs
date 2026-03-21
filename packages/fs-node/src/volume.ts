@@ -1707,6 +1707,7 @@ function FsReadStream(vol, path, options) {
   Readable.call(this, options);
 
   this.path = pathToFilename(path);
+  this._fileHandle = options.fd && typeof options.fd !== 'number' ? options.fd : null;
   this.fd = options.fd === undefined ? null : typeof options.fd !== 'number' ? options.fd.fd : options.fd;
   this.flags = options.flags === undefined ? 'r' : options.flags;
   this.mode = options.mode === undefined ? 0o666 : options.mode;
@@ -1840,10 +1841,17 @@ FsReadStream.prototype.close = function (cb) {
     this.closed = true;
   }
 
-  this._vol.close(this.fd, er => {
-    if (er) this.emit('error', er);
-    else this.emit('close');
-  });
+  if (this._fileHandle) {
+    this._fileHandle.close().then(
+      () => this.emit('close'),
+      er => this.emit('error', er),
+    );
+  } else {
+    this._vol.close(this.fd, er => {
+      if (er) this.emit('error', er);
+      else this.emit('close');
+    });
+  }
 
   this.fd = null;
 };
@@ -1876,6 +1884,7 @@ function FsWriteStream(vol, path, options) {
   Writable.call(this, options);
 
   this.path = pathToFilename(path);
+  this._fileHandle = options.fd && typeof options.fd !== 'number' ? options.fd : null;
   this.fd = options.fd === undefined ? null : typeof options.fd !== 'number' ? options.fd.fd : options.fd;
   this.flags = options.flags === undefined ? 'w' : options.flags;
   this.mode = options.mode === undefined ? 0o666 : options.mode;
@@ -2006,10 +2015,17 @@ FsWriteStream.prototype.close = function (cb) {
     this.closed = true;
   }
 
-  this._vol.close(this.fd, er => {
-    if (er) this.emit('error', er);
-    else this.emit('close');
-  });
+  if (this._fileHandle) {
+    this._fileHandle.close().then(
+      () => this.emit('close'),
+      er => this.emit('error', er),
+    );
+  } else {
+    this._vol.close(this.fd, er => {
+      if (er) this.emit('error', er);
+      else this.emit('close');
+    });
+  }
 
   this.fd = null;
 };

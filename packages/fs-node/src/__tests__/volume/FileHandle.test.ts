@@ -404,4 +404,38 @@ describe('FileHandle', () => {
       await handle.close();
     });
   });
+
+  describe('createReadStream()', () => {
+    it('allows close after streaming via pipeline', async () => {
+      const { Writable, pipeline } = await import('node:stream');
+      const { promisify } = await import('node:util');
+      const pipelineAsync = promisify(pipeline);
+
+      const fs = createFs();
+      fs.writeFileSync('/test', 'teststring');
+      const handle = await fs.promises.open('/test', 'r');
+
+      const s = handle.createReadStream();
+      await pipelineAsync(s, new Writable({ write: (_chunk, _encoding, cb) => cb() }));
+
+      await expect(handle.close()).resolves.toBeUndefined();
+    });
+  });
+
+  describe('createWriteStream()', () => {
+    it('allows close after streaming via pipeline', async () => {
+      const { Readable, pipeline } = await import('node:stream');
+      const { promisify } = await import('node:util');
+      const pipelineAsync = promisify(pipeline);
+
+      const fs = createFs();
+      fs.writeFileSync('/test', '');
+      const handle = await fs.promises.open('/test', 'w');
+
+      const readable = Readable.from(['hello']);
+      await pipelineAsync(readable, handle.createWriteStream());
+
+      await expect(handle.close()).resolves.toBeUndefined();
+    });
+  });
 });

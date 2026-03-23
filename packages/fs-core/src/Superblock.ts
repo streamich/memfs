@@ -147,10 +147,16 @@ export class Superblock {
     return typeof releasedFd === 'number' ? releasedFd : Superblock.fd--;
   }
 
+  private getUid(): number {
+    return this.process.getuid?.() ?? 0;
+  }
+
+  private getGid(): number {
+    return this.process.getgid?.() ?? 0;
+  }
+
   createNode(mode: number): Node {
-    const uid = this.process.getuid?.() ?? 0;
-    const gid = this.process.getgid?.() ?? 0;
-    const node = new Node(this.newInoNumber(), mode, uid, gid);
+    const node = new Node(this.newInoNumber(), mode, this.getUid(), this.getGid());
     this.inodes[node.ino] = node;
     return node;
   }
@@ -211,13 +217,11 @@ export class Superblock {
 
     let curr: Link | null = this.root;
     let i = 0;
-    const uid = this.process.getuid?.() ?? 0;
-    const gid = this.process.getgid?.() ?? 0;
     while (i < steps.length) {
       let node: Node = curr.getNode();
       // Check access permissions if current link is a directory
       if (node.isDirectory()) {
-        if (checkAccess && !node.canExecute(uid, gid)) {
+        if (checkAccess && !node.canExecute(this.getUid(), this.getGid())) {
           return Err(createStatError(ERROR_CODE.EACCES, funcName, filename));
         }
       } else {
@@ -474,13 +478,13 @@ export class Superblock {
     // Check node permissions
     // For read access: check if flags are O_RDONLY or O_RDWR (i.e., not only O_WRONLY)
     if ((flagsNum & (O_RDONLY | O_RDWR | O_WRONLY)) !== O_WRONLY) {
-      if (!node.canRead()) {
+      if (!node.canRead(this.getUid(), this.getGid())) {
         throw createError(ERROR_CODE.EACCES, 'open', link.getPath());
       }
     }
     // For write access: check if flags are O_WRONLY or O_RDWR
     if (flagsNum & (O_WRONLY | O_RDWR)) {
-      if (!node.canWrite()) {
+      if (!node.canWrite(this.getUid(), this.getGid())) {
         throw createError(ERROR_CODE.EACCES, 'open', link.getPath());
       }
     }
@@ -520,7 +524,8 @@ export class Superblock {
 
         // Check that the place we create the new file is actually a directory and that we are allowed to do so:
         if (!dirNode.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'open', filename);
-        if (!dirNode.canExecute() || !dirNode.canWrite()) throw createError(ERROR_CODE.EACCES, 'open', filename);
+        if (!dirNode.canExecute(this.getUid(), this.getGid()) || !dirNode.canWrite(this.getUid(), this.getGid()))
+          throw createError(ERROR_CODE.EACCES, 'open', filename);
 
         // This is a difference to the original implementation, which would simply not create a file unless modeNum was specified.
         // However, current Node versions will default to 0o666.
@@ -656,7 +661,7 @@ export class Superblock {
     // Note we're not checking permissions on the target path: It is not an error to create a symlink to a
     // non-existent or inaccessible target
     const node = dirLink.getNode();
-    if (!node.canExecute() || !node.canWrite())
+    if (!node.canExecute(this.getUid(), this.getGid()) || !node.canWrite(this.getUid(), this.getGid()))
       throw createError(ERROR_CODE.EACCES, 'symlink', targetFilename, pathFilename);
     // Create symlink.
     const symlink: Link = dirLink.createChild(name);
@@ -697,10 +702,10 @@ export class Superblock {
     const oldParentNode: Node = oldLinkParent.getNode();
     const newPathDirNode: Node = newPathDirLink.getNode();
     if (
-      !oldParentNode.canExecute() ||
-      !oldParentNode.canWrite() ||
-      !newPathDirNode.canExecute() ||
-      !newPathDirNode.canWrite()
+      !oldParentNode.canExecute(this.getUid(), this.getGid()) ||
+      !oldParentNode.canWrite(this.getUid(), this.getGid()) ||
+      !newPathDirNode.canExecute(this.getUid(), this.getGid()) ||
+      !newPathDirNode.canWrite(this.getUid(), this.getGid())
     ) {
       throw createError(ERROR_CODE.EACCES, 'rename', oldPathFilename, newPathFilename);
     }
@@ -723,7 +728,8 @@ export class Superblock {
     const name = steps[steps.length - 1];
     if (dir.getChild(name)) throw createError(ERROR_CODE.EEXIST, 'mkdir', filename);
     const node = dir.getNode();
-    if (!node.canWrite() || !node.canExecute()) throw createError(ERROR_CODE.EACCES, 'mkdir', filename);
+    if (!node.canWrite(this.getUid(), this.getGid()) || !node.canExecute(this.getUid(), this.getGid()))
+      throw createError(ERROR_CODE.EACCES, 'mkdir', filename);
     dir.createChild(name, this.createNode(constants.S_IFDIR | modeNum));
   };
 
@@ -753,7 +759,8 @@ export class Superblock {
       const node = curr.getNode();
       if (node.isDirectory()) {
         // Check we have permissions
-        if (!node.canExecute() || !node.canWrite()) throw createError(ERROR_CODE.EACCES, 'mkdir', filename);
+        if (!node.canExecute(this.getUid(), this.getGid()) || !node.canWrite(this.getUid(), this.getGid()))
+          throw createError(ERROR_CODE.EACCES, 'mkdir', filename);
       } else {
         throw createError(ERROR_CODE.ENOTDIR, 'mkdir', filename);
       }
@@ -780,7 +787,8 @@ export class Superblock {
       else throw err;
     }
     if (link.getNode().isDirectory() && !recursive) throw createError(ERROR_CODE.ERR_FS_EISDIR, 'rm', filename);
-    if (!link.parent?.getNode().canWrite()) throw createError(ERROR_CODE.EACCES, 'rm', filename);
+    if (!link.parent?.getNode().canWrite(this.getUid(), this.getGid()))
+      throw createError(ERROR_CODE.EACCES, 'rm', filename);
     this.deleteLink(link);
   };
 

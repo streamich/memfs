@@ -217,11 +217,13 @@ export class Superblock {
 
     let curr: Link | null = this.root;
     let i = 0;
+    const uid = checkAccess ? this.getUid() : 0;
+    const gid = checkAccess ? this.getGid() : 0;
     while (i < steps.length) {
       let node: Node = curr.getNode();
       // Check access permissions if current link is a directory
       if (node.isDirectory()) {
-        if (checkAccess && !node.canExecute(this.getUid(), this.getGid())) {
+        if (checkAccess && !node.canExecute(uid, gid)) {
           return Err(createStatError(ERROR_CODE.EACCES, funcName, filename));
         }
       } else {

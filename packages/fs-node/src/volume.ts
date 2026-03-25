@@ -996,7 +996,9 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const node = link.getNode();
     if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'scandir', filename);
     // Check we have permissions
-    if (!node.canRead(this._core.process.getuid?.() ?? 0, this._core.process.getgid?.() ?? 0))
+    const uid = this._core.process.getuid?.() ?? 0;
+    const gid = this._core.process.getgid?.() ?? 0;
+    if (!node.canRead(uid, gid))
       throw createError(ERROR_CODE.EACCES, 'scandir', filename);
     const list: Dirent[] = []; // output list
     for (const name of link.children.keys()) {

@@ -478,15 +478,17 @@ export class Superblock {
     }
 
     // Check node permissions
+    const uid = this.getUid();
+    const gid = this.getGid();
     // For read access: check if flags are O_RDONLY or O_RDWR (i.e., not only O_WRONLY)
     if ((flagsNum & (O_RDONLY | O_RDWR | O_WRONLY)) !== O_WRONLY) {
-      if (!node.canRead(this.getUid(), this.getGid())) {
+      if (!node.canRead(uid, gid)) {
         throw createError(ERROR_CODE.EACCES, 'open', link.getPath());
       }
     }
     // For write access: check if flags are O_WRONLY or O_RDWR
     if (flagsNum & (O_WRONLY | O_RDWR)) {
-      if (!node.canWrite(this.getUid(), this.getGid())) {
+      if (!node.canWrite(uid, gid)) {
         throw createError(ERROR_CODE.EACCES, 'open', link.getPath());
       }
     }
@@ -526,7 +528,9 @@ export class Superblock {
 
         // Check that the place we create the new file is actually a directory and that we are allowed to do so:
         if (!dirNode.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'open', filename);
-        if (!dirNode.canExecute(this.getUid(), this.getGid()) || !dirNode.canWrite(this.getUid(), this.getGid()))
+        const uid = this.getUid();
+        const gid = this.getGid();
+        if (!dirNode.canExecute(uid, gid) || !dirNode.canWrite(uid, gid))
           throw createError(ERROR_CODE.EACCES, 'open', filename);
 
         // This is a difference to the original implementation, which would simply not create a file unless modeNum was specified.
@@ -663,7 +667,9 @@ export class Superblock {
     // Note we're not checking permissions on the target path: It is not an error to create a symlink to a
     // non-existent or inaccessible target
     const node = dirLink.getNode();
-    if (!node.canExecute(this.getUid(), this.getGid()) || !node.canWrite(this.getUid(), this.getGid()))
+    const uid = this.getUid();
+    const gid = this.getGid();
+    if (!node.canExecute(uid, gid) || !node.canWrite(uid, gid))
       throw createError(ERROR_CODE.EACCES, 'symlink', targetFilename, pathFilename);
     // Create symlink.
     const symlink: Link = dirLink.createChild(name);
@@ -703,11 +709,13 @@ export class Superblock {
     // Check we have access and write permissions in both places
     const oldParentNode: Node = oldLinkParent.getNode();
     const newPathDirNode: Node = newPathDirLink.getNode();
+    const uid = this.getUid();
+    const gid = this.getGid();
     if (
-      !oldParentNode.canExecute(this.getUid(), this.getGid()) ||
-      !oldParentNode.canWrite(this.getUid(), this.getGid()) ||
-      !newPathDirNode.canExecute(this.getUid(), this.getGid()) ||
-      !newPathDirNode.canWrite(this.getUid(), this.getGid())
+      !oldParentNode.canExecute(uid, gid) ||
+      !oldParentNode.canWrite(uid, gid) ||
+      !newPathDirNode.canExecute(uid, gid) ||
+      !newPathDirNode.canWrite(uid, gid)
     ) {
       throw createError(ERROR_CODE.EACCES, 'rename', oldPathFilename, newPathFilename);
     }
@@ -730,7 +738,9 @@ export class Superblock {
     const name = steps[steps.length - 1];
     if (dir.getChild(name)) throw createError(ERROR_CODE.EEXIST, 'mkdir', filename);
     const node = dir.getNode();
-    if (!node.canWrite(this.getUid(), this.getGid()) || !node.canExecute(this.getUid(), this.getGid()))
+    const uid = this.getUid();
+    const gid = this.getGid();
+    if (!node.canWrite(uid, gid) || !node.canExecute(uid, gid))
       throw createError(ERROR_CODE.EACCES, 'mkdir', filename);
     dir.createChild(name, this.createNode(constants.S_IFDIR | modeNum));
   };
@@ -756,12 +766,14 @@ export class Superblock {
     // (If none of them existed, curr is the root.)
     // Check access the lazy way:
     curr = this.getResolvedLinkOrThrow(sep + steps.slice(0, i).join(sep), 'mkdir');
+    const uid = this.getUid();
+    const gid = this.getGid();
     // Start creating directories:
     for (i; i < steps.length; i++) {
       const node = curr.getNode();
       if (node.isDirectory()) {
         // Check we have permissions
-        if (!node.canExecute(this.getUid(), this.getGid()) || !node.canWrite(this.getUid(), this.getGid()))
+        if (!node.canExecute(uid, gid) || !node.canWrite(uid, gid))
           throw createError(ERROR_CODE.EACCES, 'mkdir', filename);
       } else {
         throw createError(ERROR_CODE.ENOTDIR, 'mkdir', filename);

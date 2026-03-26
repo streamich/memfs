@@ -928,7 +928,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private _access(filename: string, mode: number) {
-    const link = this._core.getLinkOrThrow(filename, 'access');
+    const link = this._core.getResolvedLinkOrThrow(filename, 'access');
     const node = link.getNode();
 
     // F_OK (0) just checks for existence, which we already confirmed above

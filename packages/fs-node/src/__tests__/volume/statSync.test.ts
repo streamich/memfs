@@ -8,8 +8,8 @@ describe('.statSync(...)', () => {
     vol.writeFileSync('/c/index.js', 'alert(123);');
     vol.symlinkSync('/c', '/a/b');
 
-    const stats = vol.statSync('/a/b/index.js');
-    expect(stats.size).toBe(11);
+    expect(vol.statSync('/a/b/index.js').size).toBe(11);
+    expect(vol.statSync('a/b/index.js').size).toBe(11);
   });
 
   it('returns rdev', () => {

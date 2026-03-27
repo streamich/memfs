@@ -14,7 +14,7 @@ export const create = (json: { [s: string]: string } = { '/foo': 'bar' }, cwd?: 
   return vol;
 };
 
-export const createFs = (json?, cwd?: string) => {
+export const createFs = (json?: any, cwd?: string) => {
   const vol = create(json, cwd);
   return vol;
 };

@@ -23,6 +23,7 @@ import {
   validateFd,
   Ok,
   Result,
+  type IProcess,
 } from '@jsonjoy.com/fs-core';
 import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import Stats from './Stats';
@@ -176,11 +177,14 @@ function validateGid(gid: number) {
  * `Volume` represents a file system.
  */
 export class Volume implements FsCallbackApi, FsSynchronousApi {
-  public static readonly fromJSON = (json: DirectoryJSON, cwd?: string): Volume =>
-    new Volume(Superblock.fromJSON(json, cwd));
+  public static readonly fromJSON = (json: DirectoryJSON, cwd?: string, opts?: { process?: IProcess }): Volume =>
+    new Volume(Superblock.fromJSON(json, cwd, opts));
 
-  public static readonly fromNestedJSON = (json: NestedDirectoryJSON, cwd?: string): Volume =>
-    new Volume(Superblock.fromNestedJSON(json, cwd));
+  public static readonly fromNestedJSON = (
+    json: NestedDirectoryJSON,
+    cwd?: string,
+    opts?: { process?: IProcess },
+  ): Volume => new Volume(Superblock.fromNestedJSON(json, cwd, opts));
 
   StatWatcher: new () => StatWatcher;
   ReadStream: new (...args) => misc.IReadStream;
@@ -259,6 +263,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   set cwd(value: string) {
     this._core.cwd = value;
   }
+
   private wrapAsync<Args extends any[]>(method: (...args: Args) => void, args: Args, callback: misc.TCallback<any>) {
     validateCallback(callback);
     Promise.resolve().then(() => {
@@ -1708,6 +1713,7 @@ function FsReadStream(vol, path, options) {
   Readable.call(this, options);
 
   this.path = pathToFilename(path);
+  this._fileHandle = options.fd && typeof options.fd !== 'number' ? options.fd : null;
   this.fd = options.fd === undefined ? null : typeof options.fd !== 'number' ? options.fd.fd : options.fd;
   this.flags = options.flags === undefined ? 'r' : options.flags;
   this.mode = options.mode === undefined ? 0o666 : options.mode;
@@ -1841,10 +1847,17 @@ FsReadStream.prototype.close = function (cb) {
     this.closed = true;
   }
 
-  this._vol.close(this.fd, er => {
-    if (er) this.emit('error', er);
-    else this.emit('close');
-  });
+  if (this._fileHandle) {
+    this._fileHandle.close().then(
+      () => this.emit('close'),
+      er => this.emit('error', er),
+    );
+  } else {
+    this._vol.close(this.fd, er => {
+      if (er) this.emit('error', er);
+      else this.emit('close');
+    });
+  }
 
   this.fd = null;
 };
@@ -1877,6 +1890,7 @@ function FsWriteStream(vol, path, options) {
   Writable.call(this, options);
 
   this.path = pathToFilename(path);
+  this._fileHandle = options.fd && typeof options.fd !== 'number' ? options.fd : null;
   this.fd = options.fd === undefined ? null : typeof options.fd !== 'number' ? options.fd.fd : options.fd;
   this.flags = options.flags === undefined ? 'w' : options.flags;
   this.mode = options.mode === undefined ? 0o666 : options.mode;
@@ -2007,10 +2021,17 @@ FsWriteStream.prototype.close = function (cb) {
     this.closed = true;
   }
 
-  this._vol.close(this.fd, er => {
-    if (er) this.emit('error', er);
-    else this.emit('close');
-  });
+  if (this._fileHandle) {
+    this._fileHandle.close().then(
+      () => this.emit('close'),
+      er => this.emit('error', er),
+    );
+  } else {
+    this._vol.close(this.fd, er => {
+      if (er) this.emit('error', er);
+      else this.emit('close');
+    });
+  }
 
   this.fd = null;
 };

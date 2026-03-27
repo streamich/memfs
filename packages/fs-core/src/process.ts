@@ -6,7 +6,7 @@ export interface IProcess {
   cwd(): string;
   platform: string;
   emitWarning: (message: string, type: string) => void;
-  env: {};
+  env: Record<string, string | undefined>;
 }
 
 /**

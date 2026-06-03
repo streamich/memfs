@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "4.57.5",
+  "version": "4.57.6",
   "description": "In-memory filesystem with Node.js fs-compatible API",
   "author": {
     "name": "streamich",

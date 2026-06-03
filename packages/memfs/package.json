@@ -49,6 +49,7 @@
     "lib",
     "dist",
     "README.md",
+    "docs",
     "LICENSE",
     "demo/runkit.js"
   ],

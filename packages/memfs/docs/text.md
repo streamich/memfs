@@ -3,7 +3,7 @@
 - **Node's [`fs` module](https://nodejs.org/api/fs.html)** --- a drop-in
   replacement you can use anywhere the `fs` module is expected (tests, mocks,
   bundlers, sandboxes). Files live in memory instead of on disk.
-- **The browser [File System (Access) (FSA) API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API)**
+- **The browser [File System Access (FSA) API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API)**
   --- the same `FileSystemDirectoryHandle` interface a browser exposes, backed
   by memory.
 

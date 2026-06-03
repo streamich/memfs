@@ -26,7 +26,7 @@ export const page: LibPage = {
       src: async () => (await import('./volumes.md')).default,
     },
     {
-      name: 'File System (Access)',
+      name: 'File System Access',
       subtitle: 'An in-memory implementation of the browser File System (Access) (FSA) API.',
       // @ts-ignore
       src: async () => (await import('./fsa.md')).default,

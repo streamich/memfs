@@ -32,12 +32,12 @@ fsa(
 
 The context controls behaviour:
 
-| Option              | Default  | Meaning                                                           |
-| ------------------- | -------- | ----------------------------------------------------------------- |
-| `mode`              | `'read'` | `'read'` or `'readwrite'`. Write operations require `'readwrite'` |
-| `separator`         | `'/'`    | Path separator used by `core.toJSON` / `fromJSON`                 |
-| `syncHandleAllowed` | `false`  | Enables `createSyncAccessHandle()` on file handles                |
-| `locks`             | ---      | A `FileLockManager` controlling concurrent-write locks            |
+| Option              | Meaning                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| `mode`              | `'read'` (default) or `'readwrite'`. Write operations require `'readwrite'`        |
+| `separator`         | Path separator used by `core.toJSON` / `fromJSON`. Defaults to `'/'`               |
+| `syncHandleAllowed` | Enables `createSyncAccessHandle()` on file handles. Defaults to `false`             |
+| `locks`             | A `FileLockManager` controlling concurrent-write locks                             |
 
 `core` is a `Superblock` --- the same in-memory store that backs `Volume` ---
 so you can serialize and seed the filesystem directly:
@@ -56,6 +56,13 @@ const readme = await docs.getFileHandle('readme.txt');
 await (await readme.getFile()).text(); // 'Welcome!'
 ```
 
+~~~jj.aside
+The in-memory FSA filesystem and a `Volume` are backed by the same `Superblock`
+storage engine, so one store can be driven through *both* APIs at once: hand
+`fsa()`'s `core` to `new Volume(core)` and the same files are visible through
+the Node `fs` API and through FSA handles simultaneously.
+~~~
+
 ## Directory handles
 
 A directory handle (`FileSystemDirectoryHandle`) supports the standard async
@@ -64,8 +71,8 @@ methods:
 | Method                                | Description                                                        |
 | ------------------------------------- | ------------------------------------------------------------------ |
 | `getDirectoryHandle(name, {create?})` | Get or create a subdirectory                                       |
-| `getFileHandle(name, {create?})`      | Get or create a file                                               |
-| `removeEntry(name, {recursive?})`     | Delete a file or directory                                         |
+| `getFileHandle(name, {create?})`      | Get or create a file                                                |
+| `removeEntry(name, {recursive?})`     | Delete a file or directory                                          |
 | `keys()` / `values()` / `entries()`   | Async iterators over children                                      |
 | `resolve(handle)`                     | Relative path (as `string[]`) from here to a descendant, or `null` |
 

@@ -64,8 +64,8 @@ methods:
 | Method                                | Description                                                        |
 | ------------------------------------- | ------------------------------------------------------------------ |
 | `getDirectoryHandle(name, {create?})` | Get or create a subdirectory                                       |
-| `getFileHandle(name, {create?})`      | Get or create a file                                                |
-| `removeEntry(name, {recursive?})`     | Delete a file or directory                                          |
+| `getFileHandle(name, {create?})`      | Get or create a file                                               |
+| `removeEntry(name, {recursive?})`     | Delete a file or directory                                         |
 | `keys()` / `values()` / `entries()`   | Async iterators over children                                      |
 | `resolve(handle)`                     | Relative path (as `string[]`) from here to a descendant, or `null` |
 

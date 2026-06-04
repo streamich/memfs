@@ -463,7 +463,7 @@ describe('volume', () => {
           expect(fd).toBeGreaterThan(0);
           done();
         });
-      }, 100);
+      });
       it('Error on file not found', done => {
         vol.open('/non-existing-file.txt', 'r', (err, fd) => {
           expect(err).toHaveProperty('code', 'ENOENT');

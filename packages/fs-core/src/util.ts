@@ -113,6 +113,7 @@ export function pathToFilename(path: misc.PathLike): string {
     path = getPathFromURLPosix(path);
   }
   const pathString = String(path);
+  if (pathString === '.') return './';
   nullCheck(pathString);
   return pathString;
 }

@@ -1,4 +1,5 @@
 import { SnapshotNodeType } from './constants';
+import { validateEntryName } from './shared';
 import type { SnapshotNode, SnapshotOptions } from './types';
 
 export const toSnapshotSync = ({ fs, path = '/', separator = '/' }: SnapshotOptions): SnapshotNode => {
@@ -37,8 +38,10 @@ export const fromSnapshotSync = (
       if (!path.endsWith(separator)) path = path + separator;
       const [, , entries] = snapshot;
       fs.mkdirSync(path, { recursive: true });
-      for (const [name, child] of Object.entries(entries))
+      for (const [name, child] of Object.entries(entries)) {
+        validateEntryName(name);
         fromSnapshotSync(child, { fs, path: `${path}${name}`, separator });
+      }
       break;
     }
     case SnapshotNodeType.File: {

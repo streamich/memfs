@@ -1,4 +1,5 @@
 import { SnapshotNodeType } from './constants';
+import { validateEntryName } from './shared';
 import type { AsyncSnapshotOptions, SnapshotNode } from './types';
 
 export const toSnapshot = async ({ fs, path = '/', separator = '/' }: AsyncSnapshotOptions): Promise<SnapshotNode> => {
@@ -37,8 +38,10 @@ export const fromSnapshot = async (
       if (!path.endsWith(separator)) path = path + separator;
       const [, , entries] = snapshot;
       await fs.mkdir(path, { recursive: true });
-      for (const [name, child] of Object.entries(entries))
+      for (const [name, child] of Object.entries(entries)) {
+        validateEntryName(name);
         await fromSnapshot(child, { fs, path: `${path}${name}`, separator });
+      }
       break;
     }
     case SnapshotNodeType.File: {

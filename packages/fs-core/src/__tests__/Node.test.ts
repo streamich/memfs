@@ -72,6 +72,18 @@ describe('Node', () => {
       expect(node.getBuffer().length).toBe(0);
     });
 
+    it('should clamp a negative truncate length to zero (matches Node.js)', () => {
+      const node = new Node(1, 0o666);
+      node.write(bufferFrom('hello'), 0, 5, 0);
+      expect(node.getSize()).toBe(5);
+      node.truncate(-1);
+      // Node.js `fs.truncate(path, -1)` produces an empty file rather than a
+      // negative size; previously this left `size === -1`, and `getBuffer()`
+      // leaked uninitialized heap memory via `subarray(0, -1)`.
+      expect(node.getSize()).toBe(0);
+      expect(node.getBuffer().length).toBe(0);
+    });
+
     it('should handle read from various positions', () => {
       const node = new Node(1, 0o666);
       node.write(bufferFrom('hello world'), 0, 11, 0);

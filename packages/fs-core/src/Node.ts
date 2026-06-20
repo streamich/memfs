@@ -222,7 +222,12 @@ export class Node {
   }
 
   truncate(len: number = 0) {
-    if (!len) {
+    // A negative length is clamped to zero, matching Node.js `fs.truncate`,
+    // which truncates to an empty file rather than producing a negative size.
+    // Without this, `this.size` becomes negative and `getBuffer()`'s
+    // `subarray(0, this.size)` reads past the used region, exposing
+    // uninitialized heap memory from the unsafe-allocated backing buffer.
+    if (len <= 0) {
       this.buf = EMPTY_BUFFER;
       this.capacity = 0;
       this.size = 0;

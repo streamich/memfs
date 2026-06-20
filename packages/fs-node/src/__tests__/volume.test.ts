@@ -1230,6 +1230,16 @@ describe('volume', () => {
         vol.truncateSync('/2', 10);
         expect(vol.readFileSync('/2', 'utf8')).toBe('12345\0\0\0\0\0');
       });
+      it('Negative length truncates to empty (matches Node.js, no memory leak)', () => {
+        const fd = vol.openSync('/neg', 'w');
+        vol.writeFileSync(fd, '12345');
+        expect(vol.readFileSync('/neg', 'utf8')).toBe('12345');
+        vol.truncateSync('/neg', -1);
+        // Node.js truncates to an empty file for negative lengths. Previously
+        // memfs left a negative size and leaked uninitialized heap bytes.
+        expect(vol.readFileSync('/neg').length).toBe(0);
+        expect(vol.readFileSync('/neg', 'utf8')).toBe('');
+      });
     });
     describe('.truncate(path[, len], callback)', () => {
       xit('...', () => {});

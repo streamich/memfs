@@ -257,6 +257,13 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.realpathSync.native = realpathSyncImpl as any;
   }
 
+  get cwd(): string {
+    return this._core.cwd;
+  }
+  set cwd(value: string) {
+    this._core.cwd = value;
+  }
+
   private wrapAsync<Args extends any[]>(method: (...args: Args) => void, args: Args, callback: misc.TCallback<any>) {
     validateCallback(callback);
     Promise.resolve().then(() => {
@@ -988,7 +995,6 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _readdir = (filename: string, options: opts.IReaddirOptions): TDataOut[] | Dirent[] => {
-    const steps = filenameToSteps(filename);
     const link: Link = this._core.getResolvedLinkOrThrow(filename, 'scandir');
     const node = link.getNode();
     if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'scandir', filename);

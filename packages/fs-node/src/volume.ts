@@ -936,18 +936,21 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       return;
     }
 
+    const uid = this._core.process.getuid?.() ?? 0;
+    const gid = this._core.process.getgid?.() ?? 0;
+
     // Check read permission
-    if (mode & R_OK && !node.canRead()) {
+    if (mode & R_OK && !node.canRead(uid, gid)) {
       throw createError(ERROR_CODE.EACCES, 'access', filename);
     }
 
     // Check write permission
-    if (mode & W_OK && !node.canWrite()) {
+    if (mode & W_OK && !node.canWrite(uid, gid)) {
       throw createError(ERROR_CODE.EACCES, 'access', filename);
     }
 
     // Check execute permission
-    if (mode & X_OK && !node.canExecute()) {
+    if (mode & X_OK && !node.canExecute(uid, gid)) {
       throw createError(ERROR_CODE.EACCES, 'access', filename);
     }
   }
@@ -993,7 +996,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const node = link.getNode();
     if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'scandir', filename);
     // Check we have permissions
-    if (!node.canRead()) throw createError(ERROR_CODE.EACCES, 'scandir', filename);
+    const uid = this._core.process.getuid?.() ?? 0;
+    const gid = this._core.process.getgid?.() ?? 0;
+    if (!node.canRead(uid, gid))
+      throw createError(ERROR_CODE.EACCES, 'scandir', filename);
     const list: Dirent[] = []; // output list
     for (const name of link.children.keys()) {
       const child = link.getChild(name);

@@ -9,6 +9,9 @@ const makeProcess = (overrides: Partial<IProcess> = {}): IProcess => ({
   ...overrides,
 });
 
+// POSIX flag constants (O_RDONLY = 0, O_WRONLY = 1, O_RDWR = 2)
+const O_RDONLY = 0;
+
 describe('Superblock with custom process', () => {
   describe('fromJSON / fromNestedJSON', () => {
     it('uses custom cwd() when no cwd argument is given', () => {
@@ -81,6 +84,58 @@ describe('Superblock with custom process', () => {
       const sb = new Superblock();
       expect(typeof sb.process.cwd).toBe('function');
       expect(typeof sb.process.platform).toBe('string');
+    });
+  });
+
+  describe('permission checks use custom process uid/gid', () => {
+    it('open denies read access when custom uid has no read permission', () => {
+      const customProcess = makeProcess({ getuid: () => 1000, getgid: () => 1000 });
+      const sb = Superblock.fromJSON({ '/secret.txt': 'data' }, '/', { process: customProcess });
+      const link = sb.getResolvedLink('/secret.txt')!;
+      link.getNode().chmod(0o000); // no permissions
+      link.getNode().chown(0, 0); // owned by root
+      expect(() => sb.open('/secret.txt', O_RDONLY, 0o666, true)).toThrow(expect.objectContaining({ code: 'EACCES' }));
+    });
+
+    it('open grants read access when custom uid matches file owner with read permission', () => {
+      const customProcess = makeProcess({ getuid: () => 1000, getgid: () => 1000 });
+      const sb = Superblock.fromJSON({ '/myfile.txt': 'data' }, '/', { process: customProcess });
+      const link = sb.getResolvedLink('/myfile.txt')!;
+      link.getNode().chmod(0o400); // owner read-only
+      link.getNode().chown(1000, 1000);
+      expect(() => sb.open('/myfile.txt', O_RDONLY, 0o666, true)).not.toThrow();
+    });
+
+    it('mkdir denies creation when custom uid has no write permission on parent dir', () => {
+      const customProcess = makeProcess({ getuid: () => 1000, getgid: () => 1000 });
+      const sb = new Superblock({ process: customProcess });
+      sb.root.getNode().chmod(0o555); // no write
+      sb.root.getNode().chown(0, 0); // owned by root
+      expect(() => sb.mkdir('/newdir', 0o755)).toThrow(expect.objectContaining({ code: 'EACCES' }));
+    });
+
+    it('symlink denies creation when custom uid has no write permission on parent dir', () => {
+      const customProcess = makeProcess({ getuid: () => 1000, getgid: () => 1000 });
+      const sb = new Superblock({ process: customProcess });
+      sb.root.getNode().chmod(0o555); // no write
+      sb.root.getNode().chown(0, 0); // owned by root
+      expect(() => sb.symlink('/target', '/link')).toThrow(expect.objectContaining({ code: 'EACCES' }));
+    });
+
+    it('rm denies deletion when custom uid has no write permission on parent dir', () => {
+      const customProcess = makeProcess({ getuid: () => 1000, getgid: () => 1000 });
+      const sb = Superblock.fromJSON({ '/file.txt': '' }, '/', { process: customProcess });
+      sb.root.getNode().chmod(0o555); // no write
+      sb.root.getNode().chown(0, 0); // owned by root
+      expect(() => sb.rm('/file.txt', false, false)).toThrow(expect.objectContaining({ code: 'EACCES' }));
+    });
+
+    it('rename denies when custom uid has no write permission on parent dir', () => {
+      const customProcess = makeProcess({ getuid: () => 1000, getgid: () => 1000 });
+      const sb = Superblock.fromJSON({ '/file.txt': '' }, '/', { process: customProcess });
+      sb.root.getNode().chmod(0o555); // no write
+      sb.root.getNode().chown(0, 0); // owned by root
+      expect(() => sb.rename('/file.txt', '/file2.txt')).toThrow(expect.objectContaining({ code: 'EACCES' }));
     });
   });
 });

@@ -96,9 +96,8 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
     }
 
     try {
-      const link = this._core.getResolvedLinkOrThrow(this._path);
-      const node = link.getNode();
-      node.truncate(newSize);
+      const fd = this._ensureOpen();
+      this._core.ftruncate(fd, newSize);
     } catch (error) {
       if (error && typeof error === 'object' && error.code === ERROR_CODE.EACCES) {
         throw newNotAllowedError();

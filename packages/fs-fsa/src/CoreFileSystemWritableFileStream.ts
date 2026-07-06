@@ -84,9 +84,10 @@ export class CoreFileSystemWritableFileStream extends WS implements IFileSystemW
       throw new DOMException('The stream is closed.', 'InvalidStateError');
     }
     try {
-      const link = this._core.getResolvedLinkOrThrow(this._path);
-      const node = link.getNode();
-      node.truncate(size);
+      if (this._fd === undefined) {
+        throw new DOMException('The stream is not ready.', 'InvalidStateError');
+      }
+      this._core.ftruncate(this._fd, size);
     } catch (error) {
       if (error && typeof error === 'object' && error.code === ERROR_CODE.EACCES) {
         throw newNotAllowedError();

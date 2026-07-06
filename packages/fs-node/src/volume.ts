@@ -448,11 +448,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private _write(fd: number, buf: Buffer, offset?: number, length?: number, position?: number | null): number {
-    const file = this._core.getFileByFdOrThrow(fd, 'write');
-    if (file.node.isSymlink()) {
-      throw createError(ERROR_CODE.EBADF, 'write', file.link.getPath());
-    }
-    return file.write(buf, offset, length, position === -1 || typeof position !== 'number' ? undefined : position);
+    return this._core.write(fd, buf, offset, length, position);
   }
 
   public writeSync: {
@@ -513,7 +509,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private writevBase(fd: number, buffers: ArrayBufferView[], position: number | null): number {
-    const file = this._core.getFileByFdOrThrow(fd);
+    this._core.getFileByFdOrThrow(fd);
     let p = position ?? undefined;
     if (p === -1) {
       p = undefined;
@@ -521,7 +517,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let bytesWritten = 0;
     for (const buffer of buffers) {
       const nodeBuf = Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-      const bytes = file.write(nodeBuf, 0, nodeBuf.byteLength, p);
+      const bytes = this._core.write(fd, nodeBuf, 0, nodeBuf.byteLength, p ?? null);
       p = undefined;
       bytesWritten += bytes;
       if (bytes < nodeBuf.byteLength) break;
@@ -1089,8 +1085,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _ftruncate = (fd: number, len?: number): void => {
-    const file = this._core.getFileByFdOrThrow(fd, 'ftruncate');
-    file.truncate(len);
+    this._core.ftruncate(fd, len);
   };
 
   public ftruncateSync = (fd: number, len?: number): void => {
@@ -1135,10 +1130,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _futimes = (fd: number, atime: number, mtime: number): void => {
-    const file = this._core.getFileByFdOrThrow(fd, 'futimes');
-    const node = file.node;
-    node.atime = new Date(atime * 1000);
-    node.mtime = new Date(mtime * 1000);
+    this._core.futimes(fd, atime, mtime);
   };
 
   public futimesSync = (fd: number, atime: TTime, mtime: TTime): void => {
@@ -1150,13 +1142,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _utimes = (filename: string, atime: number, mtime: number, followSymlinks: boolean = true): void => {
-    const core = this._core;
-    const link = followSymlinks
-      ? core.getResolvedLinkOrThrow(filename, 'utimes')
-      : core.getLinkOrThrow(filename, 'lutimes');
-    const node = link.getNode();
-    node.atime = new Date(atime * 1000);
-    node.mtime = new Date(mtime * 1000);
+    this._core.utimes(filename, atime, mtime, followSymlinks);
   };
 
   public utimesSync = (path: PathLike, atime: TTime, mtime: TTime): void => {
@@ -1270,8 +1256,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _fchmod = (fd: number, modeNum: number): void => {
-    const file = this._core.getFileByFdOrThrow(fd, 'fchmod');
-    file.chmod(modeNum);
+    this._core.fchmod(fd, modeNum);
   };
 
   public fchmodSync = (fd: number, mode: TMode): void => {
@@ -1283,11 +1268,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _chmod = (filename: string, modeNum: number, followSymlinks: boolean = true): void => {
-    const link = followSymlinks
-      ? this._core.getResolvedLinkOrThrow(filename, 'chmod')
-      : this._core.getLinkOrThrow(filename, 'chmod');
-    const node = link.getNode();
-    node.chmod(modeNum);
+    if (followSymlinks) {
+      this._core.chmod(filename, modeNum);
+    } else {
+      this._core.lchmod(filename, modeNum);
+    }
   };
 
   public chmodSync = (path: PathLike, mode: TMode) => {
@@ -1303,7 +1288,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _lchmod = (filename: string, modeNum: number): void => {
-    this._chmod(filename, modeNum, false);
+    this._core.lchmod(filename, modeNum);
   };
 
   public lchmodSync = (path: PathLike, mode: TMode): void => {
@@ -1319,7 +1304,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _fchown = (fd: number, uid: number, gid: number) => {
-    this._core.getFileByFdOrThrow(fd, 'fchown').chown(uid, gid);
+    this._core.fchown(fd, uid, gid);
   };
 
   public fchownSync = (fd: number, uid: number, gid: number) => {
@@ -1335,9 +1320,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _chown = (filename: string, uid: number, gid: number) => {
-    const link = this._core.getResolvedLinkOrThrow(filename, 'chown');
-    const node = link.getNode();
-    node.chown(uid, gid);
+    this._core.chown(filename, uid, gid);
   };
 
   public chownSync = (path: PathLike, uid: number, gid: number) => {
@@ -1353,7 +1336,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _lchown = (filename: string, uid: number, gid: number) => {
-    this._core.getLinkOrThrow(filename, 'lchown').getNode().chown(uid, gid);
+    this._core.lchown(filename, uid, gid);
   };
 
   public lchownSync = (path: PathLike, uid: number, gid: number) => {

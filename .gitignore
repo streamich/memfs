@@ -26,3 +26,5 @@ out.bin
 .claude/
 
 .yarn/install-state.gz
+
+.docs/

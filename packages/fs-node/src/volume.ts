@@ -448,11 +448,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private _write(fd: number, buf: Buffer, offset?: number, length?: number, position?: number | null): number {
-    const file = this._core.getFileByFdOrThrow(fd, 'write');
-    if (file.node.isSymlink()) {
-      throw createError(ERROR_CODE.EBADF, 'write', file.link.getPath());
-    }
-    return file.write(buf, offset, length, position === -1 || typeof position !== 'number' ? undefined : position);
+    return this._core.write(fd, buf, offset, length, position);
   }
 
   public writeSync: {
@@ -513,7 +509,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private writevBase(fd: number, buffers: ArrayBufferView[], position: number | null): number {
-    const file = this._core.getFileByFdOrThrow(fd);
+    this._core.getFileByFdOrThrow(fd);
     let p = position ?? undefined;
     if (p === -1) {
       p = undefined;
@@ -521,7 +517,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     let bytesWritten = 0;
     for (const buffer of buffers) {
       const nodeBuf = Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-      const bytes = file.write(nodeBuf, 0, nodeBuf.byteLength, p);
+      const bytes = this._core.write(fd, nodeBuf, 0, nodeBuf.byteLength, p ?? null);
       p = undefined;
       bytesWritten += bytes;
       if (bytes < nodeBuf.byteLength) break;

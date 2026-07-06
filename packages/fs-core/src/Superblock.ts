@@ -839,7 +839,7 @@ export class Superblock {
       length,
       position === -1 || typeof position !== 'number' ? undefined : position,
     );
-    this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node));
+    if (bytes > 0) this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node));
     return bytes;
   }
 
@@ -896,7 +896,7 @@ export class Superblock {
   public readonly utimes = (filename: string, atime: number, mtime: number, followSymlinks: boolean = true): void => {
     const link = followSymlinks
       ? this.getResolvedLinkOrThrow(filename, 'utimes')
-      : this.getLinkOrThrow(filename, 'utimes');
+      : this.getLinkOrThrow(filename, 'lutimes');
     const node = link.getNode();
     node.atime = new Date(atime * 1000);
     node.mtime = new Date(mtime * 1000);

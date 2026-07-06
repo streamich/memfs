@@ -36,6 +36,14 @@ describe('Superblock events', () => {
     expect(events[2].steps).toEqual(['', 'test.txt']);
   });
 
+  it('does not emit MODIFY on zero-byte write', () => {
+    const { sb, events } = setup();
+    const fd = sb.open('/test.txt', FLAGS.w, 0o666);
+    const numEvents = events.length;
+    sb.write(fd, Buffer.from(''), 0, 0, 0);
+    expect(events.length).toBe(numEvents);
+  });
+
   it('emits MODIFY on truncate', () => {
     const sb = new Superblock();
     const fd = sb.open('/test.txt', FLAGS.w, 0o666);
@@ -45,6 +53,42 @@ describe('Superblock events', () => {
     expect(events.length).toBe(1);
     expect(events[0].type).toBe(FsEventType.MODIFY);
     expect(events[0].steps).toEqual(['', 'test.txt']);
+  });
+
+  it('emits MODIFY on chmod and chown', () => {
+    const { sb, events } = setup();
+    sb.open('/test.txt', FLAGS.w, 0o666);
+    events.length = 0;
+    sb.chmod('/test.txt', 0o600);
+    sb.chown('/test.txt', 1, 1);
+    expect(events.length).toBe(2);
+    expect(events[0].type).toBe(FsEventType.MODIFY);
+    expect(events[0].steps).toEqual(['', 'test.txt']);
+    expect(events[1].type).toBe(FsEventType.MODIFY);
+  });
+
+  it('emits MODIFY on utimes and futimes', () => {
+    const { sb, events } = setup();
+    const fd = sb.open('/test.txt', FLAGS.w, 0o666);
+    events.length = 0;
+    sb.utimes('/test.txt', 1, 1);
+    sb.futimes(fd, 2, 2);
+    expect(events.length).toBe(2);
+    expect(events[0].type).toBe(FsEventType.MODIFY);
+    expect(events[0].steps).toEqual(['', 'test.txt']);
+    expect(events[1].type).toBe(FsEventType.MODIFY);
+    expect(events[1].steps).toEqual(['', 'test.txt']);
+  });
+
+  it('emits MODIFY on lutimes of a symlink', () => {
+    const { sb, events } = setup();
+    sb.open('/test.txt', FLAGS.w, 0o666);
+    sb.symlink('/test.txt', '/link');
+    events.length = 0;
+    sb.utimes('/link', 1, 1, false);
+    expect(events.length).toBe(1);
+    expect(events[0].type).toBe(FsEventType.MODIFY);
+    expect(events[0].steps).toEqual(['', 'link']);
   });
 
   it('emits MOVE on rename', () => {

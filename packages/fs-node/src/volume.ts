@@ -1146,13 +1146,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private readonly _utimes = (filename: string, atime: number, mtime: number, followSymlinks: boolean = true): void => {
-    const core = this._core;
-    const link = followSymlinks
-      ? core.getResolvedLinkOrThrow(filename, 'utimes')
-      : core.getLinkOrThrow(filename, 'lutimes');
-    const node = link.getNode();
-    node.atime = new Date(atime * 1000);
-    node.mtime = new Date(mtime * 1000);
+    this._core.utimes(filename, atime, mtime, followSymlinks);
   };
 
   public utimesSync = (path: PathLike, atime: TTime, mtime: TTime): void => {

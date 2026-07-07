@@ -46,7 +46,8 @@ export class NodeFileSystemObserver implements IFileSystemObserver {
     options?: IFileSystemObserverObserveOptions,
   ): Promise<void> {
     const path = (handle as unknown as { __path?: unknown }).__path;
-    if (typeof path !== 'string')
+    const ctx = ((handle as any).ctx ?? (handle as any)._ctx) as NodeFsaContext | undefined;
+    if (typeof path !== 'string' || !ctx || (ctx.separator !== '/' && ctx.separator !== '\\'))
       throw new TypeError("Failed to execute 'observe' on 'FileSystemObserver': Invalid handle.");
     const isDirectory = (handle as IFileSystemHandle).kind === 'directory';
     const last = path[path.length - 1];
@@ -66,13 +67,13 @@ export class NodeFileSystemObserver implements IFileSystemObserver {
       }
       throw error;
     }
-    const ctx = (handle as any).ctx as NodeFsaContext;
     const recursive = isDirectory && !!options?.recursive;
     const watcher = this.fs.watch(target, { recursive }, (eventType, filename) => {
       void this.onEvent(handle, watcher, target, isDirectory, ctx, eventType, filename ? String(filename) : '');
     });
     watcher.on('error', () => {
-      if (this._observations.get(handle) === watcher) this._observations.delete(handle);
+      if (this._observations.get(handle) !== watcher) return;
+      this._observations.delete(handle);
       watcher.close();
       this._enqueue(new FileSystemChangeRecord(handle, 'errored', null, []));
     });

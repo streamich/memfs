@@ -41,6 +41,7 @@ onlyOnNode20('NodeFileSystemObserver', () => {
   test('rejects with TypeError for an object which is not a handle', async () => {
     const { observer } = setup();
     await expect(observer.observe({} as any)).rejects.toThrow(TypeError);
+    await expect(observer.observe({ __path: '/' } as any)).rejects.toThrow(TypeError);
   });
 
   test('accepts a sync access handle and reports its self events', async () => {
@@ -149,6 +150,28 @@ onlyOnNode20('NodeFileSystemObserver', () => {
     expect(record.changedHandle).toBe(null);
     expect(record.relativePathComponents).toEqual([]);
     expect((observer as any)._observations.size).toBe(0);
+  });
+
+  test('ignores backend watcher errors of an observation which was already stopped', async () => {
+    const { dir, observer, records } = setup();
+    await observer.observe(dir);
+    const watcher = (observer as any)._observations.get(dir);
+    observer.unobserve(dir);
+    watcher.emit('error', new Error('late backend error'));
+    await tick(5);
+    expect(records).toEqual([]);
+  });
+
+  test('ignores backend watcher errors of a replaced observation', async () => {
+    const { dir, observer, records } = setup();
+    await observer.observe(dir);
+    const first = (observer as any)._observations.get(dir);
+    await observer.observe(dir);
+    first.emit('error', new Error('late backend error'));
+    await tick(5);
+    expect(records).toEqual([]);
+    expect((observer as any)._observations.size).toBe(1);
+    observer.disconnect();
   });
 
   test('unobserve() stops event delivery', async () => {

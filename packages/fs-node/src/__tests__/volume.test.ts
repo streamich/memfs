@@ -1394,10 +1394,9 @@ describe('volume', () => {
         try {
           vol.writeFileSync('/tmp/foo-dir/foo.js', writtenContent);
 
-          expect(mockCallback).toBeCalledTimes(3);
+          expect(mockCallback).toBeCalledTimes(2);
           expect(mockCallback).nthCalledWith(1, 'rename', 'foo.js');
           expect(mockCallback).nthCalledWith(2, 'change', 'foo.js');
-          expect(mockCallback).nthCalledWith(3, 'change', 'foo.js');
         } finally {
           watcher.close();
         }
@@ -1452,15 +1451,14 @@ describe('volume', () => {
 
           setTimeout(() => {
             watcher.close();
-            expect(listener).toBeCalledTimes(8);
+            expect(listener).toBeCalledTimes(7);
             expect(listener).nthCalledWith(1, 'change', 'lol.txt');
             expect(listener).nthCalledWith(2, 'change', 'lol.txt');
             expect(listener).nthCalledWith(3, 'rename', 'test/lol.txt');
             expect(listener).nthCalledWith(4, 'change', 'test/lol.txt');
-            expect(listener).nthCalledWith(5, 'change', 'test/lol.txt');
-            expect(listener).nthCalledWith(6, 'rename', 'lol.txt');
-            expect(listener).nthCalledWith(7, 'rename', 'test/lol.txt');
-            expect(listener).nthCalledWith(8, 'rename', 'test/foo');
+            expect(listener).nthCalledWith(5, 'rename', 'lol.txt');
+            expect(listener).nthCalledWith(6, 'rename', 'test/lol.txt');
+            expect(listener).nthCalledWith(7, 'rename', 'test/foo');
             done();
           }, 10);
         });

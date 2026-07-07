@@ -8,10 +8,12 @@ import {
   posix,
   isAbsolute,
 } from '@jsonjoy.com/fs-node-builtins/lib/path';
-import { FanOutUnsubscribe } from 'thingies/lib/fanout';
 import {
   Link,
   Superblock,
+  CoreWatcher,
+  CoreWatchEvent,
+  FsEventType,
   DirectoryJSON,
   NestedDirectoryJSON,
   ERROR_CODE,
@@ -2025,47 +2027,39 @@ export class FSWatcher extends EventEmitter {
   _filename: string = '';
   _steps: string[];
   _filenameEncoded: TDataOut = '';
-  // _persistent: boolean = true;
   _recursive: boolean = false;
   _encoding: BufferEncoding = ENCODING_UTF8;
   _link: Link;
 
   _timer; // Timer that keeps this task persistent.
 
-  // inode -> removers
-  private _listenerRemovers = new Map<number, Array<() => void>>();
+  private _watcher: CoreWatcher | undefined;
 
   constructor(vol: Volume) {
     super();
     this._vol = vol;
-
-    // TODO: Emit "error" messages when watching.
-    // this._handle.onchange = function(status, eventType, filename) {
-    //     if (status < 0) {
-    //         self._handle.close();
-    //         const error = !filename ?
-    //             errnoException(status, 'Error watching file for changes:') :
-    //             errnoException(status, `Error watching file ${filename} for changes:`);
-    //         error.filename = filename;
-    //         self.emit('error', error);
-    //     } else {
-    //         self.emit('change', eventType, filename);
-    //     }
-    // };
   }
 
-  private _getName(): string {
-    return this._steps[this._steps.length - 1];
+  private _emit(type: 'change' | 'rename', relativeSteps: string[]): void {
+    const filename = relativeSteps.length ? relativeSteps.join(pathSep) : this._watcher!.link.getName();
+    this.emit('change', type, strToEncoding(filename, this._encoding));
   }
 
-  private _onParentChild = (link: Link) => {
-    if (link.getName() === this._getName()) {
-      this._emit('rename');
+  private _onEvent = (event: CoreWatchEvent) => {
+    switch (event.type) {
+      case FsEventType.CREATE:
+      case FsEventType.DELETE:
+        this._emit('rename', event.steps);
+        break;
+      case FsEventType.MOVE:
+        if (event.oldSteps) this._emit('rename', event.oldSteps);
+        this._emit('rename', event.steps);
+        break;
+      case FsEventType.MODIFY:
+      case FsEventType.ATTRIB:
+        this._emit('change', event.steps);
+        break;
     }
-  };
-
-  private _emit = (type: 'change' | 'rename') => {
-    this.emit('change', type, this._filenameEncoded);
   };
 
   private _persist = () => {
@@ -2081,116 +2075,25 @@ export class FSWatcher extends EventEmitter {
     this._filename = pathToFilename(path);
     this._steps = filenameToSteps(this._filename);
     this._filenameEncoded = strToEncoding(this._filename);
-    // this._persistent = persistent;
     this._recursive = recursive;
     this._encoding = encoding;
 
     try {
-      this._link = this._vol._core.getLinkOrThrow(this._filename, 'FSWatcher');
+      this._watcher = new CoreWatcher(this._vol._core, this._filename, { recursive });
     } catch (err) {
       const error = new Error(`watch ${this._filename} ${err.code}`);
       (error as any).code = err.code;
       (error as any).errno = err.code;
       throw error;
     }
-
-    const watchLinkNodeChanged = (link: Link) => {
-      const filepath = link.getPath();
-      const node = link.getNode();
-      const onNodeChange = () => {
-        let filename = pathRelative(this._filename, filepath);
-        if (!filename) filename = this._getName();
-        return this.emit('change', 'change', filename);
-      };
-      const unsub = node.changes.listen(([type]) => {
-        if (type === 'modify') onNodeChange();
-      });
-      const removers = this._listenerRemovers.get(node.ino) ?? [];
-      removers.push(() => unsub());
-      this._listenerRemovers.set(node.ino, removers);
-    };
-
-    const watchLinkChildrenChanged = (link: Link) => {
-      const node = link.getNode();
-
-      // when a new link added
-      const onLinkChildAdd = (l: Link) => {
-        this.emit('change', 'rename', pathRelative(this._filename, l.getPath()));
-
-        // 1. watch changes of the new link-node
-        watchLinkNodeChanged(l);
-        // 2. watch changes of the new link-node's children
-        watchLinkChildrenChanged(l);
-      };
-
-      // when a new link deleted
-      const onLinkChildDelete = (l: Link) => {
-        // remove the listeners of the children nodes
-        const removeLinkNodeListeners = (curLink: Link) => {
-          const ino = curLink.getNode().ino;
-          const removers = this._listenerRemovers.get(ino);
-          if (removers) {
-            removers.forEach(r => r());
-            this._listenerRemovers.delete(ino);
-          }
-          for (const [name, childLink] of curLink.children.entries()) {
-            if (childLink && name !== '.' && name !== '..') {
-              removeLinkNodeListeners(childLink);
-            }
-          }
-        };
-        removeLinkNodeListeners(l);
-
-        this.emit('change', 'rename', pathRelative(this._filename, l.getPath()));
-      };
-
-      // children nodes changed
-      for (const [name, childLink] of link.children.entries()) {
-        if (childLink && name !== '.' && name !== '..') {
-          watchLinkNodeChanged(childLink);
-        }
-      }
-      // link children add/remove
-      const unsubscribeLinkChanges = link.changes.listen(([type, link]) => {
-        if (type === 'child:add') onLinkChildAdd(link);
-        else if (type === 'child:del') onLinkChildDelete(link);
-      });
-
-      const removers = this._listenerRemovers.get(node.ino) ?? [];
-      removers.push(() => {
-        unsubscribeLinkChanges();
-      });
-
-      if (recursive) {
-        for (const [name, childLink] of link.children.entries()) {
-          if (childLink && name !== '.' && name !== '..') {
-            watchLinkChildrenChanged(childLink);
-          }
-        }
-      }
-    };
-    watchLinkNodeChanged(this._link);
-    watchLinkChildrenChanged(this._link);
-
-    const parent = this._link.parent;
-    if (parent) {
-      // parent.on('child:delete', this._onParentChild);
-      parent.changes.listen(([type, link]) => {
-        if (type === 'child:del') this._onParentChild(link);
-      });
-    }
+    this._link = this._watcher.link;
+    this._watcher.changes.listen(this._onEvent);
 
     if (persistent) this._persist();
   }
 
-  protected _parentChangesUnsub: FanOutUnsubscribe;
-
   close() {
     clearTimeout(this._timer);
-    this._listenerRemovers.forEach(removers => {
-      removers.forEach(r => r());
-    });
-    this._listenerRemovers.clear();
-    this._parentChangesUnsub?.();
+    this._watcher?.close();
   }
 }

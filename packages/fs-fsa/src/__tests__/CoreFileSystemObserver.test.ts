@@ -1,4 +1,4 @@
-import { fsa, IFileSystemChangeRecord } from '..';
+import { fsa, FileSystemChangeRecord, IFileSystemChangeRecord } from '..';
 import { onlyOnNode20 } from './util';
 
 onlyOnNode20('CoreFileSystemObserver', () => {
@@ -310,6 +310,205 @@ onlyOnNode20('CoreFileSystemObserver', () => {
       expect(changed.isSameEntry(file as any)).toBe(true);
       observer.disconnect();
       await sync.close();
+    });
+  });
+
+  describe('change records', () => {
+    const flush = () => new Promise(resolve => setImmediate(resolve));
+
+    test('file creation is reported as "appeared" with a file changedHandle', async () => {
+      const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await observer.observe(subdir);
+      const file = await subdir.getFileHandle('file.txt', { create: true });
+      await flush();
+      expect(calls.length).toBe(1);
+      const record = calls[0][0];
+      expect(record).toBeInstanceOf(FileSystemChangeRecord);
+      expect(record).toMatchObject({
+        type: 'appeared',
+        relativePathComponents: ['file.txt'],
+        relativePathMovedFrom: null,
+      });
+      expect(record.root).toBe(subdir);
+      const changed = record.changedHandle as any;
+      expect(changed.kind).toBe('file');
+      expect(changed.isSameEntry(file as any)).toBe(true);
+      observer.disconnect();
+    });
+
+    test('directory creation is reported as "appeared" with a directory changedHandle', async () => {
+      const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await observer.observe(subdir);
+      const nested = await subdir.getDirectoryHandle('nested', { create: true });
+      await flush();
+      expect(calls.length).toBe(1);
+      const record = calls[0][0];
+      expect(record).toMatchObject({ type: 'appeared', relativePathComponents: ['nested'] });
+      const changed = record.changedHandle as any;
+      expect(changed.kind).toBe('directory');
+      expect(changed.isSameEntry(nested as any)).toBe(true);
+      observer.disconnect();
+    });
+
+    test('file deletion is reported as "disappeared" with a null changedHandle', async () => {
+      const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await subdir.getFileHandle('file.txt', { create: true });
+      await observer.observe(subdir);
+      await subdir.removeEntry('file.txt');
+      await flush();
+      expect(calls.length).toBe(1);
+      expect(calls[0]).toMatchObject([
+        { type: 'disappeared', changedHandle: null, relativePathComponents: ['file.txt'], relativePathMovedFrom: null },
+      ]);
+      observer.disconnect();
+    });
+
+    test('content writes are reported as "modified"', async () => {
+      const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      const file = await subdir.getFileHandle('file.txt', { create: true });
+      await observer.observe(subdir);
+      const writable = await file.createWritable();
+      await writable.write('hello');
+      await writable.close();
+      await flush();
+      expect(calls.length).toBe(1);
+      const record = calls[0][0];
+      expect(record).toMatchObject({ type: 'modified', relativePathComponents: ['file.txt'] });
+      expect((record.changedHandle as any).isSameEntry(file as any)).toBe(true);
+      observer.disconnect();
+    });
+
+    test('metadata changes are reported as "modified"', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await subdir.getFileHandle('file.txt', { create: true });
+      await observer.observe(subdir);
+      core.chmod('/subdir/file.txt', 0o600);
+      await flush();
+      expect(calls.length).toBe(1);
+      expect(calls[0]).toMatchObject([{ type: 'modified', relativePathComponents: ['file.txt'] }]);
+      observer.disconnect();
+    });
+
+    test('renames within scope are reported as "moved" with both paths', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await subdir.getFileHandle('a.txt', { create: true });
+      await observer.observe(subdir);
+      core.rename('/subdir/a.txt', '/subdir/b.txt');
+      await flush();
+      expect(calls.length).toBe(1);
+      const record = calls[0][0];
+      expect(record).toMatchObject({
+        type: 'moved',
+        relativePathComponents: ['b.txt'],
+        relativePathMovedFrom: ['a.txt'],
+      });
+      const renamed = await subdir.getFileHandle('b.txt');
+      expect((record.changedHandle as any).isSameEntry(renamed as any)).toBe(true);
+      observer.disconnect();
+    });
+
+    test('moves out of scope are reported as "disappeared"', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const watched = await dir.getDirectoryHandle('watched', { create: true });
+      await dir.getDirectoryHandle('other', { create: true });
+      await watched.getFileHandle('file.txt', { create: true });
+      await observer.observe(watched);
+      core.rename('/watched/file.txt', '/other/file.txt');
+      await flush();
+      expect(calls.length).toBe(1);
+      expect(calls[0]).toMatchObject([
+        { type: 'disappeared', changedHandle: null, relativePathComponents: ['file.txt'], relativePathMovedFrom: null },
+      ]);
+      observer.disconnect();
+    });
+
+    test('moves into scope are reported as "appeared"', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const watched = await dir.getDirectoryHandle('watched', { create: true });
+      const other = await dir.getDirectoryHandle('other', { create: true });
+      await other.getFileHandle('file.txt', { create: true });
+      await observer.observe(watched);
+      core.rename('/other/file.txt', '/watched/file.txt');
+      await flush();
+      expect(calls.length).toBe(1);
+      const record = calls[0][0];
+      expect(record).toMatchObject({
+        type: 'appeared',
+        relativePathComponents: ['file.txt'],
+        relativePathMovedFrom: null,
+      });
+      const moved = await watched.getFileHandle('file.txt');
+      expect((record.changedHandle as any).isSameEntry(moved as any)).toBe(true);
+      observer.disconnect();
+    });
+
+    test('non-recursive observations ignore changes in nested directories', async () => {
+      const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      const nested = await subdir.getDirectoryHandle('nested', { create: true });
+      await observer.observe(subdir);
+      await nested.getFileHandle('deep.txt', { create: true });
+      await flush();
+      expect(calls.length).toBe(0);
+      observer.disconnect();
+    });
+
+    test('recursive observations report nested changes with full relative paths', async () => {
+      const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      const nested = await subdir.getDirectoryHandle('nested', { create: true });
+      await observer.observe(subdir, { recursive: true });
+      const file = await nested.getFileHandle('deep.txt', { create: true });
+      await flush();
+      expect(calls.length).toBe(1);
+      const record = calls[0][0];
+      expect(record).toMatchObject({ type: 'appeared', relativePathComponents: ['nested', 'deep.txt'] });
+      expect((record.changedHandle as any).isSameEntry(file as any)).toBe(true);
+      observer.disconnect();
+    });
+
+    test('recursive moves across subdirectories carry full relative paths', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      const n1 = await subdir.getDirectoryHandle('n1', { create: true });
+      await subdir.getDirectoryHandle('n2', { create: true });
+      await n1.getFileHandle('a.txt', { create: true });
+      await observer.observe(subdir, { recursive: true });
+      core.rename('/subdir/n1/a.txt', '/subdir/n2/b.txt');
+      await flush();
+      expect(calls.length).toBe(1);
+      expect(calls[0]).toMatchObject([
+        { type: 'moved', relativePathComponents: ['n2', 'b.txt'], relativePathMovedFrom: ['n1', 'a.txt'] },
+      ]);
+      observer.disconnect();
     });
   });
 

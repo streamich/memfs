@@ -77,7 +77,7 @@ export class CoreWatcher {
       event.link === this.link ||
       (event.node === this.node && (event.type === FsEventType.MODIFY || event.type === FsEventType.ATTRIB));
     if (isSelf) {
-      this.changes.emit(new CoreWatchEvent(event.type, [], event.node, event.link));
+      this.changes.emit(new CoreWatchEvent(event.type, [], event.node, this.link));
       if (event.type === FsEventType.DELETE) this.close();
       return;
     }

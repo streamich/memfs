@@ -75,7 +75,7 @@ describe('CoreWatcher', () => {
     });
 
     it('reports MODIFY through another hard link to the same node', () => {
-      const { sb, events } = setup('/f.txt', {}, s => {
+      const { sb, watcher, events } = setup('/f.txt', {}, s => {
         s.writeFile('/f.txt', Buffer.from('1'), FLAGS.w, 0o666);
         s.link('/f.txt', '/hard.txt');
       });
@@ -84,6 +84,8 @@ describe('CoreWatcher', () => {
       expect(events.length).toBe(1);
       expect(events[0].type).toBe(FsEventType.MODIFY);
       expect(events[0].steps).toEqual([]);
+      expect(events[0].link).toBe(watcher.link);
+      expect(events[0].link.steps).toEqual(['', 'f.txt']);
     });
   });
 

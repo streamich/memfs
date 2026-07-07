@@ -163,13 +163,15 @@ export interface IWatchOptions extends IOptions {
   maxQueue?: number;
 
   /**
-   * Either 'ignore' or 'throw' when there are more events to be queued than maxQueue allows.
-   * 'ignore' means overflow events are dropped and a warning is emitted, while 'throw'
-   * means to throw an exception.
+   * Behavior when more events are queued than maxQueue allows. 'ignore' means
+   * overflow events are dropped and a warning is emitted, while 'error' means
+   * the iterator throws an `ERR_FS_WATCH_QUEUE_OVERFLOW` error. 'throw' is
+   * accepted as an alias of 'error' (the Node.js docs use 'throw' while its
+   * implementation validates 'error').
    *
    * @default 'ignore'
    */
-  overflow?: 'ignore' | 'throw';
+  overflow?: 'ignore' | 'error' | 'throw';
 }
 
 export interface ICpOptions {

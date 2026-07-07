@@ -10,9 +10,10 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
   private eventQueue: Array<{ eventType: string; filename: string | Buffer }> = [];
   private resolveQueue: Array<{ resolve: Function; reject: Function }> = [];
   private finished = false;
+  private error?: Error;
   private abortController?: AbortController;
   private maxQueue: number;
-  private overflow: 'ignore' | 'throw';
+  private overflow: 'ignore' | 'error';
 
   constructor(
     private fs: any,
@@ -20,7 +21,12 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
     private options: opts.IWatchOptions = {},
   ) {
     this.maxQueue = options.maxQueue || 2048;
-    this.overflow = options.overflow || 'ignore';
+    const overflow = options.overflow || 'ignore';
+    if (overflow !== 'ignore' && overflow !== 'error' && overflow !== 'throw')
+      throw new TypeError(`The argument 'options.overflow' must be one of: 'ignore', 'error'. Received '${overflow}'`);
+    // Node's docs name the value 'throw' while its implementation validates
+    // 'error', both are accepted here with the same semantics.
+    this.overflow = overflow === 'throw' ? 'error' : overflow;
     this.startWatching();
 
     // Handle AbortSignal
@@ -50,16 +56,17 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
   private enqueueEvent(event: { eventType: string; filename: string | Buffer }) {
     if (this.finished) return;
 
-    // Handle queue overflow
+    // Handle queue overflow: the incoming event is dropped, the queue keeps
+    // the oldest `maxQueue` events, matching Node.js.
     if (this.eventQueue.length >= this.maxQueue) {
-      if (this.overflow === 'throw') {
+      if (this.overflow === 'error') {
         const error = new Error(`Watch queue overflow: more than ${this.maxQueue} events queued`);
+        (error as any).code = 'ERR_FS_WATCH_QUEUE_OVERFLOW';
         this.finish(error);
-        return;
-      } else {
-        // 'ignore' - drop the oldest event
-        this.eventQueue.shift();
+      } else if (typeof process !== 'undefined' && typeof process.emitWarning === 'function') {
+        process.emitWarning('fs.watch maxQueue exceeded');
       }
+      return;
     }
 
     this.eventQueue.push(event);
@@ -75,13 +82,17 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
   private finish(error?: Error) {
     if (this.finished) return;
     this.finished = true;
+    this.error = error;
+    if (error) this.eventQueue.length = 0;
 
     if (this.watcher) {
       this.watcher.close();
       this.watcher = null;
     }
 
-    // Resolve or reject all pending promises
+    // Resolve or reject all pending promises - a rejected error is considered
+    // delivered and is not thrown again from a later next() call.
+    const delivered = error && this.resolveQueue.length > 0;
     while (this.resolveQueue.length > 0) {
       const { resolve, reject } = this.resolveQueue.shift()!;
       if (error) {
@@ -90,9 +101,16 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
         resolve({ value: undefined, done: true });
       }
     }
+    if (delivered) this.error = undefined;
   }
 
   async next(): Promise<IteratorResult<{ eventType: string; filename: string | Buffer }>> {
+    if (this.error) {
+      const error = this.error;
+      this.error = undefined;
+      throw error;
+    }
+
     if (this.finished) {
       return { value: undefined, done: true };
     }

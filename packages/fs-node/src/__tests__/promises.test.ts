@@ -869,59 +869,79 @@ describe('Promises API', () => {
       expect(result.done).toBe(true);
     });
 
-    it('Handles overflow with ignore strategy', async () => {
+    it('Handles overflow with ignore strategy: keeps oldest events, drops newest', async () => {
       const vol = new Volume();
       const { promises } = vol;
-      vol.fromJSON({
-        '/foo': 'bar',
-      });
+      vol.mkdirSync('/dir');
+      const emitWarning = jest.spyOn(process, 'emitWarning').mockImplementation(() => {});
+      try {
+        const watcher = promises.watch('/dir', { maxQueue: 1, overflow: 'ignore' });
 
-      const watcher = promises.watch('/foo', { maxQueue: 1, overflow: 'ignore' });
+        vol.writeFileSync('/dir/a.txt', '1');
+        vol.writeFileSync('/dir/b.txt', '1');
+        vol.writeFileSync('/dir/c.txt', '1');
 
-      // Generate multiple events quickly
-      vol.writeFileSync('/foo', 'change1');
-      vol.writeFileSync('/foo', 'change2');
-      vol.writeFileSync('/foo', 'change3');
+        const iterator = watcher[Symbol.asyncIterator]();
+        const result1 = await iterator.next();
+        expect(result1.done).toBe(false);
+        expect(result1.value).toEqual({ eventType: 'rename', filename: 'a.txt' });
+        expect(emitWarning).toBeCalledTimes(5);
+        expect(emitWarning).toBeCalledWith('fs.watch maxQueue exceeded');
 
-      const iterator = watcher[Symbol.asyncIterator]();
-      const result1 = await iterator.next();
-      expect(result1.done).toBe(false);
-
-      if (iterator.return) {
-        await iterator.return();
+        if (iterator.return) {
+          await iterator.return();
+        }
+      } finally {
+        emitWarning.mockRestore();
       }
     });
 
-    it.skip('Handles overflow with throw strategy', async () => {
-      // This test is skipped because the current implementation has a limitation:
-      // The overflow error is only propagated to pending promises, but not stored
-      // for future next() calls. When overflow occurs, the iterator is finished
-      // but subsequent next() calls return { done: true } instead of throwing the error.
+    it.each(['throw', 'error'] as const)(
+      'Handles overflow with %s strategy: clears the queue and throws from next()',
+      async overflow => {
+        const vol = new Volume();
+        const { promises } = vol;
+        vol.fromJSON({
+          '/foo': 'bar',
+        });
+        const watcher = promises.watch('/foo', { maxQueue: 1, overflow });
+        const iterator = watcher[Symbol.asyncIterator]();
+        vol.writeFileSync('/foo', 'change1');
+        vol.writeFileSync('/foo', 'change2');
+        vol.writeFileSync('/foo', 'change3');
+        try {
+          await iterator.next();
+          fail('Expected overflow error to be thrown');
+        } catch (error: any) {
+          expect(error.message).toContain('Watch queue overflow');
+          expect(error.code).toBe('ERR_FS_WATCH_QUEUE_OVERFLOW');
+        }
+        expect((await iterator.next()).done).toBe(true);
+        if (iterator.return) {
+          await iterator.return();
+        }
+      },
+    );
 
+    it('Throws TypeError for an invalid overflow value', () => {
       const vol = new Volume();
       const { promises } = vol;
       vol.fromJSON({
         '/foo': 'bar',
       });
+      expect(() => promises.watch('/foo', { overflow: 'drop' as any })).toThrow(TypeError);
+    });
 
-      const watcher = promises.watch('/foo', { maxQueue: 1, overflow: 'throw' });
+    it('Passes the ignore option through to the watcher', async () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      vol.mkdirSync('/dir');
+      const watcher = promises.watch('/dir', { ignore: '*.log' });
+      vol.writeFileSync('/dir/skip.log', '1');
+      vol.writeFileSync('/dir/keep.txt', '1');
       const iterator = watcher[Symbol.asyncIterator]();
-
-      // Start waiting for an event (this creates a pending promise)
-      const nextPromise = iterator.next();
-
-      // Generate multiple events quickly to overflow the queue
-      vol.writeFileSync('/foo', 'change1');
-      vol.writeFileSync('/foo', 'change2');
-      vol.writeFileSync('/foo', 'change3');
-
-      try {
-        await nextPromise;
-        fail('Expected overflow error to be thrown');
-      } catch (error) {
-        expect(error.message).toContain('Watch queue overflow');
-      }
-
+      const result = await iterator.next();
+      expect(result.value).toEqual({ eventType: 'rename', filename: 'keep.txt' });
       if (iterator.return) {
         await iterator.return();
       }

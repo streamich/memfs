@@ -10,7 +10,7 @@ export const fsCommonObjectsList: Array<keyof FsCommonObjects> = [
   'StatFs',
   'Dir',
   'Dirent',
-  'StatsWatcher',
+  'StatWatcher',
   'FSWatcher',
   'ReadStream',
   'WriteStream',

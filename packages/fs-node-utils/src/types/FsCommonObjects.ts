@@ -13,6 +13,6 @@ export interface FsCommonObjects {
   ReadStream: new (...args: unknown[]) => misc.IReadStream;
   StatFs: new (...args: unknown[]) => misc.IStatFs;
   Stats: new (...args: unknown[]) => misc.IStats;
-  StatsWatcher: new (...args: unknown[]) => misc.IStatWatcher;
+  StatWatcher: new (...args: unknown[]) => misc.IStatWatcher;
   WriteStream: new (...args: unknown[]) => misc.IWriteStream;
 }

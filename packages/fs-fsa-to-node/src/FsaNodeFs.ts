@@ -1126,6 +1126,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
   public readonly StatFs = 0 as any;
   public readonly Dir = 0 as any;
+  public readonly StatWatcher = 0 as any;
   public readonly StatsWatcher = 0 as any;
   public readonly FSWatcher = 0 as any;
 }

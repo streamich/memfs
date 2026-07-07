@@ -206,6 +206,113 @@ onlyOnNode20('CoreFileSystemObserver', () => {
     });
   });
 
+  describe('terminal events', () => {
+    const flush = () => new Promise(resolve => setImmediate(resolve));
+
+    test('reports "errored" when the watched entry is deleted and drops the observation', async () => {
+      const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const file = await dir.getFileHandle('file.txt', { create: true });
+      await observer.observe(file);
+      await dir.removeEntry('file.txt');
+      await flush();
+      expect(calls.length).toBe(1);
+      expect(calls[0]).toMatchObject([
+        { type: 'errored', changedHandle: null, relativePathComponents: [], relativePathMovedFrom: null },
+      ]);
+      expect(calls[0][0].root).toBe(file);
+      expect((observer as any)._observations.size).toBe(0);
+    });
+
+    test('emits nothing further for an errored observation, even when the entry reappears', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const file = await dir.getFileHandle('file.txt', { create: true });
+      await observer.observe(file);
+      await dir.removeEntry('file.txt');
+      await flush();
+      expect(calls.length).toBe(1);
+      await dir.getFileHandle('file.txt', { create: true });
+      core.chmod('/file.txt', 0o600);
+      await flush();
+      expect(calls.length).toBe(1);
+    });
+
+    test('deleting a watched directory reports its children first, then errors', async () => {
+      const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await subdir.getFileHandle('file.txt', { create: true });
+      await observer.observe(subdir);
+      await dir.removeEntry('subdir', { recursive: true });
+      await flush();
+      expect(calls.length).toBe(1);
+      expect(calls[0]).toMatchObject([
+        { type: 'disappeared', changedHandle: null, relativePathComponents: ['file.txt'] },
+        { type: 'errored', changedHandle: null, relativePathComponents: [] },
+      ]);
+      expect((observer as any)._observations.size).toBe(0);
+    });
+
+    test('other observations continue after one errors', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const file = await dir.getFileHandle('file.txt', { create: true });
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await observer.observe(file);
+      await observer.observe(subdir);
+      await dir.removeEntry('file.txt');
+      await flush();
+      expect(calls.length).toBe(1);
+      expect(calls[0]).toMatchObject([{ type: 'errored' }]);
+      core.mkdir('/subdir/a', 0o755);
+      await flush();
+      expect(calls.length).toBe(2);
+      expect(calls[1]).toMatchObject([{ type: 'appeared', relativePathComponents: ['a'] }]);
+      expect((observer as any)._observations.size).toBe(1);
+      observer.disconnect();
+    });
+
+    test('disconnect() drops pending records', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await observer.observe(subdir);
+      core.mkdir('/subdir/a', 0o755);
+      observer.disconnect();
+      await flush();
+      expect(calls.length).toBe(0);
+    });
+  });
+
+  describe('sync access handles', () => {
+    const flush = () => new Promise(resolve => setImmediate(resolve));
+
+    test('write through an observed sync access handle produces a "modified" record', async () => {
+      const { dir, FileSystemObserver } = fsa({ mode: 'readwrite', syncHandleAllowed: true });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const file = await dir.getFileHandle('file.txt', { create: true });
+      const sync = await file.createSyncAccessHandle!();
+      await observer.observe(sync);
+      await sync.write(new TextEncoder().encode('abc'));
+      await flush();
+      expect(calls.length).toBe(1);
+      expect(calls[0]).toMatchObject([{ type: 'modified', relativePathComponents: [], relativePathMovedFrom: null }]);
+      expect(calls[0][0].root).toBe(sync);
+      const changed = calls[0][0].changedHandle as any;
+      expect(changed.kind).toBe('file');
+      expect(changed.isSameEntry(file as any)).toBe(true);
+      observer.disconnect();
+      await sync.close();
+    });
+  });
+
   test('can listen to file writes', async () => {
     const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
     const changes: IFileSystemChangeRecord[] = [];

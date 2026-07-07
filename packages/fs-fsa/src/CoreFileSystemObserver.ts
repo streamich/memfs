@@ -70,6 +70,7 @@ export class CoreFileSystemObserver implements IFileSystemObserver {
   public disconnect(): void {
     for (const watcher of this._observations.values()) watcher.close();
     this._observations.clear();
+    this._records = [];
   }
 
   private _onEvent(
@@ -87,7 +88,12 @@ export class CoreFileSystemObserver implements IFileSystemObserver {
         changedHandle = this._changedHandle(event, watcher, ctx);
         break;
       case FsEventType.DELETE:
-        type = 'disappeared';
+        if (!event.steps.length) {
+          type = 'errored';
+          if (this._observations.get(root) === watcher) this._observations.delete(root);
+        } else {
+          type = 'disappeared';
+        }
         break;
       case FsEventType.MOVE:
         type = 'moved';

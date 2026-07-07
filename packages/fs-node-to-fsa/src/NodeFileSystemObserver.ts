@@ -1,7 +1,7 @@
 import { FileSystemChangeRecord } from '@jsonjoy.com/fs-fsa';
 import { NodeFileSystemDirectoryHandle } from './NodeFileSystemDirectoryHandle';
 import { NodeFileSystemFileHandle } from './NodeFileSystemFileHandle';
-import { newNotFoundError } from './util';
+import { newNotAllowedError, newNotFoundError } from './util';
 import type {
   IFileSystemChangeRecord,
   IFileSystemDirectoryHandle,
@@ -50,11 +50,21 @@ export class NodeFileSystemObserver implements IFileSystemObserver {
       throw new TypeError("Failed to execute 'observe' on 'FileSystemObserver': Invalid handle.");
     const isDirectory = (handle as IFileSystemHandle).kind === 'directory';
     const last = path[path.length - 1];
-    const target = path.length > 1 && (last === '/' || last === '\\') ? path.slice(0, -1) : path;
+    const isTrimmableSeparator = path.length > 1 && (last === '/' || last === '\\') && path[path.length - 2] !== ':';
+    const target = isTrimmableSeparator ? path.slice(0, -1) : path;
     try {
       await this.fs.promises.stat(target);
-    } catch {
-      throw newNotFoundError();
+    } catch (error) {
+      if (error && typeof error === 'object') {
+        switch (error.code) {
+          case 'ENOENT':
+            throw newNotFoundError();
+          case 'EACCES':
+          case 'EPERM':
+            throw newNotAllowedError();
+        }
+      }
+      throw error;
     }
     const ctx = (handle as any).ctx as NodeFsaContext;
     const recursive = isDirectory && !!options?.recursive;

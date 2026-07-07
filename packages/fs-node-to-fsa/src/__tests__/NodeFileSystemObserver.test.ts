@@ -15,7 +15,7 @@ const until = async (check: () => boolean | Promise<boolean>, pollInterval: numb
 
 const setup = (json: DirectoryJSON = {}) => {
   const { fs } = memfs(json, '/');
-  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'readwrite' });
+  const dir = new NodeFileSystemDirectoryHandle(fs as any, '/', { mode: 'readwrite', syncHandleAllowed: true });
   const records: IFileSystemChangeRecord[] = [];
   const observer = new NodeFileSystemObserver(fs as any, batch => records.push(...batch));
   return { fs, dir, observer, records };
@@ -30,9 +30,31 @@ onlyOnNode20('NodeFileSystemObserver', () => {
     await expect(observer.observe(file)).rejects.toThrow('A requested file or directory could not be found');
   });
 
+  test('rejects with NotAllowedError when the entry is not accessible', async () => {
+    const { fs, dir, observer } = setup({ '/locked/file.txt': 'x' });
+    const locked = await dir.getDirectoryHandle('locked');
+    const file = await locked.getFileHandle('file.txt');
+    fs.chmodSync('/locked', 0);
+    await expect(observer.observe(file)).rejects.toThrow('Permission not granted');
+  });
+
   test('rejects with TypeError for an object which is not a handle', async () => {
     const { observer } = setup();
     await expect(observer.observe({} as any)).rejects.toThrow(TypeError);
+  });
+
+  test('accepts a sync access handle and reports its self events', async () => {
+    const { fs, dir, observer, records } = setup({ '/file.txt': '' });
+    const file = await dir.getFileHandle('file.txt');
+    const sync = await file.createSyncAccessHandle!();
+    await observer.observe(sync);
+    await sync.write(new TextEncoder().encode('abc'));
+    await until(() => records.some(r => r.type === 'modified'));
+    const record = records.find(r => r.type === 'modified')!;
+    expect(record.relativePathComponents).toEqual([]);
+    expect(record.root).toBe(sync);
+    observer.disconnect();
+    await sync.close();
   });
 
   test('reports "appeared" when a file is created in an observed directory', async () => {

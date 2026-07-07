@@ -1,8 +1,17 @@
-import type { IFileSystemFileHandle } from '@jsonjoy.com/fs-fsa';
+import type { IFileSystemFileHandle, IFileSystemObserverConstructable } from '@jsonjoy.com/fs-fsa';
 import type * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 
 export type FsLocation = [folder: string[], file: string];
+
+export interface FsaNodeFsOptions {
+  /**
+   * `FileSystemObserver` constructor used to implement the `watch` API family.
+   * When not provided, the global `FileSystemObserver` is used, if available
+   * (natively shipped in Chrome 133+).
+   */
+  FileSystemObserver?: IFileSystemObserverConstructable;
+}
 
 /**
  * Adapter which implements synchronous calls to the FSA API.

@@ -21,6 +21,10 @@ export class CoreFileSystemObserver implements IFileSystemObserver {
     throw new Error('Method not implemented.');
   }
 
+  public unobserve(handle: IFileSystemFileHandle | IFileSystemDirectoryHandle | IFileSystemSyncAccessHandle): void {
+    throw new Error('Method not implemented.');
+  }
+
   /** Disconnect and stop all observations. */
   public disconnect(): void {
     throw new Error('Method not implemented.');

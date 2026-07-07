@@ -1637,8 +1637,24 @@ describe('volume', () => {
         });
 
         it('suppresses only ENOENT; other errors still throw', () => {
-          const vol = Volume.fromJSON({ '/file.txt': 'x' });
+          const vol = Volume.fromJSON({ '/dir/file.txt': 'x' });
+          vol.chmodSync('/dir', 0);
+          expect(() => vol.watch('/dir/file.txt', { throwIfNoEntry: false })).toThrow(/EACCES/);
+        });
+
+        it('throws ENOTDIR for traversal through a file on POSIX', () => {
+          const vol = Volume.fromJSON({ '/file.txt': 'x' }, undefined, {
+            process: { ...process, platform: 'linux' },
+          });
           expect(() => vol.watch('/file.txt/sub', { throwIfNoEntry: false })).toThrow(/ENOTDIR/);
+        });
+
+        it('suppresses the ENOENT reported for traversal through a file on Windows', () => {
+          const vol = Volume.fromJSON({ '/file.txt': 'x' }, undefined, {
+            process: { ...process, platform: 'win32' },
+          });
+          const watcher = vol.watch('/file.txt/sub', { throwIfNoEntry: false });
+          watcher.close();
         });
       });
 

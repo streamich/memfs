@@ -14,10 +14,10 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
 
   constructor(
     private readonly _core: Superblock,
-    private readonly _path: string,
+    public readonly __path: string,
     private readonly _ctx: CoreFsaContext,
   ) {
-    this._ctx.locks.acquireLock(this._path);
+    this._ctx.locks.acquireLock(this.__path);
   }
 
   private _ensureOpen(): number {
@@ -27,7 +27,7 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
     if (this._fd === null) {
       // Open file for read/write
       const flags = this._ctx.mode === 'readwrite' ? FLAGS['r+'] : FLAGS.r;
-      this._fd = this._core.open(this._path, flags, 0o644);
+      this._fd = this._core.open(this.__path, flags, 0o644);
     }
     return this._fd;
   }
@@ -41,7 +41,7 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
       this._fd = null;
     }
     this._closed = true;
-    this._ctx.locks.releaseLock(this._path);
+    this._ctx.locks.releaseLock(this.__path);
   }
 
   /**
@@ -58,7 +58,7 @@ export class CoreFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
    */
   public async getSize(): Promise<number> {
     try {
-      const link = this._core.getResolvedLinkOrThrow(this._path);
+      const link = this._core.getResolvedLinkOrThrow(this.__path);
       const node = link.getNode();
       return node.getSize();
     } catch (error) {

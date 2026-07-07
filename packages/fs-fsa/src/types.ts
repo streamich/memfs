@@ -217,6 +217,14 @@ export interface IFileSystemObserver {
     options?: IFileSystemObserverObserveOptions,
   ): Promise<void>;
 
+  /**
+   * Stop observing changes to a given file or directory, which was previously
+   * passed to {@link observe}.
+   *
+   * @param handle The file or directory handle to stop observing.
+   */
+  unobserve(handle: IFileSystemFileHandle | IFileSystemDirectoryHandle | IFileSystemSyncAccessHandle): void;
+
   /** Disconnect and stop all observations. */
   disconnect(): void;
 }

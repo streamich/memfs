@@ -11,11 +11,11 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
 
   constructor(
     protected readonly fs: NodeFsaFs,
-    protected readonly path: string,
+    public readonly __path: string,
     protected readonly ctx: NodeFsaContext,
   ) {
-    this.fd = fs.openSync(path, 'r+');
-    this.ctx.locks.acquireLock(this.path);
+    this.fd = fs.openSync(__path, 'r+');
+    this.ctx.locks.acquireLock(this.__path);
   }
 
   /**
@@ -24,7 +24,7 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
   public async close(): Promise<void> {
     assertCanWrite(this.ctx.mode);
     this.fs.closeSync(this.fd);
-    this.ctx.locks.releaseLock(this.path);
+    this.ctx.locks.releaseLock(this.__path);
   }
 
   /**
@@ -39,7 +39,7 @@ export class NodeFileSystemSyncAccessHandle implements IFileSystemSyncAccessHand
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle/getSize
    */
   public async getSize(): Promise<number> {
-    return this.fs.statSync(this.path).size;
+    return this.fs.statSync(this.__path).size;
   }
 
   /**

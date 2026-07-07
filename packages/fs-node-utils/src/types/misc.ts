@@ -10,6 +10,7 @@ import type {
   IReadFileOptions,
   IStatOptions,
   IWriteFileOptions,
+  TWatchIgnorePattern,
 } from './options';
 import type { Readable, Writable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 
@@ -130,7 +131,13 @@ export interface IWriteStream extends Writable {
 }
 
 export interface IFSWatcher extends EventEmitter {
-  start(path: PathLike, persistent?: boolean, recursive?: boolean, encoding?: BufferEncoding): void;
+  start(
+    path: PathLike,
+    persistent?: boolean,
+    recursive?: boolean,
+    encoding?: BufferEncoding,
+    ignore?: TWatchIgnorePattern | TWatchIgnorePattern[],
+  ): void;
   close(): void;
   ref(): this;
   unref(): this;

@@ -119,6 +119,8 @@ export interface IWriteStreamOptions {
   start?: number;
 }
 
+export type TWatchIgnorePattern = string | RegExp | ((filename: string) => boolean);
+
 export interface IWatchOptions extends IOptions {
   /**
    * Indicates whether the process should continue to run as long as files are
@@ -145,15 +147,27 @@ export interface IWatchOptions extends IOptions {
   throwIfNoEntry?: boolean;
 
   /**
+   * Pattern(s) for event filenames to ignore. Strings are glob patterns, a
+   * RegExp is tested against the filename, and a function receives the
+   * filename and returns `true` to ignore it. An array may mix all three.
+   *
+   * @default undefined
+   */
+  ignore?: TWatchIgnorePattern | TWatchIgnorePattern[];
+
+  /**
    * Specifies the number of events to queue between iterations of the AsyncIterator.
-   * Default: 2048.
+   *
+   * @default 2048
    */
   maxQueue?: number;
 
   /**
    * Either 'ignore' or 'throw' when there are more events to be queued than maxQueue allows.
    * 'ignore' means overflow events are dropped and a warning is emitted, while 'throw'
-   * means to throw an exception. Default: 'ignore'.
+   * means to throw an exception.
+   *
+   * @default 'ignore'
    */
   overflow?: 'ignore' | 'throw';
 }

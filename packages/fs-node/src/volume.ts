@@ -28,6 +28,7 @@ import {
   type IProcess,
 } from '@jsonjoy.com/fs-core';
 import { isWin } from '@jsonjoy.com/fs-core/lib/util';
+import { toRegex } from 'glob-to-regex.js';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import StatFs from './StatFs';
@@ -1429,13 +1430,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     }
 
     // tslint:disable-next-line prefer-const
-    let { persistent, recursive, encoding, signal, throwIfNoEntry }: IWatchOptions = getDefaultOpts(givenOptions);
+    let { persistent, recursive, encoding, signal, throwIfNoEntry, ignore }: IWatchOptions =
+      getDefaultOpts(givenOptions);
     if (persistent === undefined) persistent = true;
     if (recursive === undefined) recursive = false;
 
     const watcher = new this.FSWatcher();
     try {
-      watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
+      watcher.start(filename, persistent, recursive, encoding as BufferEncoding, ignore);
     } catch (err) {
       if (throwIfNoEntry === false && err.code === 'ENOENT') return watcher;
       throw err;
@@ -2052,6 +2054,29 @@ FsWriteStream.prototype.destroySoon = FsWriteStream.prototype.end;
 
 // ---------------------------------------- FSWatcher
 
+const watchIgnorePatternToMatcher = (pattern: opts.TWatchIgnorePattern): ((filename: string) => boolean) => {
+  if (typeof pattern === 'function') return pattern;
+  if (pattern instanceof RegExp) return filename => pattern.test(filename);
+  if (typeof pattern === 'string') {
+    const regex = toRegex(pattern);
+    return filename => regex.test(filename);
+  }
+  throw new TypeError(
+    'The "options.ignore" property must be of type string, RegExp, function, or an array thereof. ' +
+      `Received ${typeof pattern}`,
+  );
+};
+
+const watchIgnoreToMatcher = (
+  ignore: opts.TWatchIgnorePattern | opts.TWatchIgnorePattern[],
+): ((filename: string) => boolean) => {
+  if (Array.isArray(ignore)) {
+    const matchers = ignore.map(watchIgnorePatternToMatcher);
+    return filename => matchers.some(matcher => matcher(filename));
+  }
+  return watchIgnorePatternToMatcher(ignore);
+};
+
 export class FSWatcher extends EventEmitter {
   _vol: Volume;
   _filename: string = '';
@@ -2065,6 +2090,7 @@ export class FSWatcher extends EventEmitter {
 
   private _watcher: CoreWatcher | undefined;
   private _closed: boolean = false;
+  private _ignore: ((filename: string) => boolean) | undefined;
 
   constructor(vol: Volume) {
     super();
@@ -2073,6 +2099,7 @@ export class FSWatcher extends EventEmitter {
 
   private _emit(type: 'change' | 'rename', relativeSteps: string[]): void {
     const filename = relativeSteps.length ? relativeSteps.join(pathSep) : this._watcher!.link.getName();
+    if (this._ignore && this._ignore(filename)) return;
     this.emit('change', type, strToEncoding(filename, this._encoding));
   }
 
@@ -2122,12 +2149,14 @@ export class FSWatcher extends EventEmitter {
     persistent: boolean = true,
     recursive: boolean = false,
     encoding: BufferEncoding = ENCODING_UTF8,
+    ignore?: opts.TWatchIgnorePattern | opts.TWatchIgnorePattern[],
   ) {
     this._filename = pathToFilename(path);
     this._steps = filenameToSteps(this._filename);
     this._filenameEncoded = strToEncoding(this._filename);
     this._recursive = recursive;
     this._encoding = encoding;
+    this._ignore = ignore === undefined ? undefined : watchIgnoreToMatcher(ignore);
 
     try {
       this._watcher = new CoreWatcher(this._vol._core, this._filename, { recursive });

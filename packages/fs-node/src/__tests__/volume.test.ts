@@ -1641,6 +1641,74 @@ describe('volume', () => {
           expect(() => vol.watch('/file.txt/sub', { throwIfNoEntry: false })).toThrow(/ENOTDIR/);
         });
       });
+
+      describe('ignore option', () => {
+        it('filters events by glob string pattern', () => {
+          const vol = Volume.fromJSON({ '/dir': null });
+          const listener = jest.fn();
+          const watcher = vol.watch('/dir', { ignore: '*.log' }, listener as any);
+          try {
+            vol.writeFileSync('/dir/a.log', '1');
+            expect(listener).not.toBeCalled();
+            vol.writeFileSync('/dir/a.txt', '1');
+            expect(listener).toBeCalledWith('rename', 'a.txt');
+          } finally {
+            watcher.close();
+          }
+        });
+
+        it('accepts an array mixing glob, RegExp, and function patterns', () => {
+          const vol = Volume.fromJSON({ '/dir': null });
+          const listener = jest.fn();
+          const watcher = vol.watch(
+            '/dir',
+            { ignore: ['*.log', /^skip/, (filename: string) => filename.endsWith('.tmp')] },
+            listener as any,
+          );
+          try {
+            vol.writeFileSync('/dir/a.log', '1');
+            vol.writeFileSync('/dir/skip.txt', '1');
+            vol.writeFileSync('/dir/b.tmp', '1');
+            expect(listener).not.toBeCalled();
+            vol.writeFileSync('/dir/keep.txt', '1');
+            expect(listener).toBeCalledWith('rename', 'keep.txt');
+          } finally {
+            watcher.close();
+          }
+        });
+
+        it('matches relative paths in recursive mode', () => {
+          const vol = Volume.fromJSON({ '/dir/sub': null });
+          const listener = jest.fn();
+          const watcher = vol.watch('/dir', { recursive: true, ignore: '**/*.tmp' }, listener as any);
+          try {
+            vol.writeFileSync('/dir/sub/a.tmp', '1');
+            expect(listener).not.toBeCalled();
+            vol.writeFileSync('/dir/sub/a.txt', '1');
+            expect(listener).toBeCalledWith('rename', 'sub/a.txt');
+          } finally {
+            watcher.close();
+          }
+        });
+
+        it('filters each half of a rename independently', () => {
+          const vol = Volume.fromJSON({ '/dir/a.txt': '1' });
+          const listener = jest.fn();
+          const watcher = vol.watch('/dir', { ignore: '*.bak' }, listener as any);
+          try {
+            vol.renameSync('/dir/a.txt', '/dir/a.bak');
+            expect(listener).toBeCalledTimes(1);
+            expect(listener).toBeCalledWith('rename', 'a.txt');
+          } finally {
+            watcher.close();
+          }
+        });
+
+        it('throws TypeError for an invalid pattern type', () => {
+          const vol = Volume.fromJSON({ '/dir': null });
+          expect(() => vol.watch('/dir', { ignore: 42 as any })).toThrow(TypeError);
+        });
+      });
     });
 
     describe('.watchFile(path[, options], listener)', () => {

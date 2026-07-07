@@ -4,7 +4,7 @@ import { FsEvent, FsEventType } from '@jsonjoy.com/fs-core';
 const setup = () => {
   const vol = new Volume();
   const events: FsEvent[] = [];
-  (vol as any)._core.onchange = (e: FsEvent) => events.push(e);
+  (vol as any)._core.changes.listen((e: FsEvent) => events.push(e));
   return { vol, events };
 };
 
@@ -61,12 +61,12 @@ describe('Volume forwards core events through the public API', () => {
     expect(events[0].oldSteps).toEqual(['', 'x.txt']);
   });
 
-  it('metadata ops emit MODIFY via Volume (chmod, utimes)', () => {
+  it('metadata ops emit ATTRIB via Volume (chmod, utimes)', () => {
     const { vol, events } = setup();
     vol.writeFileSync('/m.txt', '1');
     events.length = 0;
     vol.chmodSync('/m.txt', 0o600);
     vol.utimesSync('/m.txt', new Date(), new Date());
-    expect(events.map(e => e.type)).toEqual([FsEventType.MODIFY, FsEventType.MODIFY]);
+    expect(events.map(e => e.type)).toEqual([FsEventType.ATTRIB, FsEventType.ATTRIB]);
   });
 });

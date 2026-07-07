@@ -6,7 +6,7 @@ import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 const setup = () => {
   const sb = new Superblock();
   const events: FsEvent[] = [];
-  sb.onchange = e => events.push(e);
+  sb.changes.listen(e => events.push(e));
   return { sb, events };
 };
 
@@ -31,9 +31,22 @@ describe('Superblock events', () => {
     const { sb, events } = setup();
     const fd = sb.open('/test.txt', FLAGS.w, 0o666);
     sb.write(fd, Buffer.from('hi'), 0, 2, 0);
-    expect(events.length).toBe(3);
-    expect(events[2].type).toBe(FsEventType.MODIFY);
-    expect(events[2].steps).toEqual(['', 'test.txt']);
+    expect(events.length).toBe(2);
+    expect(events[1].type).toBe(FsEventType.MODIFY);
+    expect(events[1].steps).toEqual(['', 'test.txt']);
+  });
+
+  it('does not emit MODIFY when O_TRUNC opens a fresh or empty file, emits when content is discarded', () => {
+    const { sb, events } = setup();
+    sb.open('/empty.txt', FLAGS.w, 0o666);
+    expect(events.map(e => e.type)).toEqual([FsEventType.CREATE]);
+    events.length = 0;
+    sb.open('/empty.txt', FLAGS.w, 0o666);
+    expect(events.length).toBe(0);
+    sb.writeFile('/empty.txt', Buffer.from('data'), FLAGS.w, 0o666);
+    events.length = 0;
+    sb.open('/empty.txt', FLAGS.w, 0o666);
+    expect(events.map(e => e.type)).toEqual([FsEventType.MODIFY]);
   });
 
   it('does not emit MODIFY on zero-byte write', () => {
@@ -48,46 +61,46 @@ describe('Superblock events', () => {
     const sb = new Superblock();
     const fd = sb.open('/test.txt', FLAGS.w, 0o666);
     const events: FsEvent[] = [];
-    sb.onchange = e => events.push(e);
+    sb.changes.listen(e => events.push(e));
     sb.ftruncate(fd, 10);
     expect(events.length).toBe(1);
     expect(events[0].type).toBe(FsEventType.MODIFY);
     expect(events[0].steps).toEqual(['', 'test.txt']);
   });
 
-  it('emits MODIFY on chmod and chown', () => {
+  it('emits ATTRIB on chmod and chown', () => {
     const { sb, events } = setup();
     sb.open('/test.txt', FLAGS.w, 0o666);
     events.length = 0;
     sb.chmod('/test.txt', 0o600);
     sb.chown('/test.txt', 1, 1);
     expect(events.length).toBe(2);
-    expect(events[0].type).toBe(FsEventType.MODIFY);
+    expect(events[0].type).toBe(FsEventType.ATTRIB);
     expect(events[0].steps).toEqual(['', 'test.txt']);
-    expect(events[1].type).toBe(FsEventType.MODIFY);
+    expect(events[1].type).toBe(FsEventType.ATTRIB);
   });
 
-  it('emits MODIFY on utimes and futimes', () => {
+  it('emits ATTRIB on utimes and futimes', () => {
     const { sb, events } = setup();
     const fd = sb.open('/test.txt', FLAGS.w, 0o666);
     events.length = 0;
     sb.utimes('/test.txt', 1, 1);
     sb.futimes(fd, 2, 2);
     expect(events.length).toBe(2);
-    expect(events[0].type).toBe(FsEventType.MODIFY);
+    expect(events[0].type).toBe(FsEventType.ATTRIB);
     expect(events[0].steps).toEqual(['', 'test.txt']);
-    expect(events[1].type).toBe(FsEventType.MODIFY);
+    expect(events[1].type).toBe(FsEventType.ATTRIB);
     expect(events[1].steps).toEqual(['', 'test.txt']);
   });
 
-  it('emits MODIFY on lutimes of a symlink', () => {
+  it('emits ATTRIB on lutimes of a symlink', () => {
     const { sb, events } = setup();
     sb.open('/test.txt', FLAGS.w, 0o666);
     sb.symlink('/test.txt', '/link');
     events.length = 0;
     sb.utimes('/link', 1, 1, false);
     expect(events.length).toBe(1);
-    expect(events[0].type).toBe(FsEventType.MODIFY);
+    expect(events[0].type).toBe(FsEventType.ATTRIB);
     expect(events[0].steps).toEqual(['', 'link']);
   });
 
@@ -95,7 +108,7 @@ describe('Superblock events', () => {
     const sb = new Superblock();
     sb.open('/test.txt', FLAGS.w, 0o666);
     const events: FsEvent[] = [];
-    sb.onchange = e => events.push(e);
+    sb.changes.listen(e => events.push(e));
     sb.rename('/test.txt', '/test2.txt');
     expect(events.length).toBe(1);
     expect(events[0].type).toBe(FsEventType.MOVE);
@@ -107,7 +120,7 @@ describe('Superblock events', () => {
     const sb = new Superblock();
     sb.open('/test.txt', FLAGS.w, 0o666);
     const events: FsEvent[] = [];
-    sb.onchange = e => events.push(e);
+    sb.changes.listen(e => events.push(e));
     sb.unlink('/test.txt');
     expect(events.length).toBe(1);
     expect(events[0].type).toBe(FsEventType.DELETE);
@@ -120,7 +133,7 @@ describe('Superblock events', () => {
     sb.mkdir('/dir/sub', 0o777);
     sb.open('/dir/sub/file.txt', FLAGS.w, 0o666);
     const events: FsEvent[] = [];
-    sb.onchange = e => events.push(e);
+    sb.changes.listen(e => events.push(e));
     sb.rm('/dir', false, true);
     expect(events.length).toBe(3);
     expect(events[0].type).toBe(FsEventType.DELETE);
@@ -129,5 +142,30 @@ describe('Superblock events', () => {
     expect(events[1].steps).toEqual(['', 'dir', 'sub']);
     expect(events[2].type).toBe(FsEventType.DELETE);
     expect(events[2].steps).toEqual(['', 'dir']);
+  });
+
+  it('populates the link (and its node) on each event', () => {
+    const { sb, events } = setup();
+    sb.mkdir('/dir', 0o777);
+    const event = events[0];
+    const link = sb.getResolvedLinkOrThrow('/dir');
+    expect(event.link).toBe(link);
+    expect(event.node).toBe(link.getNode());
+    expect(event.link.steps).toEqual(['', 'dir']);
+  });
+
+  it('delivers to multiple listeners and stops after unsubscribe', () => {
+    const sb = new Superblock();
+    const a: FsEvent[] = [];
+    const b: FsEvent[] = [];
+    sb.changes.listen(e => a.push(e));
+    const unsubscribe = sb.changes.listen(e => b.push(e));
+    sb.mkdir('/one', 0o777);
+    expect(a.length).toBe(1);
+    expect(b.length).toBe(1);
+    unsubscribe();
+    sb.mkdir('/two', 0o777);
+    expect(a.length).toBe(2);
+    expect(b.length).toBe(1);
   });
 });

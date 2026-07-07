@@ -21,6 +21,7 @@ import type { PathLike } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import { ERROR_CODE } from './constants';
 import { TFileId, StatError } from './types';
 import { Err, Ok, Result } from './result';
+import { FanOut } from 'thingies/lib/fanout';
 import { FsEvent, FsEventType } from './watch/FsEvent';
 
 const pathSep = posix ? posix.sep : sep;
@@ -102,10 +103,11 @@ export class Superblock {
     this.root = root;
   }
 
-  public onchange?: (event: FsEvent) => void;
+  /** Fan-out of file system change events. Multiple consumers may subscribe. */
+  public readonly changes = new FanOut<FsEvent>();
 
   protected emit(change: FsEvent) {
-    if (this.onchange) this.onchange(change);
+    this.changes.emit(change);
   }
 
   createLink(): Link;
@@ -147,7 +149,7 @@ export class Superblock {
         }
       }
     }
-    this.emit(new FsEvent(FsEventType.DELETE, link.steps, link.getNode()));
+    this.emit(new FsEvent(FsEventType.DELETE, link.steps, link.getNode(), link));
   }
 
   private newInoNumber(): number {
@@ -508,8 +510,9 @@ export class Superblock {
     this.openFiles++;
 
     if (flagsNum & O_TRUNC) {
+      const hadContent = file.node.getSize() > 0;
       file.truncate();
-      this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node));
+      if (hadContent) this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node, file.link));
     }
 
     return file;
@@ -548,7 +551,7 @@ export class Superblock {
         modeNum ??= 0o666;
 
         link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
-        this.emit(new FsEvent(FsEventType.CREATE, link.steps, link.getNode()));
+        this.emit(new FsEvent(FsEventType.CREATE, link.steps, link.getNode(), link));
       } else throw err;
     }
 
@@ -645,7 +648,7 @@ export class Superblock {
     const node = link1.getNode();
     node.nlink++;
     const newLink = dir2.createChild(name, node);
-    this.emit(new FsEvent(FsEventType.CREATE, newLink.steps, node));
+    this.emit(new FsEvent(FsEventType.CREATE, newLink.steps, node, newLink));
   };
 
   public readonly unlink = (filename: string) => {
@@ -685,7 +688,7 @@ export class Superblock {
     // Create symlink.
     const symlink: Link = dirLink.createChild(name);
     symlink.getNode().makeSymlink(targetFilename);
-    this.emit(new FsEvent(FsEventType.CREATE, symlink.steps, symlink.getNode()));
+    this.emit(new FsEvent(FsEventType.CREATE, symlink.steps, symlink.getNode(), symlink));
     return symlink;
   };
 
@@ -738,7 +741,7 @@ export class Superblock {
     link.name = name;
     link.steps = [...newPathDirLink.steps, name];
     newPathDirLink.setChild(link.getName(), link);
-    this.emit(new FsEvent(FsEventType.MOVE, link.steps, link.getNode(), oldSteps));
+    this.emit(new FsEvent(FsEventType.MOVE, link.steps, link.getNode(), link, oldSteps));
   };
 
   public readonly mkdir = (filename: string, modeNum: number): void => {
@@ -752,7 +755,7 @@ export class Superblock {
     const node = dir.getNode();
     if (!node.canWrite() || !node.canExecute()) throw createError(ERROR_CODE.EACCES, 'mkdir', filename);
     const child = dir.createChild(name, this.createNode(constants.S_IFDIR | modeNum));
-    this.emit(new FsEvent(FsEventType.CREATE, child.steps, child.getNode()));
+    this.emit(new FsEvent(FsEventType.CREATE, child.steps, child.getNode(), child));
   };
 
   /**
@@ -787,7 +790,7 @@ export class Superblock {
       }
       created = true;
       curr = curr.createChild(steps[i], this.createNode(constants.S_IFDIR | modeNum));
-      this.emit(new FsEvent(FsEventType.CREATE, curr.steps, curr.getNode()));
+      this.emit(new FsEvent(FsEventType.CREATE, curr.steps, curr.getNode(), curr));
     }
     return created ? filename : undefined;
   };
@@ -839,50 +842,50 @@ export class Superblock {
       length,
       position === -1 || typeof position !== 'number' ? undefined : position,
     );
-    if (bytes > 0) this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node));
+    if (bytes > 0) this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node, file.link));
     return bytes;
   }
 
   public readonly ftruncate = (fd: number, len?: number): void => {
     const file = this.getFileByFdOrThrow(fd, 'ftruncate');
     file.truncate(len);
-    this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node));
+    this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node, file.link));
   };
 
   public readonly fchmod = (fd: number, modeNum: number): void => {
     const file = this.getFileByFdOrThrow(fd, 'fchmod');
     file.chmod(modeNum);
-    this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node));
+    this.emit(new FsEvent(FsEventType.ATTRIB, file.link.steps, file.node, file.link));
   };
 
   public readonly chmod = (filename: string, modeNum: number): void => {
     const link = this.getResolvedLinkOrThrow(filename, 'chmod');
     link.getNode().chmod(modeNum);
-    this.emit(new FsEvent(FsEventType.MODIFY, link.steps, link.getNode()));
+    this.emit(new FsEvent(FsEventType.ATTRIB, link.steps, link.getNode(), link));
   };
 
   public readonly lchmod = (filename: string, modeNum: number): void => {
     const link = this.getLinkOrThrow(filename, 'lchmod');
     link.getNode().chmod(modeNum);
-    this.emit(new FsEvent(FsEventType.MODIFY, link.steps, link.getNode()));
+    this.emit(new FsEvent(FsEventType.ATTRIB, link.steps, link.getNode(), link));
   };
 
   public readonly fchown = (fd: number, uid: number, gid: number): void => {
     const file = this.getFileByFdOrThrow(fd, 'fchown');
     file.chown(uid, gid);
-    this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node));
+    this.emit(new FsEvent(FsEventType.ATTRIB, file.link.steps, file.node, file.link));
   };
 
   public readonly chown = (filename: string, uid: number, gid: number): void => {
     const link = this.getResolvedLinkOrThrow(filename, 'chown');
     link.getNode().chown(uid, gid);
-    this.emit(new FsEvent(FsEventType.MODIFY, link.steps, link.getNode()));
+    this.emit(new FsEvent(FsEventType.ATTRIB, link.steps, link.getNode(), link));
   };
 
   public readonly lchown = (filename: string, uid: number, gid: number): void => {
     const link = this.getLinkOrThrow(filename, 'lchown');
     link.getNode().chown(uid, gid);
-    this.emit(new FsEvent(FsEventType.MODIFY, link.steps, link.getNode()));
+    this.emit(new FsEvent(FsEventType.ATTRIB, link.steps, link.getNode(), link));
   };
 
   public readonly futimes = (fd: number, atime: number, mtime: number): void => {
@@ -890,7 +893,7 @@ export class Superblock {
     const node = file.node;
     node.atime = new Date(atime * 1000);
     node.mtime = new Date(mtime * 1000);
-    this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node));
+    this.emit(new FsEvent(FsEventType.ATTRIB, file.link.steps, file.node, file.link));
   };
 
   public readonly utimes = (filename: string, atime: number, mtime: number, followSymlinks: boolean = true): void => {
@@ -900,6 +903,6 @@ export class Superblock {
     const node = link.getNode();
     node.atime = new Date(atime * 1000);
     node.mtime = new Date(mtime * 1000);
-    this.emit(new FsEvent(FsEventType.MODIFY, link.steps, node));
+    this.emit(new FsEvent(FsEventType.ATTRIB, link.steps, node, link));
   };
 }

@@ -43,6 +43,12 @@ export class FsaNodeCore {
     return this.options.FileSystemObserver ?? (globalThis as any).FileSystemObserver;
   }
 
+  protected getFileSystemObserverOrThrow(): fsa.IFileSystemObserverConstructable {
+    const Observer = this.getFileSystemObserver();
+    if (!Observer) throw new Error('no `FileSystemObserver` is available');
+    return Observer;
+  }
+
   /**
    * A list of reusable (opened and closed) file descriptors, that should be
    * used first before creating a new file descriptor.

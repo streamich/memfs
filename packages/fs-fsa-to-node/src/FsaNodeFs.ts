@@ -13,6 +13,7 @@ import { FsSynchronousApi } from '@jsonjoy.com/fs-node-utils';
 import { FsaNodeWriteStream } from './FsaNodeWriteStream';
 import { FsaNodeReadStream } from './FsaNodeReadStream';
 import { FsaNodeCore } from './FsaNodeCore';
+import { FsaNodeFsWatcher } from './FsaNodeFsWatcher';
 import { FileHandle } from '@jsonjoy.com/fs-node';
 import { dataToBuffer, isFd, validateFd } from '@jsonjoy.com/fs-core';
 import { isWin } from '@jsonjoy.com/fs-core/lib/util';
@@ -821,12 +822,30 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly glob: FsCallbackApi['glob'] = notImplemented;
 
   /**
-   * @todo Implement using `FileSystemObserver` class.
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemObserver
+   * @todo Implement using the `FileSystemObserver` polling pattern.
    */
   public readonly watchFile: FsCallbackApi['watchFile'] = notSupported;
   public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notSupported;
-  public readonly watch: FsCallbackApi['watch'] = notSupported;
+
+  public readonly watch = (
+    path: misc.PathLike,
+    options?: opts.IWatchOptions | string | ((eventType: string, filename: string) => void),
+    listener?: (eventType: string, filename: string) => void,
+  ): misc.IFSWatcher => {
+    const filename = util.pathToFilename(path);
+    if (typeof options === 'function') {
+      listener = options as (eventType: string, filename: string) => void;
+      options = undefined;
+    }
+    const watchOpts: opts.IWatchOptions =
+      typeof options === 'string' ? { encoding: options as BufferEncoding } : options || {};
+    const { persistent = true, recursive = false, encoding = 'utf8' } = watchOpts;
+    const Observer = this.getFileSystemObserverOrThrow();
+    const watcher = new FsaNodeFsWatcher(Observer, (folder, name) => this.getFileOrDir(folder, name, 'watch'));
+    watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
+    if (listener) watcher.addListener('change', listener);
+    return watcher;
+  };
 
   public readonly symlink: FsCallbackApi['symlink'] = notSupported;
   public readonly link: FsCallbackApi['link'] = notSupported;
@@ -1128,5 +1147,5 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly Dir = 0 as any;
   public readonly StatWatcher = 0 as any;
   public readonly StatsWatcher = 0 as any;
-  public readonly FSWatcher = 0 as any;
+  public readonly FSWatcher = FsaNodeFsWatcher as any;
 }

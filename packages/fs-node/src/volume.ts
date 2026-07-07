@@ -2034,6 +2034,7 @@ export class FSWatcher extends EventEmitter {
   _timer; // Timer that keeps this task persistent.
 
   private _watcher: CoreWatcher | undefined;
+  private _closed: boolean = false;
 
   constructor(vol: Volume) {
     super();
@@ -2094,6 +2095,9 @@ export class FSWatcher extends EventEmitter {
 
   close() {
     clearTimeout(this._timer);
-    this._watcher?.close();
+    if (!this._watcher || this._closed) return;
+    this._closed = true;
+    this._watcher.close();
+    queueMicrotask(() => this.emit('close'));
   }
 }

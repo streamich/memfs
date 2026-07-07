@@ -1436,6 +1436,7 @@ describe('volume', () => {
           }, 10);
         });
       });
+
       it('Calls listener on .watch with recursive=true', done => {
         const vol = new Volume();
         vol.writeFileSync('/lol.txt', '1');
@@ -1463,6 +1464,7 @@ describe('volume', () => {
           }, 10);
         });
       });
+
       it('Calls listener on .watch with recursive=false', done => {
         const vol = new Volume();
         vol.writeFileSync('/lol.txt', '1');
@@ -1485,27 +1487,47 @@ describe('volume', () => {
           }, 10);
         });
       });
+
       it('Calls listener for file created immediately after directory creation', done => {
         const vol = new Volume();
         vol.mkdirSync('/watched', { recursive: true });
-
         const listener = jest.fn();
         const watcher = vol.watch('/watched', { recursive: true }, listener);
-
         // Create directory and immediately create file inside it
         vol.mkdirSync('/watched/new_dir', { recursive: true });
         vol.writeFileSync('/watched/new_dir/new_file', 'content');
-
         setTimeout(() => {
           watcher.close();
-
           // Should have at least 3 events: directory creation, file creation, file change
           expect(listener).toHaveBeenCalledWith('rename', 'new_dir');
           expect(listener).toHaveBeenCalledWith('rename', 'new_dir/new_file');
           expect(listener).toHaveBeenCalledWith('change', 'new_dir/new_file');
-
           done();
         }, 10);
+      });
+
+      it('emits "close" asynchronously, once, and stops delivering events', done => {
+        const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+        const listener = jest.fn();
+        const onClose = jest.fn();
+        const watcher = vol.watch('/foo.txt', listener as any);
+        watcher.on('close', onClose);
+        watcher.close();
+        watcher.close();
+        expect(onClose).not.toBeCalled();
+        vol.writeFileSync('/foo.txt', 'b');
+        queueMicrotask(() => {
+          expect(onClose).toBeCalledTimes(1);
+          expect(listener).not.toBeCalled();
+          done();
+        });
+      });
+
+      it('delivers "close" to listeners attached after close() is called', done => {
+        const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+        const watcher = vol.watch('/foo.txt');
+        watcher.close();
+        watcher.on('close', () => done());
       });
     });
     describe('.watchFile(path[, options], listener)', () => {

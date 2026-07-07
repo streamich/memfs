@@ -1613,7 +1613,36 @@ describe('volume', () => {
           }, 1);
         });
       });
+
+      describe('throwIfNoEntry option', () => {
+        it('throws ENOENT for a missing path by default and when true', () => {
+          const vol = new Volume();
+          expect(() => vol.watch('/missing.txt')).toThrow(/ENOENT/);
+          expect(() => vol.watch('/missing.txt', { throwIfNoEntry: true })).toThrow(/ENOENT/);
+        });
+
+        it('returns a never-started watcher when false and the path is missing', done => {
+          const vol = new Volume();
+          const listener = jest.fn();
+          const onClose = jest.fn();
+          const watcher = vol.watch('/missing.txt', { throwIfNoEntry: false }, listener as any);
+          watcher.on('close', onClose);
+          vol.writeFileSync('/missing.txt', 'now it exists');
+          expect(listener).not.toBeCalled();
+          watcher.close();
+          queueMicrotask(() => {
+            expect(onClose).not.toBeCalled();
+            done();
+          });
+        });
+
+        it('suppresses only ENOENT; other errors still throw', () => {
+          const vol = Volume.fromJSON({ '/file.txt': 'x' });
+          expect(() => vol.watch('/file.txt/sub', { throwIfNoEntry: false })).toThrow(/ENOTDIR/);
+        });
+      });
     });
+
     describe('.watchFile(path[, options], listener)', () => {
       it('Calls listener on .writeFile', done => {
         const vol = new Volume();

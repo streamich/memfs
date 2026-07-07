@@ -1429,12 +1429,17 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     }
 
     // tslint:disable-next-line prefer-const
-    let { persistent, recursive, encoding, signal }: IWatchOptions = getDefaultOpts(givenOptions);
+    let { persistent, recursive, encoding, signal, throwIfNoEntry }: IWatchOptions = getDefaultOpts(givenOptions);
     if (persistent === undefined) persistent = true;
     if (recursive === undefined) recursive = false;
 
     const watcher = new this.FSWatcher();
-    watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
+    try {
+      watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
+    } catch (err) {
+      if (throwIfNoEntry === false && err.code === 'ENOENT') return watcher;
+      throw err;
+    }
 
     if (listener) {
       watcher.addListener('change', listener);

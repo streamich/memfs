@@ -139,6 +139,12 @@ export interface IWatchOptions extends IOptions {
   signal?: AbortSignal;
 
   /**
+   * Whether to throw if the watched path does not exist. When `false`, a
+   * watcher that was never started is returned instead. Default: true.
+   */
+  throwIfNoEntry?: boolean;
+
+  /**
    * Specifies the number of events to queue between iterations of the AsyncIterator.
    * Default: 2048.
    */

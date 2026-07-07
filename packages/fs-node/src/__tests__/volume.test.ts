@@ -1571,6 +1571,48 @@ describe('volume', () => {
           }
         });
       });
+
+      describe('signal option', () => {
+        it('aborting the signal closes the watcher and emits "close"', done => {
+          const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+          const listener = jest.fn();
+          const controller = new AbortController();
+          const watcher = vol.watch('/foo.txt', { signal: controller.signal }, listener as any);
+          watcher.on('close', () => {
+            vol.writeFileSync('/foo.txt', 'b');
+            expect(listener).not.toBeCalled();
+            done();
+          });
+          controller.abort();
+        });
+
+        it('returns an already-closed watcher when the signal is pre-aborted', done => {
+          const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+          const listener = jest.fn();
+          const controller = new AbortController();
+          controller.abort();
+          const watcher = vol.watch('/foo.txt', { signal: controller.signal }, listener as any);
+          vol.writeFileSync('/foo.txt', 'b');
+          expect(listener).not.toBeCalled();
+          watcher.on('close', () => done());
+        });
+
+        it('aborting after a manual close() does not emit "close" twice', done => {
+          const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+          const onClose = jest.fn();
+          const controller = new AbortController();
+          const watcher = vol.watch('/foo.txt', { signal: controller.signal });
+          watcher.on('close', onClose);
+          watcher.close();
+          setTimeout(() => {
+            controller.abort();
+            setTimeout(() => {
+              expect(onClose).toBeCalledTimes(1);
+              done();
+            }, 1);
+          }, 1);
+        });
+      });
     });
     describe('.watchFile(path[, options], listener)', () => {
       it('Calls listener on .writeFile', done => {

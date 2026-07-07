@@ -131,11 +131,7 @@ export interface IWatchFileOptions {
   interval?: number;
 }
 
-// Options for `fs.watch`
-export interface IWatchOptions extends opts.IOptions {
-  persistent?: boolean;
-  recursive?: boolean;
-}
+export type IWatchOptions = opts.IWatchOptions;
 
 // ---------------------------------------------------------- Utility functions
 
@@ -1433,7 +1429,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     }
 
     // tslint:disable-next-line prefer-const
-    let { persistent, recursive, encoding }: IWatchOptions = getDefaultOpts(givenOptions);
+    let { persistent, recursive, encoding, signal }: IWatchOptions = getDefaultOpts(givenOptions);
     if (persistent === undefined) persistent = true;
     if (recursive === undefined) recursive = false;
 
@@ -1442,6 +1438,16 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
     if (listener) {
       watcher.addListener('change', listener);
+    }
+
+    if (signal) {
+      if (signal.aborted) {
+        watcher.close();
+      } else {
+        const onAbort = () => watcher.close();
+        signal.addEventListener('abort', onAbort, { once: true });
+        watcher.once('close', () => signal.removeEventListener('abort', onAbort));
+      }
     }
 
     return watcher;

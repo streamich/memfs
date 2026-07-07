@@ -5,6 +5,7 @@ export * from './types';
 export * from './NodeFileSystemHandle';
 export * from './NodeFileSystemDirectoryHandle';
 export * from './NodeFileSystemFileHandle';
+export * from './NodeFileSystemObserver';
 
 export const nodeToFsa = (
   fs: NodeFsaFs,

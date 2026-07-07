@@ -32,6 +32,34 @@ console.log(content); // 'Hello, World!'
 - Supports file operations: read, write, append, truncate
 - Supports directory operations: mkdir, readdir, rmdir
 - Includes read and write streams
+- Supports `fs.watch` and `fs.watchFile`
+
+## Watching
+
+`fs.watch` is powered by a [`FileSystemObserver`][observer]: the constructor
+passed through the `FileSystemObserver` option is used when provided, otherwise
+the global one — shipped natively in Chrome 133+, which makes `fs.watch` work
+over real OPFS in the browser.
+
+```ts
+const fs = new FsaNodeFs(dirHandle, undefined, { FileSystemObserver });
+
+const watcher = fs.watch('/', { recursive: true }, (eventType, filename) => {
+  console.log(eventType, filename);
+});
+```
+
+Divergences from Node.js:
+
+- The FSA backend is asynchronous, so startup errors (e.g. a missing path) are
+  emitted as an `'error'` event on the returned watcher instead of being
+  thrown synchronously. The `ignore`, `signal`, and `throwIfNoEntry` options
+  are not supported, and `persistent` is a no-op.
+- `fs.watchFile` polls the file at `interval` — comparing the handle's
+  `File#lastModified` and size — since the FSA API exposes no stat change
+  notifications.
+
+[observer]: https://developer.mozilla.org/en-US/docs/Web/API/FileSystemObserver
 
 ## License
 

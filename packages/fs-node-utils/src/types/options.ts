@@ -81,6 +81,8 @@ export interface IRmOptions {
 }
 
 export interface IWatchFileOptions {
+  /** Whether the stats passed to the listener should be bigint variants. Default: false. */
+  bigint?: boolean;
   persistent?: boolean;
   interval?: number;
 }

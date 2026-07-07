@@ -1727,8 +1727,138 @@ describe('volume', () => {
           }, 5);
         }, 5);
       });
-      xit('Multiple listeners for one file', () => {});
+
+      it('Multiple listeners for one file', () => {
+        const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+        const listener1 = jest.fn();
+        const listener2 = jest.fn();
+        const watcher1 = vol.watchFile('/foo.txt', { interval: 1e9 }, listener1) as any;
+        const watcher2 = vol.watchFile('/foo.txt', { interval: 1e9 }, listener2) as any;
+        try {
+          expect(watcher2).toBe(watcher1);
+          vol.writeFileSync('/foo.txt', 'ab');
+          watcher1.onInterval();
+          expect(listener1).toBeCalledTimes(1);
+          expect(listener2).toBeCalledTimes(1);
+          vol.unwatchFile('/foo.txt', listener1);
+          vol.writeFileSync('/foo.txt', 'abc');
+          watcher1.onInterval();
+          expect(listener1).toBeCalledTimes(1);
+          expect(listener2).toBeCalledTimes(2);
+        } finally {
+          vol.unwatchFile('/foo.txt');
+        }
+      });
+
+      it('throws TypeError when listener is missing', () => {
+        const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+        expect(() => (vol as any).watchFile('/foo.txt')).toThrow(TypeError);
+      });
+
+      it('validates the interval option', () => {
+        const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+        const listener = jest.fn();
+        expect(() => vol.watchFile('/foo.txt', { interval: -5 }, listener)).toThrow(RangeError);
+        expect(() => vol.watchFile('/foo.txt', { interval: 1.5 }, listener)).toThrow(RangeError);
+        expect(() => vol.watchFile('/foo.txt', { interval: 'x' as any }, listener)).toThrow(TypeError);
+      });
+
+      it('does not throw on a missing path; calls listener once with zeroed stats', done => {
+        const vol = new Volume();
+        const listener = jest.fn();
+        vol.watchFile('/missing.txt', { interval: 1e9 }, listener);
+        queueMicrotask(() => {
+          try {
+            expect(listener).toBeCalledTimes(1);
+            const [curr, prev] = listener.mock.calls[0];
+            expect(curr.mtimeMs).toBe(0);
+            expect(curr.ino).toBe(0);
+            expect(curr.nlink).toBe(0);
+            expect(curr.mtime.getTime()).toBe(0);
+            expect(prev.mtimeMs).toBe(0);
+            done();
+          } finally {
+            vol.unwatchFile('/missing.txt');
+          }
+        });
+      });
+
+      it('reports creation of a previously missing file with zeroed prev stats', done => {
+        const vol = new Volume();
+        const listener = jest.fn();
+        const watcher = vol.watchFile('/missing.txt', { interval: 1e9 }, listener) as any;
+        queueMicrotask(() => {
+          try {
+            vol.writeFileSync('/missing.txt', 'created');
+            watcher.onInterval();
+            expect(listener).toBeCalledTimes(2);
+            const [curr, prev] = listener.mock.calls[1];
+            expect(curr.size).toBe(7);
+            expect(prev.mtimeMs).toBe(0);
+            done();
+          } finally {
+            vol.unwatchFile('/missing.txt');
+          }
+        });
+      });
+
+      it('reports disappearance with zeroed stats and reappearance with the pre-deletion prev', () => {
+        const vol = Volume.fromJSON({ '/foo.txt': 'abc' });
+        const listener = jest.fn();
+        const watcher = vol.watchFile('/foo.txt', { interval: 1e9 }, listener) as any;
+        try {
+          const original = watcher.prev;
+          vol.unlinkSync('/foo.txt');
+          watcher.onInterval();
+          watcher.onInterval();
+          expect(listener).toBeCalledTimes(1);
+          const [gone, prevAtDelete] = listener.mock.calls[0];
+          expect(gone.mtimeMs).toBe(0);
+          expect(gone.nlink).toBe(0);
+          expect(prevAtDelete).toBe(original);
+          vol.writeFileSync('/foo.txt', 'back');
+          watcher.onInterval();
+          expect(listener).toBeCalledTimes(2);
+          const [curr, prevAtCreate] = listener.mock.calls[1];
+          expect(curr.size).toBe(4);
+          expect(prevAtCreate).toBe(original);
+        } finally {
+          vol.unwatchFile('/foo.txt');
+        }
+      });
+
+      it('supports the bigint option', () => {
+        const vol = Volume.fromJSON({ '/foo.txt': 'abc' });
+        const listener = jest.fn();
+        const watcher = vol.watchFile('/foo.txt', { interval: 1e9, bigint: true }, listener) as any;
+        try {
+          vol.writeFileSync('/foo.txt', 'abcd');
+          watcher.onInterval();
+          expect(listener).toBeCalledTimes(1);
+          const [curr, prev] = listener.mock.calls[0];
+          expect(typeof curr.mtimeMs).toBe('bigint');
+          expect(typeof prev.size).toBe('bigint');
+        } finally {
+          vol.unwatchFile('/foo.txt');
+        }
+      });
+
+      it('detects metadata-only changes (chmod)', () => {
+        const vol = Volume.fromJSON({ '/foo.txt': 'abc' });
+        const listener = jest.fn();
+        const watcher = vol.watchFile('/foo.txt', { interval: 1e9 }, listener) as any;
+        try {
+          vol.chmodSync('/foo.txt', 0o600);
+          watcher.onInterval();
+          expect(listener).toBeCalledTimes(1);
+          const [curr] = listener.mock.calls[0];
+          expect(curr.mode & 0o777).toBe(0o600);
+        } finally {
+          vol.unwatchFile('/foo.txt');
+        }
+      });
     });
+
     describe('.unwatchFile(path[, listener])', () => {
       it('Stops watching before .writeFile', done => {
         const vol = new Volume();
@@ -1747,6 +1877,7 @@ describe('volume', () => {
         }, 1);
       });
     });
+
     describe('.chmodSync(path, mode)', () => {
       it('works with directories', () => {
         const vol = new Volume();
@@ -1756,6 +1887,7 @@ describe('volume', () => {
         vol.chmodSync('/dir', 0o777);
         expect(vol.statSync('/dir').mode.toString(8)).toBe('40777');
       });
+
       it('works with files', () => {
         const vol = new Volume();
         vol.writeFileSync('/file', 'contents');
@@ -1765,6 +1897,7 @@ describe('volume', () => {
         expect(vol.statSync('/file').mode.toString(8)).toBe('100777');
       });
     });
+
     describe('.promises', () => {
       it('Have a promises property', () => {
         const vol = new Volume();
@@ -1772,6 +1905,7 @@ describe('volume', () => {
       });
     });
   });
+
   describe('StatWatcher', () => {
     it('.vol points to current volume', () => {
       const vol = new Volume();

@@ -127,10 +127,7 @@ export type TFlagsCopy =
 export interface IAppendFileOptions extends opts.IFileOptions {}
 
 // Options for `fs.watchFile`
-export interface IWatchFileOptions {
-  persistent?: boolean;
-  interval?: number;
-}
+export type IWatchFileOptions = opts.IWatchFileOptions;
 
 export type IWatchOptions = opts.IWatchOptions;
 
@@ -1366,22 +1363,35 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     }
 
     if (typeof listener !== 'function') {
-      throw Error('"watchFile()" requires a listener function');
+      throw new TypeError('The "listener" argument must be of type function. Received ' + typeof listener);
     }
 
     let interval = 5007;
     let persistent = true;
+    let bigint = false;
 
     if (options && typeof options === 'object') {
-      if (typeof options.interval === 'number') interval = options.interval;
+      if (options.interval !== undefined) {
+        if (typeof options.interval !== 'number')
+          throw new TypeError(
+            'The "options.interval" property must be of type number. Received ' + typeof options.interval,
+          );
+        if (!Number.isInteger(options.interval) || options.interval < 0 || options.interval > 0xffffffff)
+          throw new RangeError(
+            'The value of "options.interval" is out of range. ' +
+              `It must be an integer >= 0 && <= 4294967295. Received ${options.interval}`,
+          );
+        interval = options.interval;
+      }
       if (typeof options.persistent === 'boolean') persistent = options.persistent;
+      if (typeof options.bigint === 'boolean') bigint = options.bigint;
     }
 
     let watcher: StatWatcher = this.statWatchers[filename];
 
     if (!watcher) {
       watcher = new this.StatWatcher();
-      watcher.start(filename, persistent, interval);
+      watcher.start(filename, persistent, interval, bigint);
       this.statWatchers[filename] = watcher;
     }
 
@@ -1627,6 +1637,38 @@ function emitStop(self) {
   self.emit('stop');
 }
 
+/** All-zero stats passed to `watchFile` listeners when the file is missing, like in Node.js. */
+function buildZeroStats(bigint: boolean): Stats {
+  const stats = new Stats();
+  const zero: any = bigint ? BigInt(0) : 0;
+  const epoch = new Date(0);
+  stats.uid = zero;
+  stats.gid = zero;
+  stats.rdev = zero;
+  stats.blksize = zero;
+  stats.ino = zero;
+  stats.size = zero;
+  stats.blocks = zero;
+  stats.atime = epoch;
+  stats.mtime = epoch;
+  stats.ctime = epoch;
+  stats.birthtime = epoch;
+  stats.atimeMs = zero;
+  stats.mtimeMs = zero;
+  stats.ctimeMs = zero;
+  stats.birthtimeMs = zero;
+  if (bigint) {
+    stats.atimeNs = zero;
+    stats.mtimeNs = zero;
+    stats.ctimeNs = zero;
+    stats.birthtimeNs = zero;
+  }
+  stats.dev = zero;
+  stats.mode = zero;
+  stats.nlink = zero;
+  return stats;
+}
+
 export class StatWatcher extends EventEmitter {
   vol: Volume;
   filename: string;
@@ -1634,6 +1676,9 @@ export class StatWatcher extends EventEmitter {
   timeoutRef?;
   setTimeout: TSetTimeout;
   prev: Stats;
+  private bigint: boolean = false;
+  private fileExists: boolean = false;
+  private stopped: boolean = false;
 
   constructor(vol: Volume) {
     super();
@@ -1641,39 +1686,83 @@ export class StatWatcher extends EventEmitter {
   }
 
   private loop() {
+    clearTimeout(this.timeoutRef);
     this.timeoutRef = this.setTimeout(this.onInterval, this.interval);
   }
 
   private hasChanged(stats: Stats): boolean {
-    // if(!this.prev) return false;
-    if (stats.mtimeMs > this.prev.mtimeMs) return true;
-    if (stats.nlink !== this.prev.nlink) return true;
-    return false;
+    const prev = this.prev;
+    return (
+      stats.mtimeMs !== prev.mtimeMs ||
+      stats.ctimeMs !== prev.ctimeMs ||
+      stats.size !== prev.size ||
+      stats.ino !== prev.ino ||
+      stats.mode !== prev.mode ||
+      stats.uid !== prev.uid ||
+      stats.gid !== prev.gid ||
+      stats.nlink !== prev.nlink
+    );
+  }
+
+  private statSafe(): Stats | null {
+    try {
+      return (
+        this.bigint ? this.vol.statSync(this.filename, { bigint: true }) : this.vol.statSync(this.filename)
+      ) as Stats;
+    } catch {
+      return null;
+    }
   }
 
   private onInterval = () => {
-    try {
-      const stats = this.vol.statSync(this.filename);
-      if (this.hasChanged(stats)) {
-        this.emit('change', stats, this.prev);
+    if (this.stopped) return;
+    const stats = this.statSafe();
+    if (stats) {
+      if (!this.fileExists) {
+        // Reappearance: `prev` is the stats from before the file disappeared, not the zeroed stats.
+        this.fileExists = true;
+        const prev = this.prev;
         this.prev = stats;
+        this.emit('change', stats, prev);
+      } else if (this.hasChanged(stats)) {
+        const prev = this.prev;
+        this.prev = stats;
+        this.emit('change', stats, prev);
       }
-    } finally {
-      this.loop();
+    } else if (this.fileExists) {
+      // Disappearance is reported once, with zeroed current stats, `prev`
+      // keeps the last real stats for the eventual reappearance event.
+      this.fileExists = false;
+      this.emit('change', buildZeroStats(this.bigint), this.prev);
     }
+    this.loop();
   };
 
-  start(path: string, persistent: boolean = true, interval: number = 5007) {
+  start(path: string, persistent: boolean = true, interval: number = 5007, bigint: boolean = false) {
     this.filename = pathToFilename(path);
     this.setTimeout = persistent
       ? setTimeout.bind(typeof globalThis !== 'undefined' ? globalThis : global)
       : setTimeoutUnref;
     this.interval = interval;
-    this.prev = this.vol.statSync(this.filename);
+    this.bigint = bigint;
+    const stats = this.statSafe();
+    if (stats) {
+      this.prev = stats;
+      this.fileExists = true;
+    } else {
+      // Watching a missing path does not throw, the listener is called once
+      // with zeroed stats, then again when the file is created.
+      this.prev = buildZeroStats(bigint);
+      this.fileExists = false;
+      queueMicrotask(() => {
+        if (!this.stopped) this.emit('change', this.prev, this.prev);
+      });
+    }
     this.loop();
   }
 
   stop() {
+    this.stopped = true;
     clearTimeout(this.timeoutRef);
     queueMicrotask(() => {
       emitStop.call(this, this);

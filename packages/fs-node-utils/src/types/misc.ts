@@ -111,7 +111,7 @@ export interface IStatWatcher extends EventEmitter {
   timeoutRef?;
   setTimeout: TSetTimeout;
   prev: IStats;
-  start(path: string, persistent?: boolean, interval?: number): void;
+  start(path: string, persistent?: boolean, interval?: number, bigint?: boolean): void;
   stop(): void;
   ref(): this;
   unref(): this;

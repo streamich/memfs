@@ -15,6 +15,19 @@ import type {
 } from './types';
 
 /**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemChangeRecord
+ */
+export class FileSystemChangeRecord implements IFileSystemChangeRecord {
+  constructor(
+    public readonly root: IFileSystemHandle | IFileSystemSyncAccessHandle | IFileSystemDirectoryHandle,
+    public readonly type: IFileSystemChangeRecord['type'],
+    public readonly changedHandle: IFileSystemHandle | IFileSystemSyncAccessHandle | IFileSystemDirectoryHandle | null,
+    public readonly relativePathComponents: string[],
+    public readonly relativePathMovedFrom: string[] | null = null,
+  ) {}
+}
+
+/**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemObserver
  */
 export class CoreFileSystemObserver implements IFileSystemObserver {
@@ -104,13 +117,7 @@ export class CoreFileSystemObserver implements IFileSystemObserver {
         type = 'modified';
         changedHandle = this._changedHandle(event, watcher, ctx);
     }
-    this._enqueue({
-      type,
-      changedHandle,
-      relativePathComponents: event.steps,
-      relativePathMovedFrom,
-      root,
-    });
+    this._enqueue(new FileSystemChangeRecord(root, type, changedHandle, event.steps, relativePathMovedFrom));
   }
 
   private _changedHandle(event: CoreWatchEvent, watcher: CoreWatcher, ctx: CoreFsaContext): IFileSystemHandle {

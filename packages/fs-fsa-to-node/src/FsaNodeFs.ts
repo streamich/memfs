@@ -13,6 +13,8 @@ import { FsSynchronousApi } from '@jsonjoy.com/fs-node-utils';
 import { FsaNodeWriteStream } from './FsaNodeWriteStream';
 import { FsaNodeReadStream } from './FsaNodeReadStream';
 import { FsaNodeCore } from './FsaNodeCore';
+import { FsaNodeFsWatcher } from './FsaNodeFsWatcher';
+import { FsaNodeStatWatcher } from './FsaNodeStatWatcher';
 import { FileHandle } from '@jsonjoy.com/fs-node';
 import { dataToBuffer, isFd, validateFd } from '@jsonjoy.com/fs-core';
 import { isWin } from '@jsonjoy.com/fs-core/lib/util';
@@ -820,13 +822,89 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly statfs: FsCallbackApi['statfs'] = notImplemented;
   public readonly glob: FsCallbackApi['glob'] = notImplemented;
 
-  /**
-   * @todo Implement using `FileSystemObserver` class.
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemObserver
-   */
-  public readonly watchFile: FsCallbackApi['watchFile'] = notSupported;
-  public readonly unwatchFile: FsCallbackApi['unwatchFile'] = notSupported;
-  public readonly watch: FsCallbackApi['watch'] = notSupported;
+  protected readonly statWatchers = new Map<string, FsaNodeStatWatcher>();
+
+  public readonly watchFile = (
+    path: misc.PathLike,
+    a: opts.IWatchFileOptions | ((curr: misc.IStats, prev: misc.IStats) => void),
+    b?: (curr: misc.IStats, prev: misc.IStats) => void,
+  ): misc.IStatWatcher => {
+    const filename = util.pathToFilename(path);
+    let options: opts.IWatchFileOptions | undefined;
+    let listener: (curr: misc.IStats, prev: misc.IStats) => void;
+    if (typeof a === 'function') listener = a;
+    else {
+      options = a;
+      listener = b as (curr: misc.IStats, prev: misc.IStats) => void;
+    }
+    if (typeof listener !== 'function')
+      throw new TypeError('The "listener" argument must be of type function. Received ' + typeof listener);
+    let interval = 5007;
+    let persistent = true;
+    let bigint = false;
+    if (options && typeof options === 'object') {
+      if (options.interval !== undefined) {
+        if (typeof options.interval !== 'number')
+          throw new TypeError(
+            'The "options.interval" property must be of type number. Received ' + typeof options.interval,
+          );
+        if (!Number.isInteger(options.interval) || options.interval < 0 || options.interval > 0xffffffff)
+          throw new RangeError(
+            'The value of "options.interval" is out of range. ' +
+              `It must be an integer >= 0 && <= 4294967295. Received ${options.interval}`,
+          );
+        interval = options.interval;
+      }
+      if (typeof options.persistent === 'boolean') persistent = options.persistent;
+      if (typeof options.bigint === 'boolean') bigint = options.bigint;
+    }
+    let watcher = this.statWatchers.get(filename);
+    if (!watcher) {
+      watcher = new FsaNodeStatWatcher((folder, name) => this.getFile(folder, name, 'watchFile'));
+      watcher.start(filename, persistent, interval, bigint);
+      this.statWatchers.set(filename, watcher);
+    }
+    watcher.addListener('change', listener);
+    return watcher;
+  };
+
+  public readonly unwatchFile = (
+    path: misc.PathLike,
+    listener?: (curr: misc.IStats, prev: misc.IStats) => void,
+  ): void => {
+    const filename = util.pathToFilename(path);
+    const watcher = this.statWatchers.get(filename);
+    if (!watcher) return;
+    if (typeof listener === 'function') {
+      watcher.removeListener('change', listener);
+    } else {
+      watcher.removeAllListeners('change');
+    }
+    if (watcher.listenerCount('change') === 0) {
+      watcher.stop();
+      this.statWatchers.delete(filename);
+    }
+  };
+
+  public readonly watch = (
+    path: misc.PathLike,
+    options?: opts.IWatchOptions | string | ((eventType: string, filename: string) => void),
+    listener?: (eventType: string, filename: string) => void,
+  ): misc.IFSWatcher => {
+    const filename = util.pathToFilename(path);
+    if (typeof options === 'function') {
+      listener = options as (eventType: string, filename: string) => void;
+      options = undefined;
+    }
+    const watchOpts: opts.IWatchOptions =
+      typeof options === 'string' ? { encoding: options as BufferEncoding } : options || {};
+    const { persistent = true, recursive = false, encoding = 'utf8' } = watchOpts;
+    const Observer = this.getFileSystemObserverOrThrow();
+    const watcher = new FsaNodeFsWatcher(Observer, (folder, name) => this.getFileOrDir(folder, name, 'watch'));
+    watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
+    if (listener) watcher.addListener('change', listener);
+    return watcher;
+  };
 
   public readonly symlink: FsCallbackApi['symlink'] = notSupported;
   public readonly link: FsCallbackApi['link'] = notSupported;
@@ -1126,7 +1204,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
   public readonly StatFs = 0 as any;
   public readonly Dir = 0 as any;
-  public readonly StatWatcher = 0 as any;
+  public readonly StatWatcher = FsaNodeStatWatcher as any;
   public readonly StatsWatcher = 0 as any;
-  public readonly FSWatcher = 0 as any;
+  public readonly FSWatcher = FsaNodeFsWatcher as any;
 }

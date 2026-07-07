@@ -1019,4 +1019,31 @@ onlyOnNode20('FsaNodeFs', () => {
       });
     });
   });
+
+  describe('options.FileSystemObserver', () => {
+    test('prefers the injected FileSystemObserver constructor', () => {
+      const { dir } = setup();
+      const Injected = class {} as any;
+      const fs = new FsaNodeFs(dir, undefined, { FileSystemObserver: Injected });
+      expect((fs as any).getFileSystemObserver()).toBe(Injected);
+    });
+
+    test('falls back to the global FileSystemObserver', () => {
+      const { dir } = setup();
+      const Global = class {} as any;
+      (globalThis as any).FileSystemObserver = Global;
+      try {
+        const fs = new FsaNodeFs(dir);
+        expect((fs as any).getFileSystemObserver()).toBe(Global);
+      } finally {
+        delete (globalThis as any).FileSystemObserver;
+      }
+    });
+
+    test('resolves to undefined when no observer is available', () => {
+      const { dir } = setup();
+      const fs = new FsaNodeFs(dir);
+      expect((fs as any).getFileSystemObserver()).toBe(undefined);
+    });
+  });
 });

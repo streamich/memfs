@@ -28,8 +28,11 @@ export class FsaNodeStats<T = misc.TStatNumber> implements misc.IStats<T> {
     isBigInt: boolean,
     size: T,
     protected readonly kind: 'file' | 'directory',
+    mtimeMs?: number,
   ) {
     const dummy = (isBigInt ? timex : time) as any as T;
+    const mtimeNumber = typeof mtimeMs === 'number' ? ((isBigInt ? BigInt(mtimeMs) : mtimeMs) as any as T) : dummy;
+    const mtimeDate = typeof mtimeMs === 'number' ? new Date(mtimeMs) : date;
     this.uid = dummy;
     this.gid = dummy;
     this.rdev = dummy;
@@ -37,14 +40,14 @@ export class FsaNodeStats<T = misc.TStatNumber> implements misc.IStats<T> {
     this.ino = dummy;
     this.size = size;
     this.blocks = dummy;
-    this.atime = date;
-    this.mtime = date;
-    this.ctime = date;
-    this.birthtime = date;
-    this.atimeMs = dummy;
-    this.mtimeMs = dummy;
-    this.ctimeMs = dummy;
-    this.birthtimeMs = dummy;
+    this.atime = mtimeDate;
+    this.mtime = mtimeDate;
+    this.ctime = mtimeDate;
+    this.birthtime = mtimeDate;
+    this.atimeMs = mtimeNumber;
+    this.mtimeMs = mtimeNumber;
+    this.ctimeMs = mtimeNumber;
+    this.birthtimeMs = mtimeNumber;
     this.dev = dummy;
     this.mode = dummy;
     this.nlink = dummy;

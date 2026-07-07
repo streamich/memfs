@@ -128,7 +128,85 @@ onlyOnNode20('CoreFileSystemObserver', () => {
     });
   });
 
-  test.skip('can listen to file writes', async () => {
+  describe('batching', () => {
+    const flush = () => new Promise(resolve => setImmediate(resolve));
+
+    test('delivers all records of one synchronous batch of changes in a single callback invocation', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await observer.observe(subdir);
+      core.mkdir('/subdir/a', 0o755);
+      core.mkdir('/subdir/b', 0o755);
+      core.mkdir('/subdir/c', 0o755);
+      expect(calls.length).toBe(0);
+      await flush();
+      expect(calls.length).toBe(1);
+      expect(calls[0].length).toBe(3);
+      observer.disconnect();
+    });
+
+    test('delivers records of separate ticks in separate callback invocations', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await observer.observe(subdir);
+      core.mkdir('/subdir/a', 0o755);
+      await flush();
+      core.mkdir('/subdir/b', 0o755);
+      await flush();
+      expect(calls.length).toBe(2);
+      expect(calls[0].length).toBe(1);
+      expect(calls[1].length).toBe(1);
+      observer.disconnect();
+    });
+
+    test('batches records of all observations of one observer into one callback', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir1 = await dir.getDirectoryHandle('subdir1', { create: true });
+      const subdir2 = await dir.getDirectoryHandle('subdir2', { create: true });
+      await observer.observe(subdir1);
+      await observer.observe(subdir2);
+      core.mkdir('/subdir1/a', 0o755);
+      core.mkdir('/subdir2/b', 0o755);
+      await flush();
+      expect(calls.length).toBe(1);
+      expect(calls[0].length).toBe(2);
+      expect(calls[0][0].root).toBe(subdir1);
+      expect(calls[0][1].root).toBe(subdir2);
+      observer.disconnect();
+    });
+
+    test('passes the observer instance to the callback', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      let seen: unknown;
+      const observer = new FileSystemObserver((_records, instance) => (seen = instance));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await observer.observe(subdir);
+      core.mkdir('/subdir/a', 0o755);
+      await flush();
+      expect(seen).toBe(observer);
+      observer.disconnect();
+    });
+
+    test('emits nothing for changes after unobserve()', async () => {
+      const { core, dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      const calls: IFileSystemChangeRecord[][] = [];
+      const observer = new FileSystemObserver(records => calls.push(records));
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      await observer.observe(subdir);
+      observer.unobserve(subdir);
+      core.mkdir('/subdir/a', 0o755);
+      await flush();
+      expect(calls.length).toBe(0);
+    });
+  });
+
+  test('can listen to file writes', async () => {
     const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
     const changes: IFileSystemChangeRecord[] = [];
     const observer = new FileSystemObserver(records => {
@@ -146,6 +224,7 @@ onlyOnNode20('CoreFileSystemObserver', () => {
         type: 'modified',
       },
     ]);
+    expect((changes[0].changedHandle as any).isSameEntry(file as any)).toBe(true);
     observer.disconnect();
   });
 });

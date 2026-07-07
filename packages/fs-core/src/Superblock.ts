@@ -510,8 +510,9 @@ export class Superblock {
     this.openFiles++;
 
     if (flagsNum & O_TRUNC) {
+      const hadContent = file.node.getSize() > 0;
       file.truncate();
-      this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node, file.link));
+      if (hadContent) this.emit(new FsEvent(FsEventType.MODIFY, file.link.steps, file.node, file.link));
     }
 
     return file;

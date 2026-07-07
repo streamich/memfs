@@ -31,9 +31,22 @@ describe('Superblock events', () => {
     const { sb, events } = setup();
     const fd = sb.open('/test.txt', FLAGS.w, 0o666);
     sb.write(fd, Buffer.from('hi'), 0, 2, 0);
-    expect(events.length).toBe(3);
-    expect(events[2].type).toBe(FsEventType.MODIFY);
-    expect(events[2].steps).toEqual(['', 'test.txt']);
+    expect(events.length).toBe(2);
+    expect(events[1].type).toBe(FsEventType.MODIFY);
+    expect(events[1].steps).toEqual(['', 'test.txt']);
+  });
+
+  it('does not emit MODIFY when O_TRUNC opens a fresh or empty file, emits when content is discarded', () => {
+    const { sb, events } = setup();
+    sb.open('/empty.txt', FLAGS.w, 0o666);
+    expect(events.map(e => e.type)).toEqual([FsEventType.CREATE]);
+    events.length = 0;
+    sb.open('/empty.txt', FLAGS.w, 0o666);
+    expect(events.length).toBe(0);
+    sb.writeFile('/empty.txt', Buffer.from('data'), FLAGS.w, 0o666);
+    events.length = 0;
+    sb.open('/empty.txt', FLAGS.w, 0o666);
+    expect(events.map(e => e.type)).toEqual([FsEventType.MODIFY]);
   });
 
   it('does not emit MODIFY on zero-byte write', () => {

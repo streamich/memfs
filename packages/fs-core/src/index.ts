@@ -7,6 +7,7 @@ export { Link, type LinkEvent } from './Link';
 export { File } from './File';
 export { Superblock } from './Superblock';
 export * from './watch/FsEvent';
+export * from './watch/CoreWatcher';
 export type { IProcess } from './process';
 export {
   dataToBuffer,

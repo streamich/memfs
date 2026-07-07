@@ -1529,6 +1529,48 @@ describe('volume', () => {
         watcher.close();
         watcher.on('close', () => done());
       });
+
+      describe('ref() / unref()', () => {
+        it('returns the watcher and still delivers events while unref-ed', () => {
+          const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+          const listener = jest.fn();
+          const watcher = vol.watch('/foo.txt', listener as any);
+          try {
+            expect(watcher.unref()).toBe(watcher);
+            vol.writeFileSync('/foo.txt', 'b');
+            expect(listener).toBeCalled();
+            expect(watcher.ref()).toBe(watcher);
+          } finally {
+            watcher.close();
+          }
+        });
+
+        it('unref() drops the keep-alive timer, ref() restores it, close() prevents resurrection', () => {
+          const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+          const watcher = vol.watch('/foo.txt') as any;
+          expect(watcher._timer).toBeDefined();
+          watcher.unref();
+          expect(watcher._timer).toBeUndefined();
+          watcher.ref();
+          expect(watcher._timer).toBeDefined();
+          watcher.close();
+          expect(watcher._timer).toBeUndefined();
+          watcher.ref();
+          expect(watcher._timer).toBeUndefined();
+        });
+
+        it('watch with persistent: false starts unref-ed, ref() arms the keep-alive', () => {
+          const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+          const watcher = vol.watch('/foo.txt', { persistent: false }) as any;
+          try {
+            expect(watcher._timer).toBeUndefined();
+            watcher.ref();
+            expect(watcher._timer).toBeDefined();
+          } finally {
+            watcher.close();
+          }
+        });
+      });
     });
     describe('.watchFile(path[, options], listener)', () => {
       it('Calls listener on .writeFile', done => {
@@ -1595,6 +1637,21 @@ describe('volume', () => {
     it('.vol points to current volume', () => {
       const vol = new Volume();
       expect(new StatWatcher(vol).vol).toBe(vol);
+    });
+
+    it('ref()/unref() toggle the poll timer ref state without stopping polling', () => {
+      const vol = Volume.fromJSON({ '/foo.txt': 'a' });
+      const listener = jest.fn();
+      const watcher = vol.watchFile('/foo.txt', { interval: 1 }, listener) as any;
+      try {
+        expect(watcher.timeoutRef.hasRef()).toBe(true);
+        expect(watcher.unref()).toBe(watcher);
+        expect(watcher.timeoutRef.hasRef()).toBe(false);
+        expect(watcher.ref()).toBe(watcher);
+        expect(watcher.timeoutRef.hasRef()).toBe(true);
+      } finally {
+        vol.unwatchFile('/foo.txt');
+      }
     });
   });
   describe('.createWriteStream', () => {

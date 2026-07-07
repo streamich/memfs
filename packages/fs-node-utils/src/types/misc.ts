@@ -112,6 +112,8 @@ export interface IStatWatcher extends EventEmitter {
   prev: IStats;
   start(path: string, persistent?: boolean, interval?: number): void;
   stop(): void;
+  ref(): this;
+  unref(): this;
 }
 
 export interface IReadStream extends Readable {
@@ -130,6 +132,8 @@ export interface IWriteStream extends Writable {
 export interface IFSWatcher extends EventEmitter {
   start(path: PathLike, persistent?: boolean, recursive?: boolean, encoding?: BufferEncoding): void;
   close(): void;
+  ref(): this;
+  unref(): this;
 }
 
 /**

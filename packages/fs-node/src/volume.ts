@@ -1666,6 +1666,25 @@ export class StatWatcher extends EventEmitter {
       emitStop.call(this, this);
     });
   }
+
+  /**
+   * Keep the event loop alive while the watcher is active. Polling continues
+   * either way; this only controls whether the process is kept running.
+   */
+  ref(): this {
+    this.setTimeout = setTimeout.bind(typeof globalThis !== 'undefined' ? globalThis : global);
+    const ref = this.timeoutRef;
+    if (ref && typeof ref === 'object' && typeof ref.ref === 'function') ref.ref();
+    return this;
+  }
+
+  /** Let the process exit while the watcher is active. Polling continues. */
+  unref(): this {
+    this.setTimeout = setTimeoutUnref;
+    const ref = this.timeoutRef;
+    if (ref && typeof ref === 'object' && typeof ref.unref === 'function') ref.unref();
+    return this;
+  }
 }
 
 /* tslint:disable no-var-keyword prefer-const */
@@ -2067,6 +2086,26 @@ export class FSWatcher extends EventEmitter {
     this._timer = setTimeout(this._persist, 1e6);
   };
 
+  /**
+   * Keep the event loop alive while the watcher is active. All watchers are
+   * ref'ed by default (unless started with `persistent: false`). No-op when
+   * already ref'ed, closed, or never started.
+   */
+  ref(): this {
+    if (this._watcher && !this._closed && !this._timer) this._persist();
+    return this;
+  }
+
+  /**
+   * Let the process exit while the watcher is active. Events are still
+   * delivered. No-op when already unref'ed.
+   */
+  unref(): this {
+    clearTimeout(this._timer);
+    this._timer = undefined;
+    return this;
+  }
+
   start(
     path: PathLike,
     persistent: boolean = true,
@@ -2095,6 +2134,7 @@ export class FSWatcher extends EventEmitter {
 
   close() {
     clearTimeout(this._timer);
+    this._timer = undefined;
     if (!this._watcher || this._closed) return;
     this._closed = true;
     this._watcher.close();

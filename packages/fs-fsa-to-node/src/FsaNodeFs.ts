@@ -886,7 +886,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     }
   };
 
-  public readonly watch = (
+  public readonly watch: FsCallbackApi['watch'] = (
     path: misc.PathLike,
     options?: opts.IWatchOptions | string | ((eventType: string, filename: string) => void),
     listener?: (eventType: string, filename: string) => void,

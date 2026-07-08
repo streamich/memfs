@@ -1424,11 +1424,15 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return new this.WriteStream(path, options);
   }
 
-  // watch(path: PathLike): FSWatcher;
-  // watch(path: PathLike, options?: IWatchOptions | string): FSWatcher;
+  watch(path: PathLike, listener?: (eventType: string, filename: string) => void): FSWatcher;
   watch(
     path: PathLike,
-    options?: IWatchOptions | string,
+    options: IWatchOptions | string | undefined,
+    listener?: (eventType: string, filename: string) => void,
+  ): FSWatcher;
+  watch(
+    path: PathLike,
+    options?: IWatchOptions | string | ((eventType: string, filename: string) => void),
     listener?: (eventType: string, filename: string) => void,
   ): FSWatcher {
     const filename = pathToFilename(path);

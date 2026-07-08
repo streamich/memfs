@@ -144,11 +144,14 @@ export interface FsCallbackApi {
   unlink: (path: misc.PathLike, callback: misc.TCallback<void>) => void;
   unwatchFile: (path: misc.PathLike, listener?: (curr: misc.IStats, prev: misc.IStats) => void) => void;
   utimes: (path: misc.PathLike, atime: misc.TTime, mtime: misc.TTime, callback: misc.TCallback<void>) => void;
-  watch: (
-    path: misc.PathLike,
-    options?: opts.IWatchOptions | string,
-    listener?: (eventType: string, filename: string) => void,
-  ) => misc.IFSWatcher;
+  watch: {
+    (path: misc.PathLike, listener?: (eventType: string, filename: string) => void): misc.IFSWatcher;
+    (
+      path: misc.PathLike,
+      options: opts.IWatchOptions | string | undefined,
+      listener?: (eventType: string, filename: string) => void,
+    ): misc.IFSWatcher;
+  };
   watchFile: {
     (path: misc.PathLike, listener: (curr: misc.IStats, prev: misc.IStats) => void): misc.IStatWatcher;
     (

@@ -61,6 +61,7 @@ export class FsaNodeFsWatcher extends EventEmitter implements misc.IFSWatcher {
         const code = error && typeof error === 'object' ? error.code : undefined;
         if (throwIfNoEntry === false && code === 'ENOENT') {
           this.closed = true;
+          observer.disconnect();
           this.observer = undefined;
           return;
         }

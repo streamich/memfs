@@ -247,6 +247,21 @@ onlyOnNode20('FsaNodeFs.watch()', () => {
       await until(() => errors.length >= 1);
       expect(errors[0].code).toBe('ENOTDIR');
     });
+
+    test('disconnects the never-started observer when the ENOENT is suppressed', async () => {
+      const { dir, FileSystemObserver } = fsa({ mode: 'readwrite' });
+      let disconnects = 0;
+      class SpyObserver extends FileSystemObserver {
+        disconnect(): void {
+          disconnects++;
+          super.disconnect();
+        }
+      }
+      const fs = new FsaNodeFs(dir, undefined, { FileSystemObserver: SpyObserver });
+      fs.watch('/missing.txt', { throwIfNoEntry: false });
+      await until(() => disconnects >= 1);
+      expect(disconnects).toBe(1);
+    });
   });
 
   describe('ignore option', () => {

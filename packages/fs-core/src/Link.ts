@@ -15,6 +15,10 @@ const { S_IFREG } = constants;
  * Represents a hard link that points to an i-node `node`.
  */
 export class Link {
+  /**
+   * @deprecated Subscribe to the volume-level `Superblock.changes` bus or use
+   * `CoreWatcher` instead.
+   */
   public readonly changes = new FanOut<LinkEvent>();
 
   vol: Superblock;

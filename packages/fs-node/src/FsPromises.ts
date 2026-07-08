@@ -4,6 +4,14 @@ import type * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import type { FsCallbackApi, FsPromisesApi } from '@jsonjoy.com/fs-node-utils';
 
+const newAbortError = (signal: AbortSignal): Error => {
+  const error = new Error('The operation was aborted');
+  error.name = 'AbortError';
+  (error as any).code = 'ABORT_ERR';
+  (error as any).cause = signal.reason;
+  return error;
+};
+
 // AsyncIterator implementation for promises.watch
 class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string; filename: string | Buffer }> {
   private watcher: any;
@@ -28,15 +36,16 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
     // 'error', both are accepted here with the same semantics.
     this.overflow = overflow === 'throw' ? 'error' : overflow;
     this.startWatching();
-
-    // Handle AbortSignal
-    if (options.signal) {
-      if (options.signal.aborted) {
-        this.finish();
+    // Aborting rejects the pending (or first future) next() call with an
+    // AbortError and discards queued events.
+    const signal = options.signal;
+    if (signal) {
+      if (signal.aborted) {
+        this.finish(newAbortError(signal));
         return;
       }
-      options.signal.addEventListener('abort', () => {
-        this.finish();
+      signal.addEventListener('abort', () => {
+        this.finish(newAbortError(signal));
       });
     }
   }

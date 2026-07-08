@@ -851,22 +851,61 @@ describe('Promises API', () => {
       expect(events[0].filename).toBe('foo');
     });
 
-    it('Supports AbortSignal', async () => {
+    it('rejects the first next() with AbortError when the signal is pre-aborted', async () => {
       const vol = new Volume();
       const { promises } = vol;
       vol.fromJSON({
         '/foo': 'bar',
       });
+      const abortController = new AbortController();
+      abortController.abort();
+      const watcher = promises.watch('/foo', { signal: abortController.signal });
+      const iterator = watcher[Symbol.asyncIterator]();
+      await expect(iterator.next()).rejects.toMatchObject({
+        name: 'AbortError',
+        code: 'ABORT_ERR',
+        message: 'The operation was aborted',
+      });
+      const after = await iterator.next();
+      expect(after.done).toBe(true);
+    });
 
+    it('rejects a pending next() with AbortError when the signal aborts', async () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      vol.fromJSON({
+        '/foo': 'bar',
+      });
       const abortController = new AbortController();
       const watcher = promises.watch('/foo', { signal: abortController.signal });
-
-      // Abort immediately
-      abortController.abort();
-
       const iterator = watcher[Symbol.asyncIterator]();
-      const result = await iterator.next();
-      expect(result.done).toBe(true);
+      const pending = iterator.next();
+      setTimeout(() => abortController.abort(), 5);
+      await expect(pending).rejects.toMatchObject({ name: 'AbortError', code: 'ABORT_ERR' });
+      const after = await iterator.next();
+      expect(after.done).toBe(true);
+    });
+
+    it('abort discards queued events and carries the abort reason as cause', async () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      vol.mkdirSync('/dir');
+      const abortController = new AbortController();
+      const watcher = promises.watch('/dir', { signal: abortController.signal });
+      vol.writeFileSync('/dir/a.txt', '1');
+      const reason = new Error('stop watching');
+      abortController.abort(reason);
+      const iterator = watcher[Symbol.asyncIterator]();
+      let error: any;
+      try {
+        await iterator.next();
+      } catch (err) {
+        error = err;
+      }
+      expect(error.name).toBe('AbortError');
+      expect(error.cause).toBe(reason);
+      const after = await iterator.next();
+      expect(after.done).toBe(true);
     });
 
     it('Handles overflow with ignore strategy: keeps oldest events, drops newest', async () => {
@@ -876,18 +915,15 @@ describe('Promises API', () => {
       const emitWarning = jest.spyOn(process, 'emitWarning').mockImplementation(() => {});
       try {
         const watcher = promises.watch('/dir', { maxQueue: 1, overflow: 'ignore' });
-
         vol.writeFileSync('/dir/a.txt', '1');
         vol.writeFileSync('/dir/b.txt', '1');
         vol.writeFileSync('/dir/c.txt', '1');
-
         const iterator = watcher[Symbol.asyncIterator]();
         const result1 = await iterator.next();
         expect(result1.done).toBe(false);
         expect(result1.value).toEqual({ eventType: 'rename', filename: 'a.txt' });
         expect(emitWarning).toBeCalledTimes(5);
         expect(emitWarning).toBeCalledWith('fs.watch maxQueue exceeded');
-
         if (iterator.return) {
           await iterator.return();
         }

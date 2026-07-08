@@ -29,8 +29,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      # Corepack is no longer bundled with Node.js (removed in v25), so install
+      # it into the setup-node tool dir
       - name: Enable corepack
-        run: corepack enable
+        run: |
+          npm install -g corepack
+          corepack enable
       - name: install
         run: yarn
       - name: run build

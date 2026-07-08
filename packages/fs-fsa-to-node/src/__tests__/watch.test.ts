@@ -164,4 +164,156 @@ onlyOnNode20('FsaNodeFs.watch()', () => {
     expect(events).toEqual([]);
     expect(closed).toBe(1);
   });
+
+  describe('signal option', () => {
+    test('aborting the signal closes the watcher and emits "close"', async () => {
+      const { fs, dir } = setup();
+      const events: unknown[] = [];
+      const controller = new AbortController();
+      let closed = 0;
+      const watcher = fs.watch('/', { signal: controller.signal }, (...args) => events.push(args));
+      watcher.on('close', () => closed++);
+      await tick();
+      controller.abort();
+      await until(() => closed >= 1);
+      await dir.getFileHandle('file.txt', { create: true });
+      await tick(5);
+      expect(events).toEqual([]);
+    });
+
+    test('returns an already-closed watcher when the signal is pre-aborted', async () => {
+      const { fs, dir } = setup();
+      const events: unknown[] = [];
+      const controller = new AbortController();
+      controller.abort();
+      let closed = 0;
+      const watcher = fs.watch('/', { signal: controller.signal }, (...args) => events.push(args));
+      watcher.on('close', () => closed++);
+      await until(() => closed >= 1);
+      await dir.getFileHandle('file.txt', { create: true });
+      await tick(5);
+      expect(events).toEqual([]);
+    });
+
+    test('aborting after a manual close() does not emit "close" twice', async () => {
+      const { fs } = setup();
+      const controller = new AbortController();
+      let closed = 0;
+      const watcher = fs.watch('/', { signal: controller.signal });
+      watcher.on('close', () => closed++);
+      await tick();
+      watcher.close();
+      await until(() => closed >= 1);
+      controller.abort();
+      await tick(5);
+      expect(closed).toBe(1);
+    });
+  });
+
+  describe('throwIfNoEntry option', () => {
+    test('emits "error" for a missing path when true', async () => {
+      const { fs } = setup();
+      const errors: any[] = [];
+      const watcher = fs.watch('/missing.txt', { throwIfNoEntry: true });
+      watcher.on('error', error => errors.push(error));
+      await until(() => errors.length >= 1);
+      expect(errors[0].code).toBe('ENOENT');
+    });
+
+    test('suppresses the ENOENT "error" when false and leaves an inert watcher', async () => {
+      const { fs, dir } = setup();
+      const events: unknown[] = [];
+      const errors: unknown[] = [];
+      let closed = 0;
+      const watcher = fs.watch('/missing.txt', { throwIfNoEntry: false }, (...args) => events.push(args));
+      watcher.on('error', error => errors.push(error));
+      watcher.on('close', () => closed++);
+      await tick(5);
+      await dir.getFileHandle('missing.txt', { create: true });
+      await tick(5);
+      watcher.close();
+      await tick(5);
+      expect(errors).toEqual([]);
+      expect(events).toEqual([]);
+      expect(closed).toBe(0);
+    });
+
+    test('suppresses only ENOENT; other errors are still emitted', async () => {
+      const { fs, dir } = setup();
+      await dir.getFileHandle('file.txt', { create: true });
+      const errors: any[] = [];
+      const watcher = fs.watch('/file.txt/sub', { throwIfNoEntry: false });
+      watcher.on('error', error => errors.push(error));
+      await until(() => errors.length >= 1);
+      expect(errors[0].code).toBe('ENOTDIR');
+    });
+  });
+
+  describe('ignore option', () => {
+    test('filters events by glob string pattern', async () => {
+      const { fs, dir } = setup();
+      const events: [string, unknown][] = [];
+      const watcher = fs.watch('/', { ignore: '*.log' }, (eventType, filename) => events.push([eventType, filename]));
+      await tick();
+      await dir.getFileHandle('a.log', { create: true });
+      await tick(5);
+      expect(events).toEqual([]);
+      await dir.getFileHandle('a.txt', { create: true });
+      await until(() => events.length >= 1);
+      expect(events).toEqual([['rename', 'a.txt']]);
+      watcher.close();
+    });
+
+    test('accepts an array mixing glob, RegExp, and function patterns', async () => {
+      const { fs, dir } = setup();
+      const events: [string, unknown][] = [];
+      const ignore = ['*.log', /^skip/, (filename: string) => filename.endsWith('.tmp')];
+      const watcher = fs.watch('/', { ignore }, (eventType, filename) => events.push([eventType, filename]));
+      await tick();
+      await dir.getFileHandle('a.log', { create: true });
+      await dir.getFileHandle('skip.txt', { create: true });
+      await dir.getFileHandle('b.tmp', { create: true });
+      await tick(5);
+      expect(events).toEqual([]);
+      await dir.getFileHandle('keep.txt', { create: true });
+      await until(() => events.length >= 1);
+      expect(events).toEqual([['rename', 'keep.txt']]);
+      watcher.close();
+    });
+
+    test('matches relative paths in recursive mode', async () => {
+      const { fs, dir } = setup();
+      const subdir = await dir.getDirectoryHandle('subdir', { create: true });
+      const events: [string, unknown][] = [];
+      const watcher = fs.watch('/', { recursive: true, ignore: '**/*.tmp' }, (eventType, filename) =>
+        events.push([eventType, filename]),
+      );
+      await tick();
+      await subdir.getFileHandle('a.tmp', { create: true });
+      await tick(5);
+      expect(events).toEqual([]);
+      await subdir.getFileHandle('a.txt', { create: true });
+      await until(() => events.length >= 1);
+      expect(events).toEqual([['rename', 'subdir/a.txt']]);
+      watcher.close();
+    });
+
+    test('filters each half of a rename independently', async () => {
+      const { fs, core, dir } = setup();
+      await dir.getFileHandle('a.txt', { create: true });
+      const events: [string, unknown][] = [];
+      const watcher = fs.watch('/', { ignore: '*.bak' }, (eventType, filename) => events.push([eventType, filename]));
+      await tick();
+      core.rename('/a.txt', '/a.bak');
+      await until(() => events.length >= 1);
+      await tick(5);
+      expect(events).toEqual([['rename', 'a.txt']]);
+      watcher.close();
+    });
+
+    test('throws TypeError for an invalid pattern type', () => {
+      const { fs } = setup();
+      expect(() => fs.watch('/', { ignore: 42 as any })).toThrow(TypeError);
+    });
+  });
 });

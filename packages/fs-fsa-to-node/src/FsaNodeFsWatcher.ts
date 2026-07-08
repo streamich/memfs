@@ -1,9 +1,10 @@
 import { EventEmitter } from '@jsonjoy.com/fs-node-builtins/lib/events';
-import { strToEncoding } from '@jsonjoy.com/fs-node-utils';
+import { strToEncoding, watchIgnoreToMatcher } from '@jsonjoy.com/fs-node-utils';
 import { pathToLocation } from './util';
 import { FsaToNodeConstants } from './constants';
 import type * as fsa from '@jsonjoy.com/fs-fsa';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
+import type * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
 
 export type FsaNodeWatchHandleResolver = (
   folder: string[],
@@ -15,7 +16,9 @@ export type FsaNodeWatchHandleResolver = (
  * `FileSystemObserver`. The observer backend is asynchronous, so startup
  * errors (e.g. the watched path does not exist) are emitted as an `'error'`
  * event on the watcher, instead of being thrown synchronously the way the
- * Node.js API does.
+ * Node.js API does. For the same reason `throwIfNoEntry: false` suppresses
+ * the asynchronous ENOENT `'error'` event, leaving a never-started watcher
+ * whose `close()` is a silent no-op, mirroring what `fs.watch` returns.
  */
 export class FsaNodeFsWatcher extends EventEmitter implements misc.IFSWatcher {
   protected observer: fsa.IFileSystemObserver | undefined;
@@ -23,6 +26,7 @@ export class FsaNodeFsWatcher extends EventEmitter implements misc.IFSWatcher {
   protected encoding: BufferEncoding = 'utf8';
   protected filename: string = '';
   protected basename: string = '';
+  private _ignore: ((filename: string) => boolean) | undefined;
 
   constructor(
     protected readonly Observer: fsa.IFileSystemObserverConstructable,
@@ -36,9 +40,12 @@ export class FsaNodeFsWatcher extends EventEmitter implements misc.IFSWatcher {
     persistent: boolean = true,
     recursive: boolean = false,
     encoding: BufferEncoding = 'utf8',
+    ignore?: opts.TWatchIgnorePattern | opts.TWatchIgnorePattern[],
+    throwIfNoEntry?: boolean,
   ): void {
     this.filename = String(path);
     this.encoding = encoding;
+    this._ignore = ignore === undefined ? undefined : watchIgnoreToMatcher(ignore);
     const [folder, name] = pathToLocation(this.filename);
     this.basename = name;
     const observer = new this.Observer(records => this.onRecords(records));
@@ -51,8 +58,13 @@ export class FsaNodeFsWatcher extends EventEmitter implements misc.IFSWatcher {
       })
       .catch(error => {
         if (this.closed) return;
-        this.close();
         const code = error && typeof error === 'object' ? error.code : undefined;
+        if (throwIfNoEntry === false && code === 'ENOENT') {
+          this.closed = true;
+          this.observer = undefined;
+          return;
+        }
+        this.close();
         const wrapped = new Error(`watch ${this.filename} ${code ?? ''}`.trimEnd());
         (wrapped as any).code = code;
         this.emit('error', wrapped);
@@ -84,6 +96,7 @@ export class FsaNodeFsWatcher extends EventEmitter implements misc.IFSWatcher {
 
   private _emit(type: 'rename' | 'change', steps: string[]): void {
     const filename = steps.length ? steps.join(FsaToNodeConstants.Separator) : this.basename;
+    if (this._ignore && this._ignore(filename)) return;
     this.emit('change', type, strToEncoding(filename, this.encoding));
   }
 

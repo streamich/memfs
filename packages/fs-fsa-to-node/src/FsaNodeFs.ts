@@ -898,11 +898,20 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     }
     const watchOpts: opts.IWatchOptions =
       typeof options === 'string' ? { encoding: options as BufferEncoding } : options || {};
-    const { persistent = true, recursive = false, encoding = 'utf8' } = watchOpts;
+    const { persistent = true, recursive = false, encoding = 'utf8', signal, throwIfNoEntry, ignore } = watchOpts;
     const Observer = this.getFileSystemObserverOrThrow();
     const watcher = new FsaNodeFsWatcher(Observer, (folder, name) => this.getFileOrDir(folder, name, 'watch'));
-    watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
+    watcher.start(filename, persistent, recursive, encoding as BufferEncoding, ignore, throwIfNoEntry);
     if (listener) watcher.addListener('change', listener);
+    if (signal) {
+      if (signal.aborted) {
+        watcher.close();
+      } else {
+        const onAbort = () => watcher.close();
+        signal.addEventListener('abort', onAbort, { once: true });
+        watcher.once('close', () => signal.removeEventListener('abort', onAbort));
+      }
+    }
     return watcher;
   };
 

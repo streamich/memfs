@@ -28,14 +28,20 @@ import {
   type IProcess,
 } from '@jsonjoy.com/fs-core';
 import { isWin } from '@jsonjoy.com/fs-core/lib/util';
-import { toRegex } from 'glob-to-regex.js';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import StatFs from './StatFs';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import setTimeoutUnref, { TSetTimeout } from '@jsonjoy.com/fs-node-utils/lib/setTimeoutUnref';
 import { Readable, Writable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
-import { constants, TEncodingExtended, TDataOut, strToEncoding, ENCODING_UTF8 } from '@jsonjoy.com/fs-node-utils';
+import {
+  constants,
+  TEncodingExtended,
+  TDataOut,
+  strToEncoding,
+  ENCODING_UTF8,
+  watchIgnoreToMatcher,
+} from '@jsonjoy.com/fs-node-utils';
 import { EventEmitter } from '@jsonjoy.com/fs-node-builtins/lib/events';
 import { FileHandle } from './FileHandle';
 import { inherits } from '@jsonjoy.com/fs-node-builtins/lib/util';
@@ -2146,29 +2152,6 @@ FsWriteStream.prototype._destroy = FsReadStream.prototype._destroy;
 FsWriteStream.prototype.destroySoon = FsWriteStream.prototype.end;
 
 // ---------------------------------------- FSWatcher
-
-const watchIgnorePatternToMatcher = (pattern: opts.TWatchIgnorePattern): ((filename: string) => boolean) => {
-  if (typeof pattern === 'function') return pattern;
-  if (pattern instanceof RegExp) return filename => pattern.test(filename);
-  if (typeof pattern === 'string') {
-    const regex = toRegex(pattern);
-    return filename => regex.test(filename);
-  }
-  throw new TypeError(
-    'The "options.ignore" property must be of type string, RegExp, function, or an array thereof. ' +
-      `Received ${typeof pattern}`,
-  );
-};
-
-const watchIgnoreToMatcher = (
-  ignore: opts.TWatchIgnorePattern | opts.TWatchIgnorePattern[],
-): ((filename: string) => boolean) => {
-  if (Array.isArray(ignore)) {
-    const matchers = ignore.map(watchIgnorePatternToMatcher);
-    return filename => matchers.some(matcher => matcher(filename));
-  }
-  return watchIgnorePatternToMatcher(ignore);
-};
 
 export class FSWatcher extends EventEmitter {
   _vol: Volume;

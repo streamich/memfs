@@ -26,7 +26,7 @@ npm i memfs
 
 ## Watching
 
-All file-watching APIs are implemented on both sides of the `fs` adn File System API divide:
+All file-watching APIs are implemented on both sides of the `fs` and File System API divide:
 
 | Feature                                                                    | Package                                                  | Notes                                                                                   |
 | -------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------- |

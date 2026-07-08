@@ -32,9 +32,11 @@ jobs:
       # Corepack is no longer bundled with Node.js (removed in v25), so install
       # it into the setup-node tool dir
       - name: Enable corepack
+        shell: bash
         run: |
           npm install -g corepack
-          corepack enable
+          corepack enable --install-directory "$(dirname "$(command -v node)")"
+          yarn --version
       - name: install
         run: yarn
       - name: run build

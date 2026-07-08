@@ -19,7 +19,7 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
   private resolveQueue: Array<{ resolve: Function; reject: Function }> = [];
   private finished = false;
   private error?: Error;
-  private abortController?: AbortController;
+  private onAbort?: () => void;
   private maxQueue: number;
   private overflow: 'ignore' | 'error';
 
@@ -35,24 +35,22 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
     // Node's docs name the value 'throw' while its implementation validates
     // 'error', both are accepted here with the same semantics.
     this.overflow = overflow === 'throw' ? 'error' : overflow;
-    this.startWatching();
-    // Aborting rejects the pending (or first future) next() call with an
-    // AbortError and discards queued events.
     const signal = options.signal;
     if (signal) {
       if (signal.aborted) {
         this.finish(newAbortError(signal));
         return;
       }
-      signal.addEventListener('abort', () => {
-        this.finish(newAbortError(signal));
-      });
+      this.onAbort = () => this.finish(newAbortError(signal));
+      signal.addEventListener('abort', this.onAbort);
     }
+    this.startWatching();
   }
 
   private startWatching() {
+    const { signal, ...watchOptions } = this.options;
     try {
-      this.watcher = this.fs.watch(this.path, this.options, (eventType: string, filename: string) => {
+      this.watcher = this.fs.watch(this.path, watchOptions, (eventType: string, filename: string) => {
         this.enqueueEvent({ eventType, filename });
       });
     } catch (error) {
@@ -93,6 +91,11 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
     this.finished = true;
     this.error = error;
     if (error) this.eventQueue.length = 0;
+
+    if (this.onAbort) {
+      this.options.signal!.removeEventListener('abort', this.onAbort);
+      this.onAbort = undefined;
+    }
 
     if (this.watcher) {
       this.watcher.close();

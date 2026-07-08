@@ -1,3 +1,4 @@
+import { getEventListeners } from 'events';
 import { promisify } from '@jsonjoy.com/fs-node-builtins/lib/util';
 import { Volume } from '../volume';
 import { Readable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
@@ -904,6 +905,33 @@ describe('Promises API', () => {
       }
       expect(error.name).toBe('AbortError');
       expect(error.cause).toBe(reason);
+      const after = await iterator.next();
+      expect(after.done).toBe(true);
+    });
+
+    it('a pre-aborted signal never starts the watcher, so a missing path reports AbortError, not ENOENT', async () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      const abortController = new AbortController();
+      abortController.abort();
+      const watcher = promises.watch('/missing.txt', { signal: abortController.signal });
+      const iterator = watcher[Symbol.asyncIterator]();
+      await expect(iterator.next()).rejects.toMatchObject({ name: 'AbortError', code: 'ABORT_ERR' });
+    });
+
+    it('removes the abort listener when the iterator finishes without abort', async () => {
+      const vol = new Volume();
+      const { promises } = vol;
+      vol.fromJSON({
+        '/foo': 'bar',
+      });
+      const abortController = new AbortController();
+      const watcher = promises.watch('/foo', { signal: abortController.signal });
+      const iterator = watcher[Symbol.asyncIterator]();
+      expect(getEventListeners(abortController.signal, 'abort').length).toBe(1);
+      await iterator.return!();
+      expect(getEventListeners(abortController.signal, 'abort').length).toBe(0);
+      abortController.abort();
       const after = await iterator.next();
       expect(after.done).toBe(true);
     });

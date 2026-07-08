@@ -148,6 +148,11 @@ export interface FsCallbackApi {
     (path: misc.PathLike, listener?: (eventType: string, filename: string) => void): misc.IFSWatcher;
     (
       path: misc.PathLike,
+      options: 'buffer' | (opts.IWatchOptions & { encoding: 'buffer' }),
+      listener?: (eventType: string, filename: Buffer) => void,
+    ): misc.IFSWatcher;
+    (
+      path: misc.PathLike,
       options: opts.IWatchOptions | string | undefined,
       listener?: (eventType: string, filename: string) => void,
     ): misc.IFSWatcher;

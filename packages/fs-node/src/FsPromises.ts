@@ -50,7 +50,7 @@ class FSWatchAsyncIterator implements AsyncIterableIterator<{ eventType: string;
   private startWatching() {
     const { signal, ...watchOptions } = this.options;
     try {
-      this.watcher = this.fs.watch(this.path, watchOptions, (eventType: string, filename: string) => {
+      this.watcher = this.fs.watch(this.path, watchOptions, (eventType: string, filename: string | Buffer) => {
         this.enqueueEvent({ eventType, filename });
       });
     } catch (error) {

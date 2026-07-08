@@ -1433,13 +1433,18 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   watch(path: PathLike, listener?: (eventType: string, filename: string) => void): FSWatcher;
   watch(
     path: PathLike,
+    options: 'buffer' | (IWatchOptions & { encoding: 'buffer' }),
+    listener?: (eventType: string, filename: Buffer) => void,
+  ): FSWatcher;
+  watch(
+    path: PathLike,
     options: IWatchOptions | string | undefined,
     listener?: (eventType: string, filename: string) => void,
   ): FSWatcher;
   watch(
     path: PathLike,
-    options?: IWatchOptions | string | ((eventType: string, filename: string) => void),
-    listener?: (eventType: string, filename: string) => void,
+    options?: IWatchOptions | string | ((eventType: string, filename: string & Buffer) => void),
+    listener?: (eventType: string, filename: string & Buffer) => void,
   ): FSWatcher {
     const filename = pathToFilename(path);
     let givenOptions: typeof options | null = options;

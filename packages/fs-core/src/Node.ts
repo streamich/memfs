@@ -18,6 +18,10 @@ const EMPTY_BUFFER = bufferAllocUnsafe(0);
  * Node in a file system (like i-node, v-node).
  */
 export class Node {
+  /**
+   * @deprecated Subscribe to the volume-level `Superblock.changes` bus or use
+   * `CoreWatcher` instead.
+   */
   public readonly changes = new FanOut<NodeEvent>();
 
   // i-node number.

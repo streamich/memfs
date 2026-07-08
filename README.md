@@ -24,6 +24,32 @@ npm i memfs
 - [Code reference](https://streamich.github.io/memfs/)
 - [Test coverage](https://streamich.github.io/memfs/coverage/lcov-report/)
 
+## Watching
+
+All file-watching APIs are implemented on both sides of the `fs` and File System API divide:
+
+| Feature                                                                    | Package                                                  | Notes                                                                                   |
+| -------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `fs.watch` — `recursive`, `encoding`, `signal`, `throwIfNoEntry`, `ignore` | [`@jsonjoy.com/fs-node`](packages/fs-node)               | `'error'`/`'close'` events, `ref()`/`unref()`                                           |
+| `fs.watchFile` / `fs.unwatchFile`                                          | [`@jsonjoy.com/fs-node`](packages/fs-node)               | polling, `bigint`, Node's reappearance semantics                                        |
+| `fs.promises.watch` async iterator                                         | [`@jsonjoy.com/fs-node`](packages/fs-node)               | `maxQueue`, `overflow`, `AbortError` on abort                                           |
+| [`FileSystemObserver`][observer]                                           | [`@jsonjoy.com/fs-fsa`](packages/fs-fsa)                 | deterministic OPFS profile: precise records, real `"moved"` records, microtask batching |
+| `fs.watch`/`fs.watchFile` over a real FSA directory                        | [`@jsonjoy.com/fs-fsa-to-node`](packages/fs-fsa-to-node) | works over OPFS in Chrome 133+ via the native observer                                  |
+| `FileSystemObserver` over any `fs`                                         | [`@jsonjoy.com/fs-node-to-fsa`](packages/fs-node-to-fsa) | best-effort profile: renames stat-classified, no `"moved"` records                      |
+
+Intentional divergences from real watchers (the in-memory backend is deterministic, so platform
+unreliability is not emulated):
+
+- Paths are watched semantically rather than by inode: after delete-and-recreate, memfs reports
+  events for the recreated entry, while a real POSIX watcher keeps watching the dead inode.
+- Exactly one event per logical operation — no platform duplicate events.
+- `filename` is never `null`.
+- The Node-style `FSWatcher` delivers events synchronously inside the mutating operation, whereas
+  real Node defers to the event loop; the `FileSystemObserver` batches per microtask, as the spec
+  requires.
+
+[observer]: https://developer.mozilla.org/en-US/docs/Web/API/FileSystemObserver
+
 ## Demos
 
 - [Git in browser, which writes to a real folder](demo/git-fsa/README.md)

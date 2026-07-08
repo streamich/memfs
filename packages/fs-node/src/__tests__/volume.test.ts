@@ -1371,7 +1371,7 @@ describe('volume', () => {
 
         const mockCallback = jest.fn();
         const writtenContent = 'hello world';
-        const watcher = vol.watch('/tmp/foo.js', mockCallback as any);
+        const watcher = vol.watch('/tmp/foo.js', mockCallback);
 
         try {
           vol.writeFileSync('/tmp/foo.js', writtenContent);
@@ -1389,7 +1389,7 @@ describe('volume', () => {
 
         const mockCallback = jest.fn();
         const writtenContent = 'hello world';
-        const watcher = vol.watch('/tmp/foo-dir', mockCallback as any);
+        const watcher = vol.watch('/tmp/foo-dir', mockCallback);
 
         try {
           vol.writeFileSync('/tmp/foo-dir/foo.js', writtenContent);
@@ -1406,7 +1406,7 @@ describe('volume', () => {
         const vol = Volume.fromJSON({ '/1': null });
 
         const mockCallback = jest.fn();
-        const watcher = vol.watch('/', mockCallback as any);
+        const watcher = vol.watch('/', mockCallback);
 
         try {
           expect(() => vol.renameSync('/1', '/2')).not.toThrow();
@@ -1510,7 +1510,7 @@ describe('volume', () => {
         const vol = Volume.fromJSON({ '/foo.txt': 'a' });
         const listener = jest.fn();
         const onClose = jest.fn();
-        const watcher = vol.watch('/foo.txt', listener as any);
+        const watcher = vol.watch('/foo.txt', listener);
         watcher.on('close', onClose);
         watcher.close();
         watcher.close();
@@ -1534,7 +1534,7 @@ describe('volume', () => {
         it('returns the watcher and still delivers events while unref-ed', () => {
           const vol = Volume.fromJSON({ '/foo.txt': 'a' });
           const listener = jest.fn();
-          const watcher = vol.watch('/foo.txt', listener as any);
+          const watcher = vol.watch('/foo.txt', listener);
           try {
             expect(watcher.unref()).toBe(watcher);
             vol.writeFileSync('/foo.txt', 'b');

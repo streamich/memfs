@@ -15,12 +15,12 @@ permissions:
 
 jobs:
   test:
-    name: Test on Node.js v${{ matrix.node-version }}
+    name: Test on Node.js v${{ matrix.node-version }} on ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        node-version: [22.x, 24.x]
+        node-version: [22.x, 24.x, 26.x]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -29,8 +29,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      # Corepack is no longer bundled with Node.js (removed in v25), so install
+      # it into the setup-node tool dir
       - name: Enable corepack
-        run: corepack enable
+        shell: bash
+        run: |
+          npm install -g --force corepack
+          corepack enable --install-directory "$(dirname "$(command -v node)")"
+          yarn --version
       - name: install
         run: yarn
       - name: run build

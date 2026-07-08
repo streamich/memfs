@@ -886,23 +886,32 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     }
   };
 
-  public readonly watch = (
+  public readonly watch: FsCallbackApi['watch'] = (
     path: misc.PathLike,
-    options?: opts.IWatchOptions | string | ((eventType: string, filename: string) => void),
-    listener?: (eventType: string, filename: string) => void,
+    options?: opts.IWatchOptions | string | ((eventType: string, filename: string & Buffer) => void),
+    listener?: (eventType: string, filename: string & Buffer) => void,
   ): misc.IFSWatcher => {
     const filename = util.pathToFilename(path);
     if (typeof options === 'function') {
-      listener = options as (eventType: string, filename: string) => void;
+      listener = options as (eventType: string, filename: string & Buffer) => void;
       options = undefined;
     }
     const watchOpts: opts.IWatchOptions =
       typeof options === 'string' ? { encoding: options as BufferEncoding } : options || {};
-    const { persistent = true, recursive = false, encoding = 'utf8' } = watchOpts;
+    const { persistent = true, recursive = false, encoding = 'utf8', signal, throwIfNoEntry, ignore } = watchOpts;
     const Observer = this.getFileSystemObserverOrThrow();
     const watcher = new FsaNodeFsWatcher(Observer, (folder, name) => this.getFileOrDir(folder, name, 'watch'));
-    watcher.start(filename, persistent, recursive, encoding as BufferEncoding);
+    watcher.start(filename, persistent, recursive, encoding as BufferEncoding, ignore, throwIfNoEntry);
     if (listener) watcher.addListener('change', listener);
+    if (signal) {
+      if (signal.aborted) {
+        watcher.close();
+      } else {
+        const onAbort = () => watcher.close();
+        signal.addEventListener('abort', onAbort, { once: true });
+        watcher.once('close', () => signal.removeEventListener('abort', onAbort));
+      }
+    }
     return watcher;
   };
 

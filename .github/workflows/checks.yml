@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   test:
-    name: Test on Node.js v${{ matrix.node-version }}
+    name: Test on Node.js v${{ matrix.node-version }} on ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -34,7 +34,7 @@ jobs:
       - name: Enable corepack
         shell: bash
         run: |
-          npm install -g corepack
+          npm install -g --force corepack
           corepack enable --install-directory "$(dirname "$(command -v node)")"
           yarn --version
       - name: install

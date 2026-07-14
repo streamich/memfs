@@ -4976,8 +4976,6 @@ __metadata:
     webpack: "npm:^5.87.0"
     webpack-cli: "npm:^5.1.4"
     webpack-dev-server: "npm:^4.15.1"
-  peerDependencies:
-    tslib: 2
   languageName: unknown
   linkType: soft
 

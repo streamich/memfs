@@ -64,7 +64,14 @@ function getPathFromURLPosix(url): string {
       }
     }
   }
-  return decodeURIComponent(pathname);
+  const filepath = decodeURIComponent(pathname);
+  // `pathToFileURL` on Windows produces URLs with a leading slash before the
+  // drive letter (e.g. `file:///C:/dir` -> pathname `/C:/dir`). Node's
+  // `fileURLToPath` strips that slash so the value matches the string path
+  // form (`C:/dir`), which is how memfs represents the same location
+  // internally. Do the same here so drive-letter `file:` URLs resolve instead
+  // of throwing ENOENT. POSIX URLs (no drive letter) are left untouched.
+  return filepath.replace(/^\/([a-zA-Z]:)/, '$1');
 }
 
 export function pathToFilename(path: misc.PathLike): string {

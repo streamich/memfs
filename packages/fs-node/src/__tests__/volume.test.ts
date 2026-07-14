@@ -638,6 +638,17 @@ describe('volume', () => {
         const str = vol.readFileSync(new URL('file:///text.txt')).toString();
         expect(str).toBe(data);
       });
+      it('Read file with a drive-letter file: URL (issue #1098)', () => {
+        // `pathToFileURL` on Windows produces URLs such as
+        // `file:///C:/src/file.txt`. Node's `fs` strips the leading slash
+        // before the drive letter, so the URL resolves to the same file as the
+        // equivalent string path. memfs must do the same instead of looking up
+        // `/C:/src/file.txt`, which throws ENOENT.
+        const driveVol = new Volume();
+        driveVol.fromJSON({ 'C:/src/file.txt': 'Hello from fake file!' });
+        const url = new URL('file:///C:/src/file.txt');
+        expect(driveVol.readFileSync(url, 'utf8')).toBe('Hello from fake file!');
+      });
       it('Specify encoding as string', () => {
         const str = vol.readFileSync('/text.txt', 'utf8');
         expect(str).toBe(data);

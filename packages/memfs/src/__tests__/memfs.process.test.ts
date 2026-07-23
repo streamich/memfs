@@ -1,4 +1,4 @@
-import { memfs } from '../index';
+import { fs as defaultFs, memfs } from '../index';
 import type { IProcess } from '../index';
 
 const makeProcess = (overrides: Partial<IProcess> = {}): IProcess => ({
@@ -49,5 +49,39 @@ describe('memfs() with custom process', () => {
     // This is a type-level test - just verifying the export compiles
     const p: IProcess = makeProcess();
     expect(typeof p.cwd).toBe('function');
+  });
+
+  it('resolves relative createWriteStream paths against the default cwd', done => {
+    const { fs } = memfs();
+    const stream = fs.createWriteStream('downloaded.zip') as any;
+
+    stream.on('error', done);
+    stream.on('finish', () => {
+      expect(fs.readFileSync('/downloaded.zip', 'utf8')).toBe('content');
+      expect(fs.readFileSync('downloaded.zip', 'utf8')).toBe('content');
+      done();
+    });
+
+    stream.end('content');
+  });
+
+  it('resolves relative createWriteStream paths for the default fs export', done => {
+    const filename = '/default-create-write-stream.txt';
+    try {
+      defaultFs.unlinkSync(filename);
+    } catch (err) {
+      if ((err as any).code !== 'ENOENT') throw err;
+    }
+
+    const stream = defaultFs.createWriteStream('default-create-write-stream.txt') as any;
+
+    stream.on('error', done);
+    stream.on('finish', () => {
+      expect(defaultFs.readFileSync(filename, 'utf8')).toBe('content');
+      defaultFs.unlinkSync(filename);
+      done();
+    });
+
+    stream.end('content');
   });
 });

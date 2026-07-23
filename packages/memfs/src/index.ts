@@ -19,8 +19,22 @@ const { F_OK, R_OK, W_OK, X_OK } = constants;
 export { DirectoryJSON, NestedDirectoryJSON, Volume };
 export type { IProcess };
 
+const getGlobalProcess = (): Partial<IProcess> => {
+  const maybeProcess = typeof globalThis !== 'undefined' ? (globalThis as any).process : undefined;
+  return maybeProcess ?? {};
+};
+
+const createProcess = (cwd: string, baseProcess: Partial<IProcess> = getGlobalProcess()): IProcess => ({
+  cwd: () => cwd,
+  platform: baseProcess.platform ?? 'linux',
+  emitWarning: baseProcess.emitWarning?.bind(baseProcess) ?? (() => {}),
+  env: baseProcess.env ?? {},
+  getuid: baseProcess.getuid?.bind(baseProcess),
+  getgid: baseProcess.getgid?.bind(baseProcess),
+});
+
 // Default volume.
-export const vol = new Volume();
+export const vol = Volume.fromNestedJSON({}, '/', { process: createProcess('/') });
 
 export interface IFs extends Volume {
   constants: typeof constants;
@@ -96,7 +110,8 @@ export const memfs = (
   // Superblock use that process's cwd(). Otherwise default to '/' so the
   // convenience function keeps its opinionated virtual-root default.
   const cwd = opts.cwd ?? (opts.process ? undefined : '/');
-  const vol = Volume.fromNestedJSON(json, cwd, { process: opts.process });
+  const process = cwd === undefined ? opts.process : createProcess(cwd, opts.process);
+  const vol = Volume.fromNestedJSON(json, cwd, { process });
   const fs = createFsFromVolume(vol);
   return { fs, vol };
 };

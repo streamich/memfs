@@ -3,6 +3,7 @@ import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import { Buffer, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import { Readable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 import { dataToBuffer, validateFd, StatError } from '@jsonjoy.com/fs-core';
+import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import type { FsCallbackApi } from '@jsonjoy.com/fs-node-utils';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 
@@ -64,7 +65,12 @@ function getPathFromURLPosix(url): string {
       }
     }
   }
-  return decodeURIComponent(pathname);
+  const filepath = decodeURIComponent(pathname);
+  // On Windows `pathToFileURL` puts a slash before the drive letter
+  // (`file:///C:/dir` -> pathname `/C:/dir`) and `fileURLToPath` strips it back
+  // off. On POSIX Node keeps the slash, so `/C:/dir` stays absolute there —
+  // stripping it unconditionally would make the path cwd-relative instead.
+  return isWin ? filepath.replace(/^\/([a-zA-Z]:)/, '$1') : filepath;
 }
 
 export function pathToFilename(path: misc.PathLike): string {

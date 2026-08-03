@@ -97,7 +97,8 @@ function getPathFromURLPosix(url): string {
       }
     }
   }
-  return decodeURIComponent(pathname);
+  const filepath = decodeURIComponent(pathname);
+  return isWin ? filepath.replace(/^\/([a-zA-Z]:)/, '$1') : filepath;
 }
 
 export function pathToFilename(path: misc.PathLike): string {

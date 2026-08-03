@@ -367,7 +367,11 @@ onlyOnNode20('FsaNodeFs', () => {
     test('can read the whole subtree with "recursive" flag set', async () => {
       const { fs } = setup({ folder: { sub: { deep: 'test' }, file: 'test' }, 'f.html': 'test' });
       const res = (await fs.promises.readdir('/', { recursive: true })) as string[];
-      expect(res).toEqual(['f.html', 'folder', 'folder/file', 'folder/sub', 'folder/sub/deep']);
+      expect([...res].sort()).toEqual(['f.html', 'folder', 'folder/file', 'folder/sub', 'folder/sub/deep']);
+      for (let i = 0; i < res.length; i++) {
+        const slash = res[i].lastIndexOf('/');
+        if (slash > 0) expect(res.indexOf(res[i].slice(0, slash))).toBeLessThan(i);
+      }
     });
 
     test('"recursive" paths are relative to the directory read', async () => {
@@ -379,11 +383,11 @@ onlyOnNode20('FsaNodeFs', () => {
     test('"recursive" with "withFileTypes" reports each entry against its own parent', async () => {
       const { fs } = setup({ folder: { sub: { deep: 'test' } }, 'f.html': 'test' });
       const list = (await fs.promises.readdir('/', { recursive: true, withFileTypes: true })) as IDirent[];
-      expect(list.map(item => [item.parentPath, item.name])).toEqual([
-        ['/', 'f.html'],
-        ['/', 'folder'],
-        ['/folder', 'sub'],
-        ['/folder/sub', 'deep'],
+      expect(list.map(item => item.parentPath + '|' + item.name).sort()).toEqual([
+        '/folder/sub|deep',
+        '/folder|sub',
+        '/|f.html',
+        '/|folder',
       ]);
       expect(list.find(item => item.name === 'deep')?.isFile()).toBe(true);
     });

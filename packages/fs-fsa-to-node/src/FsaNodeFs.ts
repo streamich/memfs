@@ -36,6 +36,41 @@ const notImplemented: (...args: any[]) => any = () => {
 
 const noop: (...args: any[]) => any = () => {};
 
+/** Lists a directory, descending into sub-directories when `recursive`. */
+const listDir = async (
+  dir: fsa.IFileSystemDirectoryHandle,
+  parentPath: string,
+  recursive: boolean,
+  sort: boolean,
+): Promise<FsaNodeDirent[]> => {
+  const separator = FsaToNodeConstants.Separator;
+  const entries: [name: string, handle: fsa.IFileSystemHandle][] = [];
+  for await (const entry of dir.entries()) entries.push(entry);
+  if (sort)
+    entries.sort((a, b) => {
+      if (a[0] < b[0]) return -1;
+      if (a[0] > b[0]) return 1;
+      return 0;
+    });
+  const list: FsaNodeDirent[] = [];
+  for (const [name, handle] of entries) {
+    list.push(new FsaNodeDirent(name, parentPath, handle.kind));
+    if (recursive && handle.kind === 'directory') {
+      const childPath = parentPath === separator ? parentPath + name : parentPath + separator + name;
+      list.push(...(await listDir(handle as fsa.IFileSystemDirectoryHandle, childPath, true, sort)));
+    }
+  }
+  return list;
+};
+
+const direntToRelative = (dirent: FsaNodeDirent, parentPath: string): string => {
+  const separator = FsaToNodeConstants.Separator;
+  const name = String(dirent.name);
+  if (dirent.parentPath === parentPath) return name;
+  const prefix = parentPath === separator ? parentPath : parentPath + separator;
+  return dirent.parentPath.slice(prefix.length) + separator + name;
+};
+
 /**
  * Constructs a Node.js `fs` API from a File System Access API
  * [`FileSystemDirectoryHandle` object](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle).
@@ -461,29 +496,13 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     this.getDir(folder, false, 'readdir')
       .then(dir =>
         (async () => {
-          if (options.withFileTypes) {
-            const list: misc.IDirent[] = [];
-            const parentPath = folder.length ? '/' + folder.join(FsaToNodeConstants.Separator) : '/';
-            for await (const [name, handle] of dir.entries()) {
-              const dirent = new FsaNodeDirent(name, parentPath, handle.kind);
-              list.push(dirent);
-            }
-            if (!isWin && options.encoding !== 'buffer')
-              list.sort((a, b) => {
-                if (a.name < b.name) return -1;
-                if (a.name > b.name) return 1;
-                return 0;
-              });
-            return list;
-          } else {
-            const list: string[] = [];
-
-            for await (const key of dir.keys()) list.push(key);
-
-            if (!isWin && options.encoding !== 'buffer') list.sort();
-
-            return list;
-          }
+          const parentPath = folder.length ? '/' + folder.join(FsaToNodeConstants.Separator) : '/';
+          const sort = !isWin && options.encoding !== 'buffer';
+          const list = await listDir(dir, parentPath, !!options.recursive, sort);
+          if (options.withFileTypes) return list;
+          return list.map(dirent =>
+            util.bufferToEncoding(Buffer.from(direntToRelative(dirent, parentPath)), options.encoding),
+          );
         })(),
       )
       .then(
@@ -1095,20 +1114,25 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const filename = util.pathToFilename(path);
     const [folder] = pathToLocation(filename);
     const adapter = this.getSyncAdapter();
-    const list = adapter.call('readdir', [filename]);
-    if (opts.withFileTypes) {
-      const res: misc.IDirent[] = [];
-      const parentPath = folder.length ? '/' + folder.join(FsaToNodeConstants.Separator) : '/';
-      for (const entry of list) res.push(new FsaNodeDirent(entry.name, parentPath, entry.kind));
-      return res;
-    } else {
-      const res: misc.TDataOut[] = [];
-      for (const entry of list) {
-        const buffer = Buffer.from(entry.name);
-        res.push(util.bufferToEncoding(buffer, opts.encoding));
+    const separator = FsaToNodeConstants.Separator;
+    const parentPath = folder.length ? separator + folder.join(separator) : separator;
+    const walk = (dir: string, at: string): FsaNodeDirent[] => {
+      const res: FsaNodeDirent[] = [];
+      for (const entry of adapter.call('readdir', [dir])) {
+        res.push(new FsaNodeDirent(entry.name, at, entry.kind));
+        if (opts.recursive && entry.kind === 'directory')
+          res.push(
+            ...walk(
+              dir.endsWith(separator) ? dir + entry.name : dir + separator + entry.name,
+              at === separator ? at + entry.name : at + separator + entry.name,
+            ),
+          );
       }
       return res;
-    }
+    };
+    const list = walk(filename, parentPath);
+    if (opts.withFileTypes) return list;
+    return list.map(dirent => util.bufferToEncoding(Buffer.from(direntToRelative(dirent, parentPath)), opts.encoding));
   };
 
   public readonly realpathSync: FsSynchronousApi['realpathSync'] = (

@@ -6,7 +6,8 @@ import Dirent from '../Dirent';
 import { Volume, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
 import { tryGetChild, tryGetChildNode } from './util';
-import { genRndStr6 } from '../util';
+import { genRndStr6, pathToFilename } from '../util';
+import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 
 const { O_RDWR, O_SYMLINK } = constants;
@@ -638,14 +639,19 @@ describe('volume', () => {
         const str = vol.readFileSync(new URL('file:///text.txt')).toString();
         expect(str).toBe(data);
       });
-      it('Read file with a drive-letter file: URL (issue #1098)', () => {
-        // `pathToFileURL` on Windows produces URLs such as
-        // `file:///C:/src/file.txt`. Node's `fs` strips the leading slash
-        // before the drive letter, so the URL resolves to the same file as the
-        // equivalent string path. memfs must do the same instead of looking up
-        // `/C:/src/file.txt`, which throws ENOENT.
+      it('Drive-letter file: URL converts like Node`s fileURLToPath (issue #1098)', () => {
+        // Windows drops the slash before the drive letter, POSIX keeps it.
+        expect(pathToFilename(new URL('file:///C:/src/file.txt'))).toBe(isWin ? 'C:/src/file.txt' : '/C:/src/file.txt');
+      });
+      (isWin ? it : it.skip)('Read file with a drive-letter file: URL (issue #1098)', () => {
         const driveVol = new Volume();
         driveVol.fromJSON({ 'C:/src/file.txt': 'Hello from fake file!' });
+        const url = new URL('file:///C:/src/file.txt');
+        expect(driveVol.readFileSync(url, 'utf8')).toBe('Hello from fake file!');
+      });
+      (isWin ? it.skip : it)('Reads an absolute /C:/… path via a file: URL on POSIX', () => {
+        const driveVol = new Volume();
+        driveVol.fromJSON({ '/C:/src/file.txt': 'Hello from fake file!' });
         const url = new URL('file:///C:/src/file.txt');
         expect(driveVol.readFileSync(url, 'utf8')).toBe('Hello from fake file!');
       });

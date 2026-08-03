@@ -6,6 +6,7 @@ import { IDirent, IStats } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import { FsaNodeFs } from '../FsaNodeFs';
 import { of } from 'thingies';
 import { onlyOnNode20 } from './util';
+import type { FsaNodeSyncAdapter } from '../types';
 
 const tick = (ms: number = 1) => new Promise(r => setTimeout(r, ms));
 
@@ -20,6 +21,27 @@ const setup = (json: NestedDirectoryJSON | null = null, mode: 'read' | 'readwrit
   const { fs: mfs, vol } = memfs({ mountpoint: json });
   const dir = nodeToFsa(mfs, '/mountpoint', { mode, syncHandleAllowed: true });
   const fs = new FsaNodeFs(dir);
+  return { fs, mfs, vol, dir };
+};
+
+/** The sync API needs an adapter; this one serves just the calls the sync tests make. */
+const setupSync = (json: NestedDirectoryJSON | null = null) => {
+  const { fs: mfs, vol } = memfs({ mountpoint: json });
+  const dir = nodeToFsa(mfs, '/mountpoint', { mode: 'readwrite', syncHandleAllowed: true });
+  const adapter: FsaNodeSyncAdapter = {
+    call: (method, payload) => {
+      if (method !== 'readdir') throw new Error('Not implemented: ' + method);
+      const [filename] = payload as [string];
+      const list = mfs.readdirSync('/mountpoint' + (filename === '/' ? '' : filename), {
+        withFileTypes: true,
+      }) as IDirent[];
+      return list.map(entry => ({
+        kind: entry.isDirectory() ? 'directory' : 'file',
+        name: String(entry.name),
+      })) as any;
+    },
+  };
+  const fs = new FsaNodeFs(dir, adapter);
   return { fs, mfs, vol, dir };
 };
 
@@ -395,6 +417,39 @@ onlyOnNode20('FsaNodeFs', () => {
     test('without "recursive" only the top level is listed', async () => {
       const { fs } = setup({ folder: { sub: { deep: 'test' } } });
       expect((await fs.promises.readdir('/')) as string[]).toEqual(['folder']);
+    });
+
+    test('applies the requested encoding to the names', async () => {
+      const { fs } = setup({ folder: { sub: 'test' } });
+      const res = (await fs.promises.readdir('/', { recursive: true, encoding: 'buffer' })) as unknown as Buffer[];
+      expect(res.every(name => Buffer.isBuffer(name))).toBe(true);
+      expect(res.map(name => name.toString()).sort()).toEqual(['folder', 'folder/sub']);
+      const hex = (await fs.promises.readdir('/', { encoding: 'hex' })) as string[];
+      expect(hex).toEqual([Buffer.from('folder').toString('hex')]);
+    });
+  });
+
+  describe('.readdirSync()', () => {
+    test('can read the whole subtree with "recursive" flag set', () => {
+      const { fs } = setupSync({ folder: { sub: { deep: 'test' }, file: 'test' }, 'f.html': 'test' });
+      const res = fs.readdirSync('/', { recursive: true }) as string[];
+      expect([...res].sort()).toEqual(['f.html', 'folder', 'folder/file', 'folder/sub', 'folder/sub/deep']);
+    });
+
+    test('"recursive" with "withFileTypes" reports each entry against its own parent', () => {
+      const { fs } = setupSync({ folder: { sub: { deep: 'test' } }, 'f.html': 'test' });
+      const list = fs.readdirSync('/', { recursive: true, withFileTypes: true }) as IDirent[];
+      expect(list.map(item => item.parentPath + '|' + item.name).sort()).toEqual([
+        '/folder/sub|deep',
+        '/folder|sub',
+        '/|f.html',
+        '/|folder',
+      ]);
+    });
+
+    test('without "recursive" only the top level is listed', () => {
+      const { fs } = setupSync({ folder: { sub: { deep: 'test' } } });
+      expect(fs.readdirSync('/') as string[]).toEqual(['folder']);
     });
   });
 

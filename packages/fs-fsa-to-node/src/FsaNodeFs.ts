@@ -500,7 +500,9 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           const sort = !isWin && options.encoding !== 'buffer';
           const list = await listDir(dir, parentPath, !!options.recursive, sort);
           if (options.withFileTypes) return list;
-          return list.map(dirent => direntToRelative(dirent, parentPath));
+          return list.map(dirent =>
+            util.bufferToEncoding(Buffer.from(direntToRelative(dirent, parentPath)), options.encoding),
+          );
         })(),
       )
       .then(

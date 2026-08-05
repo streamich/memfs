@@ -34,6 +34,7 @@ export class Node {
   private _atime = new Date();
   private _mtime = new Date();
   private _ctime = new Date();
+  private _btime = new Date();
 
   buf: Buffer = EMPTY_BUFFER;
 
@@ -66,6 +67,19 @@ export class Node {
 
   public get ctime(): Date {
     return this._ctime;
+  }
+
+  /**
+   * Birth (creation) time of this node. Unlike `ctime`, it is set once when the
+   * node is created and is never advanced by writes or metadata changes. The
+   * setter exists only for restore paths, like snapshot deserialization.
+   */
+  public set btime(btime: Date) {
+    this._btime = btime;
+  }
+
+  public get btime(): Date {
+    return this._btime;
   }
 
   public set uid(uid: number) {
@@ -342,6 +356,7 @@ export class Node {
       atime: this.atime.getTime(),
       mtime: this.mtime.getTime(),
       ctime: this.ctime.getTime(),
+      btime: this.btime.getTime(),
       perm: this.perm,
       mode: this.mode,
       nlink: this.nlink,

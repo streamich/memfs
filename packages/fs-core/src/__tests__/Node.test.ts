@@ -146,4 +146,46 @@ describe('Node', () => {
       expect(result.toString('utf8', 10, 15)).toBe('hello');
     });
   });
+
+  describe('btime (birth time)', () => {
+    const advance = () => new Promise(resolve => setTimeout(resolve, 10));
+    it('is set on construction', () => {
+      const before = Date.now();
+      const node = new Node(1, 0o666);
+      const after = Date.now();
+      expect(node.btime.getTime()).toBeGreaterThanOrEqual(before);
+      expect(node.btime.getTime()).toBeLessThanOrEqual(after);
+    });
+
+    it('is not advanced by writes, while ctime is', async () => {
+      const node = new Node(1, 0o666);
+      const btime = node.btime.getTime();
+      const ctime = node.ctime.getTime();
+      await advance();
+      node.write(bufferFrom('hello'), 0, 5, 0);
+      expect(node.btime.getTime()).toBe(btime);
+      expect(node.ctime.getTime()).toBeGreaterThan(ctime);
+    });
+
+    it('is not advanced by truncate, chmod, chown or nlink changes', async () => {
+      const node = new Node(1, 0o666);
+      node.write(bufferFrom('hello'), 0, 5, 0);
+      const btime = node.btime.getTime();
+      await advance();
+      node.truncate(2);
+      node.chmod(0o600);
+      node.chown(1, 2);
+      node.nlink = 2;
+      expect(node.btime.getTime()).toBe(btime);
+      expect(node.ctime.getTime()).toBeGreaterThan(btime);
+    });
+
+    it('can be restored through the setter', () => {
+      const node = new Node(1, 0o666);
+      const btime = new Date(1234567890000);
+      node.btime = btime;
+      expect(node.btime).toBe(btime);
+      expect(node.toJSON().btime).toBe(1234567890000);
+    });
+  });
 });

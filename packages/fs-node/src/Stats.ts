@@ -14,7 +14,7 @@ export class Stats<T = TStatNumber> {
   static build(node: Node, bigint?: boolean): Stats<TStatNumber>;
   static build(node: Node, bigint: boolean = false): Stats<TStatNumber> {
     const stats = new Stats<TStatNumber>();
-    const { uid, gid, atime, mtime, ctime } = node;
+    const { uid, gid, atime, mtime, ctime, btime } = node;
 
     const getStatNumber = !bigint ? number => number : number => BigInt(number);
 
@@ -34,20 +34,18 @@ export class Stats<T = TStatNumber> {
     stats.atime = atime;
     stats.mtime = mtime;
     stats.ctime = ctime;
-    stats.birthtime = ctime;
+    stats.birthtime = btime;
 
     stats.atimeMs = getStatNumber(atime.getTime());
     stats.mtimeMs = getStatNumber(mtime.getTime());
-    const ctimeMs = getStatNumber(ctime.getTime());
-    stats.ctimeMs = ctimeMs;
-    stats.birthtimeMs = ctimeMs;
+    stats.ctimeMs = getStatNumber(ctime.getTime());
+    stats.birthtimeMs = getStatNumber(btime.getTime());
 
     if (bigint) {
       stats.atimeNs = BigInt(atime.getTime()) * BigInt(1000000);
       stats.mtimeNs = BigInt(mtime.getTime()) * BigInt(1000000);
-      const ctimeNs = BigInt(ctime.getTime()) * BigInt(1000000);
-      stats.ctimeNs = ctimeNs;
-      stats.birthtimeNs = ctimeNs;
+      stats.ctimeNs = BigInt(ctime.getTime()) * BigInt(1000000);
+      stats.birthtimeNs = BigInt(btime.getTime()) * BigInt(1000000);
     }
 
     stats.dev = getStatNumber(0);

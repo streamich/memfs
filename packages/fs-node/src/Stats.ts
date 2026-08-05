@@ -31,10 +31,10 @@ export class Stats<T = TStatNumber> {
     stats.size = getStatNumber(node.getSize());
     stats.blocks = getStatNumber(1);
 
-    stats.atime = atime;
-    stats.mtime = mtime;
-    stats.ctime = ctime;
-    stats.birthtime = btime;
+    stats.atime = new Date(atime.getTime());
+    stats.mtime = new Date(mtime.getTime());
+    stats.ctime = new Date(ctime.getTime());
+    stats.birthtime = new Date(btime.getTime());
 
     stats.atimeMs = getStatNumber(atime.getTime());
     stats.mtimeMs = getStatNumber(mtime.getTime());

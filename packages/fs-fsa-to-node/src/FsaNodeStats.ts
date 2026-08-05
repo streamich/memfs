@@ -2,7 +2,6 @@ import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 
 const time: number = 0;
 const timex: bigint = typeof BigInt === 'function' ? BigInt(time) : (time as any as bigint);
-const date = new Date(time);
 
 export class FsaNodeStats<T = misc.TStatNumber> implements misc.IStats<T> {
   public readonly uid: T;
@@ -32,7 +31,7 @@ export class FsaNodeStats<T = misc.TStatNumber> implements misc.IStats<T> {
   ) {
     const dummy = (isBigInt ? timex : time) as any as T;
     const mtimeNumber = typeof mtimeMs === 'number' ? ((isBigInt ? BigInt(mtimeMs) : mtimeMs) as any as T) : dummy;
-    const mtimeDate = typeof mtimeMs === 'number' ? new Date(mtimeMs) : date;
+    const mtimeTime = typeof mtimeMs === 'number' ? mtimeMs : time;
     this.uid = dummy;
     this.gid = dummy;
     this.rdev = dummy;
@@ -40,10 +39,10 @@ export class FsaNodeStats<T = misc.TStatNumber> implements misc.IStats<T> {
     this.ino = dummy;
     this.size = size;
     this.blocks = dummy;
-    this.atime = mtimeDate;
-    this.mtime = mtimeDate;
-    this.ctime = mtimeDate;
-    this.birthtime = mtimeDate;
+    this.atime = new Date(mtimeTime);
+    this.mtime = new Date(mtimeTime);
+    this.ctime = new Date(mtimeTime);
+    this.birthtime = new Date(mtimeTime);
     this.atimeMs = mtimeNumber;
     this.mtimeMs = mtimeNumber;
     this.ctimeMs = mtimeNumber;

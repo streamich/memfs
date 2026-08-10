@@ -48,6 +48,7 @@ describe('Stats', () => {
 
     it('keeps birthtime and ctime as separate instances even when equal', () => {
       const { node } = setup();
+      node.ctime = new Date(node.btime.getTime());
       const stats = Stats.build(node, false);
       expect(stats.birthtime.getTime()).toBe(stats.ctime.getTime());
       expect(stats.birthtime).not.toBe(stats.ctime);

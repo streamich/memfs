@@ -653,8 +653,7 @@ export class Superblock {
 
   public readonly unlink = (filename: string) => {
     const link: Link = this.getLinkOrThrow(filename, 'unlink');
-    // TODO: Check if it is file, dir, other...
-    if (link.length) throw Error('Dir not empty...');
+    if (link.getNode().isDirectory()) throw createError(ERROR_CODE.EPERM, 'unlink', filename);
     this._emitDeleteRecursive(link);
     this.deleteLink(link);
     const node = link.getNode();

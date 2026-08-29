@@ -21,7 +21,7 @@ export const createSwapFile = async (
   let handle: undefined | IFileHandle;
   let swapPath: string = path + '.crswap';
   try {
-    handle = await fs.promises.open(swapPath, 'ax');
+    handle = await fs.promises.open(swapPath, 'wx');
   } catch (error) {
     if (!error || typeof error !== 'object' || error.code !== 'EEXIST') throw error;
   }
@@ -29,7 +29,7 @@ export const createSwapFile = async (
     for (let i = 1; i < 1000; i++) {
       try {
         swapPath = `${path}.${i}.crswap`;
-        handle = await fs.promises.open(swapPath, 'ax');
+        handle = await fs.promises.open(swapPath, 'wx');
         break;
       } catch (error) {
         if (!error || typeof error !== 'object' || error.code !== 'EEXIST') throw error;

@@ -32,7 +32,6 @@ export class File {
     public fd: number,
   ) {
     this.position = 0;
-    if (this.flags & O_APPEND) this.position = this.getSize();
   }
 
   getString(encoding = 'utf8'): string {
@@ -64,7 +63,9 @@ export class File {
   }
 
   write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number | null): number {
-    if (typeof position !== 'number') position = this.position;
+    // O_APPEND writes always go to the current end of file, the caller's position is discarded.
+    if (this.flags & O_APPEND) position = this.node.getSize();
+    else if (typeof position !== 'number') position = this.position;
     const bytes = this.node.write(buf, offset, length, position);
     this.position = position + bytes;
     return bytes;

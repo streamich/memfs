@@ -28,7 +28,7 @@ const pathSep = posix ? posix.sep : sep;
 const pathRelative = posix ? posix.relative : relative;
 const pathJoin = posix ? posix.join : join;
 
-const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_APPEND, O_DIRECTORY } = constants;
+const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_DIRECTORY } = constants;
 
 /**
  * Represents a filesystem superblock, which is the root of a virtual
@@ -577,13 +577,11 @@ export class Superblock {
     else fd = this.open(pathToFilename(id as PathLike), flagsNum, modeNum);
     let offset = 0;
     let length = buf.length;
-    let position = flagsNum & O_APPEND ? undefined : 0;
     try {
       while (length > 0) {
-        const written = this.write(fd, buf, offset, length, position);
+        const written = this.write(fd, buf, offset, length, null);
         offset += written;
         length -= written;
-        if (position !== undefined) position += written;
       }
     } finally {
       if (!isUserFd) this.close(fd);

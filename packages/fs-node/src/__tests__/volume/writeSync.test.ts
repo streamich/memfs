@@ -19,10 +19,17 @@ describe('.writeSync(fd, buffer, offset, length, position)', () => {
 
   it('can write at offset', () => {
     const { fs } = memfs({ foo: '123' });
-    const fd = fs.openSync('/foo', 'a+');
+    const fd = fs.openSync('/foo', 'r+');
     expect(fs.readFileSync('/foo', 'utf8')).toBe('123');
     fs.writeSync(fd, 'x', 1);
     expect(fs.readFileSync('/foo', 'utf8')).toBe('1x3');
+  });
+
+  it('ignores the offset when the file is open for appending', () => {
+    const { fs } = memfs({ foo: '123' });
+    const fd = fs.openSync('/foo', 'a+');
+    fs.writeSync(fd, 'x', 1);
+    expect(fs.readFileSync('/foo', 'utf8')).toBe('123x');
   });
 
   /*

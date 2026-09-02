@@ -5,3 +5,6 @@ export * from './consts/FLAG';
 export * from './path';
 export * from './encoding';
 export * from './watchIgnore';
+export { fsCallbackApiList } from './lists/fsCallbackApiList';
+export { fsSynchronousApiList } from './lists/fsSynchronousApiList';
+export { fsCommonObjectsList } from './lists/fsCommonObjectsList';

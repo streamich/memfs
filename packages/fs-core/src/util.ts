@@ -1,18 +1,14 @@
-import { resolve as pathResolve, sep, posix } from '@jsonjoy.com/fs-node-builtins/lib/path';
+import { resolve as pathResolve } from '@jsonjoy.com/fs-node-builtins/lib/path';
 import { Buffer, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import process from './process';
-import { TDataOut, TEncodingExtended, ENCODING_UTF8 } from './encoding';
-import { ERRSTR } from '@jsonjoy.com/fs-node-utils';
+import { ERRSTR, ENCODING_UTF8, pathSep } from '@jsonjoy.com/fs-node-utils';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import type { StatError } from './types';
 
 export const isWin = process.platform === 'win32';
 
 const resolveCrossPlatform = pathResolve;
-const pathSep = posix ? posix.sep : sep;
-
-type TData = TDataOut | ArrayBufferView | DataView; // Data formats users can give us.
 
 const isSeparator = (str, i) => {
   let char = str[i];
@@ -66,7 +62,7 @@ export function validateFd(fd) {
   if (!isFd(fd)) throw TypeError(ERRSTR.FD);
 }
 
-export function dataToBuffer(data: TData, encoding: TEncodingExtended = ENCODING_UTF8): Buffer {
+export function dataToBuffer(data: misc.TData, encoding: misc.TEncodingExtended = ENCODING_UTF8): Buffer {
   if (Buffer.isBuffer(data)) return data;
   else if (data instanceof Uint8Array) return bufferFrom(data);
   else if (encoding === 'buffer') return bufferFrom(String(data), 'utf8');
@@ -78,7 +74,7 @@ export function nullCheck(path, callback?) {
     const er = new Error('Path must be a string without null bytes');
     (er as any).code = 'ENOENT';
     if (typeof callback !== 'function') throw er;
-    Promise.resolve().then(() => callback(er));
+    queueMicrotask(() => callback(er));
     return false;
   }
   return true;

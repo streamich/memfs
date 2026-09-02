@@ -1,11 +1,10 @@
 import { posix } from '@jsonjoy.com/fs-node-builtins/lib/path';
 import { toRegex } from 'glob-to-regex.js';
 import { IGlobOptions } from '@jsonjoy.com/fs-node-utils/lib/types/options';
+import { pathJoin, pathRelative } from '@jsonjoy.com/fs-node-utils';
 import { pathToFilename } from './util';
 import Dirent from './Dirent';
 
-const pathJoin = posix.join;
-const pathRelative = posix.relative;
 const pathResolve = posix.resolve;
 
 /**

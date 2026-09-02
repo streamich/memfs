@@ -1,5 +1,5 @@
 import { createError, pathToFilename } from '@jsonjoy.com/fs-node';
-import { isFd } from '@jsonjoy.com/fs-core';
+import { ERROR_CODE, isFd } from '@jsonjoy.com/fs-core';
 import { pathToLocation } from './util';
 import { ERRSTR } from '@jsonjoy.com/fs-node-utils';
 import { FsaToNodeConstants } from './constants';
@@ -75,9 +75,9 @@ export class FsaNodeCore {
       if (error && typeof error === 'object') {
         switch (error.name) {
           case 'TypeMismatchError':
-            throw createError('ENOTDIR', funcName, path.join(FsaToNodeConstants.Separator));
+            throw createError(ERROR_CODE.ENOTDIR, funcName, path.join(FsaToNodeConstants.Separator));
           case 'NotFoundError':
-            throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
+            throw createError(ERROR_CODE.ENOENT, funcName, path.join(FsaToNodeConstants.Separator));
         }
       }
       throw error;
@@ -116,14 +116,14 @@ export class FsaNodeCore {
               if (error2 && typeof error2 === 'object') {
                 switch (error2.name) {
                   case 'TypeMismatchError':
-                    throw createError('EISDIR', funcName, path.join(FsaToNodeConstants.Separator));
+                    throw createError(ERROR_CODE.EISDIR, funcName, path.join(FsaToNodeConstants.Separator));
                   case 'NotFoundError':
-                    throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
+                    throw createError(ERROR_CODE.ENOENT, funcName, path.join(FsaToNodeConstants.Separator));
                 }
               }
             }
           case 'NotFoundError':
-            throw createError('ENOENT', funcName, path.join(FsaToNodeConstants.Separator));
+            throw createError(ERROR_CODE.ENOENT, funcName, path.join(FsaToNodeConstants.Separator));
         }
       }
       throw error;
@@ -133,7 +133,7 @@ export class FsaNodeCore {
   protected getFileByFd(fd: number, funcName?: string): FsaNodeFsOpenFile {
     if (!isFd(fd)) throw TypeError(ERRSTR.FD);
     const file = this.fds.get(fd);
-    if (!file) throw createError('EBADF', funcName);
+    if (!file) throw createError(ERROR_CODE.EBADF, funcName);
     return file;
   }
 
@@ -162,7 +162,7 @@ export class FsaNodeCore {
     if (throwIfExists) {
       try {
         await this.getFile(folder, name, 'open', false);
-        throw util.createError('EEXIST', 'writeFile');
+        throw util.createError(ERROR_CODE.EEXIST, 'writeFile');
       } catch (error) {
         const file404 =
           error && typeof error === 'object' && (error.code === 'ENOENT' || error.name === 'NotFoundError');
@@ -170,9 +170,9 @@ export class FsaNodeCore {
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'TypeMismatchError':
-                throw createError('EISDIR', 'open', filename);
+                throw createError(ERROR_CODE.EISDIR, 'open', filename);
               case 'NotFoundError':
-                throw createError('ENOENT', 'open', filename);
+                throw createError(ERROR_CODE.ENOENT, 'open', filename);
             }
           }
           throw error;
@@ -187,9 +187,9 @@ export class FsaNodeCore {
       if (error && typeof error === 'object') {
         switch (error.name) {
           case 'TypeMismatchError':
-            throw createError('EISDIR', 'open', filename);
+            throw createError(ERROR_CODE.EISDIR, 'open', filename);
           case 'NotFoundError':
-            throw createError('ENOENT', 'open', filename);
+            throw createError(ERROR_CODE.ENOENT, 'open', filename);
         }
       }
       throw error;
@@ -218,7 +218,7 @@ export class FsaNodeCore {
   protected getFileName(id: misc.TFileId): string {
     if (typeof id === 'number') {
       const openFile = this.fds.get(id);
-      if (!openFile) throw createError('EBADF', 'readFile');
+      if (!openFile) throw createError(ERROR_CODE.EBADF, 'readFile');
       return openFile.filename;
     }
     return pathToFilename(id);

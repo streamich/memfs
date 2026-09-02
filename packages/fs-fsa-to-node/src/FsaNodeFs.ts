@@ -16,8 +16,7 @@ import { FsaNodeCore } from './FsaNodeCore';
 import { FsaNodeFsWatcher } from './FsaNodeFsWatcher';
 import { FsaNodeStatWatcher } from './FsaNodeStatWatcher';
 import { FileHandle } from '@jsonjoy.com/fs-node';
-import { dataToBuffer, isFd, validateFd } from '@jsonjoy.com/fs-core';
-import { isWin } from '@jsonjoy.com/fs-core/lib/util';
+import { ERROR_CODE, dataToBuffer, isFd, isWin, validateFd } from '@jsonjoy.com/fs-core';
 import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import type { FsCallbackApi, FsPromisesApi } from '@jsonjoy.com/fs-node-utils';
 import type { WritevCallback } from '@jsonjoy.com/fs-node-utils/lib/types/FsCallbackApi';
@@ -316,11 +315,11 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                callback(util.createError('ENOENT', 'unlink', filename));
+                callback(util.createError(ERROR_CODE.ENOENT, 'unlink', filename));
                 return;
               }
               case 'InvalidModificationError': {
-                callback(util.createError('EISDIR', 'unlink', filename));
+                callback(util.createError(ERROR_CODE.EISDIR, 'unlink', filename));
                 return;
               }
             }
@@ -602,7 +601,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                const err = util.createError('ENOENT', 'mkdir', folder.join(FsaToNodeConstants.Separator));
+                const err = util.createError(ERROR_CODE.ENOENT, 'mkdir', folder.join(FsaToNodeConstants.Separator));
                 callback(err);
                 return;
               }
@@ -658,12 +657,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                const err = util.createError('ENOENT', 'rmdir', folder.join(FsaToNodeConstants.Separator));
+                const err = util.createError(ERROR_CODE.ENOENT, 'rmdir', folder.join(FsaToNodeConstants.Separator));
                 callback(err);
                 return;
               }
               case 'InvalidModificationError': {
-                const err = util.createError('ENOTEMPTY', 'rmdir', folder.join(FsaToNodeConstants.Separator));
+                const err = util.createError(ERROR_CODE.ENOTEMPTY, 'rmdir', folder.join(FsaToNodeConstants.Separator));
                 callback(err);
                 return;
               }
@@ -694,12 +693,12 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
           if (error && typeof error === 'object') {
             switch (error.name) {
               case 'NotFoundError': {
-                const err = util.createError('ENOENT', 'rmdir', folder.join(FsaToNodeConstants.Separator));
+                const err = util.createError(ERROR_CODE.ENOENT, 'rmdir', folder.join(FsaToNodeConstants.Separator));
                 callback(err);
                 return;
               }
               case 'InvalidModificationError': {
-                const err = util.createError('ENOTEMPTY', 'rmdir', folder.join(FsaToNodeConstants.Separator));
+                const err = util.createError(ERROR_CODE.ENOTEMPTY, 'rmdir', folder.join(FsaToNodeConstants.Separator));
                 callback(err);
                 return;
               }

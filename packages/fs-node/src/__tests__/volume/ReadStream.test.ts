@@ -1,4 +1,7 @@
 import { createFs } from '../util';
+import { constants } from '@jsonjoy.com/fs-node-utils';
+
+const { O_RDONLY, O_NOFOLLOW } = constants;
 
 describe('ReadStream', () => {
   it('fs has ReadStream constructor', () => {
@@ -93,5 +96,29 @@ describe('ReadStream', () => {
     rs.on('error', err => {
       done(err);
     });
+  });
+
+  it('O_NOFOLLOW emits ELOOP when the path is a symlink', done => {
+    const fs = createFs({ '/file': 'content' });
+    fs.symlinkSync('/file', '/link');
+    fs.createReadStream('/link', { flags: O_RDONLY | O_NOFOLLOW })
+      .on('error', err => {
+        expect(err).toHaveProperty('code', 'ELOOP');
+        done();
+      })
+      .on('open', () => {
+        done(new Error("Expected ReadStream to emit ELOOP but it didn't"));
+      });
+  });
+
+  it('O_NOFOLLOW follows symlinks in intermediate path components', done => {
+    const fs = createFs({ '/dir/file': 'content' });
+    fs.symlinkSync('/dir', '/dirlink');
+    const rs = fs.createReadStream('/dirlink/file', { flags: O_RDONLY | O_NOFOLLOW });
+    rs.on('data', data => {
+      expect(String(data)).toBe('content');
+      done();
+    });
+    rs.on('error', done);
   });
 });

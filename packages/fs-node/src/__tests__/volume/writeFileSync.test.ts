@@ -1,5 +1,8 @@
 import { create, tryGetChildNode } from '../util';
 import { Node } from '@jsonjoy.com/fs-core';
+import { constants } from '@jsonjoy.com/fs-node-utils';
+
+const { O_WRONLY, O_CREAT, O_TRUNC, O_NOFOLLOW } = constants;
 
 describe('writeFileSync(path, data[, options])', () => {
   const data = 'asdfasidofjasdf';
@@ -82,5 +85,14 @@ describe('writeFileSync(path, data[, options])', () => {
     expect(() => {
       vol.writeFileSync('/foo/test', 'test');
     }).toThrowError(/EACCES/);
+  });
+
+  it('Throws ELOOP when flag has O_NOFOLLOW and the path is a symlink', () => {
+    const vol = create({ '/file': 'content' });
+    vol.symlinkSync('/file', '/link');
+    expect(() => vol.writeFileSync('/link', 'new', { flag: O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW })).toThrow(
+      expect.objectContaining({ code: 'ELOOP' }),
+    );
+    expect(vol.readFileSync('/file', 'utf8')).toBe('content');
   });
 });

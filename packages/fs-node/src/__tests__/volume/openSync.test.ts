@@ -1,5 +1,8 @@
 import { createFs } from '../util';
 import { normalize, dirname } from '@jsonjoy.com/fs-node-builtins/lib/path';
+import { constants } from '@jsonjoy.com/fs-node-utils';
+
+const { O_RDONLY, O_WRONLY, O_CREAT, O_EXCL, O_TRUNC, O_DIRECTORY, O_NOFOLLOW, O_SYMLINK } = constants;
 
 describe('openSync(path, mode[, flags])', () => {
   it('should return a file descriptor', () => {
@@ -82,6 +85,85 @@ describe('openSync(path, mode[, flags])', () => {
       fs.writeFileSync(filePath, 'test');
 
       expect(() => fs.openSync(filePath, 'r')).not.toThrow();
+    });
+  });
+
+  describe('O_NOFOLLOW', () => {
+    const setup = () => {
+      const fs = createFs({ '/file': 'content', '/dir/file': 'content' });
+      fs.symlinkSync('/file', '/link');
+      fs.symlinkSync('/dir', '/dirlink');
+      fs.symlinkSync('/missing', '/dangling');
+      return fs;
+    };
+
+    it('O_NOFOLLOW throws ELOOP when the final path component is a symlink', () => {
+      const fs = setup();
+      expect(() => fs.openSync('/link', O_RDONLY | O_NOFOLLOW)).toThrow(expect.objectContaining({ code: 'ELOOP' }));
+    });
+
+    it('O_NOFOLLOW formats the ELOOP error like Node', () => {
+      const fs = setup();
+      expect(() => fs.openSync('/link', O_RDONLY | O_NOFOLLOW)).toThrow(
+        "ELOOP: too many symbolic links encountered, open '/link'",
+      );
+    });
+
+    it('O_NOFOLLOW throws ELOOP when the final path component is a symlink to a directory', () => {
+      const fs = setup();
+      expect(() => fs.openSync('/dirlink', O_RDONLY | O_NOFOLLOW)).toThrow(expect.objectContaining({ code: 'ELOOP' }));
+    });
+
+    it('O_NOFOLLOW opens a regular file', () => {
+      const fs = setup();
+      const fd = fs.openSync('/file', O_RDONLY | O_NOFOLLOW);
+      expect(typeof fd).toBe('number');
+      fs.closeSync(fd);
+    });
+
+    it('O_NOFOLLOW follows symlinks in intermediate path components', () => {
+      const fs = setup();
+      const fd = fs.openSync('/dirlink/file', O_RDONLY | O_NOFOLLOW);
+      expect(typeof fd).toBe('number');
+      fs.closeSync(fd);
+    });
+
+    it('O_NOFOLLOW throws ELOOP for a dangling symlink even with O_CREAT and leaves the symlink alone', () => {
+      const fs = setup();
+      expect(() => fs.openSync('/dangling', O_WRONLY | O_CREAT | O_NOFOLLOW)).toThrow(
+        expect.objectContaining({ code: 'ELOOP' }),
+      );
+      expect(fs.existsSync('/missing')).toBe(false);
+      expect(fs.lstatSync('/dangling').isSymbolicLink()).toBe(true);
+    });
+
+    it('O_NOFOLLOW throws ELOOP before O_TRUNC touches the symlink target', () => {
+      const fs = setup();
+      expect(() => fs.openSync('/link', O_WRONLY | O_TRUNC | O_NOFOLLOW)).toThrow(
+        expect.objectContaining({ code: 'ELOOP' }),
+      );
+      expect(fs.readFileSync('/file', 'utf8')).toBe('content');
+    });
+
+    it('O_NOFOLLOW with O_CREAT | O_EXCL throws EEXIST when the symlink exists', () => {
+      const fs = setup();
+      expect(() => fs.openSync('/link', O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW)).toThrow(
+        expect.objectContaining({ code: 'EEXIST' }),
+      );
+    });
+
+    it('O_NOFOLLOW with O_DIRECTORY throws ENOTDIR when the final path component is a symlink to a directory', () => {
+      const fs = setup();
+      expect(() => fs.openSync('/dirlink', O_RDONLY | O_DIRECTORY | O_NOFOLLOW)).toThrow(
+        expect.objectContaining({ code: 'ENOTDIR' }),
+      );
+    });
+
+    it('O_NOFOLLOW with O_SYMLINK throws ELOOP', () => {
+      const fs = setup();
+      expect(() => fs.openSync('/link', O_RDONLY | O_NOFOLLOW | O_SYMLINK)).toThrow(
+        expect.objectContaining({ code: 'ELOOP' }),
+      );
     });
   });
 });

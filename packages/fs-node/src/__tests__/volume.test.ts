@@ -10,7 +10,7 @@ import { genRndStr6, pathToFilename } from '../util';
 import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 
-const { O_RDWR, O_SYMLINK } = constants;
+const { O_RDONLY, O_RDWR, O_NOFOLLOW, O_SYMLINK } = constants;
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
@@ -465,6 +465,20 @@ describe('volume', () => {
           done();
         });
       }, 100);
+
+      it('Error with ELOOP when O_NOFOLLOW is set and the path is a symlink', done => {
+        vol.writeFileSync('/nofollow-target.txt', 'x');
+        vol.symlinkSync('/nofollow-target.txt', '/nofollow-link.txt');
+        vol.open('/nofollow-link.txt', O_RDONLY | O_NOFOLLOW, err => {
+          try {
+            expect(err).toHaveProperty('code', 'ELOOP');
+            done();
+          } catch (e) {
+            done(e);
+          }
+        });
+      });
+
       it('Error on file not found', done => {
         vol.open('/non-existing-file.txt', 'r', (err, fd) => {
           expect(err).toHaveProperty('code', 'ENOENT');

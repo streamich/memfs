@@ -1,4 +1,4 @@
-import { sep, dirname, isAbsolute, basename } from '@jsonjoy.com/fs-node-builtins/lib/path';
+import { dirname, isAbsolute, basename } from '@jsonjoy.com/fs-node-builtins/lib/path';
 import { Node } from './Node';
 import { Link } from './Link';
 import { File } from './File';
@@ -774,8 +774,7 @@ export class Superblock {
     // curr is now the last directory that still exists.
     // (If none of them existed, curr is the root.)
     // Check access the lazy way:
-    // TODO: use pathSep; sep is '\\' on win32 and only unixify() inside resolve() hides it.
-    curr = this.getResolvedLinkOrThrow(sep + steps.slice(0, i).join(sep), 'mkdir');
+    curr = this.getResolvedLinkOrThrow(pathSep + steps.slice(0, i).join(pathSep), 'mkdir');
     // Start creating directories:
     for (i; i < steps.length; i++) {
       const node = curr.getNode();

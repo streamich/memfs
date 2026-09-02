@@ -17,6 +17,7 @@ export * from './CoreFileSystemWritableFileStream';
 export * from './CoreFileSystemObserver';
 export * from './CorePermissionStatus';
 export * from './FileLockManager';
+export * from './util';
 
 /**
  * Create a new instance of an in-memory File System Access API

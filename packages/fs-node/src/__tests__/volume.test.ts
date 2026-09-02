@@ -7,7 +7,7 @@ import { Volume, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
 import { tryGetChild, tryGetChildNode } from './util';
 import { genRndStr6, pathToFilename } from '../util';
-import { isWin } from '@jsonjoy.com/fs-core/lib/util';
+import { isWin } from '@jsonjoy.com/fs-core';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 
 const { O_RDONLY, O_RDWR, O_NOFOLLOW, O_SYMLINK } = constants;

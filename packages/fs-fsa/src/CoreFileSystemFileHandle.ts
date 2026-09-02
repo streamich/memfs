@@ -1,6 +1,7 @@
 import { CoreFileSystemHandle } from './CoreFileSystemHandle';
 import { CoreFileSystemSyncAccessHandle } from './CoreFileSystemSyncAccessHandle';
-import { assertCanWrite, basename, ctx as createCtx, newNotAllowedError, newNoModificationAllowedError } from './util';
+import { basename } from '@jsonjoy.com/fs-node-utils';
+import { assertCanWrite, ctx as createCtx, newNotAllowedError, newNoModificationAllowedError } from './util';
 import { CoreFileSystemWritableFileStream } from './CoreFileSystemWritableFileStream';
 import type {
   CoreFsaContext,

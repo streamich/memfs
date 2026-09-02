@@ -1,11 +1,11 @@
-import { sep, relative, join, dirname, isAbsolute, basename, posix } from '@jsonjoy.com/fs-node-builtins/lib/path';
+import { sep, dirname, isAbsolute, basename } from '@jsonjoy.com/fs-node-builtins/lib/path';
 import { Node } from './Node';
 import { Link } from './Link';
 import { File } from './File';
 import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import defaultProcess, { type IProcess } from './process';
 import { constants } from '@jsonjoy.com/fs-node-utils';
-import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/fs-node-utils';
+import { ERRSTR, FLAGS, MODE, pathSep, pathRelative, pathJoin } from '@jsonjoy.com/fs-node-utils';
 import {
   pathToFilename,
   createError,
@@ -23,10 +23,6 @@ import { TFileId, StatError } from './types';
 import { Err, Ok, Result } from './result';
 import { FanOut } from 'thingies/lib/fanout';
 import { FsEvent, FsEventType } from './watch/FsEvent';
-
-const pathSep = posix ? posix.sep : sep;
-const pathRelative = posix ? posix.relative : relative;
-const pathJoin = posix ? posix.join : join;
 
 const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_DIRECTORY, O_NOFOLLOW } = constants;
 
@@ -778,6 +774,7 @@ export class Superblock {
     // curr is now the last directory that still exists.
     // (If none of them existed, curr is the root.)
     // Check access the lazy way:
+    // TODO: use pathSep; sep is '\\' on win32 and only unixify() inside resolve() hides it.
     curr = this.getResolvedLinkOrThrow(sep + steps.slice(0, i).join(sep), 'mkdir');
     // Start creating directories:
     for (i; i < steps.length; i++) {

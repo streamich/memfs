@@ -1,7 +1,5 @@
 import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
-import { join, posix } from '@jsonjoy.com/fs-node-builtins/lib/path';
-
-const pathJoin = posix ? posix.join : join;
+import { pathJoin } from '@jsonjoy.com/fs-node-utils';
 
 export type DirectoryContent = string | Buffer | null;
 

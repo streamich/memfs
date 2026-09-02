@@ -3,6 +3,9 @@ import { promisify } from '@jsonjoy.com/fs-node-builtins/lib/util';
 import { Volume } from '../volume';
 import { Readable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 import { Dir } from '../Dir';
+import { constants } from '@jsonjoy.com/fs-node-utils';
+
+const { O_RDONLY, O_NOFOLLOW } = constants;
 
 describe('Promises API', () => {
   describe('FileHandle', () => {
@@ -503,6 +506,7 @@ describe('Promises API', () => {
       return expect(promises.link('/baz', '/qux')).rejects.toBeInstanceOf(Error);
     });
   });
+
   describe('lstat(path)', () => {
     const vol = new Volume();
     const { promises } = vol;
@@ -510,26 +514,32 @@ describe('Promises API', () => {
       '/foo': 'bar',
     });
     vol.symlinkSync('/foo', '/bar');
+
     it('Get stats on an existing symbolic link', async () => {
       const stats = await promises.lstat('/bar');
       expect(stats.isSymbolicLink()).toEqual(true);
     });
+
     it('Reject when symbolic link does not exist', () => {
       return expect(promises.lstat('/baz')).rejects.toBeInstanceOf(Error);
     });
   });
+
   describe('mkdir(path[, options])', () => {
     const vol = new Volume();
     const { promises } = vol;
+
     it('Creates a directory', async () => {
       await promises.mkdir('/foo');
       expect(vol.statSync('/foo').isDirectory()).toEqual(true);
     });
+
     it('Reject when a file already exists', () => {
       vol.writeFileSync('/bar', 'bar');
       return expect(promises.mkdir('/bar')).rejects.toBeInstanceOf(Error);
     });
   });
+
   describe('mkdtemp(prefix[, options])', () => {
     const vol = new Volume();
     const { promises } = vol;
@@ -541,19 +551,28 @@ describe('Promises API', () => {
       return expect(promises.mkdtemp('/foo/bar')).rejects.toBeInstanceOf(Error);
     });
   });
+
   describe('open(path, flags[, mode])', () => {
     const vol = new Volume();
     const { promises } = vol;
     vol.fromJSON({
       '/foo': 'bar',
     });
+
     it('Open an existing file', async () => {
       expect(await promises.open('/foo', 'r')).toBeInstanceOf(promises.FileHandle);
     });
+
     it('Reject when file does not exist', () => {
       return expect(promises.open('/bar', 'r')).rejects.toBeInstanceOf(Error);
     });
+
+    it('Reject with ELOOP when O_NOFOLLOW is set and the path is a symlink', () => {
+      vol.symlinkSync('/foo', '/foo-link');
+      return expect(promises.open('/foo-link', O_RDONLY | O_NOFOLLOW)).rejects.toHaveProperty('code', 'ELOOP');
+    });
   });
+
   describe('opendir(path[, options])', () => {
     const vol = new Volume();
     const { promises } = vol;
@@ -561,16 +580,20 @@ describe('Promises API', () => {
       '/foo/bar': 'bar',
       '/foo/baz/bar': 'bazbar',
     });
+
     it('Open an existing directory', async () => {
       expect(await promises.opendir('/foo')).toBeInstanceOf(Dir);
     });
+
     it('Reject when directory does not exist', () => {
       return expect(promises.opendir('/bar')).rejects.toBeInstanceOf(Error);
     });
+
     it('Reject when directory is a file', () => {
       return expect(promises.opendir('/foo/bar')).rejects.toThrow(/ENOTDIR/);
     });
   });
+
   describe('readdir(path[, options])', () => {
     const vol = new Volume();
     const { promises } = vol;
@@ -579,9 +602,11 @@ describe('Promises API', () => {
       '/foo/bar': 'bar',
       '/foo/baz': 'baz',
     });
+
     it('Read an existing directory', async () => {
       expect(await promises.readdir('/foo')).toEqual(['bar', 'baz']);
     });
+
     it('Reject when directory does not exist', () => {
       return expect(promises.readdir('/bar')).rejects.toBeInstanceOf(Error);
     });

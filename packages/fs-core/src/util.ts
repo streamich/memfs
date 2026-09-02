@@ -126,6 +126,7 @@ const EPROTO = 'EPROTO';
 const EEXIST = 'EEXIST';
 const ENOTDIR = 'ENOTDIR';
 const EMFILE = 'EMFILE';
+const ELOOP = 'ELOOP';
 const EACCES = 'EACCES';
 const EISDIR = 'EISDIR';
 const ENOTEMPTY = 'ENOTEMPTY';
@@ -160,6 +161,8 @@ function formatError(errorCode: string, func = '', path = '', path2 = '') {
       return `ENOTEMPTY: directory not empty, ${func}${pathFormatted}`;
     case EMFILE:
       return `EMFILE: too many open files, ${func}${pathFormatted}`;
+    case ELOOP:
+      return `ELOOP: too many symbolic links encountered, ${func}${pathFormatted}`;
     case ENOSYS:
       return `ENOSYS: function not implemented, ${func}${pathFormatted}`;
     case ERR_FS_EISDIR:

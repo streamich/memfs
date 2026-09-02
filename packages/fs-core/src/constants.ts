@@ -6,6 +6,7 @@ export const enum ERROR_CODE {
   EEXIST = 'EEXIST',
   ENOTDIR = 'ENOTDIR',
   EMFILE = 'EMFILE',
+  ELOOP = 'ELOOP',
   EACCES = 'EACCES',
   EISDIR = 'EISDIR',
   ENOTEMPTY = 'ENOTEMPTY',

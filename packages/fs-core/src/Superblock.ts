@@ -28,7 +28,7 @@ const pathSep = posix ? posix.sep : sep;
 const pathRelative = posix ? posix.relative : relative;
 const pathJoin = posix ? posix.join : join;
 
-const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_DIRECTORY } = constants;
+const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_DIRECTORY, O_NOFOLLOW } = constants;
 
 /**
  * Represents a filesystem superblock, which is the root of a virtual
@@ -490,6 +490,7 @@ export class Superblock {
     } else {
       if (flagsNum & O_DIRECTORY) throw createError(ERROR_CODE.ENOTDIR, 'open', link.getPath());
     }
+    if (node.isSymlink() && flagsNum & O_NOFOLLOW) throw createError(ERROR_CODE.ELOOP, 'open', link.getPath());
 
     // Check node permissions
     // For read access: check if flags are O_RDONLY or O_RDWR (i.e., not only O_WRONLY)
@@ -525,9 +526,11 @@ export class Superblock {
     resolveSymlinks: boolean = true,
   ): File {
     const steps = filenameToSteps(filename);
+    // O_NOFOLLOW: walk() still follows symlinks in intermediate components, only the last one is left alone.
+    const follow = resolveSymlinks && !(flagsNum & O_NOFOLLOW);
     let link: Link | null;
     try {
-      link = resolveSymlinks ? this.getResolvedLinkOrThrow(filename, 'open') : this.getLinkOrThrow(filename, 'open');
+      link = follow ? this.getResolvedLinkOrThrow(filename, 'open') : this.getLinkOrThrow(filename, 'open');
 
       // Check if file already existed when trying to create it exclusively (O_CREAT and O_EXCL flags are set).
       // This is an error, see https://pubs.opengroup.org/onlinepubs/009695399/functions/open.html:
@@ -555,7 +558,7 @@ export class Superblock {
       } else throw err;
     }
 
-    if (link) return this.openLink(link, flagsNum, resolveSymlinks);
+    if (link) return this.openLink(link, flagsNum, follow);
     throw createError(ERROR_CODE.ENOENT, 'open', filename);
   }
 

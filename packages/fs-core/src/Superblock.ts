@@ -25,6 +25,7 @@ import { FanOut } from 'thingies/lib/fanout';
 import { FsEvent, FsEventType } from './watch/FsEvent';
 
 const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_DIRECTORY, O_NOFOLLOW } = constants;
+const MAX_SYMLINK_HOPS = 40;
 
 /**
  * Represents a filesystem superblock, which is the root of a virtual
@@ -183,6 +184,7 @@ export class Superblock {
     checkExistence: boolean,
     checkAccess: boolean,
     funcName?: string,
+    budget?: { hops: number },
   ): Result<Link | null, StatError>;
   walk(
     filename: string,
@@ -190,6 +192,7 @@ export class Superblock {
     checkExistence: boolean,
     checkAccess: boolean,
     funcName?: string,
+    budget?: { hops: number },
   ): Result<Link | null, StatError>;
   walk(
     link: Link,
@@ -197,6 +200,7 @@ export class Superblock {
     checkExistence: boolean,
     checkAccess: boolean,
     funcName?: string,
+    budget?: { hops: number },
   ): Result<Link | null, StatError>;
   walk(
     stepsOrFilenameOrLink: string[] | string | Link,
@@ -204,6 +208,7 @@ export class Superblock {
     checkExistence: boolean,
     checkAccess: boolean,
     funcName?: string,
+    budget?: { hops: number },
   ): Result<Link | null, StatError>;
   walk(
     stepsOrFilenameOrLink: string[] | string | Link,
@@ -211,6 +216,7 @@ export class Superblock {
     checkExistence: boolean = false,
     checkAccess: boolean = false,
     funcName?: string,
+    budget?: { hops: number },
   ): Result<Link | null, StatError> {
     let steps: string[];
     let filename: string;
@@ -227,6 +233,7 @@ export class Superblock {
 
     let curr: Link | null = this.root;
     let i = 0;
+    let hops = budget ? budget.hops : 0;
     const uid = this.process.getuid?.() ?? 0;
     const gid = this.process.getgid?.() ?? 0;
     while (i < steps.length) {
@@ -257,6 +264,8 @@ export class Superblock {
       // Resolve symlink if we're resolving all symlinks OR if this is an intermediate path component
       // This allows lstat to traverse through symlinks in intermediate directories while not resolving the final component
       if (node.isSymlink() && (resolveSymlinks || i < steps.length - 1)) {
+        if (++hops > MAX_SYMLINK_HOPS) return Err(createStatError(ERROR_CODE.ELOOP, funcName, filename));
+        if (budget) budget.hops = hops;
         const resolvedPath = isAbsolute(node.symlink) ? node.symlink : pathJoin(dirname(curr.getPath()), node.symlink); // Relative to symlink's parent
 
         steps = filenameToSteps(resolvedPath).concat(steps.slice(i + 1));
@@ -464,10 +473,10 @@ export class Superblock {
     this.fromJSON(json, mountpoint);
   }
 
-  openLink(link: Link, flagsNum: number, resolveSymlinks: boolean = true): File {
+  openLink(link: Link, flagsNum: number, resolveSymlinks: boolean = true, filename: string = link.getPath()): File {
     if (this.openFiles >= this.maxFiles) {
       // Too many open files.
-      throw createError(ERROR_CODE.EMFILE, 'open', link.getPath());
+      throw createError(ERROR_CODE.EMFILE, 'open', filename);
     }
 
     // Resolve symlinks.
@@ -482,23 +491,23 @@ export class Superblock {
     // Check whether node is a directory
     if (node.isDirectory()) {
       if ((flagsNum & (O_RDONLY | O_RDWR | O_WRONLY)) !== O_RDONLY)
-        throw createError(ERROR_CODE.EISDIR, 'open', link.getPath());
+        throw createError(ERROR_CODE.EISDIR, 'open', filename);
     } else {
-      if (flagsNum & O_DIRECTORY) throw createError(ERROR_CODE.ENOTDIR, 'open', link.getPath());
+      if (flagsNum & O_DIRECTORY) throw createError(ERROR_CODE.ENOTDIR, 'open', filename);
     }
-    if (node.isSymlink() && flagsNum & O_NOFOLLOW) throw createError(ERROR_CODE.ELOOP, 'open', link.getPath());
+    if (node.isSymlink() && flagsNum & O_NOFOLLOW) throw createError(ERROR_CODE.ELOOP, 'open', filename);
 
     // Check node permissions
     // For read access: check if flags are O_RDONLY or O_RDWR (i.e., not only O_WRONLY)
     if ((flagsNum & (O_RDONLY | O_RDWR | O_WRONLY)) !== O_WRONLY) {
       if (!node.canRead()) {
-        throw createError(ERROR_CODE.EACCES, 'open', link.getPath());
+        throw createError(ERROR_CODE.EACCES, 'open', filename);
       }
     }
     // For write access: check if flags are O_WRONLY or O_RDWR
     if (flagsNum & (O_WRONLY | O_RDWR)) {
       if (!node.canWrite()) {
-        throw createError(ERROR_CODE.EACCES, 'open', link.getPath());
+        throw createError(ERROR_CODE.EACCES, 'open', filename);
       }
     }
 
@@ -506,6 +515,7 @@ export class Superblock {
     this.fds[file.fd] = file;
     this.openFiles++;
 
+    // TODO: O_TRUNC on a directory is EISDIR on Linux, may_open() adds MAY_WRITE for it.
     if (flagsNum & O_TRUNC) {
       const hadContent = file.node.getSize() > 0;
       file.truncate();
@@ -521,41 +531,51 @@ export class Superblock {
     modeNum: number | undefined,
     resolveSymlinks: boolean = true,
   ): File {
-    const steps = filenameToSteps(filename);
-    // O_NOFOLLOW: walk() still follows symlinks in intermediate components, only the last one is left alone.
-    const follow = resolveSymlinks && !(flagsNum & O_NOFOLLOW);
-    let link: Link | null;
-    try {
-      link = follow ? this.getResolvedLinkOrThrow(filename, 'open') : this.getLinkOrThrow(filename, 'open');
-
-      // Check if file already existed when trying to create it exclusively (O_CREAT and O_EXCL flags are set).
-      // This is an error, see https://pubs.opengroup.org/onlinepubs/009695399/functions/open.html:
-      // "If O_CREAT and O_EXCL are set, open() shall fail if the file exists."
-      if (link && flagsNum & O_CREAT && flagsNum & O_EXCL) throw createError(ERROR_CODE.EEXIST, 'open', filename);
-    } catch (err) {
-      // Try creating a new file, if it does not exist and O_CREAT flag is set.
-      // Note that this will still throw if the ENOENT came from one of the
-      // intermediate directories instead of the file itself.
-      if (err.code === ERROR_CODE.ENOENT && flagsNum & O_CREAT) {
-        const dirName = dirname(filename);
-        const dirLink = this.getResolvedLinkOrThrow(dirName);
-        const dirNode = dirLink.getNode();
-
-        // Check that the place we create the new file is actually a directory and that we are allowed to do so:
-        if (!dirNode.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'open', filename);
-        if (!dirNode.canExecute() || !dirNode.canWrite()) throw createError(ERROR_CODE.EACCES, 'open', filename);
-
-        // This is a difference to the original implementation, which would simply not create a file unless modeNum was specified.
-        // However, current Node versions will default to 0o666.
-        modeNum ??= 0o666;
-
-        link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
-        this.emit(new FsEvent(FsEventType.CREATE, link.steps, link.getNode(), link));
-      } else throw err;
+    if (this.openFiles >= this.maxFiles) throw createError(ERROR_CODE.EMFILE, 'open', filename);
+    // TODO: on Windows a trailing `\` should count too.
+    let trailingSlash = filename.length > 1 && filename.charCodeAt(filename.length - 1) === 47; // '/'
+    if (trailingSlash && flagsNum & O_CREAT) throw createError(ERROR_CODE.EISDIR, 'open', filename);
+    const excl = (flagsNum & (O_CREAT | O_EXCL)) === (O_CREAT | O_EXCL);
+    const follow = trailingSlash || (resolveSymlinks && !(flagsNum & O_NOFOLLOW) && !excl);
+    const budget = { hops: 0 };
+    let path = filename;
+    let link: Link | null = null;
+    for (;;) {
+      const result = this.walk(path, false, true, true, 'open', budget);
+      if (!result.ok) {
+        const code = result.err.code;
+        if (code !== ERROR_CODE.ENOENT || !(flagsNum & O_CREAT)) throw createError(code, 'open', filename);
+        link = null;
+        break;
+      }
+      link = result.value!;
+      const node = link.getNode();
+      if (!follow || !node.isSymlink()) break;
+      if (++budget.hops > MAX_SYMLINK_HOPS) throw createError(ERROR_CODE.ELOOP, 'open', filename);
+      path = isAbsolute(node.symlink) ? node.symlink : pathJoin(dirname(link.getPath()), node.symlink);
+      if (path.length > 1 && path.charCodeAt(path.length - 1) === 47) {
+        if (flagsNum & O_CREAT) throw createError(ERROR_CODE.EISDIR, 'open', filename);
+        trailingSlash = true;
+      }
     }
-
-    if (link) return this.openLink(link, flagsNum, follow);
-    throw createError(ERROR_CODE.ENOENT, 'open', filename);
+    if (link) {
+      const node = link.getNode();
+      if (excl) throw createError(ERROR_CODE.EEXIST, 'open', filename);
+      if (trailingSlash && !node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'open', filename);
+      if (flagsNum & O_CREAT && node.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'open', filename);
+      return this.openLink(link, flagsNum, false, filename);
+    }
+    const dir = this.walk(dirname(path), true, true, true, 'open', budget);
+    if (!dir.ok) throw createError(dir.err.code, 'open', filename);
+    const dirLink = dir.value!;
+    const dirNode = dirLink.getNode();
+    if (!dirNode.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'open', filename);
+    if (!dirNode.canExecute() || !dirNode.canWrite()) throw createError(ERROR_CODE.EACCES, 'open', filename);
+    modeNum ??= 0o666;
+    const steps = filenameToSteps(path);
+    link = this.createLink(dirLink, steps[steps.length - 1], false, modeNum);
+    this.emit(new FsEvent(FsEventType.CREATE, link.steps, link.getNode(), link));
+    return this.openLink(link, flagsNum, false, filename);
   }
 
   public readonly open = (

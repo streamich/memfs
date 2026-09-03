@@ -6,7 +6,8 @@ const { O_WRONLY, O_CREAT, O_TRUNC, O_NOFOLLOW } = constants;
 
 describe('writeFileSync(path, data[, options])', () => {
   const data = 'asdfasidofjasdf';
-  it('Create a file at root (/writeFileSync.txt)', () => {
+
+  it('create a file at root (/writeFileSync.txt)', () => {
     const vol = create();
     vol.writeFileSync('/writeFileSync.txt', data);
 
@@ -14,7 +15,8 @@ describe('writeFileSync(path, data[, options])', () => {
     expect(node).toBeInstanceOf(Node);
     expect(node.getString()).toBe(data);
   });
-  it('Write to file by file descriptor', () => {
+
+  it('write to file by file descriptor', () => {
     const vol = create();
     const fd = vol.openSync('/writeByFd.txt', 'w');
     vol.writeFileSync(fd, data);
@@ -22,7 +24,8 @@ describe('writeFileSync(path, data[, options])', () => {
     expect(node).toBeInstanceOf(Node);
     expect(node.getString()).toBe(data);
   });
-  it('Write to two files (second by fd)', () => {
+
+  it('write to two files (second by fd)', () => {
     const vol = create();
 
     // 1
@@ -38,7 +41,7 @@ describe('writeFileSync(path, data[, options])', () => {
     expect(tryGetChildNode(vol._core.root, '1.txt').getString()).toBe('123');
     expect(tryGetChildNode(vol._core.root, '2.txt').getString()).toBe('456');
   });
-  it('Write at relative path that does not exist throws correct error', () => {
+  it('write at relative path that does not exist throws correct error', () => {
     const vol = create();
     try {
       vol.writeFileSync('a/b', 'c');
@@ -48,7 +51,7 @@ describe('writeFileSync(path, data[, options])', () => {
     }
   });
 
-  it('Write throws EACCES if file exists but has insufficient permissions', () => {
+  it('write throws EACCES if file exists but has insufficient permissions', () => {
     const vol = create({ '/foo/test': 'test' });
     vol.chmodSync('/foo/test', 0o555); // rx
     expect(() => {
@@ -56,7 +59,7 @@ describe('writeFileSync(path, data[, options])', () => {
     }).toThrowError(/EACCES/);
   });
 
-  it('Write throws EACCES without sufficient permissions on containing directory', () => {
+  it('write throws EACCES without sufficient permissions on containing directory', () => {
     const perms = [
       0o666, // rw
       0o555, // rx, only when target file does not exist yet
@@ -78,7 +81,7 @@ describe('writeFileSync(path, data[, options])', () => {
     }).not.toThrowError();
   });
 
-  it('Write throws EACCES without sufficient permissions on intermediate directory', () => {
+  it('write throws EACCES without sufficient permissions on intermediate directory', () => {
     const vol = create({});
     vol.mkdirSync('/foo');
     vol.chmodSync('/', 0o666); // rw
@@ -87,12 +90,26 @@ describe('writeFileSync(path, data[, options])', () => {
     }).toThrowError(/EACCES/);
   });
 
-  it('Throws ELOOP when flag has O_NOFOLLOW and the path is a symlink', () => {
+  it('throws ELOOP when flag has O_NOFOLLOW and the path is a symlink', () => {
     const vol = create({ '/file': 'content' });
     vol.symlinkSync('/file', '/link');
     expect(() => vol.writeFileSync('/link', 'new', { flag: O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW })).toThrow(
       expect.objectContaining({ code: 'ELOOP' }),
     );
     expect(vol.readFileSync('/file', 'utf8')).toBe('content');
+  });
+
+  it('writes through a dangling symlink into its target', () => {
+    const vol = create({});
+    vol.symlinkSync('/target', '/dangling');
+    vol.writeFileSync('/dangling', data);
+    expect(vol.readFileSync('/target', 'utf8')).toBe(data);
+    expect(vol.lstatSync('/dangling').isSymbolicLink()).toBe(true);
+  });
+
+  it('throws EISDIR for a path with a trailing slash and creates nothing', () => {
+    const vol = create({});
+    expect(() => vol.writeFileSync('/new/', data)).toThrow(expect.objectContaining({ code: 'EISDIR' }));
+    expect(vol.existsSync('/new')).toBe(false);
   });
 });

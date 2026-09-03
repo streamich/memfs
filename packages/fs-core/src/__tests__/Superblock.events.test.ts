@@ -27,6 +27,17 @@ describe('Superblock events', () => {
     expect(events[0].steps).toEqual(['', 'test.txt']);
   });
 
+  it('emits CREATE for the target when O_CREAT goes through a dangling symlink', () => {
+    const { sb, events } = setup();
+    sb.mkdir('/dir', 0o777);
+    sb.symlink('/dir/target', '/link');
+    events.length = 0;
+    sb.open('/link', FLAGS.w, 0o666);
+    expect(events.length).toBe(1);
+    expect(events[0].type).toBe(FsEventType.CREATE);
+    expect(events[0].steps).toEqual(['', 'dir', 'target']);
+  });
+
   it('emits MODIFY on write', () => {
     const { sb, events } = setup();
     const fd = sb.open('/test.txt', FLAGS.w, 0o666);

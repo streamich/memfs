@@ -27,6 +27,13 @@ import { FsEvent, FsEventType } from './watch/FsEvent';
 const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_DIRECTORY, O_NOFOLLOW } = constants;
 const MAX_SYMLINK_HOPS = 40;
 
+const endsWithSep = (path: string, win32: boolean): boolean => {
+  const length = path.length;
+  if (length < 2) return false;
+  const code = path.charCodeAt(length - 1);
+  return code === 47 || (win32 && code === 92); // '/' or '\'
+};
+
 /**
  * Represents a filesystem superblock, which is the root of a virtual
  * filesystem in Linux.
@@ -532,8 +539,8 @@ export class Superblock {
     resolveSymlinks: boolean = true,
   ): File {
     if (this.openFiles >= this.maxFiles) throw createError(ERROR_CODE.EMFILE, 'open', filename);
-    // TODO: on Windows a trailing `\` should count too.
-    let trailingSlash = filename.length > 1 && filename.charCodeAt(filename.length - 1) === 47; // '/'
+    const win32 = this.process.platform === 'win32';
+    let trailingSlash = endsWithSep(filename, win32);
     if (trailingSlash && flagsNum & O_CREAT) throw createError(ERROR_CODE.EISDIR, 'open', filename);
     const excl = (flagsNum & (O_CREAT | O_EXCL)) === (O_CREAT | O_EXCL);
     const follow = trailingSlash || (resolveSymlinks && !(flagsNum & O_NOFOLLOW) && !excl);
@@ -553,7 +560,7 @@ export class Superblock {
       if (!follow || !node.isSymlink()) break;
       if (++budget.hops > MAX_SYMLINK_HOPS) throw createError(ERROR_CODE.ELOOP, 'open', filename);
       path = isAbsolute(node.symlink) ? node.symlink : pathJoin(dirname(link.getPath()), node.symlink);
-      if (path.length > 1 && path.charCodeAt(path.length - 1) === 47) {
+      if (endsWithSep(path, win32)) {
         if (flagsNum & O_CREAT) throw createError(ERROR_CODE.EISDIR, 'open', filename);
         trailingSlash = true;
       }

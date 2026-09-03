@@ -51,6 +51,15 @@ describe('.readFile()', () => {
     );
   });
 
+  it('rejects with ELOOP, not EISDIR, when O_NOFOLLOW meets a symlink to a directory', async () => {
+    const { fs } = memfs({ '/dir/file': 'x' });
+    fs.symlinkSync('/dir', '/dirlink');
+    return expect(fs.promises.readFile('/dirlink', { flag: O_RDONLY | O_NOFOLLOW })).rejects.toHaveProperty(
+      'code',
+      'ELOOP',
+    );
+  });
+
   it('accepts a numeric flag in the callback form', done => {
     const { fs } = memfs({ '/foo': 'hello' });
     fs.readFile('/foo', { flag: O_RDONLY | O_NOFOLLOW, encoding: 'utf8' }, (err, data) => {
@@ -105,6 +114,16 @@ describe('.readFileSync()', () => {
     );
   });
 
+  it('throws ELOOP, not EISDIR, when O_NOFOLLOW meets a symlink to a directory', () => {
+    const { fs } = memfs({ '/dir/file': 'x' });
+    fs.symlinkSync('/dir', '/dirlink');
+    expect(() => fs.readFileSync('/dirlink', { flag: O_RDONLY | O_NOFOLLOW })).toThrow(
+      expect.objectContaining({ code: 'ELOOP', path: '/dirlink' }),
+    );
+    expect(() => fs.readFileSync('/dirlink/', { flag: O_RDONLY | O_NOFOLLOW })).toThrow(
+      expect.objectContaining({ code: 'EISDIR', path: '/dirlink/' }),
+    );
+  });
   it('reports the path as given', () => {
     const { fs } = memfs({ '/foo': 'hello', '/dir/file': 'x' });
     fs.symlinkSync('/dir', '/dirlink');

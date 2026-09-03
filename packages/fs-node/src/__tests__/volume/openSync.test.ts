@@ -280,6 +280,18 @@ describe('openSync(path, mode[, flags])', () => {
         expect.objectContaining({ code: 'ENOTDIR', path: '/filelink' }),
       );
     });
+
+    it('counts a trailing backslash on win32', () => {
+      const fs = setup();
+      const platform = Object.getOwnPropertyDescriptor(process, 'platform')!;
+      Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
+      try {
+        expect(() => fs.openSync('/nonexist\\', 'w')).toThrow(expect.objectContaining({ code: 'EISDIR' }));
+      } finally {
+        Object.defineProperty(process, 'platform', platform);
+      }
+      expect(fs.existsSync('/nonexist\\')).toBe(false);
+    });
   });
 
   describe('O_CREAT through a symlink', () => {

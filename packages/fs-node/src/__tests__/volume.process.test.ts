@@ -41,4 +41,16 @@ describe('Volume with custom process', () => {
       expect(stat.gid).toBe(99);
     });
   });
+
+  describe('relative paths', () => {
+    it('resolves write operations against the custom process cwd', () => {
+      const customProcess = makeProcess({ cwd: () => '/app' });
+      const vol = Volume.fromJSON({ '/app': null }, '/', { process: customProcess });
+
+      vol.writeFileSync('data.txt', 'hello');
+
+      expect(vol.readFileSync('/app/data.txt', 'utf8')).toBe('hello');
+      expect(vol.readFileSync('data.txt', 'utf8')).toBe('hello');
+    });
+  });
 });

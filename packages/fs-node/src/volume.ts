@@ -1,13 +1,4 @@
-import {
-  resolve,
-  sep,
-  relative,
-  join,
-  dirname,
-  normalize,
-  posix,
-  isAbsolute,
-} from '@jsonjoy.com/fs-node-builtins/lib/path';
+import { resolve, sep, posix, isAbsolute } from '@jsonjoy.com/fs-node-builtins/lib/path';
 import {
   Link,
   Superblock,
@@ -22,12 +13,12 @@ import {
   dataToBuffer,
   filenameToSteps,
   isFd,
+  isWin,
   validateFd,
   Ok,
   Result,
   type IProcess,
 } from '@jsonjoy.com/fs-core';
-import { isWin } from '@jsonjoy.com/fs-core/lib/util';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import StatFs from './StatFs';
@@ -51,7 +42,16 @@ import { FsCallbackApi, WritevCallback } from '@jsonjoy.com/fs-node-utils/lib/ty
 import { FsPromises } from './FsPromises';
 import { ToTreeOptions, toTreeSync } from '@jsonjoy.com/fs-print';
 import * as fsSnapshot from '@jsonjoy.com/fs-snapshot';
-import { ERRSTR, FLAGS, MODE } from '@jsonjoy.com/fs-node-utils';
+import {
+  ERRSTR,
+  FLAGS,
+  MODE,
+  pathSep,
+  pathRelative,
+  pathJoin,
+  pathDirname,
+  pathNormalize,
+} from '@jsonjoy.com/fs-node-utils';
 import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import {
   getDefaultOpts,
@@ -95,12 +95,6 @@ import { Dir } from './Dir';
 
 const resolveCrossPlatform = resolve;
 const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK, COPYFILE_EXCL, COPYFILE_FICLONE_FORCE } = constants;
-
-const pathSep = posix ? posix.sep : sep;
-const pathRelative = posix ? posix.relative : relative;
-const pathJoin = posix ? posix.join : join;
-const pathDirname = posix ? posix.dirname : dirname;
-const pathNormalize = posix ? posix.normalize : normalize;
 
 // ---------------------------------------------------------------------- Types
 

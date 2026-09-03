@@ -10,8 +10,7 @@ import {
   Dir,
   FsPromises,
 } from '..';
-import { fsCallbackApiList } from '../lists/fsCallbackApiList';
-import { fsSynchronousApiList } from '../lists/fsSynchronousApiList';
+import { fsCallbackApiList, fsSynchronousApiList } from '@jsonjoy.com/fs-node-utils';
 
 describe('@jsonjoy.com/fs-node', () => {
   it('Exports Volume constructor', () => {

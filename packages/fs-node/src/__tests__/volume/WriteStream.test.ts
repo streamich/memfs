@@ -1,4 +1,7 @@
 import { createFs } from '../util';
+import { constants } from '@jsonjoy.com/fs-node-utils';
+
+const { O_WRONLY, O_CREAT, O_TRUNC, O_NOFOLLOW } = constants;
 
 describe('WriteStream', () => {
   it('fs has WriteStream constructor', () => {
@@ -73,6 +76,20 @@ describe('WriteStream', () => {
       })
       .on('open', () => {
         done(new Error("Expected WriteStream to emit EACCES but it didn't"));
+      });
+  });
+
+  it('O_NOFOLLOW emits ELOOP when the path is a symlink and leaves the target intact', done => {
+    const fs = createFs({ '/file': 'content' });
+    fs.symlinkSync('/file', '/link');
+    fs.createWriteStream('/link', { flags: O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW })
+      .on('error', err => {
+        expect(err).toHaveProperty('code', 'ELOOP');
+        expect(fs.readFileSync('/file', 'utf8')).toBe('content');
+        done();
+      })
+      .on('open', () => {
+        done(new Error("Expected WriteStream to emit ELOOP but it didn't"));
       });
   });
 });

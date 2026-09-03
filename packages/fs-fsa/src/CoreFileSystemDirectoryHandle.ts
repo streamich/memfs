@@ -1,8 +1,8 @@
 import { CoreFileSystemHandle } from './CoreFileSystemHandle';
+import { basename } from '@jsonjoy.com/fs-node-utils';
 import {
   assertCanWrite,
   assertName,
-  basename,
   ctx as createCtx,
   newNotAllowedError,
   newNotFoundError,

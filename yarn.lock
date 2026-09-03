@@ -4951,6 +4951,7 @@ __metadata:
     app-root-path: "npm:^3.1.0"
     assert: "npm:^2.0.0"
     buffer: "npm:^6.0.3"
+    events: "npm:^3.3.0"
     glob-to-regex.js: "npm:^1.0.1"
     html-webpack-plugin: "npm:^5.5.3"
     husky: "npm:^8.0.1"
@@ -4976,8 +4977,6 @@ __metadata:
     webpack: "npm:^5.87.0"
     webpack-cli: "npm:^5.1.4"
     webpack-dev-server: "npm:^4.15.1"
-  peerDependencies:
-    tslib: 2
   languageName: unknown
   linkType: soft
 

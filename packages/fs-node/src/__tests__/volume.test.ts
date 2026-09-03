@@ -6,10 +6,11 @@ import Dirent from '../Dirent';
 import { Volume, StatWatcher } from '../volume';
 import hasBigInt from './hasBigInt';
 import { tryGetChild, tryGetChildNode } from './util';
-import { genRndStr6 } from '../util';
+import { genRndStr6, pathToFilename } from '../util';
+import { isWin } from '@jsonjoy.com/fs-core';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 
-const { O_RDWR, O_SYMLINK } = constants;
+const { O_RDONLY, O_RDWR, O_NOFOLLOW, O_SYMLINK } = constants;
 
 describe('volume', () => {
   describe('filenameToSteps(filename): string[]', () => {
@@ -464,6 +465,20 @@ describe('volume', () => {
           done();
         });
       }, 100);
+
+      it('Error with ELOOP when O_NOFOLLOW is set and the path is a symlink', done => {
+        vol.writeFileSync('/nofollow-target.txt', 'x');
+        vol.symlinkSync('/nofollow-target.txt', '/nofollow-link.txt');
+        vol.open('/nofollow-link.txt', O_RDONLY | O_NOFOLLOW, err => {
+          try {
+            expect(err).toHaveProperty('code', 'ELOOP');
+            done();
+          } catch (e) {
+            done(e);
+          }
+        });
+      });
+
       it('Error on file not found', done => {
         vol.open('/non-existing-file.txt', 'r', (err, fd) => {
           expect(err).toHaveProperty('code', 'ENOENT');
@@ -637,6 +652,22 @@ describe('volume', () => {
       it('Read file with path passed as URL', () => {
         const str = vol.readFileSync(new URL('file:///text.txt')).toString();
         expect(str).toBe(data);
+      });
+      it('Drive-letter file: URL converts like Node`s fileURLToPath (issue #1098)', () => {
+        // Windows drops the slash before the drive letter, POSIX keeps it.
+        expect(pathToFilename(new URL('file:///C:/src/file.txt'))).toBe(isWin ? 'C:/src/file.txt' : '/C:/src/file.txt');
+      });
+      (isWin ? it : it.skip)('Read file with a drive-letter file: URL (issue #1098)', () => {
+        const driveVol = new Volume();
+        driveVol.fromJSON({ 'C:/src/file.txt': 'Hello from fake file!' });
+        const url = new URL('file:///C:/src/file.txt');
+        expect(driveVol.readFileSync(url, 'utf8')).toBe('Hello from fake file!');
+      });
+      (isWin ? it.skip : it)('Reads an absolute /C:/… path via a file: URL on POSIX', () => {
+        const driveVol = new Volume();
+        driveVol.fromJSON({ '/C:/src/file.txt': 'Hello from fake file!' });
+        const url = new URL('file:///C:/src/file.txt');
+        expect(driveVol.readFileSync(url, 'utf8')).toBe('Hello from fake file!');
       });
       it('Specify encoding as string', () => {
         const str = vol.readFileSync('/text.txt', 'utf8');

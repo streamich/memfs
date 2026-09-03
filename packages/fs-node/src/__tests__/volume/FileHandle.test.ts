@@ -403,6 +403,15 @@ describe('FileHandle', () => {
       // Third close should resolve immediately
       await handle.close();
     });
+
+    it('allows closing a handle after its path has been unlinked', async () => {
+      const fs = createFs({});
+      const handle = await fs.promises.open('/test', 'w');
+
+      await fs.promises.unlink('/test');
+
+      await expect(handle.close()).resolves.toBeUndefined();
+    });
   });
 
   describe('createReadStream()', () => {

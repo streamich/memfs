@@ -162,7 +162,7 @@ export class FsaNodeCore {
     if (throwIfExists) {
       try {
         await this.getFile(folder, name, 'open', false);
-        throw util.createError(ERROR_CODE.EEXIST, 'writeFile');
+        throw util.createError(ERROR_CODE.EEXIST, 'open', filename);
       } catch (error) {
         const file404 =
           error && typeof error === 'object' && (error.code === 'ENOENT' || error.name === 'NotFoundError');
@@ -215,10 +215,10 @@ export class FsaNodeCore {
     if (deleted) this.releasedFds.push(fd);
   }
 
-  protected getFileName(id: misc.TFileId): string {
+  protected getFileName(id: misc.TFileId, syscall: string): string {
     if (typeof id === 'number') {
       const openFile = this.fds.get(id);
-      if (!openFile) throw createError(ERROR_CODE.EBADF, 'readFile');
+      if (!openFile) throw createError(ERROR_CODE.EBADF, syscall);
       return openFile.filename;
     }
     return pathToFilename(id);

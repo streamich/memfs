@@ -146,8 +146,14 @@ onlyOnNode20('FsaNodeFs.watch()', () => {
     const watcher = fs.watch('/missing/file.txt');
     watcher.on('error', error => errors.push(error));
     await until(() => errors.length >= 1);
-    expect(errors[0].message).toBe('watch /missing/file.txt ENOENT');
-    expect(errors[0].code).toBe('ENOENT');
+    expect(errors[0].message).toBe("ENOENT: no such file or directory, watch '/missing/file.txt'");
+    expect(errors[0]).toMatchObject({
+      errno: -2,
+      code: 'ENOENT',
+      syscall: 'watch',
+      path: '/missing/file.txt',
+      filename: '/missing/file.txt',
+    });
   });
 
   test('close() emits "close" and stops event delivery', async () => {

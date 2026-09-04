@@ -443,7 +443,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
 
       // Check execute permission - not supported by FSA
       const checkIfCanExecute = mode & AMODE.X_OK;
-      if (checkIfCanExecute) throw util.createError('EACCESS', 'access', filename);
+      if (checkIfCanExecute) throw util.createError('EACCES', 'access', filename);
 
       // Use queryPermission to check read/write access
       const checkIfCanRead = mode & AMODE.R_OK;
@@ -454,7 +454,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
         const permission = await node.queryPermission({ mode: permissionMode });
 
         if (permission.state === 'denied') {
-          throw util.createError('EACCESS', 'access', filename);
+          throw util.createError('EACCES', 'access', filename);
         }
       }
 
@@ -954,7 +954,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   public readonly lstatSync: FsSynchronousApi['lstatSync'] = this.statSync;
 
   public readonly fstatSync: FsSynchronousApi['fstatSync'] = (fd: number, options?: opts.IFStatOptions) => {
-    const filename = this.getFileName(fd);
+    const filename = this.getFileName(fd, 'fstat');
     return this.statSync(filename, options as any) as any;
   };
 
@@ -974,7 +974,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   ): misc.TDataOut => {
     const opts = optHelpers.getReadFileOptions(options);
     const flagsNum = util.flagsToNumber(opts.flag);
-    const filename = this.getFileName(id);
+    const filename = this.getFileName(id, 'fstat');
     const adapter = this.getSyncAdapter();
     const uint8 = adapter.call('readFile', [filename, opts]);
     const buffer = Buffer.from(uint8.buffer, uint8.byteOffset, uint8.byteLength);
@@ -990,7 +990,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const flagsNum = util.flagsToNumber(opts.flag);
     const modeNum = util.modeToNumber(opts.mode);
     const buf = dataToBuffer(data, opts.encoding);
-    const filename = this.getFileName(id);
+    const filename = this.getFileName(id, 'write');
     const adapter = this.getSyncAdapter();
     adapter.call('writeFile', [filename, util.bufToUint8(buf), opts]);
   };
@@ -1002,7 +1002,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   ) => {
     const opts = optHelpers.getAppendFileOpts(options);
     if (!opts.flag || isFd(id)) opts.flag = 'a';
-    const filename = this.getFileName(id);
+    const filename = this.getFileName(id, 'write');
     const buf = dataToBuffer(data, opts.encoding);
     const adapter = this.getSyncAdapter();
     adapter.call('appendFile', [filename, util.bufToUint8(buf), opts]);
@@ -1096,7 +1096,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
   };
 
   public readonly ftruncateSync: FsSynchronousApi['ftruncateSync'] = (fd: number, len?: number): void => {
-    const filename = this.getFileName(fd);
+    const filename = this.getFileName(fd, 'ftruncate');
     this.truncateSync(filename, len);
   };
 
@@ -1152,7 +1152,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     position: number,
   ): number => {
     validateFd(fd);
-    const filename = this.getFileName(fd);
+    const filename = this.getFileName(fd, 'read');
     const adapter = this.getSyncAdapter();
     const uint8 = adapter.call('read', [filename, position, length]);
     const dest = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
@@ -1168,7 +1168,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     d?: number | null,
   ): number => {
     const [, buf, offset, length, position] = util.getWriteSyncArgs(fd, a, b, c, d);
-    const filename = this.getFileName(fd);
+    const filename = this.getFileName(fd, 'write');
     const data = new Uint8Array(buf.buffer, buf.byteOffset + offset, length);
     return this.getSyncAdapter().call('write', [filename, data, position || null]);
   };

@@ -6,16 +6,9 @@ import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import defaultProcess, { type IProcess } from './process';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 import { ERRSTR, FLAGS, MODE, pathSep, pathRelative, pathJoin } from '@jsonjoy.com/fs-node-utils';
-import {
-  pathToFilename,
-  createError,
-  createStatError,
-  dataToBuffer,
-  filenameToSteps,
-  isFd,
-  resolve,
-  validateFd,
-} from './util';
+import { pathToFilename, dataToBuffer, filenameToSteps, isFd, resolve, validateFd } from './util';
+import { createError, createStatError, createEisdirError } from './errors';
+import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import { DirectoryJSON, flattenJSON, NestedDirectoryJSON } from './json';
 import type { PathLike } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import { ERROR_CODE } from './constants';
@@ -377,7 +370,7 @@ export class Superblock {
     return this.fds[String(fd)];
   }
 
-  getFileByFdOrThrow(fd: number, funcName?: string): File {
+  getFileByFdOrThrow(fd: number, funcName: string): File {
     if (!isFd(fd)) throw TypeError(ERRSTR.FD);
     const file = this.getFileByFd(fd);
     if (!file) throw createError(ERROR_CODE.EBADF, funcName);
@@ -637,10 +630,11 @@ export class Superblock {
     length: number,
     position: number | null,
   ): number => {
-    if (buffer.byteLength < length) {
-      throw createError(ERROR_CODE.ERR_OUT_OF_RANGE, 'read', undefined, undefined, RangeError);
+    // TODO: Node also rejects offset < 0 and length < 0 with ERR_OUT_OF_RANGE.
+    if (offset + length > buffer.byteLength) {
+      throw new errors.RangeError('ERR_OUT_OF_RANGE', 'length', '<= ' + (buffer.byteLength - offset), length);
     }
-    const file = this.getFileByFdOrThrow(fd);
+    const file = this.getFileByFdOrThrow(fd, 'read');
     if (file.node.isSymlink()) {
       throw createError(ERROR_CODE.EPERM, 'read', file.link.getPath());
     }
@@ -653,7 +647,7 @@ export class Superblock {
   };
 
   public readonly readv = (fd: number, buffers: ArrayBufferView[], position: number | null): number => {
-    const file = this.getFileByFdOrThrow(fd);
+    const file = this.getFileByFdOrThrow(fd, 'read');
     let p = position ?? undefined;
     if (p === -1) p = undefined;
     let bytesRead = 0;
@@ -693,6 +687,7 @@ export class Superblock {
 
   public readonly unlink = (filename: string) => {
     const link: Link = this.getLinkOrThrow(filename, 'unlink');
+    // TODO: Linux returns EISDIR here; EPERM is the macOS/BSD result.
     if (link.getNode().isDirectory()) throw createError(ERROR_CODE.EPERM, 'unlink', filename);
     this._emitDeleteRecursive(link);
     this.deleteLink(link);
@@ -843,16 +838,16 @@ export class Superblock {
   };
 
   public readonly rm = (filename: string, force: boolean = false, recursive: boolean = false): void => {
-    // "stat" is used to match Node's native error message.
     let link: Link;
     try {
-      link = this.getResolvedLinkOrThrow(filename, 'stat');
+      link = this.getResolvedLinkOrThrow(filename, 'lstat');
     } catch (err) {
       // Silently ignore missing paths if force option is true
       if (err.code === ERROR_CODE.ENOENT && force) return;
       else throw err;
     }
-    if (link.getNode().isDirectory() && !recursive) throw createError(ERROR_CODE.ERR_FS_EISDIR, 'rm', filename);
+    if (link.getNode().isDirectory() && !recursive) throw createEisdirError('rm', filename);
+    // TODO: Node reports the failing `unlink`/`rmdir` syscall here; `rm` is not a libuv request.
     if (!link.parent?.getNode().canWrite()) throw createError(ERROR_CODE.EACCES, 'rm', filename);
     this._emitDeleteRecursive(link);
     this.deleteLink(link);
@@ -929,7 +924,7 @@ export class Superblock {
   };
 
   public readonly futimes = (fd: number, atime: number, mtime: number): void => {
-    const file = this.getFileByFdOrThrow(fd, 'futimes');
+    const file = this.getFileByFdOrThrow(fd, 'futime');
     const node = file.node;
     node.atime = new Date(atime * 1000);
     node.mtime = new Date(mtime * 1000);
@@ -938,8 +933,8 @@ export class Superblock {
 
   public readonly utimes = (filename: string, atime: number, mtime: number, followSymlinks: boolean = true): void => {
     const link = followSymlinks
-      ? this.getResolvedLinkOrThrow(filename, 'utimes')
-      : this.getLinkOrThrow(filename, 'lutimes');
+      ? this.getResolvedLinkOrThrow(filename, 'utime')
+      : this.getLinkOrThrow(filename, 'lutime');
     const node = link.getNode();
     node.atime = new Date(atime * 1000);
     node.mtime = new Date(mtime * 1000);

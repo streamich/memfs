@@ -12,7 +12,7 @@ export interface IFileOptions extends IOptions {
 export interface IWriteFileOptions extends IFileOptions {}
 
 export interface IReadFileOptions extends IOptions {
-  flag?: string;
+  flag?: TFlags;
 }
 
 export interface IRealpathOptions {

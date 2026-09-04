@@ -12,6 +12,28 @@ describe('.statSync(...)', () => {
     expect(stats.size).toBe(11);
   });
 
+  it('throws ELOOP on a symlink loop, while lstat still sees the link', () => {
+    const vol = create({});
+    vol.symlinkSync('/b', '/a');
+    vol.symlinkSync('/a', '/b');
+    expect(() => vol.statSync('/a')).toThrow(expect.objectContaining({ code: 'ELOOP' }));
+    expect(() => vol.statSync('/a/x')).toThrow(expect.objectContaining({ code: 'ELOOP' }));
+    expect(() => vol.lstatSync('/a/x')).toThrow(expect.objectContaining({ code: 'ELOOP' }));
+    expect(vol.lstatSync('/a').isSymbolicLink()).toBe(true);
+  });
+
+  it('follows a chain of 40 symlinks and rejects 41', () => {
+    const vol = create({ '/file': 'content' });
+    let prev = '/file';
+    for (let i = 1; i <= 41; i++) {
+      const link = '/l' + i;
+      vol.symlinkSync(prev, link);
+      prev = link;
+    }
+    expect(vol.statSync('/l40').isFile()).toBe(true);
+    expect(() => vol.statSync('/l41')).toThrow(expect.objectContaining({ code: 'ELOOP' }));
+  });
+
   it('returns rdev', () => {
     const vol = create({});
     const fd = vol.openSync('/null', 'w');

@@ -31,6 +31,23 @@ describe('.readSync(fd, buffer, offset, length, position)', () => {
     expect(fn).toThrow('The value of "length" is out of range. It must be <= 1. Received 3');
   });
 
+  it('rejects a negative offset like Node', () => {
+    const vol = create({ '/test.txt': '01234567' });
+    const fn = () => vol.readSync(vol.openSync('/test.txt', 'r'), Buffer.alloc(3), -1, 1, 0);
+    expect(fn).toThrow('The value of "offset" is out of range. It must be >= 0 && <= 9007199254740991. Received -1');
+  });
+
+  it('rejects a negative length like Node', () => {
+    const vol = create({ '/test.txt': '01234567' });
+    const fn = () => vol.readSync(vol.openSync('/test.txt', 'r'), Buffer.alloc(3), 0, -1, 0);
+    expect(fn).toThrow('The value of "length" is out of range. It must be >= 0. Received -1');
+  });
+
+  it('returns 0 for a zero length before any range check', () => {
+    const vol = create({ '/test.txt': '01234567' });
+    expect(vol.readSync(vol.openSync('/test.txt', 'r'), Buffer.alloc(3), 4, 0, 0)).toBe(0);
+  });
+
   it('Read over file boundary', () => {
     const vol = create({ '/test.txt': '01234567' });
     const buf = Buffer.alloc(3, 0);

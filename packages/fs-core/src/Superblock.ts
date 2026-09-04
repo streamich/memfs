@@ -630,7 +630,9 @@ export class Superblock {
     length: number,
     position: number | null,
   ): number => {
-    // TODO: Node also rejects offset < 0 and length < 0 with ERR_OUT_OF_RANGE.
+    if (offset < 0) throw new errors.RangeError('ERR_OUT_OF_RANGE', 'offset', '>= 0 && <= 9007199254740991', offset);
+    if (length === 0) return 0;
+    if (length < 0) throw new errors.RangeError('ERR_OUT_OF_RANGE', 'length', '>= 0', length);
     if (offset + length > buffer.byteLength) {
       throw new errors.RangeError('ERR_OUT_OF_RANGE', 'length', '<= ' + (buffer.byteLength - offset), length);
     }

@@ -821,19 +821,28 @@ describe('volume', () => {
       });
     });
     describe('.symlinkSync(target, path[, type])', () => {
+      it('rejects an empty target with ENOENT', () => {
+        const vol = new Volume();
+        expect(() => vol.symlinkSync('', '/e')).toThrow(expect.objectContaining({ code: 'ENOENT' }));
+        expect(() => vol.lstatSync('/e')).toThrow(expect.objectContaining({ code: 'ENOENT' }));
+      });
+
       const vol = new Volume();
       const jquery = vol._core.createLink(vol._core.root, 'jquery.js').getNode();
       const data = '"use strict";';
       jquery.setString(data);
+
       it('Create a symlink', () => {
         vol.symlinkSync('/jquery.js', '/test.js');
         expect(vol._core.root.getChild('test.js')).toBeInstanceOf(Link);
         expect(tryGetChildNode(vol._core.root, 'test.js').isSymlink()).toBe(true);
       });
+
       it('Read from symlink', () => {
         vol.symlinkSync('/jquery.js', '/test2.js');
         expect(vol.readFileSync('/test2.js').toString()).toBe(data);
       });
+
       describe('Complex, deep, multi-step symlinks get resolved', () => {
         it('Symlink to a folder', () => {
           const vol = Volume.fromJSON({ '/a1/a2/a3/a4/a5/hello.txt': 'world!' });

@@ -124,10 +124,18 @@ describe('.readFileSync()', () => {
       expect.objectContaining({ code: 'EISDIR', path: '/dirlink/' }),
     );
   });
+
   it('reports the path as given', () => {
     const { fs } = memfs({ '/foo': 'hello', '/dir/file': 'x' });
     fs.symlinkSync('/dir', '/dirlink');
     expect(() => fs.readFileSync('/foo/')).toThrow(expect.objectContaining({ code: 'ENOTDIR', path: '/foo/' }));
     expect(() => fs.readFileSync('/dirlink/')).toThrow(expect.objectContaining({ code: 'EISDIR', path: '/dirlink/' }));
+  });
+
+  it('throws EISDIR for a directory fd', () => {
+    const { fs } = memfs({ '/dir/file': 'x' });
+    const fd = fs.openSync('/dir', 'r');
+    expect(() => fs.readFileSync(fd)).toThrow(expect.objectContaining({ code: 'EISDIR' }));
+    fs.closeSync(fd);
   });
 });

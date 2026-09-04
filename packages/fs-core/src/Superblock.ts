@@ -28,9 +28,10 @@ const { O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC, O_DIRECTORY, O_NOF
 const MAX_SYMLINK_HOPS = 40;
 
 const endsWithSep = (path: string, win32: boolean): boolean => {
-  const length = path.length;
-  if (length < 2) return false;
-  const code = path.charCodeAt(length - 1);
+  let i = path.length - 1;
+  if (i < 1) return false;
+  let code = path.charCodeAt(i);
+  if (code === 46) code = path.charCodeAt(--i); // "/.", same as a trailing slash
   return code === 47 || (win32 && code === 92); // '/' or '\'
 };
 
@@ -361,6 +362,7 @@ export class Superblock {
     return this.getLink(steps.slice(0, -1));
   }
 
+  // TODO: does not follow a final symlink, so mkdir/symlink/rename('/dirlink/x') give ENOTDIR and link() attaches to the symlink.
   getLinkParentAsDirOrThrow(filenameOrSteps: string | string[], funcName?: string): Link {
     const steps: string[] = (
       filenameOrSteps instanceof Array ? filenameOrSteps : filenameToSteps(filenameOrSteps)
@@ -532,6 +534,16 @@ export class Superblock {
     return file;
   }
 
+  // O_CREAT with a trailing separator: Linux looks the parent up first and only then fails with EISDIR.
+  private throwCreatDir(path: string, filename: string, budget: { hops: number }): never {
+    const dir = this.walk(dirname(path), true, true, true, 'open', budget);
+    if (!dir.ok) throw createError(dir.err.code, 'open', filename);
+    const node = dir.value!.getNode();
+    if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'open', filename);
+    if (!node.canExecute()) throw createError(ERROR_CODE.EACCES, 'open', filename);
+    throw createError(ERROR_CODE.EISDIR, 'open', filename);
+  }
+
   protected openFile(
     filename: string,
     flagsNum: number,
@@ -539,19 +551,23 @@ export class Superblock {
     resolveSymlinks: boolean = true,
   ): File {
     if (this.openFiles >= this.maxFiles) throw createError(ERROR_CODE.EMFILE, 'open', filename);
+    if ((flagsNum & (O_CREAT | O_DIRECTORY)) === (O_CREAT | O_DIRECTORY))
+      throw createError(ERROR_CODE.EINVAL, 'open', filename);
     const win32 = this.process.platform === 'win32';
+    const budget = { hops: 0 };
     let trailingSlash = endsWithSep(filename, win32);
-    if (trailingSlash && flagsNum & O_CREAT) throw createError(ERROR_CODE.EISDIR, 'open', filename);
+    if (trailingSlash && flagsNum & O_CREAT) this.throwCreatDir(filename, filename, budget);
     const excl = (flagsNum & (O_CREAT | O_EXCL)) === (O_CREAT | O_EXCL);
     const follow = trailingSlash || (resolveSymlinks && !(flagsNum & O_NOFOLLOW) && !excl);
-    const budget = { hops: 0 };
     let path = filename;
     let link: Link | null = null;
     for (;;) {
+      const hops = budget.hops;
       const result = this.walk(path, false, true, true, 'open', budget);
       if (!result.ok) {
         const code = result.err.code;
         if (code !== ERROR_CODE.ENOENT || !(flagsNum & O_CREAT)) throw createError(code, 'open', filename);
+        budget.hops = hops;
         link = null;
         break;
       }
@@ -561,7 +577,7 @@ export class Superblock {
       if (++budget.hops > MAX_SYMLINK_HOPS) throw createError(ERROR_CODE.ELOOP, 'open', filename);
       path = isAbsolute(node.symlink) ? node.symlink : pathJoin(dirname(link.getPath()), node.symlink);
       if (endsWithSep(path, win32)) {
-        if (flagsNum & O_CREAT) throw createError(ERROR_CODE.EISDIR, 'open', filename);
+        if (flagsNum & O_CREAT) this.throwCreatDir(path, filename, budget);
         trailingSlash = true;
       }
     }
@@ -689,6 +705,7 @@ export class Superblock {
   };
 
   public readonly symlink = (targetFilename: string, pathFilename: string): Link => {
+    if (!targetFilename) throw createError(ERROR_CODE.ENOENT, 'symlink', targetFilename, pathFilename);
     const pathSteps = filenameToSteps(pathFilename);
     // Check if directory exists, where we about to create a symlink.
     let dirLink;

@@ -398,15 +398,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const userOwnsFd: boolean = isUserFd && isFd(id);
     let fd: number;
     if (userOwnsFd) fd = id as number;
-    else {
-      fd = this.openSync(id as PathLike, flagsNum);
-      if (this._core.getFileByFdOrThrow(fd).node.isDirectory()) {
-        this.closeSync(fd);
-        throw createError(ERROR_CODE.EISDIR, 'open', pathToFilename(id as PathLike));
-      }
-    }
+    else fd = this.openSync(id as PathLike, flagsNum);
     try {
-      result = bufferToEncoding(this._core.getFileByFdOrThrow(fd).getBuffer(), encoding);
+      const file = this._core.getFileByFdOrThrow(fd);
+      if (file.node.isDirectory())
+        throw userOwnsFd
+          ? createError(ERROR_CODE.EISDIR, 'read')
+          : createError(ERROR_CODE.EISDIR, 'open', pathToFilename(id as PathLike));
+      result = bufferToEncoding(file.getBuffer(), encoding);
     } finally {
       if (!userOwnsFd) {
         this.closeSync(fd);

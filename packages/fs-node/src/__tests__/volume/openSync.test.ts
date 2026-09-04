@@ -292,6 +292,45 @@ describe('openSync(path, mode[, flags])', () => {
       }
       expect(fs.existsSync('/nonexist\\')).toBe(false);
     });
+
+    it('looks the parent up before EISDIR under O_CREAT', () => {
+      const fs = setup();
+      fs.mkdirSync('/noexec', { mode: 0o666 });
+      fs.mkdirSync('/nowrite', { mode: 0o555 });
+      fs.symlinkSync('/loopb', '/loopa');
+      fs.symlinkSync('/loopa', '/loopb');
+      const creat = (path: string) => () => fs.openSync(path, O_WRONLY | O_CREAT);
+      expect(creat('/nope/x/')).toThrow(expect.objectContaining({ code: 'ENOENT', path: '/nope/x/' }));
+      expect(creat('/file/x/')).toThrow(expect.objectContaining({ code: 'ENOTDIR' }));
+      expect(creat('/dangling/x/')).toThrow(expect.objectContaining({ code: 'ENOENT' }));
+      expect(creat('/loopa/x/')).toThrow(expect.objectContaining({ code: 'ELOOP' }));
+      expect(creat('/noexec/x/')).toThrow(expect.objectContaining({ code: 'EACCES' }));
+      expect(creat('/nowrite/x/')).toThrow(expect.objectContaining({ code: 'EISDIR' }));
+      expect(fs.existsSync('/nope')).toBe(false);
+    });
+
+    it('looks the parent up before EISDIR under O_CREAT for a symlink body', () => {
+      const fs = setup();
+      fs.symlinkSync('/nope/x/', '/bodynope');
+      fs.symlinkSync('/file/x/', '/bodyfile');
+      expect(() => fs.openSync('/bodynope', 'w')).toThrow(
+        expect.objectContaining({ code: 'ENOENT', path: '/bodynope' }),
+      );
+      expect(() => fs.openSync('/bodyfile', 'w')).toThrow(expect.objectContaining({ code: 'ENOTDIR' }));
+    });
+
+    it('treats a trailing "/." like a trailing slash', () => {
+      const fs = setup();
+      const fd = fs.openSync('/dirlink/.', O_RDONLY | O_NOFOLLOW);
+      expect(fs.fstatSync(fd).isDirectory()).toBe(true);
+      fs.closeSync(fd);
+      expect(() => fs.openSync('/file/.', O_RDONLY)).toThrow(expect.objectContaining({ code: 'ENOTDIR' }));
+      expect(() => fs.openSync('/filelink/.', O_RDONLY)).toThrow(expect.objectContaining({ code: 'ENOTDIR' }));
+      expect(() => fs.openSync('/dangling/.', O_WRONLY | O_CREAT)).toThrow(expect.objectContaining({ code: 'ENOENT' }));
+      expect(fs.existsSync('/missing')).toBe(false);
+      expect(() => fs.openSync('/dir/.', O_WRONLY | O_CREAT)).toThrow(expect.objectContaining({ code: 'EISDIR' }));
+      expect(() => fs.openSync('/nope/.', O_WRONLY | O_CREAT)).toThrow(expect.objectContaining({ code: 'ENOENT' }));
+    });
   });
 
   describe('O_CREAT through a symlink', () => {
@@ -419,6 +458,32 @@ describe('openSync(path, mode[, flags])', () => {
       fs._core.maxFiles = 0;
       expect(() => fs.openSync('/new', 'w')).toThrow(expect.objectContaining({ code: 'EMFILE', path: '/new' }));
       expect(fs.existsSync('/new')).toBe(false);
+    });
+
+    it('creates through more than 20 intermediate symlink hops', () => {
+      const fs = createFs({ '/dir/file': 'content' });
+      let prev = '/dir';
+      for (let i = 1; i <= 21; i++) {
+        const link = '/s' + i;
+        fs.symlinkSync(prev, link);
+        prev = link;
+      }
+      fs.closeSync(fs.openSync('/s21/newfile', O_WRONLY | O_CREAT));
+      expect(fs.statSync('/dir/newfile').isFile()).toBe(true);
+      fs.symlinkSync('/s20/newfile2', '/dl');
+      fs.closeSync(fs.openSync('/dl', O_WRONLY | O_CREAT));
+      expect(fs.statSync('/dir/newfile2').isFile()).toBe(true);
+    });
+
+    it('throws EINVAL for O_CREAT | O_DIRECTORY and creates nothing', () => {
+      const fs = setup();
+      expect(() => fs.openSync('/dir', O_RDONLY | O_CREAT | O_DIRECTORY)).toThrow(
+        expect.objectContaining({ code: 'EINVAL' }),
+      );
+      expect(() => fs.openSync('/nonexist', O_RDONLY | O_CREAT | O_DIRECTORY)).toThrow(
+        expect.objectContaining({ code: 'EINVAL', path: '/nonexist' }),
+      );
+      expect(fs.existsSync('/nonexist')).toBe(false);
     });
   });
 });

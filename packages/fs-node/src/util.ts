@@ -5,7 +5,8 @@ import { Readable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 import { dataToBuffer, validateFd } from '@jsonjoy.com/fs-core';
 import type { FsCallbackApi } from '@jsonjoy.com/fs-node-utils';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
-export { nullCheck, pathToFilename, createError, createStatError } from '@jsonjoy.com/fs-core';
+
+export { nullCheck, pathToFilename, createError, createStatError, createWatchError } from '@jsonjoy.com/fs-core';
 
 export function promisify(
   fs: FsCallbackApi,

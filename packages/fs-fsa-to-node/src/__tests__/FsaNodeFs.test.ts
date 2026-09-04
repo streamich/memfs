@@ -602,8 +602,8 @@ onlyOnNode20('FsaNodeFs', () => {
         try {
           await fs.promises.access('/folder/file', AMODE.W_OK);
           throw new Error('should not be here');
-        } catch (error) {
-          expect(error.code).toBe('EACCESS');
+        } catch (error: any) {
+          expect(error.code).toBe('EACCES');
         }
       });
 
@@ -612,8 +612,8 @@ onlyOnNode20('FsaNodeFs', () => {
         try {
           await fs.promises.access('/folder/file', AMODE.X_OK);
           throw new Error('should not be here');
-        } catch (error) {
-          expect(error.code).toBe('EACCESS');
+        } catch (error: any) {
+          expect(error.code).toBe('EACCES');
         }
       });
     });
@@ -639,8 +639,8 @@ onlyOnNode20('FsaNodeFs', () => {
         try {
           await fs.promises.access('/folder', AMODE.W_OK);
           throw new Error('should not be here');
-        } catch (error) {
-          expect(error.code).toBe('EACCESS');
+        } catch (error: any) {
+          expect(error.code).toBe('EACCES');
         }
       });
 
@@ -649,8 +649,8 @@ onlyOnNode20('FsaNodeFs', () => {
         try {
           await fs.promises.access('/folder', AMODE.X_OK);
           throw new Error('should not be here');
-        } catch (error) {
-          expect(error.code).toBe('EACCESS');
+        } catch (error: any) {
+          expect(error.code).toBe('EACCES');
         }
       });
     });

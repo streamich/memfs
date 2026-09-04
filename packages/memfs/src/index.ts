@@ -9,7 +9,7 @@ import {
   fsCallbackApiList,
 } from '@jsonjoy.com/fs-node';
 import type { IWriteStream } from '@jsonjoy.com/fs-node';
-import { DirectoryJSON, NestedDirectoryJSON, type IProcess } from '@jsonjoy.com/fs-core';
+import { DirectoryJSON, NestedDirectoryJSON, type IProcess, type ErrnoException } from '@jsonjoy.com/fs-core';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 import type { FsPromisesApi } from '@jsonjoy.com/fs-node-utils';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
@@ -17,7 +17,7 @@ import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
 export { DirectoryJSON, NestedDirectoryJSON, Volume };
-export type { IProcess };
+export type { IProcess, ErrnoException };
 
 // Default volume.
 export const vol = new Volume();

@@ -15,6 +15,10 @@ export type FsaNodeWorkerMsgResponseError = [type: FsaNodeWorkerMessageCode.Resp
 export interface FsaNodeWorkerError {
   message: string;
   code?: string;
+  errno?: number;
+  syscall?: string;
+  path?: string;
+  dest?: string;
 }
 
 export type FsaNodeWorkerMsg =

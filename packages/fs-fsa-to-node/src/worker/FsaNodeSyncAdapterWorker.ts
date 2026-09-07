@@ -1,10 +1,12 @@
 import { Defer } from 'thingies/lib/Defer';
+import { createError } from '@jsonjoy.com/fs-node';
 import { FsaNodeWorkerMessageCode } from './constants';
 import { SyncMessenger } from './SyncMessenger';
 import { decoder, encoder } from '../json';
 import type * as fsa from '@jsonjoy.com/fs-fsa';
 import type { FsaNodeSyncAdapter, FsaNodeSyncAdapterApi } from '../types';
 import type {
+  FsaNodeWorkerError,
   FsaNodeWorkerMsg,
   FsaNodeWorkerMsgInit,
   FsaNodeWorkerMsgRequest,
@@ -68,8 +70,11 @@ export class FsaNodeSyncAdapterWorker implements FsaNodeSyncAdapter {
     switch (code) {
       case FsaNodeWorkerMessageCode.Response:
         return data as any;
-      case FsaNodeWorkerMessageCode.ResponseError:
+      case FsaNodeWorkerMessageCode.ResponseError: {
+        const error = data as FsaNodeWorkerError;
+        if (error.syscall) throw createError(error.code!, error.syscall, error.path, error.dest);
         throw data;
+      }
       default: {
         throw new Error('Invalid response message code');
       }

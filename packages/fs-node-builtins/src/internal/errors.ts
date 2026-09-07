@@ -11,7 +11,13 @@ function makeNodeError(Base) {
       super(message(key, args));
       this.code = key;
       this[kCode] = key;
-      this.name = `${super.name} [${this[kCode]}]`;
+      // Non-enumerable like Node, so `code` stays the only own key.
+      Object.defineProperty(this, 'name', {
+        value: `${super.name} [${key}]`,
+        enumerable: false,
+        writable: true,
+        configurable: true,
+      });
     }
   };
 }
@@ -87,3 +93,6 @@ E('ERR_INVALID_OPT_VALUE', (name, value) => {
 });
 E('ERR_INVALID_OPT_VALUE_ENCODING', value => `The value "${String(value)}" is invalid for option "encoding"`);
 E('ERR_INVALID_ARG_VALUE', 'Unable to open file as blob');
+E('ERR_OUT_OF_RANGE', (name, range, received) => {
+  return `The value of "${name}" is out of range. It must be ${range}. Received ${received}`;
+});

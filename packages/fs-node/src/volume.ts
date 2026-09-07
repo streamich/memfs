@@ -83,6 +83,7 @@ import {
   pathToFilename,
   nullCheck,
   createError,
+  createWatchError,
   genRndStr6,
   flagsToNumber,
   getWriteArgs,
@@ -233,6 +234,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       }
     };
     const _realpath = (filename: string, encoding: TEncodingExtended | undefined): TDataOut => {
+      // TODO: Node's JS realpath reports the failing 'lstat'. But realpath.native says 'realpath'.
       const realLink = this._core.getResolvedLinkOrThrow(filename, 'realpath');
       return strToEncoding(realLink.getPath() || '/', encoding);
     };
@@ -398,25 +400,14 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const userOwnsFd: boolean = isUserFd && isFd(id);
     let fd: number;
     if (userOwnsFd) fd = id as number;
-    else {
-      const filename = pathToFilename(id as PathLike);
-      // Check if original path had trailing slash (indicates directory intent)
-      const originalPath = String(id);
-      const hasTrailingSlash = originalPath.length > 1 && originalPath.endsWith('/');
-
-      const link = this._core.getResolvedLinkOrThrow(filename, 'open');
-      const node = link.getNode();
-      if (node.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'open', link.getPath());
-
-      // If path had trailing slash but resolved to a file, throw ENOTDIR
-      if (hasTrailingSlash && node.isFile()) {
-        throw createError(ERROR_CODE.ENOTDIR, 'open', originalPath);
-      }
-
-      fd = this.openSync(id as PathLike, flagsNum);
-    }
+    else fd = this.openSync(id as PathLike, flagsNum);
     try {
-      result = bufferToEncoding(this._core.getFileByFdOrThrow(fd).getBuffer(), encoding);
+      const file = this._core.getFileByFdOrThrow(fd, 'fstat');
+      if (file.node.isDirectory())
+        throw userOwnsFd
+          ? createError(ERROR_CODE.EISDIR, 'read')
+          : createError(ERROR_CODE.EISDIR, 'open', pathToFilename(id as PathLike));
+      result = bufferToEncoding(file.getBuffer(), encoding);
     } finally {
       if (!userOwnsFd) {
         this.closeSync(fd);
@@ -505,7 +496,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   };
 
   private writevBase(fd: number, buffers: ArrayBufferView[], position: number | null): number {
-    this._core.getFileByFdOrThrow(fd);
+    this._core.getFileByFdOrThrow(fd, 'write');
     let p = position ?? undefined;
     if (p === -1) {
       p = undefined;
@@ -574,8 +565,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
 
   private _copyFile(src: string, dest: string, flags: number) {
     const buf = this.readFileSync(src) as Buffer;
-    if (flags & COPYFILE_EXCL && this.existsSync(dest)) throw createError(ERROR_CODE.EEXIST, 'copyFile', src, dest);
-    if (flags & COPYFILE_FICLONE_FORCE) throw createError(ERROR_CODE.ENOSYS, 'copyFile', src, dest);
+    if (flags & COPYFILE_EXCL && this.existsSync(dest)) throw createError(ERROR_CODE.EEXIST, 'copyfile', src, dest);
+    if (flags & COPYFILE_FICLONE_FORCE) throw createError(ERROR_CODE.ENOSYS, 'copyfile', src, dest);
     this._core.writeFile(dest, buf, FLAGS.w, MODE.DEFAULT);
   }
 
@@ -614,6 +605,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
         throw err;
       }
     }
+    // TODO: Node raises ERR_FS_CP_* (code only) or the failing lstat/mkdir/copyfile. 'cp' is not a libuv syscall.
     // Check if src and dest are the same (both exist and have same inode)
     if (destStat && srcStat.ino === destStat.ino && srcStat.dev === destStat.dev)
       throw createError(ERROR_CODE.EINVAL, 'cp', src, dest);
@@ -2236,10 +2228,7 @@ export class FSWatcher extends EventEmitter {
     try {
       this._watcher = new CoreWatcher(this._vol._core, this._filename, { recursive });
     } catch (err) {
-      const error = new Error(`watch ${this._filename} ${err.code}`);
-      (error as any).code = err.code;
-      (error as any).errno = err.code;
-      throw error;
+      throw createWatchError(err.code, this._filename);
     }
     this._link = this._watcher.link;
     this._watcher.changes.listen(this._onEvent);

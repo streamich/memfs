@@ -1,5 +1,6 @@
 import { bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
-import { createError, createStatError, isWin, nullCheck, pathToFilename } from '../util';
+import { isWin, nullCheck, pathToFilename } from '../util';
+import { createError, createStatError } from '../errors';
 
 describe('pathToFilename', () => {
   test('returns a string as is', () => {
@@ -112,7 +113,7 @@ describe('createError', () => {
   });
 
   test('falls back for an unknown code', () => {
-    expect(createError('EFOO', 'op', '/a').message).toBe("EFOO: error occurred, op '/a'");
+    expect(createError('EFOO', 'op', '/a').message).toBe("EFOO: unknown error, op '/a'");
   });
 
   test('uses the given constructor', () => {

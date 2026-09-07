@@ -1,4 +1,5 @@
 import { EventEmitter } from '@jsonjoy.com/fs-node-builtins/lib/events';
+import { createWatchError } from '@jsonjoy.com/fs-node';
 import { strToEncoding, watchIgnoreToMatcher } from '@jsonjoy.com/fs-node-utils';
 import { pathToLocation } from './util';
 import { FsaToNodeConstants } from './constants';
@@ -66,8 +67,8 @@ export class FsaNodeFsWatcher extends EventEmitter implements misc.IFSWatcher {
           return;
         }
         this.close();
-        const wrapped = new Error(`watch ${this.filename} ${code ?? ''}`.trimEnd());
-        (wrapped as any).code = code;
+        const wrapped: any = code ? createWatchError(code, this.filename) : new Error('watch ' + this.filename);
+        if (!code) wrapped.filename = this.filename;
         this.emit('error', wrapped);
       });
   }

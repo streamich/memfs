@@ -41,7 +41,7 @@ describe('rmSync', () => {
         error = err;
       }
 
-      expect(error).toEqual(new Error("ENOENT: no such file or directory, stat '/bar.txt'"));
+      expect(error).toEqual(new Error("ENOENT: no such file or directory, lstat '/bar.txt'"));
     });
 
     it('does not throw if "force" is set to true', async () => {
@@ -67,9 +67,13 @@ describe('rmSync', () => {
         error = err;
       }
 
-      expect(error).toEqual(
-        new Error('[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /usr/bin'),
-      );
+      expect(error).toMatchObject({
+        code: 'ERR_FS_EISDIR',
+        errno: 21,
+        syscall: 'rm',
+        path: '/usr/bin',
+        message: 'Path is a directory: rm returned EISDIR (is a directory) /usr/bin',
+      });
     });
 
     it('throws by when force flag is set', async () => {
@@ -85,9 +89,13 @@ describe('rmSync', () => {
         error = err;
       }
 
-      expect(error).toEqual(
-        new Error('[ERR_FS_EISDIR]: Path is a directory: rm returned EISDIR (is a directory) /usr/bin'),
-      );
+      expect(error).toMatchObject({
+        code: 'ERR_FS_EISDIR',
+        errno: 21,
+        syscall: 'rm',
+        path: '/usr/bin',
+        message: 'Path is a directory: rm returned EISDIR (is a directory) /usr/bin',
+      });
     });
 
     it('deletes all directory contents when recursive flag is set', async () => {

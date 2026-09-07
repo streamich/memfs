@@ -54,9 +54,15 @@ export class FsaNodeSyncWorker {
       const response = await handler(payload);
       return encoder.encode([FsaNodeWorkerMessageCode.Response, response]);
     } catch (err) {
-      const message = err && typeof err === 'object' && err.message ? err.message : 'Unknown error';
-      const error: FsaNodeWorkerError = { message };
-      if (err && typeof err === 'object' && (err.code || err.name)) error.code = err.code || err.name;
+      const isObject = err && typeof err === 'object';
+      const error: FsaNodeWorkerError = { message: isObject && err.message ? err.message : 'Unknown error' };
+      if (isObject) {
+        if (err.code || err.name) error.code = err.code || err.name;
+        if (typeof err.errno === 'number') error.errno = err.errno;
+        if (err.syscall) error.syscall = err.syscall;
+        if (err.path) error.path = err.path;
+        if (err.dest) error.dest = err.dest;
+      }
       return encoder.encode([FsaNodeWorkerMessageCode.ResponseError, error]);
     }
   };

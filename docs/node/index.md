@@ -15,6 +15,7 @@ In-memory file-system with [Node's `fs` API](https://nodejs.org/api/fs.html).
 - [Getting started](./usage.md)
 - [Reference](./reference.md)
 - [Relative paths](./relative-paths.md)
+- [Errors](./errors.md)
 - [Dependencies](./dependencies.md)
 
 [npm-url]: https://www.npmjs.com/package/memfs

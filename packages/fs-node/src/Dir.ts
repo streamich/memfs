@@ -27,6 +27,7 @@ export class Dir implements IDir {
   }
 
   private readBase(iteratorInfo: IterableIterator<[string, Link | undefined]>[]): IDirent | null {
+    if (iteratorInfo.length === 0) return null;
     let done: boolean | undefined;
     let value: [string, Link | undefined];
     let name: string;
@@ -177,32 +178,23 @@ export class Dir implements IDir {
     return this.readBase(this.iteratorInfo);
   }
 
-  [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
-    return {
-      next: async () => {
-        try {
-          const dirEnt = await this.read();
-
-          if (dirEnt !== null) {
-            return { done: false, value: dirEnt };
-          } else {
-            return { done: true, value: undefined };
-          }
-        } catch (err) {
-          throw err;
-        }
-      },
-      [Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
-        return this;
-      },
-    };
+  async *[Symbol.asyncIterator](): AsyncIterableIterator<IDirent> {
+    try {
+      while (true) {
+        const dirEnt = await this.read();
+        if (dirEnt === null) break;
+        yield dirEnt;
+      }
+    } finally {
+      await this.close();
+    }
   }
 
-  [Symbol.asyncDispose](): Promise<void> {
-    return this.close();
+  async [Symbol.asyncDispose](): Promise<void> {
+    if (!this.closed) await this.close();
   }
 
   [Symbol.dispose](): void {
-    this.closeSync();
+    if (!this.closed) this.closeSync();
   }
 }

@@ -389,6 +389,23 @@ describe('FileHandle', () => {
   });
 
   describe('reference counting', () => {
+    it.each([false, true])('closes the original descriptor after stream cancellation (read=%s)', async read => {
+      const fs = createFs({ '/test': 'content' });
+      const handle = await fs.promises.open('/test', 'r');
+      const fd = handle.fd;
+      const reader = handle.readableWebStream().getReader();
+      if (read) await reader.read();
+      const closed = handle.close();
+      const closedAgain = handle.close();
+      expect(closedAgain).toBe(closed);
+      expect(fs.fstatSync(fd).isFile()).toBe(true);
+      await reader.cancel();
+      await expect(closed).resolves.toBeUndefined();
+      expect(handle.fd).toBe(-1);
+      expect(() => fs.fstatSync(fd)).toThrow(expect.objectContaining({ code: 'EBADF' }));
+      await expect(handle.close()).resolves.toBeUndefined();
+    });
+
     it('should handle multiple close calls gracefully', async () => {
       const fs = createFs();
       fs.writeFileSync('/test', 'content');

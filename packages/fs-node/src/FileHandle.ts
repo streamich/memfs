@@ -263,9 +263,10 @@ export class FileHandle extends EventEmitter implements IFileHandle {
   private unref(): void {
     this.refs--;
     if (this.refs === 0) {
+      const currentFd = this.fd;
       this.fd = -1;
       if (this.closeResolve) {
-        promisify(this.fs, 'close')(this.fd).then(this.closeResolve, this.closeReject);
+        promisify(this.fs, 'close')(currentFd).then(this.closeResolve, this.closeReject);
       }
     }
   }

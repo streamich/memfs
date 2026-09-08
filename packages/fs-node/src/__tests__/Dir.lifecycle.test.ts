@@ -45,7 +45,12 @@ describe.each(['node', 'memfs'])('Dir lifecycle (%s)', backend => {
     }
     await expect(dir.read()).rejects.toMatchObject({ code: 'ERR_DIR_CLOSED' });
   });
-  const itDispose = backend === 'node' && !fs.Dir.prototype[Symbol.asyncDispose] ? it.skip : it;
+  const itDispose =
+    typeof Symbol.asyncDispose === 'undefined' ||
+    typeof Symbol.dispose === 'undefined' ||
+    (backend === 'node' && !fs.Dir.prototype[Symbol.asyncDispose])
+      ? it.skip
+      : it;
   itDispose('can be disposed after automatic iterator cleanup', async () => {
     const dir = open();
     for await (const entry of dir) {

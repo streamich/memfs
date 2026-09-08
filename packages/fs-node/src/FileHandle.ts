@@ -152,6 +152,7 @@ export class FileHandle extends EventEmitter implements IFileHandle {
 
           if (result.bytesRead === 0) {
             controller.close();
+            controller.byobRequest.respond(0);
             unlockAndCleanup();
             return;
           }

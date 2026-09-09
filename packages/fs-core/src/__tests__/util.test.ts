@@ -81,7 +81,6 @@ describe('nullCheck', () => {
     expect(() => nullCheck(String.fromCharCode(47, 97, 0), 'existingPath')).toThrow(/The argument 'existingPath'/);
   });
 
-  // the TCK never reads a message, so the `util.inspect` shapes are only covered here
   test('inspects the value Node inspects', () => {
     const nul = String.fromCharCode(0);
     expect(() => nullCheck('a\\b' + nul)).toThrow(/Received 'a\\\\b\\x00'$/);

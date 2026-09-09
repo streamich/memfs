@@ -5,8 +5,8 @@ import { File } from './File';
 import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import defaultProcess, { type IProcess } from './process';
 import { constants } from '@jsonjoy.com/fs-node-utils';
-import { ERRSTR, FLAGS, MODE, pathSep, pathRelative, pathJoin } from '@jsonjoy.com/fs-node-utils';
-import { pathToFilename, dataToBuffer, filenameToSteps, isFd, resolve, validateFd } from './util';
+import { FLAGS, MODE, pathSep, pathRelative, pathJoin } from '@jsonjoy.com/fs-node-utils';
+import { pathToFilename, dataToBuffer, filenameToSteps, resolve, validateFd } from './util';
 import { createError, createStatError, createEisdirError } from './errors';
 import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import { DirectoryJSON, flattenJSON, NestedDirectoryJSON } from './json';
@@ -371,7 +371,7 @@ export class Superblock {
   }
 
   getFileByFdOrThrow(fd: number, funcName: string): File {
-    if (!isFd(fd)) throw TypeError(ERRSTR.FD);
+    validateFd(fd);
     const file = this.getFileByFd(fd);
     if (!file) throw createError(ERROR_CODE.EBADF, funcName);
     return file;

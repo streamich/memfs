@@ -30,9 +30,29 @@ describe('pathToFilename', () => {
     expect(() => pathToFilename(new URL('file://host/a'))).toThrow(/File URL host/);
   });
 
-  test('rejects other types', () => {
-    expect(() => pathToFilename(123 as any)).toThrow(TypeError);
-    expect(() => pathToFilename({} as any)).toThrow(/path must be a string/);
+  test('rejects a non-file URL by its scheme, not its host', () => {
+    expect(() => pathToFilename(new URL('http://host/a'))).toThrow(/must be of scheme file/);
+  });
+
+  test('rejects other types with ERR_INVALID_ARG_TYPE', () => {
+    let error: any;
+    try {
+      pathToFilename(123 as any);
+    } catch (err) {
+      error = err;
+    }
+    expect(error).toBeInstanceOf(TypeError);
+    expect(error.code).toBe('ERR_INVALID_ARG_TYPE');
+    expect(error.message).toMatch(/The "path" argument must be of type string/);
+    expect(() => pathToFilename({} as any, 'newPath')).toThrow(/The "newPath" argument/);
+  });
+
+  // a constructor-less object has no `String()`; it used to throw a codeless `Cannot convert object`
+  test('describes an object with a null prototype', () => {
+    expect(() => pathToFilename(Object.create(null))).toThrow(/Received \[Object: null prototype] \{}$/);
+    expect(() => pathToFilename(Object.assign(Object.create(null), { a: 1 }))).toThrow(
+      /Received \[Object: null prototype]$/,
+    );
   });
 
   test('rejects null bytes', () => {
@@ -45,24 +65,30 @@ describe('nullCheck', () => {
     expect(nullCheck('/a')).toBe(true);
   });
 
-  test('throws ENOENT without a callback', () => {
+  test('throws ERR_INVALID_ARG_VALUE for a null byte', () => {
     let error: any;
     try {
       nullCheck('/a\u0000');
     } catch (err) {
       error = err;
     }
-    expect(error.code).toBe('ENOENT');
+    expect(error).toBeInstanceOf(TypeError);
+    expect(error.code).toBe('ERR_INVALID_ARG_VALUE');
     expect(error.message).toMatch(/null bytes/);
   });
 
-  test('reports through the callback on a microtask', async () => {
-    const callback = jest.fn();
-    expect(nullCheck('/a\u0000', callback)).toBe(false);
-    expect(callback).not.toHaveBeenCalled();
-    await Promise.resolve();
-    expect(callback).toHaveBeenCalledTimes(1);
-    expect(callback.mock.calls[0][0].code).toBe('ENOENT');
+  test('names the argument it was given', () => {
+    expect(() => nullCheck(String.fromCharCode(47, 97, 0), 'existingPath')).toThrow(/The argument 'existingPath'/);
+  });
+
+  test('inspects the value Node inspects', () => {
+    const nul = String.fromCharCode(0);
+    expect(() => nullCheck('a\\b' + nul)).toThrow(/Received 'a\\\\b\\x00'$/);
+    expect(() => nullCheck('a\nb' + nul)).toThrow(/Received 'a\\nb\\x00'$/);
+    expect(() => nullCheck("a'b" + nul)).toThrow(/Received "a'b\\x00"$/);
+    expect(() => nullCheck(bufferFrom([97, 0, 98]))).toThrow(/Received <Buffer 61 00 62>$/);
+    expect(() => nullCheck(new Uint8Array([97, 0, 98]))).toThrow(/Received Uint8Array\(3\) \[ 97, 0, 98 ]$/);
+    expect(() => nullCheck('/' + 'a'.repeat(200) + nul)).toThrow(/\.\.\.$/);
   });
 });
 

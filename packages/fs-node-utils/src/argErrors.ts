@@ -1,9 +1,15 @@
-const kIndexOf = (str: string, search: string): boolean => str.indexOf(search) >= 0;
+import { inspect } from './inspect';
+import { addNumericalSeparator, formatNumber } from './inspectPrimitive';
 
-const withCode = <E extends Error>(error: E, code: string): E => {
+const TWO_POW_32 = 4294967296;
+const BIG_TWO_POW_32 = BigInt(TWO_POW_32);
+
+/** Adds `code` the way a Node error thrown from JS has it: tagged in `toString()` and `stack`, not in `name`. */
+export const withCode = <E extends Error>(error: E, code: string): E => {
   (error as any).code = code;
   const tagged = error.name + ' [' + code + ']';
   Object.defineProperty(error, 'name', { value: tagged, enumerable: false, writable: true, configurable: true });
+  // reading `stack` formats its header while `name` still carries the tag
   void error.stack;
   delete (error as any).name;
   Object.defineProperty(error, 'toString', {
@@ -17,128 +23,64 @@ const withCode = <E extends Error>(error: E, code: string): E => {
   return error;
 };
 
-const ESCAPES: Record<string, string> = {
-  '\b': '\\b',
-  '\t': '\\t',
-  '\n': '\\n',
-  '\f': '\\f',
-  '\r': '\\r',
-  '\\': '\\\\',
+/** Adds `code` the way a Node error thrown from C++ has it: nowhere else. */
+export const withNativeCode = <E extends Error>(error: E, code: string): E => {
+  (error as any).code = code;
+  return error;
 };
 
-const escapeString = (str: string, quote: string): string => {
-  let out = '';
-  const length = str.length;
-  for (let i = 0; i < length; i++) {
-    const char = str[i];
-    const escape = ESCAPES[char];
-    if (escape !== undefined) out += escape;
-    else if (char === quote) out += '\\' + char;
-    else {
-      const code = str.charCodeAt(i);
-      if (code >= 0x20 && code !== 0x7f) out += char;
-      else out += '\\x' + (code < 16 ? '0' : '') + code.toString(16).toUpperCase();
-    }
-  }
-  return out;
-};
-
-/** `strEscape()` of `lib/internal/util/inspect.js`. */
-const quoteString = (str: string): string => {
-  let quote = "'";
-  if (kIndexOf(str, "'")) {
-    if (!kIndexOf(str, '"')) quote = '"';
-    else if (!kIndexOf(str, '`') && !kIndexOf(str, '${')) quote = '`';
-  }
-  return quote + escapeString(str, quote) + quote;
-};
-
-const objectPrefix = (value: object): string => {
-  const proto = Object.getPrototypeOf(value);
-  if (proto === null) return '[Object: null prototype] ';
-  const name = proto.constructor && proto.constructor.name;
-  return !name || name === 'Object' ? '' : name + ' ';
-};
-
-/** Enough of `util.inspect` for the values that reach a validation message. */
-const inspect = (value: unknown, depth: number = 2): string => {
-  if (value === null) return 'null';
-  const type = typeof value;
-  switch (type) {
-    case 'undefined':
-      return 'undefined';
-    case 'string':
-      return quoteString(value as string);
-    case 'bigint':
-      return String(value) + 'n';
-    case 'symbol':
-      return String(value);
-    case 'boolean':
-      return String(value);
-    case 'number':
-      return Object.is(value, -0) ? '-0' : String(value);
-    case 'function': {
-      const name = (value as Function).name;
-      return name ? '[Function: ' + name + ']' : '[Function (anonymous)]';
-    }
-  }
-  const isArray = Array.isArray(value);
-  if (depth < 0) return isArray ? '[Array]' : '[Object]';
-  if (isArray) {
-    const length = (value as unknown[]).length;
-    if (!length) return '[]';
-    let out = '[ ';
-    for (let i = 0; i < length; i++) out += (i ? ', ' : '') + inspect((value as unknown[])[i], depth - 1);
-    return out + ' ]';
-  }
-  const prefix = objectPrefix(value as object);
-  const keys = Object.keys(value as object);
-  if (!keys.length) return prefix + '{}';
-  let out = prefix + '{ ';
-  for (let i = 0; i < keys.length; i++)
-    out += (i ? ', ' : '') + keys[i] + ': ' + inspect((value as any)[keys[i]], depth - 1);
-  return out + ' }';
-};
+const kindOf = (name: string): string => (name.indexOf('.') === -1 ? 'argument' : 'property');
 
 /** `determineSpecificType()` of `lib/internal/errors.js`. */
-const specificType = (value: unknown): string => {
+const describeType = (value: unknown): string => {
   if (value === null) return 'null';
   if (value === undefined) return 'undefined';
-  const type = typeof value;
-  switch (type) {
+  switch (typeof value) {
     case 'bigint':
       return 'type bigint (' + value + 'n)';
     case 'number':
-      return 'type number (' + (Object.is(value, -0) ? '-0' : value) + ')';
+      return 'type number (' + formatNumber(value) + ')';
     case 'boolean':
       return 'type boolean (' + value + ')';
     case 'symbol':
-      return 'type symbol (' + String(value) + ')';
+      return 'type symbol (' + value.toString() + ')';
     case 'function':
-      return 'function ' + (value as Function).name;
-    case 'object': {
-      const ctor = (value as object).constructor;
-      return ctor && 'name' in ctor ? 'an instance of ' + ctor.name : inspect(value, 0);
-    }
+      return 'function ' + value.name;
     case 'string': {
-      let str = value as string;
-      if (str.length > 28) str = str.slice(0, 25) + '...';
-      return kIndexOf(str, "'") ? 'type string (' + JSON.stringify(str) + ')' : "type string ('" + str + "')";
+      const str = value.length > 28 ? value.slice(0, 25) + '...' : value;
+      return str.indexOf("'") === -1 ? "type string ('" + str + "')" : 'type string (' + JSON.stringify(str) + ')';
     }
   }
-  let text = inspect(value);
-  if (text.length > 28) text = text.slice(0, 25) + '...';
-  return 'type ' + type + ' (' + text + ')';
+  const ctor = (value as any).constructor;
+  return ctor && 'name' in ctor ? 'an instance of ' + ctor.name : inspect(value, -1);
 };
 
-const kindOf = (name: string): string => (kIndexOf(name, '.') ? 'property' : 'argument');
+const describeNativeType = (value: unknown): string => {
+  switch (typeof value) {
+    case 'bigint':
+      return 'type bigint (' + value + ')';
+    case 'symbol':
+      return value.toString();
+    case 'function':
+      return 'function';
+    case 'object': {
+      if (value === null) break;
+      const ctor = (value as any).constructor;
+      return 'an instance of ' + ((ctor && ctor.name) || 'Object');
+    }
+  }
+  return describeType(value);
+};
 
-export const invalidArgType = (name: string, expected: string, actual: unknown): TypeError => {
+/**
+ * @param expected Worded as Node words it, `of type string` or `an instance of Buffer or URL`.
+ * @param native Shape the error as Node's C++ throws it.
+ */
+export const invalidArgType = (name: string, expected: string, actual: unknown, native?: boolean): TypeError => {
   const head = name.endsWith(' argument') ? 'The ' + name + ' ' : 'The "' + name + '" ' + kindOf(name) + ' ';
-  return withCode(
-    new TypeError(head + 'must be ' + expected + '. Received ' + specificType(actual)),
-    'ERR_INVALID_ARG_TYPE',
-  );
+  const received = native ? describeNativeType(actual) : describeType(actual);
+  const error = new TypeError(head + 'must be ' + expected + '. Received ' + received);
+  return native ? withNativeCode(error, 'ERR_INVALID_ARG_TYPE') : withCode(error, 'ERR_INVALID_ARG_TYPE');
 };
 
 export const invalidArgValue = (name: string, value: unknown, reason: string = 'is invalid'): TypeError => {
@@ -150,28 +92,25 @@ export const invalidArgValue = (name: string, value: unknown, reason: string = '
   );
 };
 
-/** `addNumericalSeparator()` of `lib/internal/errors.js`. */
-const separated = (val: string): string => {
-  let res = '';
-  let i = val.length;
-  const start = val.charCodeAt(0) === 45 ? 1 : 0;
-  for (; i >= start + 4; i -= 3) res = '_' + val.slice(i - 3, i) + res;
-  return val.slice(0, i) + res;
-};
-
-const TWO_POW_32 = 4294967296;
-const BIG_TWO_POW_32 = BigInt(TWO_POW_32);
-
-export const outOfRange = (name: string, range: string, value: unknown): RangeError => {
+/** @param native Shape the error as Node's C++ throws it, which also skips digit grouping. */
+export const outOfRange = (name: string, range: string, value: unknown, native?: boolean): RangeError => {
+  const message = 'The value of "' + name + '" is out of range. It must be ' + range + '. Received ';
+  if (native) return withNativeCode(new RangeError(message + String(value)), 'ERR_OUT_OF_RANGE');
   let received: string;
-  if (Number.isInteger(value) && Math.abs(value as number) > TWO_POW_32) received = separated(String(value));
+  if (Number.isInteger(value) && Math.abs(value as number) > TWO_POW_32) received = addNumericalSeparator('' + value);
   else if (typeof value === 'bigint') {
-    received = String(value);
-    if (value > BIG_TWO_POW_32 || value < -BIG_TWO_POW_32) received = separated(received);
+    received = '' + value;
+    if (value > BIG_TWO_POW_32 || value < -BIG_TWO_POW_32) received = addNumericalSeparator(received);
     received += 'n';
   } else received = inspect(value);
-  return withCode(
-    new RangeError('The value of "' + name + '" is out of range. It must be ' + range + '. Received ' + received),
-    'ERR_OUT_OF_RANGE',
-  );
+  return withCode(new RangeError(message + received), 'ERR_OUT_OF_RANGE');
 };
+
+export const invalidThis = (type: string): TypeError =>
+  withCode(new TypeError('Value of "this" must be of type ' + type), 'ERR_INVALID_THIS');
+
+export const methodNotImplemented = (method: string): Error =>
+  withCode(new Error('The ' + method + ' method is not implemented'), 'ERR_METHOD_NOT_IMPLEMENTED');
+
+export const invalidUrlScheme = (expected: string): TypeError =>
+  withCode(new TypeError('The URL must be of scheme ' + expected), 'ERR_INVALID_URL_SCHEME');

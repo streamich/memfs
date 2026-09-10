@@ -1,5 +1,5 @@
 import { bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
-import { isWin, nullCheck, pathToFilename } from '../util';
+import { isWin, nullCheck, pathToFilename, validateFd } from '../util';
 import { createError, createStatError } from '../errors';
 
 describe('pathToFilename', () => {
@@ -89,6 +89,40 @@ describe('nullCheck', () => {
     expect(() => nullCheck(bufferFrom([97, 0, 98]))).toThrow(/Received <Buffer 61 00 62>$/);
     expect(() => nullCheck(new Uint8Array([97, 0, 98]))).toThrow(/Received Uint8Array\(3\) \[ 97, 0, 98 ]$/);
     expect(() => nullCheck('/' + 'a'.repeat(200) + nul)).toThrow(/\.\.\.$/);
+  });
+});
+
+const FD_CASES: [fd: unknown, name: string, message: string][] = [
+  [-1.5, 'RangeError', 'The value of "fd" is out of range. It must be >= 0 && <= 2147483647. Received -1.5'],
+  [
+    2147483647.5,
+    'RangeError',
+    'The value of "fd" is out of range. It must be >= 0 && <= 2147483647. Received 2147483647.5',
+  ],
+  [Infinity, 'RangeError', 'The value of "fd" is out of range. It must be an integer. Received Infinity'],
+  [-Infinity, 'RangeError', 'The value of "fd" is out of range. It must be an integer. Received -Infinity'],
+  [NaN, 'RangeError', 'The value of "fd" is out of range. It must be an integer. Received NaN'],
+  [1.5, 'RangeError', 'The value of "fd" is out of range. It must be an integer. Received 1.5'],
+  [-1, 'RangeError', 'The value of "fd" is out of range. It must be >= 0 && <= 2147483647. Received -1'],
+  [2 ** 31, 'RangeError', 'The value of "fd" is out of range. It must be >= 0 && <= 2147483647. Received 2147483648'],
+  [BigInt(5), 'TypeError', 'The "fd" argument must be of type number. Received type bigint (5)'],
+];
+
+describe('validateFd', () => {
+  test.each(FD_CASES)('%p', (fd, name, message) => {
+    let error: any;
+    try {
+      validateFd(fd);
+    } catch (err) {
+      error = err;
+    }
+    expect(error.name).toBe(name);
+    expect(error.message).toBe(message);
+    expect(String(error)).toBe(name + ': ' + message);
+  });
+  test('accepts -0 and INT32_MAX', () => {
+    expect(() => validateFd(-0)).not.toThrow();
+    expect(() => validateFd(2147483647)).not.toThrow();
   });
 });
 

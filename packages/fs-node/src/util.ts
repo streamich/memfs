@@ -1,5 +1,6 @@
 import { FLAGS, TEncodingExtended } from '@jsonjoy.com/fs-node-utils';
-import { invalidArgType, invalidArgValue, outOfRange } from '@jsonjoy.com/fs-node-utils/lib/argErrors';
+import { invalidArgValue } from '@jsonjoy.com/fs-node-utils/lib/argErrors';
+import { validateFunction, validateInt32, validateUint32 } from '@jsonjoy.com/fs-node-utils/lib/validators';
 import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import { Readable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 import type { FsCallbackApi } from '@jsonjoy.com/fs-node-utils';
@@ -28,13 +29,12 @@ export function promisify(
  * @param name The name Node gives this callback, which is per call site, not per function
  */
 export function validateCallback<T>(callback: T, name: string = 'cb'): misc.AssertCallback<T> {
-  if (typeof callback !== 'function') throw invalidArgType(name, 'of type function', callback);
+  validateFunction(callback, name);
   return callback as misc.AssertCallback<T>;
 }
 
 const OCTAL_REG = /^[0-7]+$/;
 const MODE_DESC = 'must be a 32-bit unsigned integer or an octal string';
-const UINT32_MAX = 4294967295;
 
 // TODO: `mkdirSync`/`mkdir` must pass `'options.mode'` when the mode came from an options object;
 // Node names it that way (`lib/fs.js:1370`) and `getMkdirOptions` currently erases the distinction.
@@ -45,18 +45,13 @@ export function modeToNumber(mode: misc.TMode | undefined, def?, name: string = 
     if (!OCTAL_REG.test(value)) throw invalidArgValue(name, value, MODE_DESC);
     value = parseInt(value, 8);
   }
-  if (typeof value !== 'number') throw invalidArgType(name, 'of type number', value);
-  if (!Number.isInteger(value)) throw outOfRange(name, 'an integer', value);
-  if (value < 0 || value > UINT32_MAX) throw outOfRange(name, '>= 0 && <= ' + UINT32_MAX, value);
-  return value + 0;
+  validateUint32(value, name);
+  return (value as number) + 0;
 }
 
 export function genRndStr6(): string {
   return Math.random().toString(36).slice(2, 8).padEnd(6, '0');
 }
-
-const INT32_MIN = -2147483648;
-const INT32_MAX = 2147483647;
 
 // TODO: Node takes null and undefined flags as O_RDONLY. Defaulting here would open `appendFile`
 // read-only, because `getOptions` copies an explicit `{flag: undefined}` over its default; fix the
@@ -64,9 +59,7 @@ const INT32_MAX = 2147483647;
 /** `stringToFlags()` of `lib/internal/fs/utils.js`. */
 export function flagsToNumber(flags: misc.TFlags | undefined): number {
   if (typeof flags === 'number') {
-    if (!Number.isInteger(flags)) throw outOfRange('flags', 'an integer', flags);
-    if (flags < INT32_MIN || flags > INT32_MAX)
-      throw outOfRange('flags', '>= ' + INT32_MIN + ' && <= ' + INT32_MAX, flags);
+    validateInt32(flags, 'flags');
     return flags;
   }
   if (typeof flags === 'string') {

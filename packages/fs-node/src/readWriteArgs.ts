@@ -1,5 +1,14 @@
 import { Buffer, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import { validateFd } from '@jsonjoy.com/fs-core';
+import { invalidArgType, invalidArgValue, outOfRange } from '@jsonjoy.com/fs-node-utils/lib/argErrors';
+import {
+  ValidateObject,
+  validateBuffer,
+  validateFunction,
+  validateInt32,
+  validateInteger,
+  validateObject,
+} from '@jsonjoy.com/fs-node-utils/lib/validators';
 
 /**
  * Argument dispatch for `read`, `readv`, `write` and `writev` in every form: positional, options
@@ -11,52 +20,9 @@ import { validateFd } from '@jsonjoy.com/fs-core';
  */
 
 const READ_BUFFER_SIZE = 16384;
-const MAX_SAFE = Number.MAX_SAFE_INTEGER;
 
-const literal = (value: unknown): string =>
-  typeof value === 'string' ? "'" + value + "'" : typeof value === 'bigint' ? value + 'n' : String(value);
-
-const describe = (value: unknown): string => {
-  if (value === null) return 'null';
-  const type = typeof value;
-  if (type === 'function') return 'function ' + ((value as Function).name || '');
-  if (type === 'object') return 'an instance of ' + ((value as object).constructor?.name ?? 'Object');
-  return 'type ' + type + ' (' + literal(value) + ')';
-};
-
-const invalidArgType = (name: string, expected: string, value: unknown): TypeError => {
-  const msg = 'The "' + name + '" argument must be ' + expected + '. Received ' + describe(value);
-  const error = new TypeError(msg);
-  (error as any).code = 'ERR_INVALID_ARG_TYPE';
-  return error;
-};
-
-const outOfRange = (name: string, range: string, value: unknown): RangeError => {
-  const msg = 'The value of "' + name + '" is out of range. It must be ' + range + '. Received ' + literal(value);
-  const error = new RangeError(msg);
-  (error as any).code = 'ERR_OUT_OF_RANGE';
-  return error;
-};
-
-const invalidArgValue = (name: string, value: unknown, reason: string): TypeError => {
-  const received = value !== null && typeof value === 'object' ? describe(value) : literal(value);
-  const msg = "The argument '" + name + "' " + reason + '. Received ' + received;
-  const error = new TypeError(msg);
-  (error as any).code = 'ERR_INVALID_ARG_VALUE';
-  return error;
-};
-
-const validateInteger = (value: unknown, name: string, min: number): void => {
-  if (typeof value !== 'number') throw invalidArgType(name, 'of type number', value);
-  if (!Number.isInteger(value)) throw outOfRange(name, 'an integer', value);
-  if (value < min || value > MAX_SAFE) throw outOfRange(name, '>= ' + min + ' && <= ' + MAX_SAFE, value);
-};
-
-const validateInt32 = (value: unknown, name: string, min: number): void => {
-  if (typeof value !== 'number') throw invalidArgType(name, 'of type number', value);
-  if (!Number.isInteger(value)) throw outOfRange(name, 'an integer', value);
-  if (value < min || value > 2147483647) throw outOfRange(name, '>= ' + min + ' && <= 2147483647', value);
-};
+const validateOptions = (value: unknown, name: string): void =>
+  validateObject(value, name, ValidateObject.AllowNullable);
 
 const validatePosition = (position: unknown, name: string, length: number): void => {
   if (typeof position === 'number') validateInteger(position, name, -1);
@@ -66,24 +32,11 @@ const validatePosition = (position: unknown, name: string, length: number): void
   } else throw invalidArgType(name, 'of type bigint or integer', position);
 };
 
-const validateBuffer = (buffer: unknown, name: string = 'buffer'): void => {
-  if (!ArrayBuffer.isView(buffer)) throw invalidArgType(name, 'an instance of Buffer, TypedArray, or DataView', buffer);
-};
-
 const validateBufferArray = (buffers: unknown, name: string = 'buffers'): void => {
-  if (!Array.isArray(buffers)) throw invalidArgType(name, 'an instance of ArrayBufferView[]', buffers);
+  if (!Array.isArray(buffers)) throw invalidArgType(name, 'an ArrayBufferView[]', buffers);
   const length = buffers.length;
   for (let i = 0; i < length; i++)
-    if (!ArrayBuffer.isView(buffers[i])) throw invalidArgType(name, 'an instance of ArrayBufferView[]', buffers);
-};
-
-const validateFunction = (value: unknown, name: string): void => {
-  if (typeof value !== 'function') throw invalidArgType(name, 'of type function', value);
-};
-
-const validateOptions = (value: unknown, name: string): void => {
-  if (value === null) return;
-  if (Array.isArray(value) || typeof value !== 'object') throw invalidArgType(name, 'of type object', value);
+    if (!ArrayBuffer.isView(buffers[i])) throw invalidArgType(name, 'an ArrayBufferView[]', buffers);
 };
 
 const validateOffsetLengthRead = (offset: number, length: number, bufferLength: number): void => {
@@ -345,7 +298,7 @@ export const getWriteArgs = (
   position: number | null,
   callback: (...args) => void,
 ] => {
-  validateFd(fd);
+  validateInt32(fd, 'fd', 0);
   let offset: any = b;
   let length: any = c;
   let position: any = d;

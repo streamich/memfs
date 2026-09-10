@@ -52,7 +52,8 @@ import {
   pathDirname,
   pathNormalize,
 } from '@jsonjoy.com/fs-node-utils';
-import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
+import { withNativeCode } from '@jsonjoy.com/fs-node-utils/lib/argErrors';
+import { validateInt32 } from '@jsonjoy.com/fs-node-utils/lib/validators';
 import {
   getDefaultOpts,
   getDefaultOptsAndCb,
@@ -271,7 +272,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     };
     this.read = function (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown): void {
       // a `function` for `arguments.length`
-      validateFd(fd);
+      validateInt32(fd, 'fd', 0);
       const { buffer, offset, length, position, callback } = getReadArgs(arguments.length, a, b, c, d, e);
       if (length === 0) {
         queueMicrotask(() => callback(null, 0, buffer));
@@ -397,7 +398,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       callback: misc.TCallback2<number, ArrayBufferView[]>,
     ): void;
   } = (fd: number, buffers: ArrayBufferView[], a?: unknown, b?: unknown): void => {
-    validateFd(fd);
+    validateInt32(fd, 'fd', 0);
     const [position, callback] = getVectorCallbackArgs(buffers, a, b);
     // TODO: libuv rejects `nbufs == 0` before it dispatches, so Node calls back synchronously here.
     Promise.resolve().then(() => {
@@ -534,7 +535,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     (fd: number, buffers: ArrayBufferView[], callback: WritevCallback): void;
     (fd: number, buffers: ArrayBufferView[], position: number | null, callback: WritevCallback): void;
   } = (fd: number, buffers: ArrayBufferView[], a?: unknown, b?: unknown): void => {
-    validateFd(fd);
+    validateInt32(fd, 'fd', 0);
     const [position, callback] = getVectorCallbackArgs(buffers, a, b);
     if (!buffers.length) {
       queueMicrotask(() => callback(null, 0, buffers));
@@ -874,6 +875,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   private fstatBase(fd: number, bigint: false): Stats<number>;
   private fstatBase(fd: number, bigint: true): Stats<bigint>;
   private fstatBase(fd: number, bigint: boolean = false): Stats {
+    // TODO: run `validateFd(fd)` first, as Node's C++ does; a non-number fd reads as EBADF here.
     const file = this._core.getFileByFd(fd);
     if (!file) throw createError(ERROR_CODE.EBADF, 'fstat');
     return Stats.build(file.node, bigint);
@@ -1569,8 +1571,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     } catch (error) {
       // Convert ENOENT to Node.js-compatible error for openAsBlob
       if (error && typeof error === 'object' && error.code === 'ENOENT') {
-        const nodeError = new errors.TypeError('ERR_INVALID_ARG_VALUE');
-        throw nodeError;
+        // TODO: Node throws this synchronously, before a promise exists.
+        throw withNativeCode(new TypeError('Unable to open file as blob'), 'ERR_INVALID_ARG_VALUE');
       }
       throw error;
     }

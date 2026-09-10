@@ -17,7 +17,8 @@ import { FsaNodeFsWatcher } from './FsaNodeFsWatcher';
 import { FsaNodeStatWatcher } from './FsaNodeStatWatcher';
 import { FileHandle } from '@jsonjoy.com/fs-node';
 import { ERROR_CODE, dataToBuffer, isFd, isWin, validateFd } from '@jsonjoy.com/fs-core';
-import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
+import { withNativeCode } from '@jsonjoy.com/fs-node-utils/lib/argErrors';
+import { validateInt32 } from '@jsonjoy.com/fs-node-utils/lib/validators';
 import type { FsCallbackApi, FsPromisesApi } from '@jsonjoy.com/fs-node-utils';
 import type { WritevCallback } from '@jsonjoy.com/fs-node-utils/lib/types/FsCallbackApi';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
@@ -119,6 +120,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     position: number,
     callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | ArrayBufferView | DataView) => void,
   ): void => {
+    validateInt32(fd, 'fd', 0);
     util.validateCallback(callback);
     // This `if` branch is from Node.js
     if (length === 0) {
@@ -203,7 +205,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     a: number | null | WritevCallback,
     b?: WritevCallback,
   ): void => {
-    validateFd(fd);
+    validateInt32(fd, 'fd', 0);
     let position: number | null = null;
     let callback: WritevCallback;
     if (typeof a === 'function') {
@@ -824,8 +826,8 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     } catch (error) {
       // Convert ENOENT to Node.js-compatible error for openAsBlob
       if (error && typeof error === 'object' && error.code === 'ENOENT') {
-        const nodeError = new errors.TypeError('ERR_INVALID_ARG_VALUE');
-        throw nodeError;
+        // TODO: Node throws this synchronously, before a promise exists.
+        throw withNativeCode(new TypeError('Unable to open file as blob'), 'ERR_INVALID_ARG_VALUE');
       }
       throw error;
     }

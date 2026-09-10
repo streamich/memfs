@@ -8,7 +8,7 @@ import { constants } from '@jsonjoy.com/fs-node-utils';
 import { FLAGS, MODE, pathSep, pathRelative, pathJoin } from '@jsonjoy.com/fs-node-utils';
 import { pathToFilename, dataToBuffer, filenameToSteps, resolve, validateFd } from './util';
 import { createError, createStatError, createEisdirError } from './errors';
-import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
+import { outOfRange } from '@jsonjoy.com/fs-node-utils/lib/argErrors';
 import { DirectoryJSON, flattenJSON, NestedDirectoryJSON } from './json';
 import type { PathLike } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import { ERROR_CODE } from './constants';
@@ -634,11 +634,11 @@ export class Superblock {
     length: number,
     position: number | null,
   ): number => {
-    if (offset < 0) throw new errors.RangeError('ERR_OUT_OF_RANGE', 'offset', '>= 0 && <= 9007199254740991', offset);
+    if (offset < 0) throw outOfRange('offset', '>= 0 && <= 9007199254740991', offset);
     if (length === 0) return 0;
-    if (length < 0) throw new errors.RangeError('ERR_OUT_OF_RANGE', 'length', '>= 0', length);
+    if (length < 0) throw outOfRange('length', '>= 0', length);
     if (offset + length > buffer.byteLength) {
-      throw new errors.RangeError('ERR_OUT_OF_RANGE', 'length', '<= ' + (buffer.byteLength - offset), length);
+      throw outOfRange('length', '<= ' + (buffer.byteLength - offset), length);
     }
     const file = this.getFileByFdOrThrow(fd, 'read');
     if (file.node.isSymlink()) {

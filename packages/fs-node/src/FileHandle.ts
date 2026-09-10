@@ -157,7 +157,8 @@ export class FileHandle extends EventEmitter implements IFileHandle {
             controller.enqueue(buffer.slice(0, result.bytesRead));
             return;
           }
-          const result = await this.read(view as Uint8Array, view.byteOffset, view.byteLength, null);
+          // not view.byteOffset, as Node passes: the offset is into the view, so Node throws for an offset view
+          const result = await this.read(view as Uint8Array, 0, view.byteLength, null);
           if (result.bytesRead === 0) {
             controller.close();
             unlockAndCleanup();
@@ -184,6 +185,7 @@ export class FileHandle extends EventEmitter implements IFileHandle {
   ): Promise<TFileHandleReadResult> {
     assertOpen(this.fd, 'read');
     const args = getHandleReadArgs(bufferOrParams, offsetOrOptions, length, position);
+    // TODO: overload like `write` once a caller reads into a non-Uint8Array view
     const buffer = args.buffer as Buffer | Uint8Array;
     if (args.length === 0) return { __proto__: null, bytesRead: args.length, buffer } as TFileHandleReadResult;
     const bytesRead = await promisify(this.fs, 'read')(this.fd, buffer, args.offset, args.length, args.position);
@@ -216,16 +218,26 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     return promisify(this.fs, 'futimes')(this.fd, atime, mtime);
   }
 
+  write<T extends ArrayBufferView>(
+    buffer: T,
+    offsetOrOptions?: number | IWriteOptions | null,
+    length?: number | null,
+    position?: number | null,
+  ): Promise<TFileHandleWriteResult<T>>;
+  write(
+    data: string,
+    position?: number | null,
+    encoding?: BufferEncoding | null,
+  ): Promise<TFileHandleWriteResult<string>>;
   async write(
-    data: Buffer | ArrayBufferView | DataView | string,
+    data: ArrayBufferView | string,
     offsetOrOptions?: number | IWriteOptions | null,
     lengthOrEncoding?: number | BufferEncoding | null,
     position?: number | null,
-  ): Promise<TFileHandleWriteResult> {
+  ): Promise<TFileHandleWriteResult<ArrayBufferView | string>> {
     assertOpen(this.fd, 'write');
-    const buffer = data as Buffer | Uint8Array;
     const args = getHandleWriteArgs(data, offsetOrOptions, lengthOrEncoding, position);
-    if (!args) return { __proto__: null, bytesWritten: 0, buffer } as TFileHandleWriteResult;
+    if (!args) return { __proto__: null, bytesWritten: 0, buffer: data } as TFileHandleWriteResult<typeof data>;
     const bytesWritten = await promisify(this.fs, 'write')(
       this.fd,
       args.buffer,
@@ -233,7 +245,7 @@ export class FileHandle extends EventEmitter implements IFileHandle {
       args.length,
       args.position,
     );
-    return { __proto__: null, bytesWritten, buffer } as TFileHandleWriteResult;
+    return { __proto__: null, bytesWritten, buffer: data } as TFileHandleWriteResult<typeof data>;
   }
 
   async writev(buffers: ArrayBufferView[], position?: number | null | undefined): Promise<TFileHandleWritevResult> {
@@ -271,9 +283,9 @@ export interface TFileHandleReadResult {
   buffer: Buffer | Uint8Array;
 }
 
-export interface TFileHandleWriteResult {
+export interface TFileHandleWriteResult<T extends ArrayBufferView | string = Buffer | Uint8Array> {
   bytesWritten: number;
-  buffer: Buffer | Uint8Array;
+  buffer: T;
 }
 
 export interface TFileHandleReadvResult {

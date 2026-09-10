@@ -190,7 +190,33 @@ describe('FileHandle', () => {
     });
   });
 
+  describe('.write()', () => {
+    it('resolves the data it was given as the buffer', async () => {
+      const fs = createFs();
+      const handle = await fs.promises.open('/test', 'w');
+      const view = new DataView(new ArrayBuffer(2));
+      const fromString: string = (await handle.write('ab')).buffer;
+      const fromView: DataView = (await handle.write(view)).buffer;
+      expect(fromString).toBe('ab');
+      expect(fromView).toBe(view);
+      await handle.close();
+      expect(fs.readFileSync('/test')).toEqual(Buffer.from('ab\0\0'));
+    });
+  });
+
   describe('.readableWebStream()', () => {
+    it('reads into a BYOB view that does not start its buffer', async () => {
+      const fs = createFs();
+      fs.writeFileSync('/test', 'hello');
+      const handle = await fs.promises.open('/test', 'r');
+      const reader = handle.readableWebStream().getReader({ mode: 'byob' });
+      const { value } = await reader.read(new Uint8Array(new ArrayBuffer(8), 2, 4));
+      expect(value!.byteOffset).toBe(2);
+      expect(Buffer.from(value!.buffer, value!.byteOffset, value!.byteLength).toString()).toBe('hell');
+      await reader.cancel();
+      await handle.close();
+    });
+
     it('can read contest of a file', async () => {
       const fs = createFs();
       fs.writeFileSync('/foo', 'bar');

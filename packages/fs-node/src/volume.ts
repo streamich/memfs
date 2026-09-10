@@ -90,6 +90,16 @@ import {
   bufferToEncoding,
   getWriteSyncArgs,
 } from './util';
+import {
+  getReadArgs,
+  getReadSyncArgs,
+  getVectorArgs,
+  getVectorCallbackArgs,
+  type IReadOptions,
+  type IReadParams,
+  type IWriteOptions,
+  type ReadCallback,
+} from './readWriteArgs';
 import type { PathLike, symlink } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/fs-node-utils';
 import { Dir } from './Dir';
@@ -325,41 +335,57 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this._core.close, [file.fd], callback);
   };
 
-  public readSync = (
-    fd: number,
-    buffer: Buffer | ArrayBufferView | DataView,
-    offset: number,
-    length: number,
-    position: number | null,
-  ): number => {
-    validateFd(fd);
-    return this._core.read(fd, buffer, offset, length, position);
-  };
+  public readSync: {
+    (
+      fd: number,
+      buffer: Buffer | ArrayBufferView | DataView,
+      offset?: number | null,
+      length?: number | null,
+      position?: number | bigint | null,
+    ): number;
+    (fd: number, buffer: Buffer | ArrayBufferView | DataView, options?: IReadOptions | null): number;
+  } = ((self: Volume) =>
+    // a `function` for `arguments.length`, otherwise a rest parameter would allocate an array on every read
+    function (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown): number {
+      const { buffer, offset, length, position } = getReadSyncArgs(arguments.length, a, b, c, d);
+      validateFd(fd);
+      return self._core.read(fd, buffer, offset, length, position);
+    })(this);
 
-  public read = (
-    fd: number,
-    buffer: Buffer | ArrayBufferView | DataView,
-    offset: number,
-    length: number,
-    position: number | null,
-    callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | ArrayBufferView | DataView) => void,
-  ) => {
-    validateCallback(callback);
-    if (length === 0) {
-      // This `if` branch is from Node.js
-      return queueMicrotask(() => {
-        if (callback) callback(null, 0, buffer);
-      });
-    }
-    Promise.resolve().then(() => {
-      try {
-        const bytes = this._core.read(fd, buffer, offset, length, position);
-        callback(null, bytes, buffer);
-      } catch (err) {
-        callback(err);
+  public read: {
+    (fd: number, callback: ReadCallback): void;
+    (fd: number, params: IReadParams | null | undefined, callback: ReadCallback): void;
+    (fd: number, buffer: Buffer | ArrayBufferView | DataView, callback: ReadCallback): void;
+    (
+      fd: number,
+      buffer: Buffer | ArrayBufferView | DataView,
+      options: IReadOptions | null,
+      callback: ReadCallback,
+    ): void;
+    (
+      fd: number,
+      buffer: Buffer | ArrayBufferView | DataView,
+      offset: number | null,
+      length: number | null,
+      position: number | bigint | null,
+      callback: ReadCallback,
+    ): void;
+  } = ((self: Volume) =>
+    function (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown): void {
+      validateFd(fd);
+      const { buffer, offset, length, position, callback } = getReadArgs(arguments.length, a, b, c, d, e);
+      if (length === 0) {
+        queueMicrotask(() => callback(null, 0, buffer));
+        return;
       }
-    });
-  };
+      Promise.resolve().then(() => {
+        try {
+          callback(null, self._core.read(fd, buffer, offset, length, position), buffer);
+        } catch (err) {
+          callback(err, 0, buffer);
+        }
+      });
+    })(this);
 
   public readv: {
     (fd: number, buffers: ArrayBufferView[], callback: misc.TCallback2<number, ArrayBufferView[]>): void;
@@ -369,29 +395,25 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       position: number | null,
       callback: misc.TCallback2<number, ArrayBufferView[]>,
     ): void;
-  } = (
-    fd: number,
-    buffers: ArrayBufferView[],
-    a: number | null | misc.TCallback2<number, ArrayBufferView[]>,
-    b?: misc.TCallback2<number, ArrayBufferView[]>,
-  ): void => {
-    let position: number | null = a as number | null;
-    let callback: misc.TCallback2<number, ArrayBufferView[]> = b as misc.TCallback2<number, ArrayBufferView[]>;
-    if (typeof a === 'function') [position, callback] = [null, a];
-    validateCallback(callback);
+  } = (fd: number, buffers: ArrayBufferView[], a?: unknown, b?: unknown): void => {
+    validateFd(fd);
+    const [position, callback] = getVectorCallbackArgs(buffers, a, b);
+    // TODO: libuv rejects `nbufs == 0` before it dispatches, so Node calls back synchronously here.
     Promise.resolve().then(() => {
       try {
-        const bytes = this._core.readv(fd, buffers, position);
-        callback(null, bytes, buffers);
+        if (!buffers.length) throw createError(ERROR_CODE.EINVAL, 'read');
+        callback(null, this._core.readv(fd, buffers, position), buffers);
       } catch (err) {
-        callback(err);
+        callback(err, 0, buffers);
       }
     });
   };
 
   public readvSync = (fd: number, buffers: ArrayBufferView[], position?: number | null): number => {
+    const seek = getVectorArgs(buffers, position);
     validateFd(fd);
-    return this._core.readv(fd, buffers, position ?? null);
+    if (!buffers.length) throw createError(ERROR_CODE.EINVAL, 'read');
+    return this._core.readv(fd, buffers, seek);
   };
 
   private readonly _readfile = (id: TFileId, flagsNum: number, encoding: BufferEncoding): Buffer | string => {
@@ -403,11 +425,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     else fd = this.openSync(id as PathLike, flagsNum);
     try {
       const file = this._core.getFileByFdOrThrow(fd, 'fstat');
-      if (file.node.isDirectory())
-        throw userOwnsFd
-          ? createError(ERROR_CODE.EISDIR, 'read')
-          : createError(ERROR_CODE.EISDIR, 'open', pathToFilename(id as PathLike));
-      result = bufferToEncoding(file.getBuffer(), encoding);
+      if (file.node.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'read');
+      const buffer = file.getBuffer();
+      const start = userOwnsFd ? Math.min(file.position, buffer.length) : 0;
+      file.position = buffer.length;
+      result = bufferToEncoding(start ? buffer.subarray(start) : buffer, encoding);
     } finally {
       if (!userOwnsFd) {
         this.closeSync(fd);
@@ -442,18 +464,13 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     (
       fd: number,
       buffer: Buffer | ArrayBufferView | DataView,
-      offset?: number,
-      length?: number,
+      offset?: number | null,
+      length?: number | null,
       position?: number | null,
     ): number;
-    (fd: number, str: string, position?: number, encoding?: BufferEncoding): number;
-  } = (
-    fd: number,
-    a: string | Buffer | ArrayBufferView | DataView,
-    b?: number,
-    c?: number | BufferEncoding,
-    d?: number,
-  ): number => {
+    (fd: number, buffer: Buffer | ArrayBufferView | DataView, options?: IWriteOptions | null): number;
+    (fd: number, str: string, position?: number | null, encoding?: BufferEncoding): number;
+  } = (fd: number, a: unknown, b?: unknown, c?: unknown, d?: unknown): number => {
     const [, buf, offset, length, position] = getWriteSyncArgs(fd, a, b, c, d);
     return this._write(fd, buf, offset, length, position);
   };
@@ -479,33 +496,33 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     (fd: number, str: string, callback: (...args) => void);
     (fd: number, str: string, position: number, callback: (...args) => void);
     (fd: number, str: string, position: number, encoding: BufferEncoding, callback: (...args) => void);
+    (
+      fd: number,
+      buffer: Buffer | ArrayBufferView | DataView,
+      options: IWriteOptions | null,
+      callback: (...args) => void,
+    );
   } = (fd: number, a?, b?, c?, d?, e?) => {
-    const [, asStr, buf, offset, length, position, cb] = getWriteArgs(fd, a, b, c, d, e);
+    const [, , buf, offset, length, position, cb] = getWriteArgs(fd, a, b, c, d, e);
     Promise.resolve().then(() => {
       try {
-        const bytes = this._write(fd, buf, offset, length, position);
-        if (!asStr) {
-          cb(null, bytes, buf);
-        } else {
-          cb(null, bytes, a);
-        }
+        cb(null, this._write(fd, buf, offset, length, position), a);
       } catch (err) {
-        cb(err);
+        cb(err, 0, a);
       }
     });
   };
 
   private writevBase(fd: number, buffers: ArrayBufferView[], position: number | null): number {
     this._core.getFileByFdOrThrow(fd, 'write');
-    let p = position ?? undefined;
-    if (p === -1) {
-      p = undefined;
-    }
+    let p: number | null = position;
     let bytesWritten = 0;
-    for (const buffer of buffers) {
+    const length = buffers.length;
+    for (let i = 0; i < length; i++) {
+      const buffer = buffers[i];
       const nodeBuf = Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-      const bytes = this._core.write(fd, nodeBuf, 0, nodeBuf.byteLength, p ?? null);
-      p = undefined;
+      const bytes = this._core.write(fd, nodeBuf, 0, nodeBuf.byteLength, p);
+      if (p !== null) p += bytes;
       bytesWritten += bytes;
       if (bytes < nodeBuf.byteLength) break;
     }
@@ -515,24 +532,27 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   public writev: {
     (fd: number, buffers: ArrayBufferView[], callback: WritevCallback): void;
     (fd: number, buffers: ArrayBufferView[], position: number | null, callback: WritevCallback): void;
-  } = (fd: number, buffers: ArrayBufferView[], a: number | null | WritevCallback, b?: WritevCallback): void => {
-    let position: number | null = a as number | null;
-    let callback: WritevCallback = b as WritevCallback;
-    if (typeof a === 'function') [position, callback] = [null, a];
-    validateCallback(callback);
+  } = (fd: number, buffers: ArrayBufferView[], a?: unknown, b?: unknown): void => {
+    validateFd(fd);
+    const [position, callback] = getVectorCallbackArgs(buffers, a, b);
+    if (!buffers.length) {
+      queueMicrotask(() => callback(null, 0, buffers));
+      return;
+    }
     Promise.resolve().then(() => {
       try {
-        const bytes = this.writevBase(fd, buffers, position);
-        callback(null, bytes, buffers);
+        callback(null, this.writevBase(fd, buffers, position), buffers);
       } catch (err) {
-        callback(err);
+        callback(err, 0, buffers);
       }
     });
   };
 
   public writevSync = (fd: number, buffers: ArrayBufferView[], position?: number | null): number => {
+    const seek = getVectorArgs(buffers, position);
+    if (!buffers.length) return 0;
     validateFd(fd);
-    return this.writevBase(fd, buffers, position ?? null);
+    return this.writevBase(fd, buffers, seek);
   };
 
   public writeFileSync = (id: TFileId, data: TData, options?: opts.IWriteFileOptions): void => {

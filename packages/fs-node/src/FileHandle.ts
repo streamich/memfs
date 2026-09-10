@@ -1,4 +1,11 @@
 import { promisify } from './util';
+import {
+  getHandleReadArgs,
+  getHandleWriteArgs,
+  type IReadOptions,
+  type IReadParams,
+  type IWriteOptions,
+} from './readWriteArgs';
 import { EventEmitter } from '@jsonjoy.com/fs-node-builtins/lib/events';
 import type * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import type {
@@ -13,13 +20,20 @@ import type {
 } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import type { FsCallbackApi } from '@jsonjoy.com/fs-node-utils';
 
+const assertOpen = (fd: number, syscall: string): void => {
+  if (fd !== -1) return;
+  const error = new Error('file closed') as Error & { code: string; syscall: string };
+  error.code = 'EBADF';
+  error.syscall = syscall;
+  throw error;
+};
+
 export class FileHandle extends EventEmitter implements IFileHandle {
   private fs: FsCallbackApi;
   private refs: number = 1;
   private closePromise: Promise<void> | null = null;
   private closeResolve?: () => void;
   private closeReject?: (error: Error) => void;
-  private position: number = 0;
   private readableWebStreamLocked: boolean = false;
 
   fd: number;
@@ -96,7 +110,6 @@ export class FileHandle extends EventEmitter implements IFileHandle {
 
   readableWebStream(options: opts.IReadableWebStreamOptions = {}): ReadableStream {
     const { type = 'bytes', autoClose = false } = options;
-    let position = 0;
 
     if (this.fd === -1) {
       throw new Error('The FileHandle is closed');
@@ -135,28 +148,21 @@ export class FileHandle extends EventEmitter implements IFileHandle {
           if (!view) {
             // Fallback for when BYOB is not available
             const buffer = new Uint8Array(16384);
-            const result = await this.read(buffer, 0, buffer.length, position);
-
+            const result = await this.read(buffer, 0, buffer.length, null);
             if (result.bytesRead === 0) {
               controller.close();
               unlockAndCleanup();
               return;
             }
-
-            position += result.bytesRead;
             controller.enqueue(buffer.slice(0, result.bytesRead));
             return;
           }
-
-          const result = await this.read(view as Uint8Array, view.byteOffset, view.byteLength, position);
-
+          const result = await this.read(view as Uint8Array, view.byteOffset, view.byteLength, null);
           if (result.bytesRead === 0) {
             controller.close();
             unlockAndCleanup();
             return;
           }
-
-          position += result.bytesRead;
           controller.byobRequest.respond(result.bytesRead);
         } catch (error) {
           controller.error(error);
@@ -171,31 +177,23 @@ export class FileHandle extends EventEmitter implements IFileHandle {
   }
 
   async read(
-    buffer: Buffer | Uint8Array,
-    offset: number,
-    length: number,
-    position?: number | null,
+    bufferOrParams?: Buffer | Uint8Array | ArrayBufferView | DataView | IReadParams | null,
+    offsetOrOptions?: number | IReadOptions | null,
+    length?: number | null,
+    position?: number | bigint | null,
   ): Promise<TFileHandleReadResult> {
-    const readPosition = position !== null && position !== undefined ? position : this.position;
-
-    const result = await promisify(this.fs, 'read', bytesRead => ({ bytesRead, buffer }))(
-      this.fd,
-      buffer,
-      offset,
-      length,
-      readPosition,
-    );
-
-    // Update internal position only if position was null/undefined
-    if (position === null || position === undefined) {
-      this.position += result.bytesRead;
-    }
-
-    return result;
+    assertOpen(this.fd, 'read');
+    const args = getHandleReadArgs(bufferOrParams, offsetOrOptions, length, position);
+    const buffer = args.buffer as Buffer | Uint8Array;
+    if (args.length === 0) return { __proto__: null, bytesRead: args.length, buffer } as TFileHandleReadResult;
+    const bytesRead = await promisify(this.fs, 'read')(this.fd, buffer, args.offset, args.length, args.position);
+    return { __proto__: null, bytesRead, buffer } as TFileHandleReadResult;
   }
 
-  readv(buffers: ArrayBufferView[], position?: number | null | undefined): Promise<TFileHandleReadvResult> {
-    return promisify(this.fs, 'readv', bytesRead => ({ bytesRead, buffers }))(this.fd, buffers, position);
+  async readv(buffers: ArrayBufferView[], position?: number | null | undefined): Promise<TFileHandleReadvResult> {
+    assertOpen(this.fd, 'readv');
+    const bytesRead = await promisify(this.fs, 'readv')(this.fd, buffers, position ?? null);
+    return { __proto__: null, bytesRead, buffers } as TFileHandleReadvResult;
   }
 
   readFile(options?: opts.IReadFileOptions | string): Promise<TDataOut> {
@@ -219,32 +217,29 @@ export class FileHandle extends EventEmitter implements IFileHandle {
   }
 
   async write(
-    buffer: Buffer | Uint8Array,
-    offset?: number,
-    length?: number,
+    data: Buffer | ArrayBufferView | DataView | string,
+    offsetOrOptions?: number | IWriteOptions | null,
+    lengthOrEncoding?: number | BufferEncoding | null,
     position?: number | null,
   ): Promise<TFileHandleWriteResult> {
-    const useInternalPosition = typeof position !== 'number';
-    const writePosition: number = useInternalPosition ? this.position : position;
-
-    const result = await promisify(this.fs, 'write', bytesWritten => ({ bytesWritten, buffer }))(
+    assertOpen(this.fd, 'write');
+    const buffer = data as Buffer | Uint8Array;
+    const args = getHandleWriteArgs(data, offsetOrOptions, lengthOrEncoding, position);
+    if (!args) return { __proto__: null, bytesWritten: 0, buffer } as TFileHandleWriteResult;
+    const bytesWritten = await promisify(this.fs, 'write')(
       this.fd,
-      buffer,
-      offset,
-      length,
-      writePosition,
+      args.buffer,
+      args.offset,
+      args.length,
+      args.position,
     );
-
-    // Update internal position only if position was null/undefined
-    if (useInternalPosition) {
-      this.position += result.bytesWritten;
-    }
-
-    return result;
+    return { __proto__: null, bytesWritten, buffer } as TFileHandleWriteResult;
   }
 
-  writev(buffers: ArrayBufferView[], position?: number | null | undefined): Promise<TFileHandleWritevResult> {
-    return promisify(this.fs, 'writev', bytesWritten => ({ bytesWritten, buffers }))(this.fd, buffers, position);
+  async writev(buffers: ArrayBufferView[], position?: number | null | undefined): Promise<TFileHandleWritevResult> {
+    assertOpen(this.fd, 'writev');
+    const bytesWritten = await promisify(this.fs, 'writev')(this.fd, buffers, position ?? null);
+    return { __proto__: null, bytesWritten, buffers } as TFileHandleWritevResult;
   }
 
   writeFile(data: TData, options?: opts.IWriteFileOptions): Promise<void> {

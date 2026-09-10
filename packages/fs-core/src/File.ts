@@ -63,11 +63,11 @@ export class File {
   }
 
   write(buf: Buffer, offset: number = 0, length: number = buf.length, position?: number | null): number {
-    // O_APPEND writes always go to the current end of file, the caller's position is discarded.
-    if (this.flags & O_APPEND) position = this.node.getSize();
-    else if (typeof position !== 'number') position = this.position;
-    const bytes = this.node.write(buf, offset, length, position);
-    this.position = position + bytes;
+    const append = !!(this.flags & O_APPEND);
+    const explicit = !append && typeof position === 'number';
+    const pos = append ? this.node.getSize() : explicit ? (position as number) : this.position;
+    const bytes = this.node.write(buf, offset, length, pos);
+    if (!explicit) this.position = pos + bytes;
     return bytes;
   }
 
@@ -77,9 +77,10 @@ export class File {
     length: number = buf.byteLength,
     position?: number,
   ): number {
-    if (typeof position !== 'number') position = this.position;
-    const bytes = this.node.read(buf, offset, length, position);
-    this.position = position + bytes;
+    const explicit = typeof position === 'number';
+    const pos = explicit ? (position as number) : this.position;
+    const bytes = this.node.read(buf, offset, length, pos);
+    if (!explicit) this.position = pos + bytes;
     return bytes;
   }
 

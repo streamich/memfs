@@ -163,12 +163,21 @@ export interface IFileHandle extends EventEmitter {
   stat(options?: IStatOptions): Promise<IStats>;
   truncate(len?: number): Promise<void>;
   utimes(atime: TTime, mtime: TTime): Promise<void>;
-  write(
-    buffer: Buffer | ArrayBufferView | DataView,
-    offset?: number,
-    length?: number,
+  write<T extends ArrayBufferView>(
+    buffer: T,
+    offset?: number | null,
+    length?: number | null,
     position?: number | null,
-  ): Promise<TFileHandleWriteResult>;
+  ): Promise<TFileHandleWriteResult<T>>;
+  write<T extends ArrayBufferView>(
+    buffer: T,
+    options?: { offset?: number | null; length?: number | null; position?: number | null } | null,
+  ): Promise<TFileHandleWriteResult<T>>;
+  write(
+    data: string,
+    position?: number | null,
+    encoding?: BufferEncoding | null,
+  ): Promise<TFileHandleWriteResult<string>>;
   writev(buffers: ArrayBufferView[], position?: number | null): Promise<TFileHandleWritevResult>;
   writeFile(data: TData, options?: IWriteFileOptions): Promise<void>;
 }
@@ -180,9 +189,9 @@ export interface TFileHandleReadResult {
   buffer: Buffer | Uint8Array;
 }
 
-export interface TFileHandleWriteResult {
+export interface TFileHandleWriteResult<T extends ArrayBufferView | string = Buffer | Uint8Array> {
   bytesWritten: number;
-  buffer: Buffer | Uint8Array;
+  buffer: T;
 }
 
 export interface TFileHandleReadvResult {

@@ -659,7 +659,7 @@ export class Superblock {
     let bytesRead = 0;
     for (const buffer of buffers) {
       const bytes = file.read(buffer, 0, buffer.byteLength, p);
-      p = undefined;
+      if (p !== undefined) p += bytes;
       bytesRead += bytes;
       if (bytes < buffer.byteLength) break;
     }

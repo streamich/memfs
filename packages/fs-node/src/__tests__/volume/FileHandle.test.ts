@@ -190,7 +190,33 @@ describe('FileHandle', () => {
     });
   });
 
+  describe('.write()', () => {
+    it('resolves the data it was given as the buffer', async () => {
+      const fs = createFs();
+      const handle = await fs.promises.open('/test', 'w');
+      const view = new DataView(new ArrayBuffer(2));
+      const fromString: string = (await handle.write('ab')).buffer;
+      const fromView: DataView = (await handle.write(view)).buffer;
+      expect(fromString).toBe('ab');
+      expect(fromView).toBe(view);
+      await handle.close();
+      expect(fs.readFileSync('/test')).toEqual(Buffer.from('ab\0\0'));
+    });
+  });
+
   describe('.readableWebStream()', () => {
+    it('reads into a BYOB view that does not start its buffer', async () => {
+      const fs = createFs();
+      fs.writeFileSync('/test', 'hello');
+      const handle = await fs.promises.open('/test', 'r');
+      const reader = handle.readableWebStream().getReader({ mode: 'byob' });
+      const { value } = await reader.read(new Uint8Array(new ArrayBuffer(8), 2, 4));
+      expect(value!.byteOffset).toBe(2);
+      expect(Buffer.from(value!.buffer, value!.byteOffset, value!.byteLength).toString()).toBe('hell');
+      await reader.cancel();
+      await handle.close();
+    });
+
     it('can read contest of a file', async () => {
       const fs = createFs();
       fs.writeFileSync('/foo', 'bar');
@@ -278,11 +304,14 @@ describe('FileHandle', () => {
       const data1 = await fromStream(stream1);
       expect(Buffer.from(data1).toString()).toBe('hello');
 
-      // Second call should now succeed since first stream is consumed
+      // TODO: Node keeps `kLocked` set for the life of the handle, so a second readableWebStream()
+      // throws ERR_INVALID_STATE 'The FileHandle is locked'; memfs releases the lock instead. Until
+      // it does not, the second stream picks the descriptor up where the first left it: at end of file.
+
       const stream2 = handle.readableWebStream();
       expect(stream2).toBeInstanceOf(ReadableStream);
       const data2 = await fromStream(stream2);
-      expect(Buffer.from(data2).toString()).toBe('hello');
+      expect(Buffer.from(data2).toString()).toBe('');
 
       await handle.close();
     });

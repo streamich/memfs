@@ -2,7 +2,6 @@ import { ERRSTR, FLAGS, TEncodingExtended } from '@jsonjoy.com/fs-node-utils';
 import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
 import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import { Readable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
-import { dataToBuffer, validateFd } from '@jsonjoy.com/fs-core';
 import type { FsCallbackApi } from '@jsonjoy.com/fs-node-utils';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 
@@ -67,103 +66,7 @@ export function streamToBuffer(stream: Readable) {
 
 export const bufToUint8 = (buf: Buffer): Uint8Array => new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
 
-export const getWriteArgs = (
-  fd: number,
-  a?: unknown,
-  b?: unknown,
-  c?: unknown,
-  d?: unknown,
-  e?: unknown,
-): [
-  fd: number,
-  dataAsStr: boolean,
-  buf: Buffer,
-  offset: number,
-  length: number,
-  position: number | null,
-  callback: (...args) => void,
-] => {
-  validateFd(fd);
-  let offset: number = 0;
-  let length: number | undefined;
-  let position: number | null = null;
-  let encoding: BufferEncoding | undefined;
-  let callback: ((...args) => void) | undefined;
-  const tipa = typeof a;
-  const tipb = typeof b;
-  const tipc = typeof c;
-  const tipd = typeof d;
-  if (tipa !== 'string') {
-    if (tipb === 'function') {
-      callback = <(...args) => void>b;
-    } else if (tipc === 'function') {
-      offset = (<number>b) | 0;
-      callback = <(...args) => void>c;
-    } else if (tipd === 'function') {
-      offset = (<number>b) | 0;
-      length = <number>c;
-      callback = <(...args) => void>d;
-    } else {
-      offset = (<number>b) | 0;
-      length = <number>c;
-      position = <number | null>d;
-      callback = <(...args) => void>e;
-    }
-  } else {
-    if (tipb === 'function') {
-      callback = <(...args) => void>b;
-    } else if (tipc === 'function') {
-      position = <number | null>b;
-      callback = <(...args) => void>c;
-    } else if (tipd === 'function') {
-      position = <number | null>b;
-      encoding = <BufferEncoding>c;
-      callback = <(...args) => void>d;
-    }
-  }
-  const buf: Buffer = dataToBuffer(<string | Buffer>a, encoding);
-  if (tipa !== 'string') {
-    if (typeof length === 'undefined') length = buf.length;
-  } else {
-    offset = 0;
-    length = buf.length;
-  }
-  const cb = validateCallback(callback);
-  return [fd, tipa === 'string', buf, offset, length!, position, cb];
-};
-
-export const getWriteSyncArgs = (
-  fd: number,
-  a: string | Buffer | ArrayBufferView | DataView,
-  b?: number,
-  c?: number | BufferEncoding,
-  d?: number | null,
-): [fd: number, buf: Buffer, offset: number, length?: number, position?: number | null] => {
-  validateFd(fd);
-  let encoding: BufferEncoding | undefined;
-  let offset: number | undefined;
-  let length: number | undefined;
-  let position: number | null | undefined;
-  const isBuffer = typeof a !== 'string';
-  if (isBuffer) {
-    offset = (b || 0) | 0;
-    length = c as number;
-    position = d;
-  } else {
-    position = b;
-    encoding = c as BufferEncoding;
-  }
-  const buf: Buffer = dataToBuffer(a, encoding);
-  if (isBuffer) {
-    if (typeof length === 'undefined') {
-      length = buf.length;
-    }
-  } else {
-    offset = 0;
-    length = buf.length;
-  }
-  return [fd, buf, offset || 0, length, position];
-};
+export { getWriteArgs, getWriteSyncArgs } from './readWriteArgs';
 
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): misc.TDataOut {
   if (!encoding || encoding === 'buffer') return buffer;

@@ -263,6 +263,28 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.realpath.native = realpathImpl as any;
     this.realpathSync = realpathSyncImpl as any;
     this.realpathSync.native = realpathSyncImpl as any;
+    this.readSync = function (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown): number {
+      // a `function` for `arguments.length`
+      const { buffer, offset, length, position } = getReadSyncArgs(arguments.length, a, b, c, d);
+      validateFd(fd);
+      return self._core.read(fd, buffer, offset, length, position);
+    };
+    this.read = function (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown): void {
+      // a `function` for `arguments.length`
+      validateFd(fd);
+      const { buffer, offset, length, position, callback } = getReadArgs(arguments.length, a, b, c, d, e);
+      if (length === 0) {
+        queueMicrotask(() => callback(null, 0, buffer));
+        return;
+      }
+      Promise.resolve().then(() => {
+        try {
+          callback(null, self._core.read(fd, buffer, offset, length, position), buffer);
+        } catch (err) {
+          callback(err, 0, buffer);
+        }
+      });
+    };
   }
 
   private wrapAsync<Args extends any[]>(method: (...args: Args) => void, args: Args, callback: misc.TCallback<any>) {
@@ -344,13 +366,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       position?: number | bigint | null,
     ): number;
     (fd: number, buffer: Buffer | ArrayBufferView | DataView, options?: IReadOptions | null): number;
-  } = ((self: Volume) =>
-    // a `function` for `arguments.length`, otherwise a rest parameter would allocate an array on every read
-    function (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown): number {
-      const { buffer, offset, length, position } = getReadSyncArgs(arguments.length, a, b, c, d);
-      validateFd(fd);
-      return self._core.read(fd, buffer, offset, length, position);
-    })(this);
+  };
 
   public read: {
     (fd: number, callback: ReadCallback): void;
@@ -370,22 +386,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       position: number | bigint | null,
       callback: ReadCallback,
     ): void;
-  } = ((self: Volume) =>
-    function (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown): void {
-      validateFd(fd);
-      const { buffer, offset, length, position, callback } = getReadArgs(arguments.length, a, b, c, d, e);
-      if (length === 0) {
-        queueMicrotask(() => callback(null, 0, buffer));
-        return;
-      }
-      Promise.resolve().then(() => {
-        try {
-          callback(null, self._core.read(fd, buffer, offset, length, position), buffer);
-        } catch (err) {
-          callback(err, 0, buffer);
-        }
-      });
-    })(this);
+  };
 
   public readv: {
     (fd: number, buffers: ArrayBufferView[], callback: misc.TCallback2<number, ArrayBufferView[]>): void;

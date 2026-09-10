@@ -1,5 +1,5 @@
-import { ERRSTR, FLAGS, TEncodingExtended } from '@jsonjoy.com/fs-node-utils';
-import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
+import { FLAGS, TEncodingExtended } from '@jsonjoy.com/fs-node-utils';
+import { invalidArgType, invalidArgValue, outOfRange } from '@jsonjoy.com/fs-node-utils/lib/argErrors';
 import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import { Readable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
 import type { FsCallbackApi } from '@jsonjoy.com/fs-node-utils';
@@ -21,38 +21,59 @@ export function promisify(
     });
 }
 
-export function validateCallback<T>(callback: T): misc.AssertCallback<T> {
-  if (typeof callback !== 'function') throw TypeError(ERRSTR.CB);
+/**
+ * @todo `Dir.ts` must call this as `validateCallback(callback, 'callback')`. Node names the argument
+ *     `callback` on `fs.Dir` (`lib/internal/fs/dir.js`) and `cb` everywhere else.
+ *
+ * @param name The name Node gives this callback, which is per call site, not per function
+ */
+export function validateCallback<T>(callback: T, name: string = 'cb'): misc.AssertCallback<T> {
+  if (typeof callback !== 'function') throw invalidArgType(name, 'of type function', callback);
   return callback as misc.AssertCallback<T>;
 }
 
-function _modeToNumber(mode: misc.TMode | undefined, def?): number | undefined {
-  if (typeof mode === 'number') return mode;
-  if (typeof mode === 'string') return parseInt(mode, 8);
-  if (def) return modeToNumber(def);
-  return undefined;
-}
+const OCTAL_REG = /^[0-7]+$/;
+const MODE_DESC = 'must be a 32-bit unsigned integer or an octal string';
+const UINT32_MAX = 4294967295;
 
-export function modeToNumber(mode: misc.TMode | undefined, def?): number {
-  const result = _modeToNumber(mode, def);
-  if (typeof result !== 'number' || isNaN(result)) throw new TypeError(ERRSTR.MODE_INT);
-  return result;
+// TODO: `mkdirSync`/`mkdir` must pass `'options.mode'` when the mode came from an options object;
+// Node names it that way (`lib/fs.js:1370`) and `getMkdirOptions` currently erases the distinction.
+/** `parseFileMode()` of `lib/internal/validators.js`. */
+export function modeToNumber(mode: misc.TMode | undefined, def?, name: string = 'mode'): number {
+  let value: unknown = mode ?? def;
+  if (typeof value === 'string') {
+    if (!OCTAL_REG.test(value)) throw invalidArgValue(name, value, MODE_DESC);
+    value = parseInt(value, 8);
+  }
+  if (typeof value !== 'number') throw invalidArgType(name, 'of type number', value);
+  if (!Number.isInteger(value)) throw outOfRange(name, 'an integer', value);
+  if (value < 0 || value > UINT32_MAX) throw outOfRange(name, '>= 0 && <= ' + UINT32_MAX, value);
+  return value + 0;
 }
 
 export function genRndStr6(): string {
   return Math.random().toString(36).slice(2, 8).padEnd(6, '0');
 }
 
-export function flagsToNumber(flags: misc.TFlags | undefined): number {
-  if (typeof flags === 'number') return flags;
+const INT32_MIN = -2147483648;
+const INT32_MAX = 2147483647;
 
+// TODO: Node takes null and undefined flags as O_RDONLY. Defaulting here would open `appendFile`
+// read-only, because `getOptions` copies an explicit `{flag: undefined}` over its default; fix the
+// option defaults in `options.ts` first.
+/** `stringToFlags()` of `lib/internal/fs/utils.js`. */
+export function flagsToNumber(flags: misc.TFlags | undefined): number {
+  if (typeof flags === 'number') {
+    if (!Number.isInteger(flags)) throw outOfRange('flags', 'an integer', flags);
+    if (flags < INT32_MIN || flags > INT32_MAX)
+      throw outOfRange('flags', '>= ' + INT32_MIN + ' && <= ' + INT32_MAX, flags);
+    return flags;
+  }
   if (typeof flags === 'string') {
     const flagsNum = FLAGS[flags];
     if (typeof flagsNum !== 'undefined') return flagsNum;
   }
-
-  // throw new TypeError(formatError(ERRSTR_FLAG(flags)));
-  throw new errors.TypeError('ERR_INVALID_OPT_VALUE', 'flags', flags);
+  throw invalidArgValue('flags', flags);
 }
 
 export function streamToBuffer(stream: Readable) {

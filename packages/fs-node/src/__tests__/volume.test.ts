@@ -382,6 +382,7 @@ describe('volume', () => {
         ).rejects.toThrow();
       });
     });
+
     describe('.openSync(path, flags[, mode])', () => {
       const vol = new Volume();
       it('Create new file at root (/test.txt)', () => {
@@ -393,12 +394,14 @@ describe('volume', () => {
         expect(fd).toBeGreaterThan(0);
         expect(oldMtime).not.toBe(newMtime);
       });
+
       it('Create new file with Uint8Array path', () => {
         const path = new TextEncoder().encode('/test.txt');
         const fd = vol.openSync(path, 'w');
         expect(typeof fd).toBe('number');
         expect(fd).toBeGreaterThan(0);
       });
+
       it('Error on file not found', () => {
         try {
           vol.openSync('/non-existing-file.txt', 'r');
@@ -407,6 +410,7 @@ describe('volume', () => {
           expect(err.code).toBe('ENOENT');
         }
       });
+
       it('Invalid path correct error code', () => {
         try {
           (vol as any).openSync(123, 'r');
@@ -417,23 +421,31 @@ describe('volume', () => {
           expect(err.message).toMatch(/The "path" argument must be of type string/);
         }
       });
+
+      // TODO: Node defaults null and undefined flags to `r`, so this call is ENOENT there, not a
+      // validation error. Only the code is asserted until then.
       it('Invalid flags correct error code', () => {
         try {
           (vol as any).openSync('/non-existing-file.txt');
           throw Error('This should not throw');
         } catch (err) {
-          expect(err.code).toBe('ERR_INVALID_OPT_VALUE');
+          expect(err.code).toBe('ERR_INVALID_ARG_VALUE');
         }
       });
+
       it('Invalid mode correct error code', () => {
         try {
           vol.openSync('/non-existing-file.txt', 'r', 'adfasdf');
           throw Error('This should not throw');
         } catch (err) {
           expect(err).toBeInstanceOf(TypeError);
-          expect(err.message).toBe('mode must be an int');
+          expect(err.code).toBe('ERR_INVALID_ARG_VALUE');
+          expect(err.message).toBe(
+            "The argument 'mode' must be a 32-bit unsigned integer or an octal string. Received 'adfasdf'",
+          );
         }
       });
+
       it('Open multiple files', () => {
         const fd1 = vol.openSync('/1.json', 'w');
         const fd2 = vol.openSync('/2.json', 'w');
@@ -445,6 +457,7 @@ describe('volume', () => {
         expect(fd3 !== fd4).toBe(true);
       });
     });
+
     describe('.open(path, flags[, mode], callback)', () => {
       const vol = new Volume();
       vol.mkdirSync('/test-dir');
@@ -506,6 +519,8 @@ describe('volume', () => {
           done();
         }
       });
+      // TODO: Node defaults undefined flags to `r` and delivers ENOENT to the callback instead of
+      // throwing at all; see the flags TODO in `util.ts`.
       it('Invalid flags correct error code thrown synchronously', done => {
         try {
           (vol as any).open('/non-existing-file.txt', undefined, () => {
@@ -513,7 +528,7 @@ describe('volume', () => {
           });
           throw Error('This should not throw');
         } catch (err) {
-          expect(err.code).toBe('ERR_INVALID_OPT_VALUE');
+          expect(err.code).toBe('ERR_INVALID_ARG_VALUE');
           done();
         }
       });
@@ -525,7 +540,10 @@ describe('volume', () => {
           throw Error('This should not throw');
         } catch (err) {
           expect(err).toBeInstanceOf(TypeError);
-          expect(err.message).toBe('mode must be an int');
+          expect(err.code).toBe('ERR_INVALID_ARG_VALUE');
+          expect(err.message).toBe(
+            "The argument 'mode' must be a 32-bit unsigned integer or an octal string. Received 'adfasdf'",
+          );
           done();
         }
       });
@@ -813,12 +831,15 @@ describe('volume', () => {
           done();
         });
       });
+      // TODO: `lib/fs.js:2412` does `callback ||= options` before naming `cb`, so Node reports
+      // `Received type string ('utf8')` here. The message is left unasserted until `volume.ts`
+      // passes `callback || options` to `validateCallback`.
       it('Throws error when no callback provided', () => {
         try {
           vol.writeFile('/asdf.txt', 'asdf', 'utf8', undefined as any);
           throw Error('This should not throw');
         } catch (err) {
-          expect(err.message).toBe('callback must be a function');
+          expect(err.code).toBe('ERR_INVALID_ARG_TYPE');
         }
       });
     });

@@ -1,7 +1,6 @@
 import { createError, pathToFilename } from '@jsonjoy.com/fs-node';
-import { ERROR_CODE, isFd } from '@jsonjoy.com/fs-core';
+import { ERROR_CODE, validateFd } from '@jsonjoy.com/fs-core';
 import { pathToLocation } from './util';
-import { ERRSTR } from '@jsonjoy.com/fs-node-utils';
 import { FsaToNodeConstants } from './constants';
 import { FsaNodeFsOpenFile } from './FsaNodeFsOpenFile';
 import { FLAG_CON } from '@jsonjoy.com/fs-node-utils';
@@ -131,7 +130,7 @@ export class FsaNodeCore {
   }
 
   protected getFileByFd(fd: number, funcName?: string): FsaNodeFsOpenFile {
-    if (!isFd(fd)) throw TypeError(ERRSTR.FD);
+    validateFd(fd);
     const file = this.fds.get(fd);
     if (!file) throw createError(ERROR_CODE.EBADF, funcName);
     return file;

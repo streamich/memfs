@@ -95,12 +95,8 @@ describe('Dirent', () => {
       });
       const dir = vol.opendirSync('/y');
       const parentPaths: string[] = [];
-      try {
-        for await (const dirent of dir) {
-          parentPaths.push((dirent as Dirent).parentPath);
-        }
-      } finally {
-        dir.closeSync();
+      for await (const dirent of dir) {
+        parentPaths.push((dirent as Dirent).parentPath);
       }
       expect(parentPaths).toEqual(['/y', '/y']);
     });

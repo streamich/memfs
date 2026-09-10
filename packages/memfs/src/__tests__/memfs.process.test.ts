@@ -26,10 +26,25 @@ describe('memfs() with custom process', () => {
     expect(fs.readFileSync('/from-process/file.txt', 'utf8')).toBe('hi');
   });
 
-  it('uses cwd from options, ignoring process.cwd()', () => {
+  it('imports JSON at the explicit cwd when a custom process is provided', () => {
     const customProcess = makeProcess({ cwd: () => '/ignored' });
     const { fs } = memfs({ 'file.txt': 'hi' }, { cwd: '/explicit', process: customProcess });
     expect(fs.readFileSync('/explicit/file.txt', 'utf8')).toBe('hi');
+  });
+
+  it('preserves a custom process cwd after importing JSON at an explicit path', () => {
+    let cwd = '/first';
+    const customProcess = makeProcess({ cwd: () => cwd });
+    const { fs } = memfs({ 'file.txt': 'imported' }, { cwd: '/import', process: customProcess });
+    fs.mkdirSync('/first');
+    fs.mkdirSync('/second');
+    fs.writeFileSync('file.txt', 'first');
+    cwd = '/second';
+    fs.writeFileSync('file.txt', 'second');
+    expect(fs.readFileSync('/import/file.txt', 'utf8')).toBe('imported');
+    expect(fs.readFileSync('/first/file.txt', 'utf8')).toBe('first');
+    expect(fs.readFileSync('/second/file.txt', 'utf8')).toBe('second');
+    expect(fs.readFileSync('file.txt', 'utf8')).toBe('second');
   });
 
   it('uses custom getuid and getgid from process', () => {

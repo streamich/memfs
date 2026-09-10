@@ -110,7 +110,7 @@ export const memfs = (
   // Superblock use that process's cwd(). Otherwise default to '/' so the
   // convenience function keeps its opinionated virtual-root default.
   const cwd = opts.cwd ?? (opts.process ? undefined : '/');
-  const process = cwd === undefined ? opts.process : createProcess(cwd, opts.process);
+  const process = opts.process ?? createProcess(cwd ?? '/');
   const vol = Volume.fromNestedJSON(json, cwd, { process });
   const fs = createFsFromVolume(vol);
   return { fs, vol };

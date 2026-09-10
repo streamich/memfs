@@ -24,7 +24,7 @@ export function promisify(
 /**
  * @todo `Dir.ts` must call this as `validateCallback(callback, 'callback')`. Node names the argument
  *     `callback` on `fs.Dir` (`lib/internal/fs/dir.js`) and `cb` everywhere else.
- * 
+ *
  * @param name The name Node gives this callback, which is per call site, not per function
  */
 export function validateCallback<T>(callback: T, name: string = 'cb'): misc.AssertCallback<T> {

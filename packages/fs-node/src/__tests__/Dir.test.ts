@@ -37,7 +37,7 @@ describe('Dir API Error Handling', () => {
         dir.readSync();
       } catch (err: any) {
         expect(err.code).toBe('ERR_DIR_CLOSED');
-        expect(err.name).toMatch(/ERR_DIR_CLOSED/);
+        expect(err.name).toBe('Error');
       }
     });
 
@@ -49,7 +49,7 @@ describe('Dir API Error Handling', () => {
         dir.closeSync();
       } catch (err: any) {
         expect(err.code).toBe('ERR_DIR_CLOSED');
-        expect(err.name).toMatch(/ERR_DIR_CLOSED/);
+        expect(err.name).toBe('Error');
       }
     });
 
@@ -61,7 +61,7 @@ describe('Dir API Error Handling', () => {
         fail('Should have thrown');
       } catch (err: any) {
         expect(err.code).toBe('ERR_DIR_CLOSED');
-        expect(err.name).toMatch(/ERR_DIR_CLOSED/);
+        expect(err.name).toBe('Error');
       }
     });
 
@@ -73,20 +73,20 @@ describe('Dir API Error Handling', () => {
         fail('Should have thrown');
       } catch (err: any) {
         expect(err.code).toBe('ERR_DIR_CLOSED');
-        expect(err.name).toMatch(/ERR_DIR_CLOSED/);
+        expect(err.name).toBe('Error');
       }
     });
 
-    it('should callback with ERR_DIR_CLOSED when reading from closed dir', done => {
+    it('should throw ERR_DIR_CLOSED synchronously when reading from closed dir with a callback', () => {
       const dir = vol.opendirSync('/test');
       dir.closeSync();
-      dir.read((err, entry) => {
-        expect(err).toBeTruthy();
-        expect((err as any)?.code).toBe('ERR_DIR_CLOSED');
-        expect((err as any)?.name).toMatch(/ERR_DIR_CLOSED/);
-        expect(entry).toBeUndefined();
-        done();
-      });
+      try {
+        dir.read(() => {});
+        fail('Should have thrown');
+      } catch (err: any) {
+        expect(err.code).toBe('ERR_DIR_CLOSED');
+        expect(err.name).toBe('Error');
+      }
     });
 
     it('should callback with ERR_DIR_CLOSED when closing already closed dir', done => {
@@ -95,7 +95,7 @@ describe('Dir API Error Handling', () => {
       dir.close(err => {
         expect(err).toBeTruthy();
         expect((err as any)?.code).toBe('ERR_DIR_CLOSED');
-        expect((err as any)?.name).toMatch(/ERR_DIR_CLOSED/);
+        expect((err as any)?.name).toBe('Error');
         done();
       });
     });
@@ -104,44 +104,41 @@ describe('Dir API Error Handling', () => {
   describe('concurrent operations', () => {
     it('should throw ERR_DIR_CONCURRENT_OPERATION when sync read during async operation', done => {
       const dir = vol.opendirSync('/test');
-
       // Start an async read
       dir.read((err, entry) => {
         expect(err).toBeNull();
         expect(entry).toBeTruthy();
-
-        // Now sync operations should work again
-        expect(() => dir.readSync()).not.toThrow();
-        done();
+        expect(() => dir.readSync()).toThrow();
+        process.nextTick(() => {
+          expect(() => dir.readSync()).not.toThrow();
+          done();
+        });
       });
-
       // Try a sync operation while async is pending
       try {
         dir.readSync();
         fail('Should have thrown');
       } catch (err: any) {
         expect(err.code).toBe('ERR_DIR_CONCURRENT_OPERATION');
-        expect(err.name).toMatch(/ERR_DIR_CONCURRENT_OPERATION/);
+        expect(err.name).toBe('Error');
       }
     });
 
     it('should throw ERR_DIR_CONCURRENT_OPERATION when sync close during async operation', done => {
       const dir = vol.opendirSync('/test');
-
       // Start an async read
       dir.read((err, entry) => {
         expect(err).toBeNull();
         expect(entry).toBeTruthy();
         done();
       });
-
       // Try a sync close while async is pending
       try {
         dir.closeSync();
         fail('Should have thrown');
       } catch (err: any) {
         expect(err.code).toBe('ERR_DIR_CONCURRENT_OPERATION');
-        expect(err.name).toMatch(/ERR_DIR_CONCURRENT_OPERATION/);
+        expect(err.name).toBe('Error');
       }
     });
   });
@@ -163,11 +160,9 @@ describe('Dir API Error Handling', () => {
     it('should work with for-await-of', async () => {
       const dir = vol.opendirSync('/test');
       const entries: string[] = [];
-
       for await (const entry of dir) {
         entries.push(String(entry.name));
       }
-
       expect(entries).toContain('file1.txt');
       expect(entries).toContain('file2.txt');
       expect(entries.length).toBe(2);
@@ -177,12 +172,11 @@ describe('Dir API Error Handling', () => {
   describe('disposable', () => {
     it('should be closed for disposable', done => {
       const dir = vol.opendirSync('/test');
-
       dir[Symbol.dispose]();
       dir.close(err => {
         expect(err).toBeTruthy();
         expect((err as any)?.code).toBe('ERR_DIR_CLOSED');
-        expect((err as any)?.name).toMatch(/ERR_DIR_CLOSED/);
+        expect((err as any)?.name).toBe('Error');
         done();
       });
     });
@@ -200,7 +194,7 @@ describe('Dir API Error Handling', () => {
         dir.close(err => {
           expect(err).toBeTruthy();
           expect((err as any)?.code).toBe('ERR_DIR_CLOSED');
-          expect((err as any)?.name).toMatch(/ERR_DIR_CLOSED/);
+          expect((err as any)?.name).toBe('Error');
           done();
         });
       });

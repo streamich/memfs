@@ -1,5 +1,6 @@
 import {
   Stats,
+  Dir,
   Dirent,
   Volume,
   StatWatcher,
@@ -39,11 +40,14 @@ export const vol = Volume.fromNestedJSON({}, '/', { process: createProcess('/') 
 export interface IFs extends Volume {
   constants: typeof constants;
   Stats: new (...args) => Stats;
+  Dir: new (...args) => Dir;
   Dirent: new (...args) => Dirent;
   StatWatcher: new () => StatWatcher;
   FSWatcher: new () => FSWatcher;
   ReadStream: new (...args) => misc.IReadStream;
   WriteStream: new (...args) => IWriteStream;
+  FileReadStream: new (...args) => misc.IReadStream;
+  FileWriteStream: new (...args) => IWriteStream;
   promises: FsPromisesApi;
   _toUnixTimestamp;
 }

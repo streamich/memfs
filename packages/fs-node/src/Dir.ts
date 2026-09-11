@@ -36,7 +36,7 @@ export class Dir implements IDir {
    * @todo Node builds a Dir on a directory handle with `read(encoding, bufferSize)` and `close()`;
    *     this one walks a `Link` directly, so `new fs.Dir(someHandle, path)` cannot work. Extend
    *     `Superblock` with directory handles.
-   * 
+   *
    * @todo Get rid of `process` (specifically `process.nextTick`) globals in this file. Replace it
    *     by something, or DI inject the "environment" (such as `process`).
    *

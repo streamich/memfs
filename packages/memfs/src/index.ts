@@ -48,8 +48,28 @@ export interface IFs extends Volume {
   _toUnixTimestamp;
 }
 
+const kStreams = Symbol('streams');
+
+const streamSlot = (index: number): PropertyDescriptor => ({
+  get(this: { [kStreams]: unknown[] }) {
+    return this[kStreams][index];
+  },
+  set(this: { [kStreams]: unknown[] }, value: unknown) {
+    this[kStreams][index] = value;
+  },
+  enumerable: true,
+  configurable: true,
+});
+
+const streamDescriptors: PropertyDescriptorMap = {
+  ReadStream: streamSlot(0),
+  WriteStream: streamSlot(1),
+  FileReadStream: streamSlot(2),
+  FileWriteStream: streamSlot(3),
+};
+
 export function createFsFromVolume(vol: Volume): IFs {
-  const fs = { F_OK, R_OK, W_OK, X_OK, constants, Stats, Dirent } as any as IFs;
+  const fs = { F_OK, R_OK, W_OK, X_OK, constants, Stats, Dir, Dirent } as any as IFs;
 
   // Bind FS methods.
   for (const method of fsSynchronousApiList) if (typeof vol[method] === 'function') fs[method] = vol[method].bind(vol);
@@ -57,8 +77,8 @@ export function createFsFromVolume(vol: Volume): IFs {
 
   fs.StatWatcher = vol.StatWatcher;
   fs.FSWatcher = vol.FSWatcher;
-  fs.WriteStream = vol.WriteStream;
-  fs.ReadStream = vol.ReadStream;
+  (fs as any)[kStreams] = [vol.ReadStream, vol.WriteStream, vol.ReadStream, vol.WriteStream];
+  Object.defineProperties(fs, streamDescriptors);
   fs.promises = vol.promises;
 
   // Handle realpath and realpathSync with their .native properties

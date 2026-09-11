@@ -1600,17 +1600,26 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return globSync(this, pattern, options);
   };
 
-  private readonly _opendir = (filename: string, options: opts.IOpendirOptions): Dir => {
-    const link: Link = this._core.getResolvedLinkOrThrow(filename, 'scandir');
+  /** @param errorPath Empty for the synchronous form, whose errors carry no `err.path`. */
+  private readonly _opendir = (
+    filename: string,
+    options: opts.IOpendirOptions,
+    path: TDataOut,
+    errorPath: string,
+  ): Dir => {
+    const result = this._core.getResolvedLinkResult(filename, 'opendir');
+    if (!result.ok) throw createError(result.err.code, 'opendir', errorPath);
+    const link: Link = result.value!;
     const node = link.getNode();
-    if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'scandir', filename);
-    return new Dir(link, options);
+    if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'opendir', errorPath);
+    if (!node.canRead()) throw createError(ERROR_CODE.EACCES, 'opendir', errorPath);
+    return new Dir(link, path, options);
   };
 
   public opendirSync = (path: PathLike, options?: opts.IOpendirOptions | string): Dir => {
-    const opts = getOpendirOptions(options);
     const filename = pathToFilename(path);
-    return this._opendir(filename, opts);
+    const opts = getOpendirOptions(options);
+    return this._opendir(filename, opts, path instanceof Uint8Array ? bufferFrom(path) : filename, '');
   };
 
   public opendir: {
@@ -1619,7 +1628,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   } = (path: PathLike, a?, b?): void => {
     const [options, callback] = getOpendirOptsAndCb(a, b);
     const filename = pathToFilename(path);
-    this.wrapAsync(this._opendir, [filename, options], callback);
+    const dirPath = path instanceof Uint8Array ? bufferFrom(path) : filename;
+    this.wrapAsync(this._opendir, [filename, options, dirPath, filename], callback);
   };
 
   // ---------------------------------------------------------------- Tree View

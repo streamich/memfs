@@ -1,5 +1,5 @@
 import { ERROR_CODE, Link } from '@jsonjoy.com/fs-core';
-import { join } from '@jsonjoy.com/fs-node-builtins/lib/path';
+import { pathJoin } from '@jsonjoy.com/fs-node-utils';
 import { invalidThis, withCode } from '@jsonjoy.com/fs-node-utils/lib/argErrors';
 import { validateUint32 } from '@jsonjoy.com/fs-node-utils/lib/validators';
 import * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
@@ -14,6 +14,7 @@ type TCloseCallback = (err?: Error | null) => void;
 interface DirLevel {
   entries: IterableIterator<[string, Link | undefined]>;
   path: TDataOut;
+  parentPath: string;
 }
 
 const DEFAULT_ENCODING: opts.IOpendirOptions = { encoding: 'utf8' };
@@ -56,7 +57,9 @@ export class Dir implements IDir {
     validateUint32(opts.bufferSize, 'options.bufferSize', true);
     this.options = opts;
     this._path = path;
-    this.levels.push({ entries: handle.children[Symbol.iterator](), path });
+    // TODO: Node keeps a Buffer path as a Buffer `parentPath`, but `IDirent['parentPath']` is a string.
+    const parentPath = typeof path === 'string' ? path : path.toString();
+    this.levels.push({ entries: handle.children[Symbol.iterator](), path, parentPath });
   }
 
   private readBase(): IDirent | null {
@@ -74,8 +77,7 @@ export class Dir implements IDir {
       const name = value[0];
       if (name === '.' || name === '..') continue;
       const link = value[1]!;
-      // TODO: Node's `parentPath` is the path as opened (a Buffer, relative, via a symlink), we use link's.
-      const dirent = Dirent.build(link, encoding);
+      const dirent = Dirent.build(link, encoding, level.parentPath);
       if (recursive && dirent.isDirectory()) this.descend(level.path, dirent.name, link);
       return dirent;
     }
@@ -84,9 +86,9 @@ export class Dir implements IDir {
 
   // TODO: Node opens the joined path, failing ENOENT on a `hex` or non-ASCII `latin1` name, we follow the link.
   private descend(parent: TDataOut, name: TDataOut, link: Link): void {
-    const path = join(parent as string, name as string);
+    const path = pathJoin(parent as string, name as string);
     if (!link.getNode().canRead()) throw createError(ERROR_CODE.EACCES, 'opendir', path);
-    this.levels.push({ entries: link.children[Symbol.iterator](), path });
+    this.levels.push({ entries: link.children[Symbol.iterator](), path, parentPath: path });
   }
 
   private readPromise(): Promise<IDirent | null> {

@@ -1005,6 +1005,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     for (const name of link.children.keys()) {
       const child = link.getChild(name);
       if (!child || name === '.' || name === '..') continue;
+      // TODO: pass the path readdir was given as `parentPath`, as `Dir` does: Node keeps it verbatim.
       list.push(Dirent.build(child, options.encoding));
       // recursion
       if (options.recursive && child.children.size) {

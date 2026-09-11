@@ -189,6 +189,15 @@ describe('Dir API Error Handling', () => {
       const dir = vol.opendirSync(Buffer.from('/test'), { recursive: true });
       expect(() => names(dir)).toThrow(expect.objectContaining({ code: 'ERR_INVALID_ARG_TYPE' }));
     });
+
+    it('keeps the opened path as parentPath, joined for nested entries', () => {
+      vol.symlinkSync('/test', '/alias');
+      const dir = vol.opendirSync('/alias/', { recursive: true });
+      const paths: string[] = [];
+      for (let entry = dir.readSync(); entry !== null; entry = dir.readSync())
+        paths.push(entry.parentPath + ' ' + entry.name);
+      expect(paths.sort()).toEqual(['/alias/ file1.txt', '/alias/ file2.txt', '/alias/ sub', '/alias/sub deep.txt']);
+    });
   });
 
   describe('async iterator', () => {

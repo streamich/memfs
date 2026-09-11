@@ -1,6 +1,8 @@
 export const BREAK_LENGTH = 80;
 export const MAX_ARRAY_LENGTH = 100;
 
+const MAX_COLUMNS = 12;
+
 export const enum Kind {
   Object = 0,
   ArrayItem = 1,
@@ -43,8 +45,7 @@ const groupArrayElements = (ctx: Ctx, output: string[], value: any): string[] =>
   const columns = Math.min(
     Math.round(Math.sqrt(2.5 * biasedMax * outputLength) / biasedMax),
     Math.floor((BREAK_LENGTH - ctx.indentationLvl) / actualMax),
-    12,
-    15,
+    MAX_COLUMNS,
   );
   if (columns <= 1) return output;
   const maxLineLength: number[] = [];

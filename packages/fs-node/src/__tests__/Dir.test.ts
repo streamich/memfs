@@ -1,4 +1,5 @@
 import { Volume } from '../volume';
+import type { Dir } from '../Dir';
 
 describe('Dir API Error Handling', () => {
   let vol: Volume;
@@ -153,6 +154,40 @@ describe('Dir API Error Handling', () => {
       vol.mkdirSync('/test/nested');
       const dir = vol.opendirSync('/test/nested');
       expect(dir.path).toBe('/test/nested');
+    });
+
+    it('keeps a Buffer path verbatim', async () => {
+      const path = Buffer.from('/test');
+      expect(vol.opendirSync(path).path).toEqual(path);
+      expect((await vol.promises.opendir(path)).path).toEqual(path);
+    });
+  });
+
+  describe('recursive', () => {
+    const names = (dir: Dir): string[] => {
+      const result: string[] = [];
+      for (let entry = dir.readSync(); entry !== null; entry = dir.readSync()) result.push(String(entry.name));
+      return result.sort();
+    };
+
+    beforeEach(() => {
+      vol.mkdirSync('/test/sub');
+      vol.writeFileSync('/test/sub/deep.txt', 'content3');
+    });
+
+    it('descends into subdirectories', () => {
+      const dir = vol.opendirSync('/test', { recursive: true });
+      expect(names(dir)).toEqual(['deep.txt', 'file1.txt', 'file2.txt', 'sub']);
+    });
+
+    it('throws ERR_INVALID_ARG_TYPE descending with the buffer encoding, like Node', () => {
+      const dir = vol.opendirSync('/test', { recursive: true, encoding: 'buffer' });
+      expect(() => names(dir)).toThrow(expect.objectContaining({ code: 'ERR_INVALID_ARG_TYPE' }));
+    });
+
+    it('throws ERR_INVALID_ARG_TYPE descending from a Buffer path, like Node', () => {
+      const dir = vol.opendirSync(Buffer.from('/test'), { recursive: true });
+      expect(() => names(dir)).toThrow(expect.objectContaining({ code: 'ERR_INVALID_ARG_TYPE' }));
     });
   });
 

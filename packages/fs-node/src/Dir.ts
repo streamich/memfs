@@ -74,6 +74,7 @@ export class Dir implements IDir {
       const name = value[0];
       if (name === '.' || name === '..') continue;
       const link = value[1]!;
+      // TODO: Node's `parentPath` is the path as opened (a Buffer, relative, via a symlink), we use link's.
       const dirent = Dirent.build(link, encoding);
       if (recursive && dirent.isDirectory()) this.descend(level.path, dirent.name, link);
       return dirent;
@@ -81,6 +82,7 @@ export class Dir implements IDir {
     return null;
   }
 
+  // TODO: Node opens the joined path, failing ENOENT on a `hex` or non-ASCII `latin1` name, we follow the link.
   private descend(parent: TDataOut, name: TDataOut, link: Link): void {
     const path = join(parent as string, name as string);
     if (!link.getNode().canRead()) throw createError(ERROR_CODE.EACCES, 'opendir', path);
@@ -133,11 +135,10 @@ export class Dir implements IDir {
 
   // --------------------------------------------------------------------- IDir
 
-  // TODO: widen `IDir['path']` to `TDataOut` in fs-node-utils; a Buffer path is kept verbatim here.
-  public get path(): string {
+  public get path(): TDataOut {
     // TODO: brand-check like Node's `#path in this`: `instanceof` lets `Object.create(Dir.prototype)` through.
     if (!(this instanceof Dir)) throw invalidThis('Dir');
-    return this._path as string;
+    return this._path;
   }
 
   close(): Promise<void>;

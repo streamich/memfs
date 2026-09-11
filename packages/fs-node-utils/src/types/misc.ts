@@ -78,7 +78,7 @@ export interface IStatFs<T = TStatNumber> {
 }
 
 export interface IDir extends Disposable, AsyncDisposable {
-  path: string;
+  path: TDataOut;
   close(): Promise<void>;
   close(callback?: (err?: Error) => void): void;
   closeSync(): void;

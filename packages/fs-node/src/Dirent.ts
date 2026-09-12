@@ -8,13 +8,13 @@ const { S_IFMT, S_IFDIR, S_IFREG, S_IFBLK, S_IFCHR, S_IFLNK, S_IFIFO, S_IFSOCK }
  * A directory entry, like `fs.Dirent`.
  */
 export class Dirent implements IDirent {
-  static build(link: Link, encoding: TEncodingExtended | undefined) {
+  static build(link: Link, encoding: TEncodingExtended | undefined, parentPath: string = link.getParentPath()) {
     const dirent = new Dirent();
     const { mode } = link.getNode();
     dirent.name = strToEncoding(link.getName(), encoding);
     dirent.mode = mode;
-    dirent.parentPath = link.getParentPath();
-    dirent.path = dirent.parentPath;
+    dirent.parentPath = parentPath;
+    dirent.path = parentPath;
     return dirent;
   }
 

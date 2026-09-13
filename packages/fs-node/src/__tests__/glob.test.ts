@@ -66,6 +66,17 @@ describe('glob APIs', () => {
       expect(results).toEqual(['file1.js']);
     });
 
+    it('maxdepth counts directory levels below cwd for an absolute pattern', () => {
+      const { vol } = setup();
+      expect(vol.globSync('/test/*.js', { maxdepth: 0 })).toEqual(['/test/file1.js']);
+      expect(vol.globSync('/test/**/*.js', { cwd: '/test', maxdepth: 0 })).toEqual(['/test/file1.js']);
+      expect(vol.globSync('/test/**/*.js', { cwd: '/', maxdepth: 1 })).toEqual(['/test/file1.js']);
+      expect(vol.globSync('/test/**/*.js', { cwd: '/', maxdepth: 2 }).sort()).toEqual([
+        '/test/file1.js',
+        '/test/subdir/nested.js',
+      ]);
+    });
+
     it('should return empty array for non-matching pattern', () => {
       const { vol } = setup();
       const results = vol.globSync('*.xyz', { cwd: '/test' });
@@ -88,6 +99,38 @@ describe('glob APIs', () => {
       const { vol } = setup();
       const results = vol.globSync('./**/*.js', { cwd: '/test' });
       expect(results.sort()).toEqual(['file1.js', 'subdir/nested.js']);
+    });
+  });
+
+  describe('matcher parity with minimatch', () => {
+    it('!(...) rejects the whole remainder', () => {
+      const { vol } = setup();
+      expect(vol.globSync('!(file1).js', { cwd: '/test' })).toEqual([]);
+      expect(vol.globSync('!(file2).js', { cwd: '/test' })).toEqual(['file1.js']);
+    });
+
+    it('a leading ] is a member of a bracket expression', () => {
+      const { vol } = setup();
+      expect(vol.globSync('[]f]ile1.js', { cwd: '/test' })).toEqual(['file1.js']);
+    });
+
+    it('expands a numeric brace range', () => {
+      const { vol } = setup();
+      expect(vol.globSync('file{1..2}.*', { cwd: '/test' }).sort()).toEqual(['file1.js', 'file2.ts']);
+    });
+
+    it('a wildcard skips dotfiles but a literal or class dot matches one', () => {
+      const { vol } = setup();
+      vol.writeFileSync('/test/.hidden.js', '');
+      expect(vol.globSync('*.js', { cwd: '/test' })).toEqual(['file1.js']);
+      expect(vol.globSync('.*.js', { cwd: '/test' })).toEqual(['.hidden.js']);
+      expect(vol.globSync('[.]hidden.js', { cwd: '/test' })).toEqual(['.hidden.js']);
+    });
+
+    it('exclude takes globstar and extglob patterns', () => {
+      const { vol } = setup();
+      expect(vol.globSync('**/*.js', { cwd: '/test', exclude: ['subdir/**'] })).toEqual(['file1.js']);
+      expect(vol.globSync('**/*.js', { cwd: '/test', exclude: ['**/!(nested).js'] })).toEqual(['subdir/nested.js']);
     });
   });
 
@@ -121,22 +164,26 @@ describe('glob APIs', () => {
   });
 
   describe('promises.glob', () => {
-    it('should return promise resolving to matching files', async () => {
+    const drain = async (iterator: AsyncIterable<unknown>): Promise<unknown[]> => {
+      const files: unknown[] = [];
+      for await (const file of iterator) files.push(file);
+      return files;
+    };
+
+    it('should yield the matching files', async () => {
       const { vol } = setup();
-      const files = await vol.promises.glob('*.js', { cwd: '/test' });
-      expect(files).toEqual(['file1.js']);
+      expect(await drain(vol.promises.glob('*.js', { cwd: '/test' }))).toEqual(['file1.js']);
     });
 
     it('should work with recursive patterns', async () => {
       const { vol } = setup();
-      const files = await vol.promises.glob('**/*.js', { cwd: '/test' });
+      const files = await drain(vol.promises.glob('**/*.js', { cwd: '/test' }));
       expect(files.sort()).toEqual(['file1.js', 'subdir/nested.js']);
     });
 
     it('should work without options', async () => {
       const { vol } = setup();
-      const files = await vol.promises.glob('/test/*.js');
-      expect(files).toEqual(['/test/file1.js']);
+      expect(await drain(vol.promises.glob('/test/*.js'))).toEqual(['/test/file1.js']);
     });
   });
 });

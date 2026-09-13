@@ -22,6 +22,7 @@ import {
 import Stats from './Stats';
 import Dirent from './Dirent';
 import StatFs from './StatFs';
+import { globSync, globWalk } from './glob';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import setTimeoutUnref, { TSetTimeout } from '@jsonjoy.com/fs-node-utils/lib/setTimeoutUnref';
 import { Readable, Writable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
@@ -880,6 +881,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     for (const name of link.children.keys()) {
       const child = link.getChild(name);
       if (!child || name === '.' || name === '..') continue;
+      // TODO: pass the path readdir was given as `parentPath`, as `Dir` does: Node keeps it verbatim.
       list.push(Dirent.build(child, options.encoding));
       // recursion
       if (options.recursive && child.children.size) {
@@ -1446,31 +1448,45 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return new Blob([buffer as BlobPart], { type });
   };
 
-  public glob: FsCallbackApi['glob'] = (pattern: string, ...args: any[]) => {
-    const [options, callback] = args.length === 1 ? [{}, args[0]] : [args[0], args[1]];
-    this.wrapAsync(this._globSync, [pattern, options || {}], callback);
+  public glob: FsCallbackApi['glob'] = (pattern: string, options?: any, callback?: any) => {
+    if (typeof options === 'function') {
+      callback = options;
+      options = undefined;
+    }
+    const cb = validateCallback(callback);
+    const walk = globWalk(this, pattern, options);
+    Promise.resolve()
+      .then(() => {
+        const results: (string | Dirent)[] = [];
+        for (const match of walk) results.push(match);
+        return results;
+      })
+      .then(results => cb(null, results), cb);
   };
 
-  public globSync: FsSynchronousApi['globSync'] = (pattern: string, options: opts.IGlobOptions = {}) => {
-    return this._globSync(pattern, options);
-  };
+  public globSync: FsSynchronousApi['globSync'] = (pattern: string, options?: opts.IGlobOptions) =>
+    globSync(this, pattern, options as any);
 
-  private readonly _globSync = (pattern: string, options: opts.IGlobOptions = {}): string[] => {
-    const { globSync } = require('./glob');
-    return globSync(this, pattern, options);
-  };
-
-  private readonly _opendir = (filename: string, options: opts.IOpendirOptions): Dir => {
-    const link: Link = this._core.getResolvedLinkOrThrow(filename, 'scandir');
+  /** @param errorPath Empty for the synchronous form, whose errors carry no `err.path`. */
+  private readonly _opendir = (
+    filename: string,
+    options: opts.IOpendirOptions,
+    path: TDataOut,
+    errorPath: string,
+  ): Dir => {
+    const result = this._core.getResolvedLinkResult(filename, 'opendir');
+    if (!result.ok) throw createError(result.err.code, 'opendir', errorPath);
+    const link: Link = result.value!;
     const node = link.getNode();
-    if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'scandir', filename);
-    return new Dir(link, options);
+    if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'opendir', errorPath);
+    if (!node.canRead()) throw createError(ERROR_CODE.EACCES, 'opendir', errorPath);
+    return new Dir(link, path, options);
   };
 
   public opendirSync = (path: PathLike, options?: opts.IOpendirOptions | string): Dir => {
-    const opts = getOpendirOptions(options);
     const filename = pathToFilename(path);
-    return this._opendir(filename, opts);
+    const opts = getOpendirOptions(options);
+    return this._opendir(filename, opts, path instanceof Uint8Array ? bufferFrom(path) : filename, '');
   };
 
   public opendir: {
@@ -1479,7 +1495,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   } = (path: PathLike, a?, b?): void => {
     const [options, callback] = getOpendirOptsAndCb(a, b);
     const filename = pathToFilename(path);
-    this.wrapAsync(this._opendir, [filename, options], callback);
+    const dirPath = path instanceof Uint8Array ? bufferFrom(path) : filename;
+    this.wrapAsync(this._opendir, [filename, options, dirPath, filename], callback);
   };
 
   // ---------------------------------------------------------------- Tree View

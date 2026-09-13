@@ -1,5 +1,6 @@
 import { isReadableStream, promisify, streamToBuffer } from './util';
 import { getCpOptions } from './cp';
+import { glob } from './glob';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 import type * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
 import type * as misc from '@jsonjoy.com/fs-node-utils/lib/types/misc';
@@ -176,7 +177,8 @@ export class FsPromises implements FsPromisesApi {
   public readonly opendir = promisify(this.fs, 'opendir');
   public readonly statfs = promisify(this.fs, 'statfs');
   public readonly lutimes = promisify(this.fs, 'lutimes');
-  public readonly glob = promisify(this.fs, 'glob');
+  public readonly glob = (pattern: string | string[], options?: opts.IGlobOptions) =>
+    glob(this.fs as any, pattern, options);
   public readonly access = promisify(this.fs, 'access');
   public readonly chmod = promisify(this.fs, 'chmod');
   public readonly chown = promisify(this.fs, 'chown');

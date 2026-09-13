@@ -67,6 +67,29 @@ describe('promises.cp', () => {
     expect(vol.existsSync('/src/a')).toBe(false);
   });
 
+  it('rejects with ERR_FS_EISDIR before the ancestor walk when recursive is off', async () => {
+    const vol = create({
+      '/src/f': 'content',
+    });
+    vol.symlinkSync('/src', '/alias');
+    await expect(vol.promises.cp('/src', '/alias/a/deep')).rejects.toMatchObject({
+      code: 'ERR_FS_EISDIR',
+    });
+    expect(vol.existsSync('/src/a')).toBe(true);
+  });
+
+  it('names the aliased ancestor level in the error path', async () => {
+    const vol = create({
+      '/src/f': 'content',
+      '/src/a/.keep': '',
+    });
+    vol.symlinkSync('/src', '/alias');
+    await expect(vol.promises.cp('/src', '/alias/a/deep', { recursive: true })).rejects.toMatchObject({
+      code: 'ERR_FS_CP_EINVAL',
+      path: '/alias/a',
+    });
+  });
+
   it('respects filter option', async () => {
     const vol = create({
       '/src/file1.txt': 'content1',

@@ -125,6 +125,45 @@ describe('cp edge cases', () => {
       }).toThrow(/subdirectory of self/);
       expect(vol.existsSync('/src/a')).toBe(false);
     });
+
+    it('copies a symlink src into its target subtree as a symlink', () => {
+      const vol = create({
+        '/src/a/.keep': '',
+      });
+      vol.symlinkSync('/src', '/link');
+      vol.cpSync('/link', '/src/a/sub', { recursive: true });
+      expect(vol.lstatSync('/src/a/sub').isSymbolicLink()).toBe(true);
+      expect(vol.readlinkSync('/src/a/sub')).toBe('/src');
+    });
+
+    it('reports the missing recursive option before the ancestor walk', () => {
+      const vol = create({
+        '/src/f': 'content',
+      });
+      vol.symlinkSync('/src', '/alias');
+      expect(() => {
+        vol.cpSync('/src', '/alias/a/deep');
+      }).toThrow(/Recursive option not enabled/);
+    });
+
+    it('fails with ENOTDIR when a dest ancestor under the alias is a file', () => {
+      const vol = create({
+        '/src/f': 'content',
+      });
+      vol.symlinkSync('/src', '/alias');
+      expect(() => {
+        vol.cpSync('/src', '/alias/f/deep', { recursive: true });
+      }).toThrow(/ENOTDIR/);
+    });
+
+    it('fails with ENOTDIR when the dest parent chain passes through the src file', () => {
+      const vol = create({
+        '/file': 'content',
+      });
+      expect(() => {
+        vol.cpSync('/file', '/file/a/b');
+      }).toThrow(/ENOTDIR/);
+    });
   });
 
   describe('file modes and permissions', () => {

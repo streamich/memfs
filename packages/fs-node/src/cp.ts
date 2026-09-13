@@ -221,23 +221,17 @@ const identicalPaths = (vol: Volume, a: string, b: string): boolean => {
   }
 };
 
-const srcAliasesAncestor = (vol: Volume, srcPath: string, destParent: string): boolean => {
-  let srcStat: Stats | undefined;
-  try {
-    srcStat = vol.statSync(srcPath, { throwIfNoEntry: false }) as Stats | undefined;
-  } catch {
-    return false;
-  }
-  if (!srcStat) return false;
-  const srcParent = pathDirname(srcPath);
+const srcAliasesAncestor = (vol: Volume, srcStat: Stats, srcParent: string, destParent: string): boolean => {
   for (let ancestor = destParent; ancestor !== srcParent && ancestor !== '/'; ancestor = pathDirname(ancestor)) {
     let stat: Stats | undefined;
     try {
       stat = vol.statSync(ancestor, { throwIfNoEntry: false }) as Stats | undefined;
     } catch {
-      continue;
+      return false;
     }
-    if (stat && areIdentical(srcStat, stat)) return true;
+    if (!stat) continue;
+    if (!stat.isDirectory()) return false;
+    if (areIdentical(srcStat, stat)) return true;
   }
   return false;
 };
@@ -245,8 +239,6 @@ const srcAliasesAncestor = (vol: Volume, srcPath: string, destParent: string): b
 /** `CpSyncCheckPaths` in `src/node_file.cc`. */
 const checkPathsSync = (vol: Volume, src: string, dest: string, dereference: boolean, recursive: boolean): void => {
   let srcStat: Stats;
-  // TODO: memfs `statSync` ignores a trailing separator, so a file src spelled `a.txt/` gets here
-  // instead of failing ENOTDIR; drop this note once `walk` rejects it (maybe already done?).
   try {
     srcStat = statOf(vol, src, !dereference);
   } catch (error) {
@@ -279,8 +271,15 @@ const checkPathsSync = (vol: Volume, src: string, dest: string, dereference: boo
   if (srcIsDir && destPath.startsWith(srcPrefix))
     throw cpCodeError('ERR_FS_CP_EINVAL', 'Cannot copy ' + srcPrefix + ' to a subdirectory of self ' + destPath);
   const destParent = pathDirname(destPath);
-  if (srcAliasesAncestor(vol, srcPath, destParent))
+  const srcParent = pathDirname(srcPath);
+  if (srcParent !== destParent && destParent !== '/' && identicalPaths(vol, srcPath, destParent))
     throw cpCodeError('ERR_FS_CP_EINVAL', 'Cannot copy ' + srcPrefix + ' to a subdirectory of self ' + destPath);
+  if (recursive && srcIsDir) {
+    const copyStat = statOrNull(vol, src, dereference);
+    const followed = dereference ? copyStat : srcStat;
+    if (copyStat && followed && copyStat.isDirectory() && srcAliasesAncestor(vol, followed, srcParent, destParent))
+      throw cpCodeError('ERR_FS_CP_EINVAL', 'Cannot copy ' + srcPrefix + ' to a subdirectory of self ' + destPath);
+  }
   if (srcIsDir && !recursive)
     throw cpCodeError('ERR_FS_EISDIR', 'Recursive option not enabled, cannot copy a directory: ' + srcPrefix);
   if (srcStat.isSocket()) throw cpCodeError('ERR_FS_CP_SOCKET', 'Cannot copy a socket file: ' + destPath);
@@ -408,7 +407,7 @@ const onLinkSync = (
 export const cpAsync = async (vol: Volume, src: string, dest: string, options: ICpOptionsResolved): Promise<void> => {
   const stats = await checkPaths(vol, src, dest, options);
   if (!stats) return;
-  checkParentPaths(vol, src, stats.srcStat, dest);
+  checkParentPaths(vol, src, stats.srcStat, dest, options.recursive);
   const destParent = pathDirname(dest);
   if (!vol.existsSync(destParent)) vol.mkdirSync(destParent, { recursive: true });
   await getStatsForCopy(vol, stats.destStat, src, dest, options);
@@ -461,16 +460,25 @@ const checkPaths = async (
   return { srcStat, destStat };
 };
 
-const checkParentPaths = (vol: Volume, src: string, srcStat: Stats, dest: string): void => {
+const checkParentPaths = (vol: Volume, src: string, srcStat: Stats, dest: string, recursive: boolean): void => {
   const srcParent = pathResolve(pathDirname(src));
-  const start = pathResolve(pathDirname(dest));
-  for (let destParent = start; destParent !== srcParent && destParent !== '/'; destParent = pathDirname(destParent)) {
-    const destStat = vol.statSync(destParent, { throwIfNoEntry: false }) as Stats | undefined;
-    if (destStat && areIdentical(srcStat, destStat))
+  const skipMissing = recursive && srcStat.isDirectory();
+  let at = dest;
+  for (
+    let parent = pathResolve(pathDirname(dest));
+    parent !== srcParent && parent !== '/';
+    at = parent, parent = pathDirname(parent)
+  ) {
+    const parentStat = vol.statSync(parent, { throwIfNoEntry: false }) as Stats | undefined;
+    if (!parentStat) {
+      if (skipMissing) continue;
+      return;
+    }
+    if (areIdentical(srcStat, parentStat))
       throw cpSystemError(
         'ERR_FS_CP_EINVAL',
-        'cannot copy ' + src + ' to a subdirectory of self ' + dest,
-        dest,
+        'cannot copy ' + src + ' to a subdirectory of self ' + at,
+        at,
         ERRNO.EINVAL,
         'EINVAL',
       );

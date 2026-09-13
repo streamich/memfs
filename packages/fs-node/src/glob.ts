@@ -164,8 +164,7 @@ const compile = (pattern: string): [set: Part[][], globParts: string[][]] => {
 
 const createExcludeMatcher = (patterns: string[], root: string): ((value: string) => boolean) => {
   const regexes: RegExp[] = [];
-  for (let i = 0; i < patterns.length; i++)
-    regexes.push(toRegex(resolve(root, patterns[i].replace(/\\/g, '/')), OPTS));
+  for (let i = 0; i < patterns.length; i++) regexes.push(toRegex(resolve(root, patterns[i].replace(/\\/g, '/')), OPTS));
   return (value: string): boolean => {
     for (let i = 0; i < regexes.length; i++) if (regexes[i].test(value)) return true;
     return false;

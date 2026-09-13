@@ -1,3 +1,4 @@
+import { isWin } from '@jsonjoy.com/fs-core';
 import { create } from '../util';
 
 describe('cp edge cases', () => {
@@ -156,13 +157,13 @@ describe('cp edge cases', () => {
       }).toThrow(/ENOTDIR/);
     });
 
-    it('fails with ENOTDIR when the dest parent chain passes through the src file', () => {
+    it('fails on the src file in the dest parent chain, not on the alias walk', () => {
       const vol = create({
         '/file': 'content',
       });
       expect(() => {
         vol.cpSync('/file', '/file/a/b');
-      }).toThrow(/ENOTDIR/);
+      }).toThrow(isWin ? /ENOENT/ : /ENOTDIR/);
     });
   });
 

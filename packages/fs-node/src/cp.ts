@@ -254,7 +254,7 @@ const checkPathsSync = (vol: Volume, src: string, dest: string, dereference: boo
         'Cannot overwrite directory ' + destPath + ' with non-directory ' + srcPath,
       );
   }
-  const srcPrefix = srcPath + '/';
+  const srcPrefix = srcPath === '/' ? srcPath : srcPath + '/';
   if (srcIsDir && destPath.startsWith(srcPrefix))
     throw cpCodeError('ERR_FS_CP_EINVAL', 'Cannot copy ' + srcPrefix + ' to a subdirectory of self ' + destPath);
   const destParent = pathDirname(destPath);

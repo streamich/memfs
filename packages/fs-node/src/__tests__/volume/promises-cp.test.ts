@@ -46,6 +46,16 @@ describe('promises.cp', () => {
     });
   });
 
+  it('rejects copying the root into its own subdirectory', async () => {
+    const vol = create({
+      '/file.txt': 'content',
+    });
+    await expect(vol.promises.cp('/', '/dest', { recursive: true })).rejects.toMatchObject({
+      code: 'ERR_FS_CP_EINVAL',
+    });
+    expect(vol.existsSync('/dest')).toBe(false);
+  });
+
   it('respects filter option', async () => {
     const vol = create({
       '/src/file1.txt': 'content1',

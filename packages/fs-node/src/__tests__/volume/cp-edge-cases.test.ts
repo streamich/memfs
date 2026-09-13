@@ -92,6 +92,16 @@ describe('cp edge cases', () => {
         vol.cpSync('/parent', '/parent/child/subdir', { recursive: true });
       }).toThrow(/subdirectory of self/);
     });
+
+    it('prevents copying the root into its own subdirectory', () => {
+      const vol = create({
+        '/file.txt': 'content',
+      });
+      expect(() => {
+        vol.cpSync('/', '/dest', { recursive: true });
+      }).toThrow(/Cannot copy \/ to a subdirectory of self \/dest/);
+      expect(vol.existsSync('/dest')).toBe(false);
+    });
   });
 
   describe('file modes and permissions', () => {

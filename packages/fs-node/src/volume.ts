@@ -22,6 +22,7 @@ import {
 import Stats from './Stats';
 import Dirent from './Dirent';
 import StatFs from './StatFs';
+import { globSync, globWalk } from './glob';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import setTimeoutUnref, { TSetTimeout } from '@jsonjoy.com/fs-node-utils/lib/setTimeoutUnref';
 import { Readable, Writable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
@@ -1586,19 +1587,24 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return new Blob([buffer as BlobPart], { type });
   };
 
-  public glob: FsCallbackApi['glob'] = (pattern: string, ...args: any[]) => {
-    const [options, callback] = args.length === 1 ? [{}, args[0]] : [args[0], args[1]];
-    this.wrapAsync(this._globSync, [pattern, options || {}], callback);
+  public glob: FsCallbackApi['glob'] = (pattern: string, options?: any, callback?: any) => {
+    if (typeof options === 'function') {
+      callback = options;
+      options = undefined;
+    }
+    const cb = validateCallback(callback);
+    const walk = globWalk(this, pattern, options);
+    Promise.resolve()
+      .then(() => {
+        const results: string[] = [];
+        for (const match of walk) results.push(match as string);
+        return results;
+      })
+      .then(results => cb(null, results), cb);
   };
 
-  public globSync: FsSynchronousApi['globSync'] = (pattern: string, options: opts.IGlobOptions = {}) => {
-    return this._globSync(pattern, options);
-  };
-
-  private readonly _globSync = (pattern: string, options: opts.IGlobOptions = {}): string[] => {
-    const { globSync } = require('./glob');
-    return globSync(this, pattern, options);
-  };
+  public globSync: FsSynchronousApi['globSync'] = (pattern: string, options?: opts.IGlobOptions) =>
+    globSync(this, pattern, options as any);
 
   private readonly _opendir = (filename: string, options: opts.IOpendirOptions): Dir => {
     const link: Link = this._core.getResolvedLinkOrThrow(filename, 'scandir');

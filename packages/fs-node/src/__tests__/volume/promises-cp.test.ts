@@ -56,6 +56,17 @@ describe('promises.cp', () => {
     expect(vol.existsSync('/dest')).toBe(false);
   });
 
+  it('rejects a dest whose ancestor is a symlink to src across a missing parent', async () => {
+    const vol = create({
+      '/src/f': 'content',
+    });
+    vol.symlinkSync('/src', '/alias');
+    await expect(vol.promises.cp('/src', '/alias/a/deep', { recursive: true })).rejects.toMatchObject({
+      code: 'ERR_FS_CP_EINVAL',
+    });
+    expect(vol.existsSync('/src/a')).toBe(false);
+  });
+
   it('respects filter option', async () => {
     const vol = create({
       '/src/file1.txt': 'content1',

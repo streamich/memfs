@@ -102,6 +102,29 @@ describe('cp edge cases', () => {
       }).toThrow(/Cannot copy \/ to a subdirectory of self \/dest/);
       expect(vol.existsSync('/dest')).toBe(false);
     });
+
+    it('prevents copying into a dest whose ancestor is a symlink to src', () => {
+      const vol = create({
+        '/src/f': 'content',
+        '/src/a/.keep': '',
+      });
+      vol.symlinkSync('/src', '/alias');
+      expect(() => {
+        vol.cpSync('/src', '/alias/a/deep', { recursive: true });
+      }).toThrow(/Cannot copy \/src\/ to a subdirectory of self \/alias\/a\/deep/);
+      expect(vol.existsSync('/src/a/deep')).toBe(false);
+    });
+
+    it('prevents copying into a dest whose ancestor is a symlink to src across a missing parent', () => {
+      const vol = create({
+        '/src/f': 'content',
+      });
+      vol.symlinkSync('/src', '/alias');
+      expect(() => {
+        vol.cpSync('/src', '/alias/a/deep', { recursive: true });
+      }).toThrow(/subdirectory of self/);
+      expect(vol.existsSync('/src/a')).toBe(false);
+    });
   });
 
   describe('file modes and permissions', () => {

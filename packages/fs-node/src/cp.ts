@@ -221,6 +221,27 @@ const identicalPaths = (vol: Volume, a: string, b: string): boolean => {
   }
 };
 
+const srcAliasesAncestor = (vol: Volume, srcPath: string, destParent: string): boolean => {
+  let srcStat: Stats | undefined;
+  try {
+    srcStat = vol.statSync(srcPath, { throwIfNoEntry: false }) as Stats | undefined;
+  } catch {
+    return false;
+  }
+  if (!srcStat) return false;
+  const srcParent = pathDirname(srcPath);
+  for (let ancestor = destParent; ancestor !== srcParent && ancestor !== '/'; ancestor = pathDirname(ancestor)) {
+    let stat: Stats | undefined;
+    try {
+      stat = vol.statSync(ancestor, { throwIfNoEntry: false }) as Stats | undefined;
+    } catch {
+      continue;
+    }
+    if (stat && areIdentical(srcStat, stat)) return true;
+  }
+  return false;
+};
+
 /** `CpSyncCheckPaths` in `src/node_file.cc`. */
 const checkPathsSync = (vol: Volume, src: string, dest: string, dereference: boolean, recursive: boolean): void => {
   let srcStat: Stats;
@@ -258,7 +279,7 @@ const checkPathsSync = (vol: Volume, src: string, dest: string, dereference: boo
   if (srcIsDir && destPath.startsWith(srcPrefix))
     throw cpCodeError('ERR_FS_CP_EINVAL', 'Cannot copy ' + srcPrefix + ' to a subdirectory of self ' + destPath);
   const destParent = pathDirname(destPath);
-  if (pathDirname(srcPath) !== destParent && destParent !== '/' && identicalPaths(vol, srcPath, destParent))
+  if (srcAliasesAncestor(vol, srcPath, destParent))
     throw cpCodeError('ERR_FS_CP_EINVAL', 'Cannot copy ' + srcPrefix + ' to a subdirectory of self ' + destPath);
   if (srcIsDir && !recursive)
     throw cpCodeError('ERR_FS_EISDIR', 'Recursive option not enabled, cannot copy a directory: ' + srcPrefix);
@@ -440,15 +461,12 @@ const checkPaths = async (
   return { srcStat, destStat };
 };
 
-/** Walks up from the dest parent, stopping at the src parent or the root. */
 const checkParentPaths = (vol: Volume, src: string, srcStat: Stats, dest: string): void => {
   const srcParent = pathResolve(pathDirname(src));
-  let destParent = pathResolve(pathDirname(dest));
-  for (;;) {
-    if (destParent === srcParent || destParent === '/') return;
+  const start = pathResolve(pathDirname(dest));
+  for (let destParent = start; destParent !== srcParent && destParent !== '/'; destParent = pathDirname(destParent)) {
     const destStat = vol.statSync(destParent, { throwIfNoEntry: false }) as Stats | undefined;
-    if (!destStat) return;
-    if (areIdentical(srcStat, destStat))
+    if (destStat && areIdentical(srcStat, destStat))
       throw cpSystemError(
         'ERR_FS_CP_EINVAL',
         'cannot copy ' + src + ' to a subdirectory of self ' + dest,
@@ -456,7 +474,6 @@ const checkParentPaths = (vol: Volume, src: string, srcStat: Stats, dest: string
         ERRNO.EINVAL,
         'EINVAL',
       );
-    destParent = pathResolve(pathDirname(destParent));
   }
 };
 

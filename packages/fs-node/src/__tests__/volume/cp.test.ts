@@ -49,7 +49,7 @@ describe('cp(src, dest[, options], callback)', () => {
 
     vol.cp('/src', '/dest', err => {
       expect(err).toBeInstanceOf(Error);
-      expect(err).toHaveProperty('code', 'EISDIR');
+      expect(err).toHaveProperty('code', 'ERR_FS_EISDIR');
       done();
     });
   });
@@ -86,15 +86,14 @@ describe('cp(src, dest[, options], callback)', () => {
     });
   });
 
-  it('handles errorOnExist option', done => {
+  it('honours errorOnExist only when force is off', done => {
     const vol = create({
       '/src.txt': 'source',
       '/dest.txt': 'destination',
     });
-
-    vol.cp('/src.txt', '/dest.txt', { errorOnExist: true }, err => {
+    vol.cp('/src.txt', '/dest.txt', { errorOnExist: true, force: false }, err => {
       expect(err).toBeInstanceOf(Error);
-      expect(err).toHaveProperty('code', 'EEXIST');
+      expect(err).toHaveProperty('code', 'ERR_FS_CP_EEXIST');
       done();
     });
   });

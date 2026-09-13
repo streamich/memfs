@@ -1,3 +1,4 @@
+import { isWin } from '@jsonjoy.com/fs-core';
 import { create } from '../util';
 
 describe('cp edge cases', () => {
@@ -19,10 +20,8 @@ describe('cp edge cases', () => {
       const vol = create({
         '/original.txt': 'original content',
       });
-
       vol.symlinkSync('/original.txt', '/link.txt');
-      vol.cpSync('/link.txt', '/copy.txt', { dereference: true });
-
+      vol.cpSync('/link.txt', '/copy.txt', { dereference: true, recursive: true });
       const copyStats = vol.lstatSync('/copy.txt');
       expect(copyStats.isSymbolicLink()).toBe(false);
       expect(copyStats.isFile()).toBe(true);
@@ -71,7 +70,7 @@ describe('cp edge cases', () => {
 
       expect(() => {
         vol.cpSync('/src', '/dest.txt', { recursive: true });
-      }).toThrow(/EISDIR/);
+      }).toThrow(/ERR_FS_CP_DIR_TO_NON_DIR|Cannot overwrite non-directory/);
     });
 
     it('throws error when trying to copy file to existing directory', () => {
@@ -82,7 +81,7 @@ describe('cp edge cases', () => {
 
       expect(() => {
         vol.cpSync('/src.txt', '/dest');
-      }).toThrow(/ENOTDIR/);
+      }).toThrow(/Cannot overwrite directory/);
     });
 
     it('prevents copying directory to its own subdirectory', () => {
@@ -92,7 +91,79 @@ describe('cp edge cases', () => {
 
       expect(() => {
         vol.cpSync('/parent', '/parent/child/subdir', { recursive: true });
-      }).toThrow(/EINVAL/);
+      }).toThrow(/subdirectory of self/);
+    });
+
+    it('prevents copying the root into its own subdirectory', () => {
+      const vol = create({
+        '/file.txt': 'content',
+      });
+      expect(() => {
+        vol.cpSync('/', '/dest', { recursive: true });
+      }).toThrow(/Cannot copy \/ to a subdirectory of self \/dest/);
+      expect(vol.existsSync('/dest')).toBe(false);
+    });
+
+    it('prevents copying into a dest whose ancestor is a symlink to src', () => {
+      const vol = create({
+        '/src/f': 'content',
+        '/src/a/.keep': '',
+      });
+      vol.symlinkSync('/src', '/alias');
+      expect(() => {
+        vol.cpSync('/src', '/alias/a/deep', { recursive: true });
+      }).toThrow(/Cannot copy \/src\/ to a subdirectory of self \/alias\/a\/deep/);
+      expect(vol.existsSync('/src/a/deep')).toBe(false);
+    });
+
+    it('prevents copying into a dest whose ancestor is a symlink to src across a missing parent', () => {
+      const vol = create({
+        '/src/f': 'content',
+      });
+      vol.symlinkSync('/src', '/alias');
+      expect(() => {
+        vol.cpSync('/src', '/alias/a/deep', { recursive: true });
+      }).toThrow(/subdirectory of self/);
+      expect(vol.existsSync('/src/a')).toBe(false);
+    });
+
+    it('copies a symlink src into its target subtree as a symlink', () => {
+      const vol = create({
+        '/src/a/.keep': '',
+      });
+      vol.symlinkSync('/src', '/link');
+      vol.cpSync('/link', '/src/a/sub', { recursive: true });
+      expect(vol.lstatSync('/src/a/sub').isSymbolicLink()).toBe(true);
+      expect(vol.readlinkSync('/src/a/sub')).toBe('/src');
+    });
+
+    it('reports the missing recursive option before the ancestor walk', () => {
+      const vol = create({
+        '/src/f': 'content',
+      });
+      vol.symlinkSync('/src', '/alias');
+      expect(() => {
+        vol.cpSync('/src', '/alias/a/deep');
+      }).toThrow(/Recursive option not enabled/);
+    });
+
+    it('fails with ENOTDIR when a dest ancestor under the alias is a file', () => {
+      const vol = create({
+        '/src/f': 'content',
+      });
+      vol.symlinkSync('/src', '/alias');
+      expect(() => {
+        vol.cpSync('/src', '/alias/f/deep', { recursive: true });
+      }).toThrow(/ENOTDIR/);
+    });
+
+    it('fails on the src file in the dest parent chain, not on the alias walk', () => {
+      const vol = create({
+        '/file': 'content',
+      });
+      expect(() => {
+        vol.cpSync('/file', '/file/a/b');
+      }).toThrow(isWin ? /ENOENT/ : /ENOTDIR/);
     });
   });
 

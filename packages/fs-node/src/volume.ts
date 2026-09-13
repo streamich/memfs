@@ -1,4 +1,4 @@
-import { resolve, sep, posix, isAbsolute } from '@jsonjoy.com/fs-node-builtins/lib/path';
+import { sep, posix } from '@jsonjoy.com/fs-node-builtins/lib/path';
 import {
   Link,
   Superblock,
@@ -43,16 +43,7 @@ import { FsCallbackApi, WritevCallback } from '@jsonjoy.com/fs-node-utils/lib/ty
 import { FsPromises } from './FsPromises';
 import { ToTreeOptions, toTreeSync } from '@jsonjoy.com/fs-print';
 import * as fsSnapshot from '@jsonjoy.com/fs-snapshot';
-import {
-  ERRSTR,
-  FLAGS,
-  MODE,
-  pathSep,
-  pathRelative,
-  pathJoin,
-  pathDirname,
-  pathNormalize,
-} from '@jsonjoy.com/fs-node-utils';
+import { ERRSTR, MODE, pathSep, pathJoin } from '@jsonjoy.com/fs-node-utils';
 import { withNativeCode } from '@jsonjoy.com/fs-node-utils/lib/argErrors';
 import { validateInt32 } from '@jsonjoy.com/fs-node-utils/lib/validators';
 import {
@@ -105,9 +96,9 @@ import {
 import type { PathLike, symlink } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/fs-node-utils';
 import { Dir } from './Dir';
+import { copyFileCore, cpAsync, cpSync as cpSyncFn, getCpOptions, getValidCopyFileMode } from './cp';
 
-const resolveCrossPlatform = resolve;
-const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK, COPYFILE_EXCL, COPYFILE_FICLONE_FORCE } = constants;
+const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK } = constants;
 
 // ---------------------------------------------------------------------- Types
 
@@ -586,17 +577,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this._core.writeFile, [id, buf, flagsNum, modeNum], cb);
   };
 
-  private _copyFile(src: string, dest: string, flags: number) {
-    const buf = this.readFileSync(src) as Buffer;
-    if (flags & COPYFILE_EXCL && this.existsSync(dest)) throw createError(ERROR_CODE.EEXIST, 'copyfile', src, dest);
-    if (flags & COPYFILE_FICLONE_FORCE) throw createError(ERROR_CODE.ENOSYS, 'copyfile', src, dest);
-    this._core.writeFile(dest, buf, FLAGS.w, MODE.DEFAULT);
-  }
-
   public copyFileSync = (src: PathLike, dest: PathLike, flags?: TFlagsCopy) => {
     const srcFilename = pathToFilename(src);
     const destFilename = pathToFilename(dest);
-    return this._copyFile(srcFilename, destFilename, (flags || 0) | 0);
+    copyFileCore(this._core, srcFilename, destFilename, getValidCopyFileMode(flags));
   };
 
   public copyFile: {
@@ -610,126 +594,17 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (typeof a === 'function') [flags, callback] = [0, a];
     else [flags, callback] = [a, b];
     validateCallback(callback);
-    this.wrapAsync(this._copyFile, [srcFilename, destFilename, flags], callback);
-  };
-
-  private readonly _cp = (
-    src: string,
-    dest: string,
-    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
-  ): void => {
-    if (options.filter && !options.filter(src, dest)) return;
-    const srcStat = options.dereference ? this.statSync(src) : this.lstatSync(src);
-    let destStat: Stats | null = null;
-    try {
-      destStat = this.lstatSync(dest);
-    } catch (err) {
-      if ((err as any).code !== 'ENOENT') {
-        throw err;
+    const flagsNum = getValidCopyFileMode(flags);
+    Promise.resolve().then(() => {
+      try {
+        copyFileCore(this._core, srcFilename, destFilename, flagsNum);
+      } catch (error) {
+        callback(error as Error);
+        return;
       }
-    }
-    // TODO: Node raises ERR_FS_CP_* (code only) or the failing lstat/mkdir/copyfile. 'cp' is not a libuv syscall.
-    // Check if src and dest are the same (both exist and have same inode)
-    if (destStat && srcStat.ino === destStat.ino && srcStat.dev === destStat.dev)
-      throw createError(ERROR_CODE.EINVAL, 'cp', src, dest);
-    // Check type compatibility
-    if (destStat) {
-      if (srcStat.isDirectory() && !destStat.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'cp', src, dest);
-      if (!srcStat.isDirectory() && destStat.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'cp', src, dest);
-    }
-    // Check if trying to copy directory to subdirectory of itself
-    if (srcStat.isDirectory() && this.isSrcSubdir(src, dest)) throw createError(ERROR_CODE.EINVAL, 'cp', src, dest);
-    ENDURE_PARENT_DIR_EXISTS: {
-      const parent = pathDirname(dest);
-      if (!this.existsSync(parent)) this.mkdirSync(parent, { recursive: true });
-    }
-    // Handle different file types
-    if (srcStat.isDirectory()) {
-      if (!options.recursive) throw createError(ERROR_CODE.EISDIR, 'cp', src);
-      this.cpDirSync(srcStat, destStat, src, dest, options);
-    } else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) {
-      this.cpFileSync(srcStat, destStat, src, dest, options);
-    } else if (srcStat.isSymbolicLink() && !options.dereference) {
-      // Only handle as symlink if not dereferencing
-      this.cpSymlinkSync(destStat, src, dest, options);
-    } else {
-      throw createError(ERROR_CODE.EINVAL, 'cp', src);
-    }
+      callback(null);
+    });
   };
-
-  private isSrcSubdir(src: string, dest: string): boolean {
-    try {
-      const normalizedSrc = pathNormalize(src.startsWith('/') ? src : '/' + src);
-      const normalizedDest = pathNormalize(dest.startsWith('/') ? dest : '/' + dest);
-      if (normalizedSrc === normalizedDest) return true;
-      // Check if dest is under src by using relative path
-      // If dest is under src, the relative path from src to dest won't start with '..'
-      const relativePath = pathRelative(normalizedSrc, normalizedDest);
-      // If relative path is empty or doesn't start with '..', dest is under src
-      return relativePath === '' || (!relativePath.startsWith('..') && !isAbsolute(relativePath));
-    } catch (error) {
-      // If path operations fail, assume it's safe (don't block the copy)
-      return false;
-    }
-  }
-
-  private cpFileSync(
-    srcStat: Stats,
-    destStat: Stats | null,
-    src: string,
-    dest: string,
-    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
-  ): void {
-    if (destStat) {
-      if (options.errorOnExist) throw createError(ERROR_CODE.EEXIST, 'cp', dest);
-      if (!options.force) return;
-      this.unlinkSync(dest);
-    }
-    // Copy the file
-    this.copyFileSync(src, dest, options.mode);
-    // Preserve timestamps if requested
-    if (options.preserveTimestamps) this.utimesSync(dest, srcStat.atime, srcStat.mtime);
-    // Set file mode
-    this.chmodSync(dest, Number(srcStat.mode));
-  }
-
-  private cpDirSync(
-    srcStat: Stats,
-    destStat: Stats | null,
-    src: string,
-    dest: string,
-    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
-  ): void {
-    if (!destStat) {
-      this.mkdirSync(dest);
-    }
-    // Read directory contents
-    const entries = this.readdirSync(src) as string[];
-    for (const entry of entries) {
-      const srcItem = pathJoin(src, String(entry));
-      const destItem = pathJoin(dest, String(entry));
-      // Apply filter to each item
-      if (options.filter && !options.filter(srcItem, destItem)) {
-        continue;
-      }
-      this._cp(srcItem, destItem, options);
-    }
-    // Set directory mode
-    this.chmodSync(dest, Number(srcStat.mode));
-  }
-
-  private cpSymlinkSync(
-    destStat: Stats | null,
-    src: string,
-    dest: string,
-    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
-  ): void {
-    let linkTarget = String(this.readlinkSync(src));
-    if (!options.verbatimSymlinks && !isAbsolute(linkTarget))
-      linkTarget = resolveCrossPlatform(pathDirname(src), linkTarget);
-    if (destStat) this.unlinkSync(dest);
-    this.symlinkSync(linkTarget, dest);
-  }
 
   public linkSync = (existingPath: PathLike, newPath: PathLike) => {
     const existingPathFilename = pathToFilename(existingPath);
@@ -1497,19 +1372,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   public cpSync = (src: string | URL, dest: string | URL, options?: opts.ICpOptions): void => {
+    const opts_ = getCpOptions(options);
     const srcFilename = pathToFilename(src as misc.PathLike);
     const destFilename = pathToFilename(dest as misc.PathLike);
-    const opts_: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean } = {
-      dereference: options?.dereference ?? false,
-      errorOnExist: options?.errorOnExist ?? false,
-      filter: options?.filter,
-      force: options?.force ?? true,
-      mode: options?.mode ?? 0,
-      preserveTimestamps: options?.preserveTimestamps ?? false,
-      recursive: options?.recursive ?? false,
-      verbatimSymlinks: options?.verbatimSymlinks ?? false,
-    };
-    return this._cp(srcFilename, destFilename, opts_);
+    cpSyncFn(this, srcFilename, destFilename, opts_);
   };
 
   public cp: {
@@ -1521,24 +1387,18 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     a?: opts.ICpOptions | misc.TCallback<void>,
     b?: misc.TCallback<void>,
   ): void => {
+    let options: opts.ICpOptions | undefined;
+    let callback: misc.TCallback<void>;
+    if (typeof a === 'function') [options, callback] = [undefined, a];
+    else [options, callback] = [a, b!];
+    validateCallback(callback);
+    const opts_ = getCpOptions(options);
     const srcFilename = pathToFilename(src as misc.PathLike);
     const destFilename = pathToFilename(dest as misc.PathLike);
-    let options: Partial<opts.ICpOptions>;
-    let callback: misc.TCallback<void>;
-    if (typeof a === 'function') [options, callback] = [{}, a];
-    else [options, callback] = [a || {}, b!];
-    validateCallback(callback);
-    const opts_: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean } = {
-      dereference: options?.dereference ?? false,
-      errorOnExist: options?.errorOnExist ?? false,
-      filter: options?.filter,
-      force: options?.force ?? true,
-      mode: options?.mode ?? 0,
-      preserveTimestamps: options?.preserveTimestamps ?? false,
-      recursive: options?.recursive ?? false,
-      verbatimSymlinks: options?.verbatimSymlinks ?? false,
-    };
-    this.wrapAsync(this._cp, [srcFilename, destFilename, opts_], callback);
+    cpAsync(this, srcFilename, destFilename, opts_).then(
+      () => callback(null, undefined),
+      error => callback(error),
+    );
   };
 
   private _statfs(filename: string): StatFs<number>;

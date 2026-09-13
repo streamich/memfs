@@ -42,7 +42,51 @@ describe('promises.cp', () => {
     });
 
     await expect(vol.promises.cp('/src', '/dest')).rejects.toMatchObject({
-      code: 'EISDIR',
+      code: 'ERR_FS_EISDIR',
+    });
+  });
+
+  it('rejects copying the root into its own subdirectory', async () => {
+    const vol = create({
+      '/file.txt': 'content',
+    });
+    await expect(vol.promises.cp('/', '/dest', { recursive: true })).rejects.toMatchObject({
+      code: 'ERR_FS_CP_EINVAL',
+    });
+    expect(vol.existsSync('/dest')).toBe(false);
+  });
+
+  it('rejects a dest whose ancestor is a symlink to src across a missing parent', async () => {
+    const vol = create({
+      '/src/f': 'content',
+    });
+    vol.symlinkSync('/src', '/alias');
+    await expect(vol.promises.cp('/src', '/alias/a/deep', { recursive: true })).rejects.toMatchObject({
+      code: 'ERR_FS_CP_EINVAL',
+    });
+    expect(vol.existsSync('/src/a')).toBe(false);
+  });
+
+  it('rejects with ERR_FS_EISDIR before the ancestor walk when recursive is off', async () => {
+    const vol = create({
+      '/src/f': 'content',
+    });
+    vol.symlinkSync('/src', '/alias');
+    await expect(vol.promises.cp('/src', '/alias/a/deep')).rejects.toMatchObject({
+      code: 'ERR_FS_EISDIR',
+    });
+    expect(vol.existsSync('/src/a')).toBe(true);
+  });
+
+  it('names the aliased ancestor level in the error path', async () => {
+    const vol = create({
+      '/src/f': 'content',
+      '/src/a/.keep': '',
+    });
+    vol.symlinkSync('/src', '/alias');
+    await expect(vol.promises.cp('/src', '/alias/a/deep', { recursive: true })).rejects.toMatchObject({
+      code: 'ERR_FS_CP_EINVAL',
+      path: '/alias/a',
     });
   });
 
@@ -62,14 +106,15 @@ describe('promises.cp', () => {
     }).toThrow();
   });
 
-  it('handles errorOnExist option', async () => {
+  it('honours errorOnExist only when force is off', async () => {
     const vol = create({
       '/src.txt': 'source',
       '/dest.txt': 'destination',
     });
-
-    await expect(vol.promises.cp('/src.txt', '/dest.txt', { errorOnExist: true })).rejects.toMatchObject({
-      code: 'EEXIST',
+    await vol.promises.cp('/src.txt', '/dest.txt', { errorOnExist: true });
+    expect(vol.readFileSync('/dest.txt', 'utf8')).toBe('source');
+    await expect(vol.promises.cp('/src.txt', '/dest.txt', { errorOnExist: true, force: false })).rejects.toMatchObject({
+      code: 'ERR_FS_CP_EEXIST',
     });
   });
 

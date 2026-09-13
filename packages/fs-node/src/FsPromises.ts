@@ -1,4 +1,5 @@
 import { isReadableStream, promisify, streamToBuffer } from './util';
+import { getCpOptions } from './cp';
 import { glob } from './glob';
 import { constants } from '@jsonjoy.com/fs-node-utils';
 import type * as opts from '@jsonjoy.com/fs-node-utils/lib/types/options';
@@ -163,7 +164,16 @@ export class FsPromises implements FsPromisesApi {
     public readonly FileHandle: new (...args: unknown[]) => misc.IFileHandle,
   ) {}
 
-  public readonly cp = promisify(this.fs, 'cp');
+  public readonly cp = (src: string | URL, dest: string | URL, options?: opts.ICpOptions): Promise<void> =>
+    new Promise<void>((resolve, reject) => {
+      this.fs.cp(src, dest, getCpOptions(options), error => (error ? reject(error) : resolve()));
+    });
+
+  public readonly copyFile = (src: misc.PathLike, dest: misc.PathLike, mode?: number): Promise<void> =>
+    new Promise<void>((resolve, reject) => {
+      this.fs.copyFile(src, dest, mode as number, error => (error ? reject(error) : resolve()));
+    });
+
   public readonly opendir = promisify(this.fs, 'opendir');
   public readonly statfs = promisify(this.fs, 'statfs');
   public readonly lutimes = promisify(this.fs, 'lutimes');
@@ -172,7 +182,6 @@ export class FsPromises implements FsPromisesApi {
   public readonly access = promisify(this.fs, 'access');
   public readonly chmod = promisify(this.fs, 'chmod');
   public readonly chown = promisify(this.fs, 'chown');
-  public readonly copyFile = promisify(this.fs, 'copyFile');
   public readonly lchmod = promisify(this.fs, 'lchmod');
   public readonly lchown = promisify(this.fs, 'lchown');
   public readonly link = promisify(this.fs, 'link');

@@ -66,6 +66,17 @@ describe('glob APIs', () => {
       expect(results).toEqual(['file1.js']);
     });
 
+    it('maxdepth counts directory levels below cwd for an absolute pattern', () => {
+      const { vol } = setup();
+      expect(vol.globSync('/test/*.js', { maxdepth: 0 })).toEqual(['/test/file1.js']);
+      expect(vol.globSync('/test/**/*.js', { cwd: '/test', maxdepth: 0 })).toEqual(['/test/file1.js']);
+      expect(vol.globSync('/test/**/*.js', { cwd: '/', maxdepth: 1 })).toEqual(['/test/file1.js']);
+      expect(vol.globSync('/test/**/*.js', { cwd: '/', maxdepth: 2 }).sort()).toEqual([
+        '/test/file1.js',
+        '/test/subdir/nested.js',
+      ]);
+    });
+
     it('should return empty array for non-matching pattern', () => {
       const { vol } = setup();
       const results = vol.globSync('*.xyz', { cwd: '/test' });

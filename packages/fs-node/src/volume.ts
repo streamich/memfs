@@ -1596,8 +1596,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const walk = globWalk(this, pattern, options);
     Promise.resolve()
       .then(() => {
-        const results: string[] = [];
-        for (const match of walk) results.push(match as string);
+        const results: (string | Dirent)[] = [];
+        for (const match of walk) results.push(match);
         return results;
       })
       .then(results => cb(null, results), cb);

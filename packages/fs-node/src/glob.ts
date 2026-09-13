@@ -11,7 +11,7 @@ import { expandBraces, toRegex } from 'glob-to-regex.js';
 import { pathToFilename } from './util';
 import Dirent from './Dirent';
 
-const { basename, dirname, isAbsolute, join, resolve } = posix;
+const { basename, dirname, isAbsolute, join, relative, resolve } = posix;
 
 const internalAssertionError = (): Error =>
   withCode(
@@ -342,7 +342,14 @@ export interface GlobOptions {
   maxdepth?: number;
 }
 
-const depthOf = (path: string): number => (path === '.' ? 0 : path.split('/').length);
+const depthOf = (root: string, fullpath: string): number => {
+  const rel = relative(root, fullpath);
+  if (!rel) return 0;
+  const parts = rel.split('/');
+  let depth = 0;
+  for (let i = 0; i < parts.length; i++) depth += parts[i] === '..' ? -1 : 1;
+  return depth;
+};
 
 const EMPTY_OPTIONS: GlobOptions = {};
 
@@ -493,7 +500,7 @@ class Glob {
       if (this.accept(path)) yield this.result(path);
     }
     if (!isDirectory || this.isCyclic(fullpath, isDirectory, pattern)) return;
-    if (depthOf(path) > this.maxdepth) return;
+    if (this.maxdepth !== Infinity && depthOf(this.root as string, fullpath) > this.maxdepth) return;
     const nextRealpaths = this.nextRealpaths(fullpath, isDirectory, pattern);
     let children: Dirent[];
     const firstPattern = pattern.indexes.size === 1 && pattern.at(pattern.indexes.values().next().value!);
@@ -577,10 +584,10 @@ class Glob {
 export const globWalk = (fs: GlobFs, pattern: unknown, options?: GlobOptions): Generator<string | Dirent> =>
   new Glob(fs, pattern, options).walk();
 
-export const globSync = (fs: GlobFs, pattern: unknown, options?: GlobOptions): string[] => {
+export const globSync = (fs: GlobFs, pattern: unknown, options?: GlobOptions): (string | Dirent)[] => {
   const results: (string | Dirent)[] = [];
   for (const match of globWalk(fs, pattern, options)) results.push(match);
-  return results as string[];
+  return results;
 };
 
 export async function* glob(fs: GlobFs, pattern: unknown, options?: GlobOptions): AsyncGenerator<string | Dirent> {

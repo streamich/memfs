@@ -200,7 +200,6 @@ const setDestMode = (vol: Volume, dest: string, srcMode: number | bigint): void 
 };
 
 const setDestTimestamps = (vol: Volume, src: string, dest: string): void => {
-
   const updated = vol.statSync(src) as Stats;
   vol.utimesSync(dest, updated.atime, updated.mtime);
 };

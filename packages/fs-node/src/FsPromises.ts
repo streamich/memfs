@@ -164,12 +164,12 @@ export class FsPromises implements FsPromisesApi {
     public readonly FileHandle: new (...args: unknown[]) => misc.IFileHandle,
   ) {}
 
-  public readonly cp = (src: string | URL, dest: string | URL, options: opts.ICpOptions | undefined): Promise<void> =>
+  public readonly cp = (src: string | URL, dest: string | URL, options?: opts.ICpOptions): Promise<void> =>
     new Promise<void>((resolve, reject) => {
       this.fs.cp(src, dest, getCpOptions(options), error => (error ? reject(error) : resolve()));
     });
 
-  public readonly copyFile = (src: misc.PathLike, dest: misc.PathLike, mode: number | undefined): Promise<void> =>
+  public readonly copyFile = (src: misc.PathLike, dest: misc.PathLike, mode?: number): Promise<void> =>
     new Promise<void>((resolve, reject) => {
       this.fs.copyFile(src, dest, mode as number, error => (error ? reject(error) : resolve()));
     });

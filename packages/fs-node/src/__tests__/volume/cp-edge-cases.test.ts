@@ -19,10 +19,8 @@ describe('cp edge cases', () => {
       const vol = create({
         '/original.txt': 'original content',
       });
-
       vol.symlinkSync('/original.txt', '/link.txt');
-      vol.cpSync('/link.txt', '/copy.txt', { dereference: true });
-
+      vol.cpSync('/link.txt', '/copy.txt', { dereference: true, recursive: true });
       const copyStats = vol.lstatSync('/copy.txt');
       expect(copyStats.isSymbolicLink()).toBe(false);
       expect(copyStats.isFile()).toBe(true);
@@ -71,7 +69,7 @@ describe('cp edge cases', () => {
 
       expect(() => {
         vol.cpSync('/src', '/dest.txt', { recursive: true });
-      }).toThrow(/EISDIR/);
+      }).toThrow(/ERR_FS_CP_DIR_TO_NON_DIR|Cannot overwrite non-directory/);
     });
 
     it('throws error when trying to copy file to existing directory', () => {
@@ -82,7 +80,7 @@ describe('cp edge cases', () => {
 
       expect(() => {
         vol.cpSync('/src.txt', '/dest');
-      }).toThrow(/ENOTDIR/);
+      }).toThrow(/Cannot overwrite directory/);
     });
 
     it('prevents copying directory to its own subdirectory', () => {
@@ -92,7 +90,7 @@ describe('cp edge cases', () => {
 
       expect(() => {
         vol.cpSync('/parent', '/parent/child/subdir', { recursive: true });
-      }).toThrow(/EINVAL/);
+      }).toThrow(/subdirectory of self/);
     });
   });
 

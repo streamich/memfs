@@ -42,7 +42,7 @@ describe('promises.cp', () => {
     });
 
     await expect(vol.promises.cp('/src', '/dest')).rejects.toMatchObject({
-      code: 'EISDIR',
+      code: 'ERR_FS_EISDIR',
     });
   });
 
@@ -62,14 +62,15 @@ describe('promises.cp', () => {
     }).toThrow();
   });
 
-  it('handles errorOnExist option', async () => {
+  it('honours errorOnExist only when force is off', async () => {
     const vol = create({
       '/src.txt': 'source',
       '/dest.txt': 'destination',
     });
-
-    await expect(vol.promises.cp('/src.txt', '/dest.txt', { errorOnExist: true })).rejects.toMatchObject({
-      code: 'EEXIST',
+    await vol.promises.cp('/src.txt', '/dest.txt', { errorOnExist: true });
+    expect(vol.readFileSync('/dest.txt', 'utf8')).toBe('source');
+    await expect(vol.promises.cp('/src.txt', '/dest.txt', { errorOnExist: true, force: false })).rejects.toMatchObject({
+      code: 'ERR_FS_CP_EEXIST',
     });
   });
 

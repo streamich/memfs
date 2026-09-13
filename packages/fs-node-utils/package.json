@@ -84,6 +84,6 @@
   },
   "dependencies": {
     "@jsonjoy.com/fs-node-builtins": "workspace:*",
-    "glob-to-regex.js": "^1.0.1"
+    "glob-to-regex.js": "^1.3.1"
   }
 }

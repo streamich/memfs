@@ -1,4 +1,4 @@
-import { resolve, sep, posix, isAbsolute } from '@jsonjoy.com/fs-node-builtins/lib/path';
+import { sep, posix } from '@jsonjoy.com/fs-node-builtins/lib/path';
 import {
   Link,
   Superblock,
@@ -22,6 +22,7 @@ import {
 import Stats from './Stats';
 import Dirent from './Dirent';
 import StatFs from './StatFs';
+import { globSync, globWalk } from './glob';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
 import setTimeoutUnref, { TSetTimeout } from '@jsonjoy.com/fs-node-utils/lib/setTimeoutUnref';
 import { Readable, Writable } from '@jsonjoy.com/fs-node-builtins/lib/stream';
@@ -42,17 +43,9 @@ import { FsCallbackApi, WritevCallback } from '@jsonjoy.com/fs-node-utils/lib/ty
 import { FsPromises } from './FsPromises';
 import { ToTreeOptions, toTreeSync } from '@jsonjoy.com/fs-print';
 import * as fsSnapshot from '@jsonjoy.com/fs-snapshot';
-import {
-  ERRSTR,
-  FLAGS,
-  MODE,
-  pathSep,
-  pathRelative,
-  pathJoin,
-  pathDirname,
-  pathNormalize,
-} from '@jsonjoy.com/fs-node-utils';
-import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
+import { ERRSTR, MODE, pathSep, pathJoin } from '@jsonjoy.com/fs-node-utils';
+import { withNativeCode } from '@jsonjoy.com/fs-node-utils/lib/argErrors';
+import { validateInt32 } from '@jsonjoy.com/fs-node-utils/lib/validators';
 import {
   getDefaultOpts,
   getDefaultOptsAndCb,
@@ -90,12 +83,22 @@ import {
   bufferToEncoding,
   getWriteSyncArgs,
 } from './util';
+import {
+  getReadArgs,
+  getReadSyncArgs,
+  getVectorArgs,
+  getVectorCallbackArgs,
+  type IReadOptions,
+  type IReadParams,
+  type IWriteOptions,
+  type ReadCallback,
+} from './readWriteArgs';
 import type { PathLike, symlink } from '@jsonjoy.com/fs-node-utils/lib/types/misc';
 import type { FsPromisesApi, FsSynchronousApi } from '@jsonjoy.com/fs-node-utils';
 import { Dir } from './Dir';
+import { copyFileCore, cpAsync, cpSync as cpSyncFn, getCpOptions, getValidCopyFileMode } from './cp';
 
-const resolveCrossPlatform = resolve;
-const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK, COPYFILE_EXCL, COPYFILE_FICLONE_FORCE } = constants;
+const { O_SYMLINK, F_OK, R_OK, W_OK, X_OK } = constants;
 
 // ---------------------------------------------------------------------- Types
 
@@ -253,6 +256,28 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.realpath.native = realpathImpl as any;
     this.realpathSync = realpathSyncImpl as any;
     this.realpathSync.native = realpathSyncImpl as any;
+    this.readSync = function (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown): number {
+      // a `function` for `arguments.length`
+      const { buffer, offset, length, position } = getReadSyncArgs(arguments.length, a, b, c, d);
+      validateFd(fd);
+      return self._core.read(fd, buffer, offset, length, position);
+    };
+    this.read = function (fd: number, a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown): void {
+      // a `function` for `arguments.length`
+      validateInt32(fd, 'fd', 0);
+      const { buffer, offset, length, position, callback } = getReadArgs(arguments.length, a, b, c, d, e);
+      if (length === 0) {
+        queueMicrotask(() => callback(null, 0, buffer));
+        return;
+      }
+      Promise.resolve().then(() => {
+        try {
+          callback(null, self._core.read(fd, buffer, offset, length, position), buffer);
+        } catch (err) {
+          callback(err, 0, buffer);
+        }
+      });
+    };
   }
 
   private wrapAsync<Args extends any[]>(method: (...args: Args) => void, args: Args, callback: misc.TCallback<any>) {
@@ -325,40 +350,35 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this._core.close, [file.fd], callback);
   };
 
-  public readSync = (
-    fd: number,
-    buffer: Buffer | ArrayBufferView | DataView,
-    offset: number,
-    length: number,
-    position: number | null,
-  ): number => {
-    validateFd(fd);
-    return this._core.read(fd, buffer, offset, length, position);
+  public readSync: {
+    (
+      fd: number,
+      buffer: Buffer | ArrayBufferView | DataView,
+      offset?: number | null,
+      length?: number | null,
+      position?: number | bigint | null,
+    ): number;
+    (fd: number, buffer: Buffer | ArrayBufferView | DataView, options?: IReadOptions | null): number;
   };
 
-  public read = (
-    fd: number,
-    buffer: Buffer | ArrayBufferView | DataView,
-    offset: number,
-    length: number,
-    position: number | null,
-    callback: (err?: Error | null, bytesRead?: number, buffer?: Buffer | ArrayBufferView | DataView) => void,
-  ) => {
-    validateCallback(callback);
-    if (length === 0) {
-      // This `if` branch is from Node.js
-      return queueMicrotask(() => {
-        if (callback) callback(null, 0, buffer);
-      });
-    }
-    Promise.resolve().then(() => {
-      try {
-        const bytes = this._core.read(fd, buffer, offset, length, position);
-        callback(null, bytes, buffer);
-      } catch (err) {
-        callback(err);
-      }
-    });
+  public read: {
+    (fd: number, callback: ReadCallback): void;
+    (fd: number, params: IReadParams | null | undefined, callback: ReadCallback): void;
+    (fd: number, buffer: Buffer | ArrayBufferView | DataView, callback: ReadCallback): void;
+    (
+      fd: number,
+      buffer: Buffer | ArrayBufferView | DataView,
+      options: IReadOptions | null,
+      callback: ReadCallback,
+    ): void;
+    (
+      fd: number,
+      buffer: Buffer | ArrayBufferView | DataView,
+      offset: number | null,
+      length: number | null,
+      position: number | bigint | null,
+      callback: ReadCallback,
+    ): void;
   };
 
   public readv: {
@@ -369,29 +389,25 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
       position: number | null,
       callback: misc.TCallback2<number, ArrayBufferView[]>,
     ): void;
-  } = (
-    fd: number,
-    buffers: ArrayBufferView[],
-    a: number | null | misc.TCallback2<number, ArrayBufferView[]>,
-    b?: misc.TCallback2<number, ArrayBufferView[]>,
-  ): void => {
-    let position: number | null = a as number | null;
-    let callback: misc.TCallback2<number, ArrayBufferView[]> = b as misc.TCallback2<number, ArrayBufferView[]>;
-    if (typeof a === 'function') [position, callback] = [null, a];
-    validateCallback(callback);
+  } = (fd: number, buffers: ArrayBufferView[], a?: unknown, b?: unknown): void => {
+    validateInt32(fd, 'fd', 0);
+    const [position, callback] = getVectorCallbackArgs(buffers, a, b);
+    // TODO: libuv rejects `nbufs == 0` before it dispatches, so Node calls back synchronously here.
     Promise.resolve().then(() => {
       try {
-        const bytes = this._core.readv(fd, buffers, position);
-        callback(null, bytes, buffers);
+        if (!buffers.length) throw createError(ERROR_CODE.EINVAL, 'read');
+        callback(null, this._core.readv(fd, buffers, position), buffers);
       } catch (err) {
-        callback(err);
+        callback(err, 0, buffers);
       }
     });
   };
 
   public readvSync = (fd: number, buffers: ArrayBufferView[], position?: number | null): number => {
+    const seek = getVectorArgs(buffers, position);
     validateFd(fd);
-    return this._core.readv(fd, buffers, position ?? null);
+    if (!buffers.length) throw createError(ERROR_CODE.EINVAL, 'read');
+    return this._core.readv(fd, buffers, seek);
   };
 
   private readonly _readfile = (id: TFileId, flagsNum: number, encoding: BufferEncoding): Buffer | string => {
@@ -403,11 +419,11 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     else fd = this.openSync(id as PathLike, flagsNum);
     try {
       const file = this._core.getFileByFdOrThrow(fd, 'fstat');
-      if (file.node.isDirectory())
-        throw userOwnsFd
-          ? createError(ERROR_CODE.EISDIR, 'read')
-          : createError(ERROR_CODE.EISDIR, 'open', pathToFilename(id as PathLike));
-      result = bufferToEncoding(file.getBuffer(), encoding);
+      if (file.node.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'read');
+      const buffer = file.getBuffer();
+      const start = userOwnsFd ? Math.min(file.position, buffer.length) : 0;
+      file.position = buffer.length;
+      result = bufferToEncoding(start ? buffer.subarray(start) : buffer, encoding);
     } finally {
       if (!userOwnsFd) {
         this.closeSync(fd);
@@ -442,18 +458,13 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     (
       fd: number,
       buffer: Buffer | ArrayBufferView | DataView,
-      offset?: number,
-      length?: number,
+      offset?: number | null,
+      length?: number | null,
       position?: number | null,
     ): number;
-    (fd: number, str: string, position?: number, encoding?: BufferEncoding): number;
-  } = (
-    fd: number,
-    a: string | Buffer | ArrayBufferView | DataView,
-    b?: number,
-    c?: number | BufferEncoding,
-    d?: number,
-  ): number => {
+    (fd: number, buffer: Buffer | ArrayBufferView | DataView, options?: IWriteOptions | null): number;
+    (fd: number, str: string, position?: number | null, encoding?: BufferEncoding): number;
+  } = (fd: number, a: unknown, b?: unknown, c?: unknown, d?: unknown): number => {
     const [, buf, offset, length, position] = getWriteSyncArgs(fd, a, b, c, d);
     return this._write(fd, buf, offset, length, position);
   };
@@ -479,33 +490,33 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     (fd: number, str: string, callback: (...args) => void);
     (fd: number, str: string, position: number, callback: (...args) => void);
     (fd: number, str: string, position: number, encoding: BufferEncoding, callback: (...args) => void);
+    (
+      fd: number,
+      buffer: Buffer | ArrayBufferView | DataView,
+      options: IWriteOptions | null,
+      callback: (...args) => void,
+    );
   } = (fd: number, a?, b?, c?, d?, e?) => {
-    const [, asStr, buf, offset, length, position, cb] = getWriteArgs(fd, a, b, c, d, e);
+    const [, , buf, offset, length, position, cb] = getWriteArgs(fd, a, b, c, d, e);
     Promise.resolve().then(() => {
       try {
-        const bytes = this._write(fd, buf, offset, length, position);
-        if (!asStr) {
-          cb(null, bytes, buf);
-        } else {
-          cb(null, bytes, a);
-        }
+        cb(null, this._write(fd, buf, offset, length, position), a);
       } catch (err) {
-        cb(err);
+        cb(err, 0, a);
       }
     });
   };
 
   private writevBase(fd: number, buffers: ArrayBufferView[], position: number | null): number {
     this._core.getFileByFdOrThrow(fd, 'write');
-    let p = position ?? undefined;
-    if (p === -1) {
-      p = undefined;
-    }
+    let p: number | null = position;
     let bytesWritten = 0;
-    for (const buffer of buffers) {
+    const length = buffers.length;
+    for (let i = 0; i < length; i++) {
+      const buffer = buffers[i];
       const nodeBuf = Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-      const bytes = this._core.write(fd, nodeBuf, 0, nodeBuf.byteLength, p ?? null);
-      p = undefined;
+      const bytes = this._core.write(fd, nodeBuf, 0, nodeBuf.byteLength, p);
+      if (p !== null) p += bytes;
       bytesWritten += bytes;
       if (bytes < nodeBuf.byteLength) break;
     }
@@ -515,24 +526,27 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   public writev: {
     (fd: number, buffers: ArrayBufferView[], callback: WritevCallback): void;
     (fd: number, buffers: ArrayBufferView[], position: number | null, callback: WritevCallback): void;
-  } = (fd: number, buffers: ArrayBufferView[], a: number | null | WritevCallback, b?: WritevCallback): void => {
-    let position: number | null = a as number | null;
-    let callback: WritevCallback = b as WritevCallback;
-    if (typeof a === 'function') [position, callback] = [null, a];
-    validateCallback(callback);
+  } = (fd: number, buffers: ArrayBufferView[], a?: unknown, b?: unknown): void => {
+    validateInt32(fd, 'fd', 0);
+    const [position, callback] = getVectorCallbackArgs(buffers, a, b);
+    if (!buffers.length) {
+      queueMicrotask(() => callback(null, 0, buffers));
+      return;
+    }
     Promise.resolve().then(() => {
       try {
-        const bytes = this.writevBase(fd, buffers, position);
-        callback(null, bytes, buffers);
+        callback(null, this.writevBase(fd, buffers, position), buffers);
       } catch (err) {
-        callback(err);
+        callback(err, 0, buffers);
       }
     });
   };
 
   public writevSync = (fd: number, buffers: ArrayBufferView[], position?: number | null): number => {
+    const seek = getVectorArgs(buffers, position);
+    if (!buffers.length) return 0;
     validateFd(fd);
-    return this.writevBase(fd, buffers, position ?? null);
+    return this.writevBase(fd, buffers, seek);
   };
 
   public writeFileSync = (id: TFileId, data: TData, options?: opts.IWriteFileOptions): void => {
@@ -563,17 +577,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     this.wrapAsync(this._core.writeFile, [id, buf, flagsNum, modeNum], cb);
   };
 
-  private _copyFile(src: string, dest: string, flags: number) {
-    const buf = this.readFileSync(src) as Buffer;
-    if (flags & COPYFILE_EXCL && this.existsSync(dest)) throw createError(ERROR_CODE.EEXIST, 'copyfile', src, dest);
-    if (flags & COPYFILE_FICLONE_FORCE) throw createError(ERROR_CODE.ENOSYS, 'copyfile', src, dest);
-    this._core.writeFile(dest, buf, FLAGS.w, MODE.DEFAULT);
-  }
-
   public copyFileSync = (src: PathLike, dest: PathLike, flags?: TFlagsCopy) => {
     const srcFilename = pathToFilename(src);
     const destFilename = pathToFilename(dest);
-    return this._copyFile(srcFilename, destFilename, (flags || 0) | 0);
+    copyFileCore(this._core, srcFilename, destFilename, getValidCopyFileMode(flags));
   };
 
   public copyFile: {
@@ -587,126 +594,17 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     if (typeof a === 'function') [flags, callback] = [0, a];
     else [flags, callback] = [a, b];
     validateCallback(callback);
-    this.wrapAsync(this._copyFile, [srcFilename, destFilename, flags], callback);
-  };
-
-  private readonly _cp = (
-    src: string,
-    dest: string,
-    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
-  ): void => {
-    if (options.filter && !options.filter(src, dest)) return;
-    const srcStat = options.dereference ? this.statSync(src) : this.lstatSync(src);
-    let destStat: Stats | null = null;
-    try {
-      destStat = this.lstatSync(dest);
-    } catch (err) {
-      if ((err as any).code !== 'ENOENT') {
-        throw err;
+    const flagsNum = getValidCopyFileMode(flags);
+    Promise.resolve().then(() => {
+      try {
+        copyFileCore(this._core, srcFilename, destFilename, flagsNum);
+      } catch (error) {
+        callback(error as Error);
+        return;
       }
-    }
-    // TODO: Node raises ERR_FS_CP_* (code only) or the failing lstat/mkdir/copyfile. 'cp' is not a libuv syscall.
-    // Check if src and dest are the same (both exist and have same inode)
-    if (destStat && srcStat.ino === destStat.ino && srcStat.dev === destStat.dev)
-      throw createError(ERROR_CODE.EINVAL, 'cp', src, dest);
-    // Check type compatibility
-    if (destStat) {
-      if (srcStat.isDirectory() && !destStat.isDirectory()) throw createError(ERROR_CODE.EISDIR, 'cp', src, dest);
-      if (!srcStat.isDirectory() && destStat.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'cp', src, dest);
-    }
-    // Check if trying to copy directory to subdirectory of itself
-    if (srcStat.isDirectory() && this.isSrcSubdir(src, dest)) throw createError(ERROR_CODE.EINVAL, 'cp', src, dest);
-    ENDURE_PARENT_DIR_EXISTS: {
-      const parent = pathDirname(dest);
-      if (!this.existsSync(parent)) this.mkdirSync(parent, { recursive: true });
-    }
-    // Handle different file types
-    if (srcStat.isDirectory()) {
-      if (!options.recursive) throw createError(ERROR_CODE.EISDIR, 'cp', src);
-      this.cpDirSync(srcStat, destStat, src, dest, options);
-    } else if (srcStat.isFile() || srcStat.isCharacterDevice() || srcStat.isBlockDevice()) {
-      this.cpFileSync(srcStat, destStat, src, dest, options);
-    } else if (srcStat.isSymbolicLink() && !options.dereference) {
-      // Only handle as symlink if not dereferencing
-      this.cpSymlinkSync(destStat, src, dest, options);
-    } else {
-      throw createError(ERROR_CODE.EINVAL, 'cp', src);
-    }
+      callback(null);
+    });
   };
-
-  private isSrcSubdir(src: string, dest: string): boolean {
-    try {
-      const normalizedSrc = pathNormalize(src.startsWith('/') ? src : '/' + src);
-      const normalizedDest = pathNormalize(dest.startsWith('/') ? dest : '/' + dest);
-      if (normalizedSrc === normalizedDest) return true;
-      // Check if dest is under src by using relative path
-      // If dest is under src, the relative path from src to dest won't start with '..'
-      const relativePath = pathRelative(normalizedSrc, normalizedDest);
-      // If relative path is empty or doesn't start with '..', dest is under src
-      return relativePath === '' || (!relativePath.startsWith('..') && !isAbsolute(relativePath));
-    } catch (error) {
-      // If path operations fail, assume it's safe (don't block the copy)
-      return false;
-    }
-  }
-
-  private cpFileSync(
-    srcStat: Stats,
-    destStat: Stats | null,
-    src: string,
-    dest: string,
-    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
-  ): void {
-    if (destStat) {
-      if (options.errorOnExist) throw createError(ERROR_CODE.EEXIST, 'cp', dest);
-      if (!options.force) return;
-      this.unlinkSync(dest);
-    }
-    // Copy the file
-    this.copyFileSync(src, dest, options.mode);
-    // Preserve timestamps if requested
-    if (options.preserveTimestamps) this.utimesSync(dest, srcStat.atime, srcStat.mtime);
-    // Set file mode
-    this.chmodSync(dest, Number(srcStat.mode));
-  }
-
-  private cpDirSync(
-    srcStat: Stats,
-    destStat: Stats | null,
-    src: string,
-    dest: string,
-    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
-  ): void {
-    if (!destStat) {
-      this.mkdirSync(dest);
-    }
-    // Read directory contents
-    const entries = this.readdirSync(src) as string[];
-    for (const entry of entries) {
-      const srcItem = pathJoin(src, String(entry));
-      const destItem = pathJoin(dest, String(entry));
-      // Apply filter to each item
-      if (options.filter && !options.filter(srcItem, destItem)) {
-        continue;
-      }
-      this._cp(srcItem, destItem, options);
-    }
-    // Set directory mode
-    this.chmodSync(dest, Number(srcStat.mode));
-  }
-
-  private cpSymlinkSync(
-    destStat: Stats | null,
-    src: string,
-    dest: string,
-    options: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean },
-  ): void {
-    let linkTarget = String(this.readlinkSync(src));
-    if (!options.verbatimSymlinks && !isAbsolute(linkTarget))
-      linkTarget = resolveCrossPlatform(pathDirname(src), linkTarget);
-    if (destStat) this.unlinkSync(dest);
-    this.symlinkSync(linkTarget, dest);
-  }
 
   public linkSync = (existingPath: PathLike, newPath: PathLike) => {
     const existingPathFilename = pathToFilename(existingPath);
@@ -853,6 +751,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   private fstatBase(fd: number, bigint: false): Stats<number>;
   private fstatBase(fd: number, bigint: true): Stats<bigint>;
   private fstatBase(fd: number, bigint: boolean = false): Stats {
+    // TODO: run `validateFd(fd)` first, as Node's C++ does; a non-number fd reads as EBADF here.
     const file = this._core.getFileByFd(fd);
     if (!file) throw createError(ERROR_CODE.EBADF, 'fstat');
     return Stats.build(file.node, bigint);
@@ -982,6 +881,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     for (const name of link.children.keys()) {
       const child = link.getChild(name);
       if (!child || name === '.' || name === '..') continue;
+      // TODO: pass the path readdir was given as `parentPath`, as `Dir` does: Node keeps it verbatim.
       list.push(Dirent.build(child, options.encoding));
       // recursion
       if (options.recursive && child.children.size) {
@@ -1472,19 +1372,10 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   }
 
   public cpSync = (src: string | URL, dest: string | URL, options?: opts.ICpOptions): void => {
+    const opts_ = getCpOptions(options);
     const srcFilename = pathToFilename(src as misc.PathLike);
     const destFilename = pathToFilename(dest as misc.PathLike);
-    const opts_: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean } = {
-      dereference: options?.dereference ?? false,
-      errorOnExist: options?.errorOnExist ?? false,
-      filter: options?.filter,
-      force: options?.force ?? true,
-      mode: options?.mode ?? 0,
-      preserveTimestamps: options?.preserveTimestamps ?? false,
-      recursive: options?.recursive ?? false,
-      verbatimSymlinks: options?.verbatimSymlinks ?? false,
-    };
-    return this._cp(srcFilename, destFilename, opts_);
+    cpSyncFn(this, srcFilename, destFilename, opts_);
   };
 
   public cp: {
@@ -1496,24 +1387,18 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     a?: opts.ICpOptions | misc.TCallback<void>,
     b?: misc.TCallback<void>,
   ): void => {
+    let options: opts.ICpOptions | undefined;
+    let callback: misc.TCallback<void>;
+    if (typeof a === 'function') [options, callback] = [undefined, a];
+    else [options, callback] = [a, b!];
+    validateCallback(callback);
+    const opts_ = getCpOptions(options);
     const srcFilename = pathToFilename(src as misc.PathLike);
     const destFilename = pathToFilename(dest as misc.PathLike);
-    let options: Partial<opts.ICpOptions>;
-    let callback: misc.TCallback<void>;
-    if (typeof a === 'function') [options, callback] = [{}, a];
-    else [options, callback] = [a || {}, b!];
-    validateCallback(callback);
-    const opts_: opts.ICpOptions & { filter?: (src: string, dest: string) => boolean } = {
-      dereference: options?.dereference ?? false,
-      errorOnExist: options?.errorOnExist ?? false,
-      filter: options?.filter,
-      force: options?.force ?? true,
-      mode: options?.mode ?? 0,
-      preserveTimestamps: options?.preserveTimestamps ?? false,
-      recursive: options?.recursive ?? false,
-      verbatimSymlinks: options?.verbatimSymlinks ?? false,
-    };
-    this.wrapAsync(this._cp, [srcFilename, destFilename, opts_], callback);
+    cpAsync(this, srcFilename, destFilename, opts_).then(
+      () => callback(null, undefined),
+      error => callback(error),
+    );
   };
 
   private _statfs(filename: string): StatFs<number>;
@@ -1548,8 +1433,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     } catch (error) {
       // Convert ENOENT to Node.js-compatible error for openAsBlob
       if (error && typeof error === 'object' && error.code === 'ENOENT') {
-        const nodeError = new errors.TypeError('ERR_INVALID_ARG_VALUE');
-        throw nodeError;
+        // TODO: Node throws this synchronously, before a promise exists.
+        throw withNativeCode(new TypeError('Unable to open file as blob'), 'ERR_INVALID_ARG_VALUE');
       }
       throw error;
     }
@@ -1563,31 +1448,45 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     return new Blob([buffer as BlobPart], { type });
   };
 
-  public glob: FsCallbackApi['glob'] = (pattern: string, ...args: any[]) => {
-    const [options, callback] = args.length === 1 ? [{}, args[0]] : [args[0], args[1]];
-    this.wrapAsync(this._globSync, [pattern, options || {}], callback);
+  public glob: FsCallbackApi['glob'] = (pattern: string, options?: any, callback?: any) => {
+    if (typeof options === 'function') {
+      callback = options;
+      options = undefined;
+    }
+    const cb = validateCallback(callback);
+    const walk = globWalk(this, pattern, options);
+    Promise.resolve()
+      .then(() => {
+        const results: (string | Dirent)[] = [];
+        for (const match of walk) results.push(match);
+        return results;
+      })
+      .then(results => cb(null, results), cb);
   };
 
-  public globSync: FsSynchronousApi['globSync'] = (pattern: string, options: opts.IGlobOptions = {}) => {
-    return this._globSync(pattern, options);
-  };
+  public globSync: FsSynchronousApi['globSync'] = (pattern: string, options?: opts.IGlobOptions) =>
+    globSync(this, pattern, options as any);
 
-  private readonly _globSync = (pattern: string, options: opts.IGlobOptions = {}): string[] => {
-    const { globSync } = require('./glob');
-    return globSync(this, pattern, options);
-  };
-
-  private readonly _opendir = (filename: string, options: opts.IOpendirOptions): Dir => {
-    const link: Link = this._core.getResolvedLinkOrThrow(filename, 'scandir');
+  /** @param errorPath Empty for the synchronous form, whose errors carry no `err.path`. */
+  private readonly _opendir = (
+    filename: string,
+    options: opts.IOpendirOptions,
+    path: TDataOut,
+    errorPath: string,
+  ): Dir => {
+    const result = this._core.getResolvedLinkResult(filename, 'opendir');
+    if (!result.ok) throw createError(result.err.code, 'opendir', errorPath);
+    const link: Link = result.value!;
     const node = link.getNode();
-    if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'scandir', filename);
-    return new Dir(link, options);
+    if (!node.isDirectory()) throw createError(ERROR_CODE.ENOTDIR, 'opendir', errorPath);
+    if (!node.canRead()) throw createError(ERROR_CODE.EACCES, 'opendir', errorPath);
+    return new Dir(link, path, options);
   };
 
   public opendirSync = (path: PathLike, options?: opts.IOpendirOptions | string): Dir => {
-    const opts = getOpendirOptions(options);
     const filename = pathToFilename(path);
-    return this._opendir(filename, opts);
+    const opts = getOpendirOptions(options);
+    return this._opendir(filename, opts, path instanceof Uint8Array ? bufferFrom(path) : filename, '');
   };
 
   public opendir: {
@@ -1596,7 +1495,8 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
   } = (path: PathLike, a?, b?): void => {
     const [options, callback] = getOpendirOptsAndCb(a, b);
     const filename = pathToFilename(path);
-    this.wrapAsync(this._opendir, [filename, options], callback);
+    const dirPath = path instanceof Uint8Array ? bufferFrom(path) : filename;
+    this.wrapAsync(this._opendir, [filename, options, dirPath, filename], callback);
   };
 
   // ---------------------------------------------------------------- Tree View

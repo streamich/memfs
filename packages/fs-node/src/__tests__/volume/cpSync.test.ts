@@ -43,7 +43,7 @@ describe('cpSync(src, dest[, options])', () => {
 
     expect(() => {
       vol.cpSync('/src', '/dest');
-    }).toThrow(/EISDIR/);
+    }).toThrow(/Recursive option not enabled/);
   });
 
   it('respects filter option', () => {
@@ -72,15 +72,16 @@ describe('cpSync(src, dest[, options])', () => {
     expect(vol.readFileSync('/dest.txt', 'utf8')).toBe('destination');
   });
 
-  it('handles errorOnExist option', () => {
+  it('honours errorOnExist only when force is off', () => {
     const vol = create({
       '/src.txt': 'source',
       '/dest.txt': 'destination',
     });
-
+    vol.cpSync('/src.txt', '/dest.txt', { errorOnExist: true });
+    expect(vol.readFileSync('/dest.txt', 'utf8')).toBe('source');
     expect(() => {
-      vol.cpSync('/src.txt', '/dest.txt', { errorOnExist: true });
-    }).toThrow(/EEXIST/);
+      vol.cpSync('/src.txt', '/dest.txt', { errorOnExist: true, force: false });
+    }).toThrow(/already exists/);
   });
 
   it('creates parent directories as needed', () => {
@@ -114,7 +115,7 @@ describe('cpSync(src, dest[, options])', () => {
 
     expect(() => {
       vol.cpSync('/file.txt', '/file.txt');
-    }).toThrow(/EINVAL/);
+    }).toThrow(/src and dest cannot be the same/);
   });
 
   it('throws error when trying to copy directory to subdirectory of itself', () => {
@@ -124,6 +125,6 @@ describe('cpSync(src, dest[, options])', () => {
 
     expect(() => {
       vol.cpSync('/src', '/src/subdir', { recursive: true });
-    }).toThrow(/EINVAL/);
+    }).toThrow(/subdirectory of self/);
   });
 });

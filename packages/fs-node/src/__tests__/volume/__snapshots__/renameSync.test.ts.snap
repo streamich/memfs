@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`renameSync(fromPath, toPath) Throws if path is of wrong type 1`] = `"path must be a string, Buffer, or Uint8Array"`;
+exports[`renameSync(fromPath, toPath) Throws if path is of wrong type 1`] = `"The "path" argument must be of type string or an instance of Buffer or URL. Received type number (123)"`;
 
-exports[`renameSync(fromPath, toPath) Throws on no params 1`] = `"path must be a string, Buffer, or Uint8Array"`;
+exports[`renameSync(fromPath, toPath) Throws on no params 1`] = `"The "path" argument must be of type string or an instance of Buffer or URL. Received undefined"`;
 
-exports[`renameSync(fromPath, toPath) Throws on only one param 1`] = `"path must be a string, Buffer, or Uint8Array"`;
+exports[`renameSync(fromPath, toPath) Throws on only one param 1`] = `"The "path" argument must be of type string or an instance of Buffer or URL. Received undefined"`;

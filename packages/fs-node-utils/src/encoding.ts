@@ -1,11 +1,11 @@
 import { Buffer } from '@jsonjoy.com/fs-node-builtins/lib/internal/buffer';
-import * as errors from '@jsonjoy.com/fs-node-builtins/lib/internal/errors';
+import { invalidArgValue } from './argErrors';
 import { TDataOut, TEncodingExtended } from './types';
 
 export const ENCODING_UTF8: BufferEncoding = 'utf8';
 
 export function assertEncoding(encoding: string | undefined) {
-  if (encoding && !Buffer.isEncoding(encoding)) throw new errors.TypeError('ERR_INVALID_OPT_VALUE_ENCODING', encoding);
+  if (encoding && !Buffer.isEncoding(encoding)) throw invalidArgValue('encoding', encoding, 'is invalid encoding');
 }
 
 export function strToEncoding(str: string, encoding?: TEncodingExtended): TDataOut {

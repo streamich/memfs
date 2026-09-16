@@ -13,7 +13,7 @@ describe('.closeSync(fd)', () => {
       vol.closeSync(String(fd) as any);
       throw Error('This should not throw');
     } catch (err) {
-      expect(err.message).toEqual('fd must be a file descriptor');
+      expect(err.code).toEqual('ERR_INVALID_ARG_TYPE');
     }
   });
   it('Closing file descriptor that does not exist', () => {

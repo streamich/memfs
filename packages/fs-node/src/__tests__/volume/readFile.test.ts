@@ -121,7 +121,7 @@ describe('.readFileSync()', () => {
       expect.objectContaining({ code: 'ELOOP', path: '/dirlink' }),
     );
     expect(() => fs.readFileSync('/dirlink/', { flag: O_RDONLY | O_NOFOLLOW })).toThrow(
-      expect.objectContaining({ code: 'EISDIR', path: '/dirlink/' }),
+      expect.objectContaining({ code: 'EISDIR', syscall: 'read' }),
     );
   });
 
@@ -129,7 +129,7 @@ describe('.readFileSync()', () => {
     const { fs } = memfs({ '/foo': 'hello', '/dir/file': 'x' });
     fs.symlinkSync('/dir', '/dirlink');
     expect(() => fs.readFileSync('/foo/')).toThrow(expect.objectContaining({ code: 'ENOTDIR', path: '/foo/' }));
-    expect(() => fs.readFileSync('/dirlink/')).toThrow(expect.objectContaining({ code: 'EISDIR', path: '/dirlink/' }));
+    expect(() => fs.readFileSync('/dirlink/')).toThrow(expect.objectContaining({ code: 'EISDIR', syscall: 'read' }));
   });
 
   it('throws EISDIR for a directory fd', () => {

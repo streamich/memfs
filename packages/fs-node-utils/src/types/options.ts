@@ -1,4 +1,4 @@
-import type { IFileHandle, TEncodingExtended, TFlags, TMode } from './misc';
+import type { IDirent, IFileHandle, TEncodingExtended, TFlags, TMode } from './misc';
 
 export interface IOptions {
   encoding?: BufferEncoding | TEncodingExtended;
@@ -228,12 +228,14 @@ export interface IOpenAsBlobOptions {
 export interface IGlobOptions {
   /** Current working directory. */
   cwd?: string | URL;
-  /** Exclude patterns. */
-  exclude?: string | string[];
-  /** Maximum search depth. */
+  /** Glob patterns to drop, or a predicate consulted while descending. */
+  exclude?: string[] | ((entry: string | IDirent) => boolean);
+  /** Maximum search depth. Not a Node option. */
   maxdepth?: number;
-  /** Whether to include symbolic links. */
+  /** Whether to report each match as a `Dirent` instead of a path. */
   withFileTypes?: boolean;
+  /** Whether to descend symbolic links to directories, stopping at a cycle. */
+  followSymlinks?: boolean;
 }
 
 export interface IOpendirOptions extends IOptions {

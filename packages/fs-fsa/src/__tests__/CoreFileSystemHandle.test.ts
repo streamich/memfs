@@ -50,19 +50,16 @@ onlyOnNode20('CoreFileSystemHandle', () => {
     expect(file.isSameEntry(folder)).toBe(false);
   });
 
-  test('queryPermission returns permission status based on context mode', async () => {
+  test('queryPermission resolves to a permission state string', async () => {
     const { dir } = setup({ 'test.txt': 'content' });
     const file = await dir.getFileHandle('test.txt');
 
-    // Test read permission request (should be granted since context allows readwrite)
     const readPermission = await file.queryPermission({ mode: 'read' });
-    expect(readPermission.state).toBe('granted');
-    expect(readPermission.name).toBe('read');
+    expect(readPermission).toBe('granted');
+    expect(typeof readPermission).toBe('string');
 
-    // Test readwrite permission request (should be granted since context allows readwrite)
-    const readwritePermission = await file.queryPermission({ mode: 'readwrite' });
-    expect(readwritePermission.state).toBe('granted');
-    expect(readwritePermission.name).toBe('readwrite');
+    expect(await file.queryPermission({ mode: 'readwrite' })).toBe('granted');
+    expect(await file.queryPermission()).toBe('granted');
   });
 
   test('queryPermission denies readwrite when context only allows read', async () => {
@@ -70,21 +67,29 @@ onlyOnNode20('CoreFileSystemHandle', () => {
     const dir = new CoreFileSystemDirectoryHandle(core, '/', { mode: 'read' });
     const file = await dir.getFileHandle('test.txt');
 
-    // Test read permission request (should be granted)
-    const readPermission = await file.queryPermission({ mode: 'read' });
-    expect(readPermission.state).toBe('granted');
-    expect(readPermission.name).toBe('read');
-
-    // Test readwrite permission request (should be denied since context only allows read)
-    const readwritePermission = await file.queryPermission({ mode: 'readwrite' });
-    expect(readwritePermission.state).toBe('denied');
-    expect(readwritePermission.name).toBe('readwrite');
+    expect(await file.queryPermission({ mode: 'read' })).toBe('granted');
+    expect(await file.queryPermission({ mode: 'readwrite' })).toBe('denied');
   });
 
-  test('requestPermission throws not implemented error', async () => {
+  test('requestPermission resolves to a permission state string', async () => {
     const { dir } = setup({ 'test.txt': 'content' });
     const file = await dir.getFileHandle('test.txt');
-    expect(() => file.requestPermission({ mode: 'read' })).toThrow('Not implemented');
+
+    const readPermission = await file.requestPermission({ mode: 'read' });
+    expect(readPermission).toBe('granted');
+    expect(typeof readPermission).toBe('string');
+
+    expect(await file.requestPermission({ mode: 'readwrite' })).toBe('granted');
+    expect(await file.requestPermission()).toBe('granted');
+  });
+
+  test('requestPermission denies readwrite when context only allows read', async () => {
+    const core = Superblock.fromJSON({ 'test.txt': 'content' }, '/');
+    const dir = new CoreFileSystemDirectoryHandle(core, '/', { mode: 'read' });
+    const file = await dir.getFileHandle('test.txt');
+
+    expect(await file.requestPermission({ mode: 'read' })).toBe('granted');
+    expect(await file.requestPermission({ mode: 'readwrite' })).toBe('denied');
   });
 
   test('remove throws not implemented error', async () => {

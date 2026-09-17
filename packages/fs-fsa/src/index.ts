@@ -15,7 +15,7 @@ export * from './CoreFileSystemFileHandle';
 export * from './CoreFileSystemSyncAccessHandle';
 export * from './CoreFileSystemWritableFileStream';
 export * from './CoreFileSystemObserver';
-export * from './CorePermissionStatus';
+
 export * from './FileLockManager';
 export * from './util';
 

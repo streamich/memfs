@@ -455,7 +455,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
         const permissionMode = checkIfCanWrite ? 'readwrite' : 'read';
         const permission = await node.queryPermission({ mode: permissionMode });
 
-        if (permission.state === 'denied') {
+        if (permission === 'denied') {
           throw util.createError('EACCES', 'access', filename);
         }
       }

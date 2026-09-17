@@ -1,23 +1,21 @@
 import type { FileLockManager } from './FileLockManager';
 
-export interface IPermissionStatus {
-  name: string;
-  state: 'granted' | 'denied' | 'prompt';
-}
-
 export interface IFileSystemHandle {
   kind: 'file' | 'directory';
   name: string;
   isSameEntry(fileSystemHandle: IFileSystemHandle): boolean;
   queryPermission(
-    fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor,
-  ): Promise<IPermissionStatus>;
+    fileSystemHandlePermissionDescriptor?: FileSystemHandlePermissionDescriptor,
+  ): Promise<PermissionState>;
   remove(options?: { recursive?: boolean }): Promise<void>;
-  requestPermission(fileSystemHandlePermissionDescriptor: FileSystemHandlePermissionDescriptor): IPermissionStatus;
+  requestPermission(
+    fileSystemHandlePermissionDescriptor?: FileSystemHandlePermissionDescriptor,
+  ): Promise<PermissionState>;
 }
 
 export interface FileSystemHandlePermissionDescriptor {
-  mode: 'read' | 'readwrite';
+  /** Defaults to `read`. */
+  mode?: 'read' | 'readwrite';
 }
 
 export interface IFileSystemDirectoryHandle extends IFileSystemHandle {

@@ -1012,6 +1012,133 @@ onlyOnNode20('FsaNodeFs', () => {
         expect(error.message).toBe('"start" must be >= zero');
       }
     });
+
+    test('emits "error" and destroys the stream when the path is a directory', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const stream = fs.createWriteStream('/folder');
+      const error = await new Promise<any>(resolve => stream.once('error', resolve));
+      expect(error.code).toBe('EISDIR');
+      expect(stream.destroyed).toBe(true);
+    });
+
+    test('a failed open does not leak an unhandled rejection', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const unhandled: unknown[] = [];
+      const onUnhandled = (error: unknown) => unhandled.push(error);
+      process.on('unhandledRejection', onUnhandled);
+      try {
+        const stream = fs.createWriteStream('/folder');
+        stream.on('error', () => {});
+        await new Promise(resolve => stream.once('close', resolve));
+        await tick(10);
+        expect(unhandled).toStrictEqual([]);
+      } finally {
+        process.off('unhandledRejection', onUnhandled);
+      }
+    });
+
+    test('a failed open surfaces through the write callback', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const stream = fs.createWriteStream('/folder');
+      stream.on('error', () => {});
+      const error = await new Promise<any>(resolve => stream.write(Buffer.from('A'), resolve));
+      expect(error.code).toBe('EISDIR');
+    });
+
+    test('a failed open is reported once, even if the stream is closed afterwards', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const stream = fs.createWriteStream('/folder');
+      let errors = 0;
+      let closes = 0;
+      stream.on('error', () => errors++);
+      stream.on('close', () => closes++);
+      await new Promise(resolve => stream.once('close', resolve));
+      await new Promise<void>(resolve => stream.close(() => resolve()));
+      await tick(10);
+      expect(errors).toBe(1);
+      expect(closes).toBe(1);
+    });
+
+    test('autoClose closes the file descriptor even when "emitClose" is false', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const handle = await fs.promises.open('/folder/file', 'a');
+      const stream = fs.createWriteStream('', { fd: handle.fd, start: 1, flags: 'a', emitClose: false });
+      stream.write(Buffer.from('BC'));
+      const stat = async () =>
+        await new Promise((resolve, reject) =>
+          fs.fstat(handle.fd, (err, stats) => {
+            if (err) reject(err);
+            else resolve(stats);
+          }),
+        );
+      await stat();
+      stream.end();
+      await until(async () => {
+        const [, error] = await of(stat());
+        return !!error;
+      });
+      const [, error] = await of(stat());
+      expect((error as any).code).toBe('EBADF');
+    });
+
+    test('autoClose closes the file descriptor exactly once', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const handle = await fs.promises.open('/folder/file', 'a');
+      const closed: number[] = [];
+      const close = fs.close;
+      (fs as any).close = (fd: number, cb: any) => {
+        closed.push(fd);
+        return close(fd, cb);
+      };
+      const stream = fs.createWriteStream('', { fd: handle.fd, start: 1, flags: 'a' });
+      stream.write(Buffer.from('BC'));
+      stream.end();
+      await new Promise(resolve => stream.once('close', resolve));
+      await tick(20);
+      expect(closed).toStrictEqual([handle.fd]);
+    });
+
+    test('close() after a destroy() reports the close failure, and only once it has happened', async () => {
+      const { fs, mfs } = setup({ dir: { keep: 'x' } });
+      const stream = fs.createWriteStream('/dir/file.txt');
+      const order: string[] = [];
+      stream.on('error', (error: any) => order.push('error(' + error.code + ')'));
+      await new Promise(resolve => stream.once('open', resolve));
+      stream.write('important');
+      await tick(10);
+      mfs.rmSync('/mountpoint/dir', { recursive: true, force: true });
+      stream.destroy();
+      await new Promise<void>(resolve =>
+        stream.close((error: any) => {
+          order.push('cb(' + (error ? error.code : 'no error') + ')');
+          resolve();
+        }),
+      );
+      expect(order).toStrictEqual(['error(ENOENT)', 'cb(ENOENT)']);
+    });
+
+    test('a genuine close() failure is still reported after a plain destroy()', async () => {
+      const { fs, mfs } = setup({ dir: { keep: 'x' } });
+      const stream = fs.createWriteStream('/dir/file.txt');
+      const errors: string[] = [];
+      stream.on('error', (error: any) => errors.push(error.code));
+      await new Promise(resolve => stream.once('open', resolve));
+      stream.write('important');
+      await tick(10);
+      mfs.rmSync('/mountpoint/dir', { recursive: true, force: true });
+      stream.destroy();
+      stream.close(() => {});
+      await tick(20);
+      expect(errors).toStrictEqual(['ENOENT']);
+    });
+
+    test('an unhandled failed open is not masked by the autoClose listener', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const stream = fs.createWriteStream('/folder');
+      expect(stream.listenerCount('error')).toBe(0);
+      stream.on('error', () => {});
+      await tick(10);
+    });
   });
 
   describe('.createReadStream()', () => {
@@ -1091,6 +1218,28 @@ onlyOnNode20('FsaNodeFs', () => {
         '/mountpoint/empty-folder': null,
         '/mountpoint/f.html': 'test',
       });
+    });
+
+    test('emits "error" and destroys the stream when the file is missing', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const stream = fs.createReadStream('/nope.txt');
+      const error = await new Promise<any>(resolve => stream.once('error', resolve));
+      expect(error.code).toBe('ENOENT');
+      expect(stream.destroyed).toBe(true);
+    });
+
+    test('a failed open does not leak an unhandled rejection', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const unhandled: unknown[] = [];
+      const onUnhandled = (error: unknown) => unhandled.push(error);
+      process.on('unhandledRejection', onUnhandled);
+      try {
+        fs.createReadStream('/nope.txt').on('error', () => {});
+        await tick(10);
+        expect(unhandled).toStrictEqual([]);
+      } finally {
+        process.off('unhandledRejection', onUnhandled);
+      }
     });
 
     test('can read with start position at file size', async () => {

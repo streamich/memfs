@@ -779,12 +779,7 @@ export class FsaNodeFs extends FsaNodeCore implements FsCallbackApi, FsSynchrono
     const handle = fd ? this.getFileByFdAsync(fd) : this.__open(filename, flags, 0);
     const stream = new FsaNodeWriteStream(handle, filename, optionsObj);
     if (optionsObj.autoClose) {
-      stream.once('finish', () => {
-        handle.then(file => this.close(file.fd, () => {}));
-      });
-      stream.once('error', () => {
-        handle.then(file => this.close(file.fd, () => {}));
-      });
+      stream.once('close', () => void handle.then(file => this.close(file.fd, () => {})).catch(() => {}));
     }
     return stream;
   };

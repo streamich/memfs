@@ -52,6 +52,7 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
     }
     const stream = new Defer<IFileSystemWritableFileStream>();
     this.__stream__ = stream.promise;
+    stream.promise.catch(() => {});
     (async () => {
       const fsaHandle = await handle;
       const fileWasOpened = !options.fd;
@@ -67,6 +68,7 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
       stream.resolve(writable);
     })().catch(error => {
       stream.reject(error);
+      this.destroy(error);
     });
   }
 
@@ -95,8 +97,8 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
         await writable.close();
         if (emitClose) this.emit('close');
       } catch (error) {
-        this.emit('error', error);
-        if (emitClose) this.emit('close', error);
+        if (this.errored !== error) this.emit('error', error);
+        if (emitClose && !this.closed) this.emit('close', error);
       }
     });
   }
@@ -112,7 +114,10 @@ export class FsaNodeWriteStream extends Writable implements IWriteStream {
   }
 
   public close(cb): void {
-    if (cb) this.once('close', cb);
+    if (cb) {
+      if (this.destroyed) queueMicrotask(cb);
+      else this.once('close', cb);
+    }
     this.__close__().catch(() => {});
   }
 

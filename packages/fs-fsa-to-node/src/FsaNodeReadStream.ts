@@ -20,6 +20,7 @@ export class FsaNodeReadStream extends Readable implements IReadStream {
     protected readonly options: IReadStreamOptions,
   ) {
     super();
+    this.__file__.promise.catch(error => this.destroy(error));
     handle
       .then(file => {
         if (this.__closed__) return;

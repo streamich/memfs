@@ -1059,6 +1059,64 @@ onlyOnNode20('FsaNodeFs', () => {
       expect(closes).toBe(1);
     });
 
+    test('autoClose closes the file descriptor even when "emitClose" is false', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const handle = await fs.promises.open('/folder/file', 'a');
+      const stream = fs.createWriteStream('', { fd: handle.fd, start: 1, flags: 'a', emitClose: false });
+      stream.write(Buffer.from('BC'));
+      const stat = async () =>
+        await new Promise((resolve, reject) =>
+          fs.fstat(handle.fd, (err, stats) => {
+            if (err) reject(err);
+            else resolve(stats);
+          }),
+        );
+      await stat();
+      stream.end();
+      await until(async () => {
+        const [, error] = await of(stat());
+        return !!error;
+      });
+      const [, error] = await of(stat());
+      expect((error as any).code).toBe('EBADF');
+    });
+
+    test('autoClose closes the file descriptor exactly once', async () => {
+      const { fs } = setup({ folder: { file: 'test' } });
+      const handle = await fs.promises.open('/folder/file', 'a');
+      const closed: number[] = [];
+      const close = fs.close;
+      (fs as any).close = (fd: number, cb: any) => {
+        closed.push(fd);
+        return close(fd, cb);
+      };
+      const stream = fs.createWriteStream('', { fd: handle.fd, start: 1, flags: 'a' });
+      stream.write(Buffer.from('BC'));
+      stream.end();
+      await new Promise(resolve => stream.once('close', resolve));
+      await tick(20);
+      expect(closed).toStrictEqual([handle.fd]);
+    });
+
+    test('close() after a destroy() reports the close failure, and only once it has happened', async () => {
+      const { fs, mfs } = setup({ dir: { keep: 'x' } });
+      const stream = fs.createWriteStream('/dir/file.txt');
+      const order: string[] = [];
+      stream.on('error', (error: any) => order.push('error(' + error.code + ')'));
+      await new Promise(resolve => stream.once('open', resolve));
+      stream.write('important');
+      await tick(10);
+      mfs.rmSync('/mountpoint/dir', { recursive: true, force: true });
+      stream.destroy();
+      await new Promise<void>(resolve =>
+        stream.close((error: any) => {
+          order.push('cb(' + (error ? error.code : 'no error') + ')');
+          resolve();
+        }),
+      );
+      expect(order).toStrictEqual(['error(ENOENT)', 'cb(ENOENT)']);
+    });
+
     test('a genuine close() failure is still reported after a plain destroy()', async () => {
       const { fs, mfs } = setup({ dir: { keep: 'x' } });
       const stream = fs.createWriteStream('/dir/file.txt');

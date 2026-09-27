@@ -22,6 +22,7 @@ export class FsaNodeSyncAdapterWorker implements FsaNodeSyncAdapter {
   public static async start(
     url: string,
     dir: fsa.IFileSystemDirectoryHandle | Promise<fsa.IFileSystemDirectoryHandle>,
+    timeout?: number,
   ): Promise<FsaNodeSyncAdapterWorker> {
     const worker = new Worker(url);
     const future = new Defer<FsaNodeSyncAdapterWorker>();
@@ -36,7 +37,7 @@ export class FsaNodeSyncAdapterWorker implements FsaNodeSyncAdapter {
       switch (code) {
         case FsaNodeWorkerMessageCode.Init: {
           const [, sab] = msg as FsaNodeWorkerMsgInit;
-          messenger = new SyncMessenger(sab);
+          messenger = new SyncMessenger(sab, timeout);
           const setRootMessage: FsaNodeWorkerMsgSetRoot = [FsaNodeWorkerMessageCode.SetRoot, id, _dir];
           worker.postMessage(setRootMessage);
           break;

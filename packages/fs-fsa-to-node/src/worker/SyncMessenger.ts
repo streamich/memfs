@@ -4,7 +4,7 @@ export type AsyncCallback = (request: Uint8Array) => Promise<Uint8Array>;
  * @param condition Condition to wait for, when true, the function returns.
  * @param ms Maximum time to wait in milliseconds.
  */
-const sleepUntil = (condition: () => boolean, ms: number = 100) => {
+const sleepUntil = (condition: () => boolean, ms: number) => {
   const start = Date.now();
   while (!condition()) {
     const now = Date.now();
@@ -31,7 +31,10 @@ export class SyncMessenger {
   protected readonly headerSize;
   protected readonly dataSize;
 
-  public constructor(protected readonly sab: SharedArrayBuffer) {
+  public constructor(
+    protected readonly sab: SharedArrayBuffer,
+    protected readonly timeout: number = 100,
+  ) {
     this.int32 = new Int32Array(sab);
     this.uint8 = new Uint8Array(sab);
     this.headerSize = 4 * 4;
@@ -46,7 +49,7 @@ export class SyncMessenger {
     int32[2] = requestLength;
     this.uint8.set(data, headerSize);
     Atomics.notify(int32, 0);
-    sleepUntil(() => int32[1] === 1);
+    sleepUntil(() => int32[1] === 1, this.timeout);
     const responseLength = int32[2];
     const response = this.uint8.slice(headerSize, headerSize + responseLength);
     return response;

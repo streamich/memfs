@@ -40,6 +40,15 @@ const adapter = await FsaNodeSyncAdapterWorker.start('https://<path>/worker.js',
 const fs = new FsaNodeFs(dir, adapter);
 ```
 
+By default, each synchronous operation waits up to 100 milliseconds for the worker's
+response. For slower storage, pass a timeout in milliseconds as the third argument:
+
+```js
+const adapter = await FsaNodeSyncAdapterWorker.start('https://<path>/worker.js', dir, 1000);
+```
+
+The calling thread remains blocked until the worker responds or the timeout is exceeded.
+
 Where `'https://<path>/worker.js'` is a path to a worker file, which could look like this:
 
 ```js

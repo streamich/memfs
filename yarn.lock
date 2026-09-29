@@ -823,7 +823,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jsonjoy.com/fs-fsa-to-node@workspace:packages/fs-fsa-to-node":
+"@jsonjoy.com/fs-fsa-to-node@workspace:*, @jsonjoy.com/fs-fsa-to-node@workspace:packages/fs-fsa-to-node":
   version: 0.0.0-use.local
   resolution: "@jsonjoy.com/fs-fsa-to-node@workspace:packages/fs-fsa-to-node"
   dependencies:
@@ -984,7 +984,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@jsonjoy.com/json-pack@npm:^1.0.0, @jsonjoy.com/json-pack@npm:^1.11.0":
+"@jsonjoy.com/json-pack@npm:^1.0.0":
   version: 1.21.0
   resolution: "@jsonjoy.com/json-pack@npm:1.21.0"
   dependencies:
@@ -4937,14 +4937,13 @@ __metadata:
   dependencies:
     "@jsonjoy.com/fs-core": "workspace:*"
     "@jsonjoy.com/fs-fsa": "workspace:*"
+    "@jsonjoy.com/fs-fsa-to-node": "workspace:*"
     "@jsonjoy.com/fs-node": "workspace:*"
     "@jsonjoy.com/fs-node-builtins": "workspace:*"
     "@jsonjoy.com/fs-node-to-fsa": "workspace:*"
     "@jsonjoy.com/fs-node-utils": "workspace:*"
     "@jsonjoy.com/fs-print": "workspace:*"
     "@jsonjoy.com/fs-snapshot": "workspace:*"
-    "@jsonjoy.com/json-pack": "npm:^1.11.0"
-    "@jsonjoy.com/util": "npm:^1.9.0"
     "@types/jest": "npm:^29.0.0"
     "@types/mime": "npm:^3.0.0"
     "@types/node": "npm:^20.0.0"

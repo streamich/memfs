@@ -182,7 +182,9 @@ export class NodeFileSystemDirectoryHandle extends NodeFileSystemHandle implemen
       if (stats.isFile()) {
         await promises.unlink(filename);
       } else if (stats.isDirectory()) {
-        await promises.rmdir(filename, { recursive });
+        // Node.js 25+ throws if `rmdir()` gets the `recursive` option at all.
+        if (recursive) await promises.rm(filename, { recursive: true });
+        else await promises.rmdir(filename);
       } else throw newTypeMismatchError();
     } catch (error) {
       if (error instanceof DOMException) throw error;

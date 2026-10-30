@@ -1,3 +1,6 @@
+import * as nodeFs from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { DirectoryJSON, memfs } from 'memfs';
 import { NodeFileSystemDirectoryHandle } from '../NodeFileSystemDirectoryHandle';
 import { NodeFileSystemFileHandle } from '../NodeFileSystemFileHandle';
@@ -468,6 +471,38 @@ onlyOnNode20('NodeFileSystemDirectoryHandle', () => {
       const res = await dir.removeEntry('dir', { recursive: true });
       expect(fs.existsSync('/dir')).toBe(false);
       expect(res).toBe(undefined);
+    });
+
+    describe('with the Node.js "fs" module', () => {
+      let path: string;
+      let dir: NodeFileSystemDirectoryHandle;
+      beforeEach(() => {
+        path = nodeFs.mkdtempSync(join(tmpdir(), 'fs-node-to-fsa-'));
+        nodeFs.mkdirSync(join(path, 'empty'));
+        nodeFs.mkdirSync(join(path, 'dir'));
+        nodeFs.writeFileSync(join(path, 'dir', 'file'), 'contents');
+        dir = new NodeFileSystemDirectoryHandle(nodeFs as any, path, { mode: 'readwrite' });
+      });
+      afterEach(() => {
+        nodeFs.rmSync(path, { recursive: true, force: true });
+      });
+
+      test('can delete a folder', async () => {
+        const res = await dir.removeEntry('empty');
+        expect(nodeFs.existsSync(join(path, 'empty'))).toBe(false);
+        expect(res).toBe(undefined);
+      });
+
+      test('throws "InvalidModificationError" DOMException if directory has contents', async () => {
+        await expect(dir.removeEntry('dir')).rejects.toMatchObject({ name: 'InvalidModificationError' });
+        expect(nodeFs.existsSync(join(path, 'dir', 'file'))).toBe(true);
+      });
+
+      test('can recursively delete a folder with "recursive" flag', async () => {
+        const res = await dir.removeEntry('dir', { recursive: true });
+        expect(nodeFs.existsSync(join(path, 'dir'))).toBe(false);
+        expect(res).toBe(undefined);
+      });
     });
   });
 

@@ -200,10 +200,7 @@ export class FsPromises implements FsPromisesApi {
   public readonly unlink = promisify(this.fs, 'unlink');
   public readonly utimes = promisify(this.fs, 'utimes');
 
-  public readonly readFile = (
-    id: misc.TFileHandle,
-    options?: opts.IReadFileOptions | string,
-  ): Promise<misc.TDataOut> => {
+  public readonly readFile: FsPromisesApi['readFile'] = (id, options) => {
     return promisify(this.fs, 'readFile')(id instanceof this.FileHandle ? id.fd : (id as misc.PathLike), options);
   };
 

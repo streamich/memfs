@@ -11,6 +11,26 @@ describe('.readFile()', () => {
     expect(data).toBe('01234567');
   });
 
+  it('infers a string when an encoding is specified', async () => {
+    const { fs } = memfs({ '/foo': 'hello' });
+    const fromString: string = await fs.promises.readFile('/foo', 'utf8');
+    const fromObject: string = await fs.promises.readFile('/foo', { encoding: 'utf8', flag: 'r' });
+    expect(fromString.toUpperCase()).toBe('HELLO');
+    expect(fromObject.toUpperCase()).toBe('HELLO');
+  });
+
+  it('infers a Buffer when no text encoding is specified', async () => {
+    const { fs } = memfs({ '/foo': 'hello' });
+    const defaults: Buffer = await fs.promises.readFile('/foo');
+    const fromObject: Buffer = await fs.promises.readFile('/foo', { flag: 'r' });
+    const fromBufferEncoding: Buffer = await fs.promises.readFile('/foo', 'buffer');
+    const fromBufferObject: Buffer = await fs.promises.readFile('/foo', { encoding: 'buffer' });
+    for (const data of [defaults, fromObject, fromBufferEncoding, fromBufferObject]) {
+      expect(Buffer.isBuffer(data)).toBe(true);
+      expect(data.toString('utf8')).toBe('hello');
+    }
+  });
+
   it('throws if file does not exist', async () => {
     const { fs } = memfs({ '/dir/test.txt': '01234567' });
     const [, err] = await of(fs.promises.readFile('/dir/test-NOT-FOUND.txt', { encoding: 'utf8' }));

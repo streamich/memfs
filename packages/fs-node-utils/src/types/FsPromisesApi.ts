@@ -21,7 +21,14 @@ export interface FsPromisesApi {
   open: (path: misc.PathLike, flags?: misc.TFlags, mode?: misc.TMode) => Promise<misc.IFileHandle>;
   opendir: (path: misc.PathLike, options?: opts.IOpendirOptions) => Promise<misc.IDir>;
   readdir: (path: misc.PathLike, options?: opts.IReaddirOptions | string) => Promise<misc.TDataOut[] | misc.IDirent[]>;
-  readFile: (id: misc.TFileHandle, options?: opts.IReadFileOptions | string) => Promise<misc.TDataOut>;
+  readFile: {
+    (id: misc.TFileHandle, options?: (opts.IReadFileOptions & { encoding?: 'buffer' }) | 'buffer'): Promise<Buffer>;
+    (
+      id: misc.TFileHandle,
+      options: (opts.IReadFileOptions & { encoding: BufferEncoding }) | BufferEncoding,
+    ): Promise<string>;
+    (id: misc.TFileHandle, options?: opts.IReadFileOptions | string): Promise<misc.TDataOut>;
+  };
   readlink: (path: misc.PathLike, options?: opts.IOptions) => Promise<misc.TDataOut>;
   realpath: (path: misc.PathLike, options?: opts.IRealpathOptions | string) => Promise<misc.TDataOut>;
   rename: (oldPath: misc.PathLike, newPath: misc.PathLike) => Promise<void>;

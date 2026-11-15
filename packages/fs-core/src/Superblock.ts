@@ -686,6 +686,7 @@ export class Superblock {
     const name = basename(filename2);
     if (dir2.getChild(name)) throw createError(ERROR_CODE.EEXIST, 'link', filename1, filename2);
     const node = link1.getNode();
+    if (node.isDirectory()) throw createError(ERROR_CODE.EPERM, 'link', filename1, filename2);
     node.nlink++;
     const newLink = dir2.createChild(name, node);
     this.emit(new FsEvent(FsEventType.CREATE, newLink.steps, node, newLink));
@@ -736,14 +737,12 @@ export class Superblock {
   public readonly rename = (oldPathFilename: string, newPathFilename: string) => {
     let link: Link;
     try {
-      link = this.getResolvedLinkOrThrow(oldPathFilename);
+      link = this.getLinkOrThrow(oldPathFilename);
     } catch (err) {
       // Augment err with newPathFilename
       if (err.code) err = createError(err.code, 'rename', oldPathFilename, newPathFilename);
       throw err;
     }
-
-    // TODO: Check if it is directory, if non-empty, we cannot move it, right?
 
     // Check directory exists for the new location.
     let newPathDirLink: Link;
@@ -754,9 +753,6 @@ export class Superblock {
       if (err.code) err = createError(err.code, 'rename', oldPathFilename, newPathFilename);
       throw err;
     }
-
-    // TODO: Also treat cases with directories and symbolic links.
-    // TODO: See: http://man7.org/linux/man-pages/man2/rename.2.html
 
     // Remove hard link from old folder.
     const oldLinkParent = link.parent;
@@ -774,10 +770,30 @@ export class Superblock {
       throw createError(ERROR_CODE.EACCES, 'rename', oldPathFilename, newPathFilename);
     }
 
+    const node = link.getNode();
+    if (node.isDirectory()) {
+      for (let parent: Link | undefined = newPathDirLink; parent; parent = parent.parent) {
+        if (parent === link) throw createError(ERROR_CODE.EINVAL, 'rename', oldPathFilename, newPathFilename);
+        if (parent === this.root) break;
+      }
+    }
+    const name = basename(newPathFilename);
+    const replacement = newPathDirLink.getChild(name);
+    if (replacement) {
+      const replacementNode = replacement.getNode();
+      if (replacementNode === node) return;
+      if (node.isDirectory()) {
+        if (!replacementNode.isDirectory())
+          throw createError(ERROR_CODE.ENOTDIR, 'rename', oldPathFilename, newPathFilename);
+        if (replacement.length) throw createError(ERROR_CODE.ENOTEMPTY, 'rename', oldPathFilename, newPathFilename);
+      } else if (replacementNode.isDirectory()) {
+        throw createError(ERROR_CODE.EISDIR, 'rename', oldPathFilename, newPathFilename);
+      }
+    }
     oldLinkParent.deleteChild(link);
+    if (replacement) newPathDirLink.deleteChild(replacement);
 
     // Rename should overwrite the new path, if that exists.
-    const name = basename(newPathFilename);
     const oldSteps = link.steps;
     link.name = name;
     link.steps = [...newPathDirLink.steps, name];
@@ -802,7 +818,11 @@ export class Superblock {
   /**
    * Creates directory tree recursively.
    */
-  public readonly mkdirp = (filename: string, modeNum: number): string | undefined => {
+  public readonly mkdirp = (
+    filename: string,
+    modeNum: number,
+    intermediateSymlinkError: ERROR_CODE = ERROR_CODE.ENOENT,
+  ): string | undefined => {
     let created = false;
     const steps = this.filenameToSteps(filename);
     let curr: Link | null = null;
@@ -820,6 +840,8 @@ export class Superblock {
     // (If none of them existed, curr is the root.)
     // Check access the lazy way:
     curr = this.getResolvedLinkOrThrow(pathSep + steps.slice(0, i).join(pathSep), 'mkdir');
+    if (!curr.getNode().isDirectory())
+      throw createError(i === steps.length ? ERROR_CODE.EEXIST : ERROR_CODE.ENOTDIR, 'mkdir', filename);
     // Start creating directories:
     for (i; i < steps.length; i++) {
       const node = curr.getNode();
@@ -829,6 +851,8 @@ export class Superblock {
       } else {
         throw createError(ERROR_CODE.ENOTDIR, 'mkdir', filename);
       }
+      if (curr.getChild(steps[i]))
+        throw createError(i < steps.length - 1 ? intermediateSymlinkError : ERROR_CODE.ENOENT, 'mkdir', filename);
       created = true;
       curr = curr.createChild(steps[i], this.createNode(constants.S_IFDIR | modeNum));
       this.emit(new FsEvent(FsEventType.CREATE, curr.steps, curr.getNode(), curr));
@@ -846,7 +870,7 @@ export class Superblock {
   public readonly rm = (filename: string, force: boolean = false, recursive: boolean = false): void => {
     let link: Link;
     try {
-      link = this.getResolvedLinkOrThrow(filename, 'lstat');
+      link = this.getLinkOrThrow(filename, 'lstat');
     } catch (err) {
       // Silently ignore missing paths if force option is true
       if (err.code === ERROR_CODE.ENOENT && force) return;

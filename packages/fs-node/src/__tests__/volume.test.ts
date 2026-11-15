@@ -262,18 +262,9 @@ describe('volume', () => {
       });
 
       it('Invalid JSON throws error 2', () => {
-        try {
-          const vol = new Volume();
-          const json = {
-            '/dir': 'world',
-            '/dir/file': '...',
-          };
-          vol.fromJSON(json);
-          throw Error('This should not throw');
-        } catch (error) {
-          // Check for both errors, because in JavaScript we the `json` map's key order is not guaranteed.
-          expect(error.code === 'EISDIR' || error.code === 'ENOTDIR').toBe(true);
-        }
+        const vol = new Volume();
+        expect(() => vol.fromJSON({ '/dir': 'world', '/dir/file': '...' })).toThrow(/EEXIST/);
+        expect(vol.readFileSync('/dir', 'utf8')).toBe('world');
       });
 
       it('creates a folder if value is not a string', () => {
@@ -1059,7 +1050,7 @@ describe('volume', () => {
         const stats = vol.lstatSync('/link.js');
         expect(stats.isSymbolicLink()).toBe(true);
         expect(stats.isFile()).toBe(false);
-        expect(stats.size).toBe(0);
+        expect(stats.size).toBe(Buffer.byteLength('/dojo.js'));
       });
       it('Can lstat intermediate directories through symlinks', () => {
         // Create directory structure: /target/subDir/test.txt
@@ -1168,7 +1159,7 @@ describe('volume', () => {
         const stats = vol.fstatSync(fd);
         expect(stats.isSymbolicLink()).toBe(true);
         expect(stats.isFile()).toBe(false);
-        expect(stats.size).toBe(0);
+        expect(stats.size).toBe(Buffer.byteLength('/dojo.js'));
       });
     });
     describe('.fstat(fd, callback)', () => {

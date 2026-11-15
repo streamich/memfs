@@ -1083,7 +1083,7 @@ export class Volume implements FsCallbackApi, FsSynchronousApi {
     const callback = validateCallback(typeof a === 'function' ? a : b!);
     const modeNum = modeToNumber(opts.mode, 0o777);
     const filename = pathToFilename(path);
-    if (opts.recursive) this.wrapAsync(this._core.mkdirp, [filename, modeNum], callback);
+    if (opts.recursive) this.wrapAsync(this._core.mkdirp, [filename, modeNum, ERROR_CODE.ENOTDIR], callback);
     else this.wrapAsync(this._core.mkdir, [filename, modeNum], callback);
   };
 

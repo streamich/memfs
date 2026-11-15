@@ -164,7 +164,7 @@ export class Node {
   }
 
   getSize(): number {
-    return this.size;
+    return this.isSymlink() ? Buffer.byteLength(this.symlink, 'utf8') : this.size;
   }
 
   setModeProperty(property: number) {
@@ -189,7 +189,7 @@ export class Node {
   }
 
   makeSymlink(symlink: string) {
-    this.mode = S_IFLNK | 0o666;
+    this.mode = S_IFLNK | 0o777;
     this.symlink = symlink;
   }
 

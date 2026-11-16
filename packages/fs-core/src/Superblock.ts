@@ -154,6 +154,20 @@ export class Superblock {
     this.emit(new FsEvent(FsEventType.DELETE, link.steps, link.getNode(), link));
   }
 
+  private _releaseUnlinkedTree(link: Link) {
+    const node = link.getNode();
+    if (node.isDirectory()) {
+      for (const [name, child] of link.children.entries()) {
+        if (child && name !== '.' && name !== '..') this._releaseUnlinkedTree(child);
+      }
+      node.nlink = 0;
+    } else {
+      node.nlink--;
+    }
+    // Open files retain their Node and buffer independently of the inode table.
+    if (node.nlink <= 0) this.deleteNode(node);
+  }
+
   private newInoNumber(): number {
     const releasedFd = this.releasedInos.pop();
 
@@ -840,7 +854,7 @@ export class Superblock {
     const link = this.getLinkAsDirOrThrow(filename, 'rmdir');
     if (link.length && !recursive) throw createError(ERROR_CODE.ENOTEMPTY, 'rmdir', filename);
     this._emitDeleteRecursive(link);
-    this.deleteLink(link);
+    if (this.deleteLink(link)) this._releaseUnlinkedTree(link);
   };
 
   public readonly rm = (filename: string, force: boolean = false, recursive: boolean = false): void => {
@@ -856,7 +870,7 @@ export class Superblock {
     // TODO: Node reports the failing `unlink`/`rmdir` syscall here; `rm` is not a libuv request.
     if (!link.parent?.getNode().canWrite()) throw createError(ERROR_CODE.EACCES, 'rm', filename);
     this._emitDeleteRecursive(link);
-    this.deleteLink(link);
+    if (this.deleteLink(link)) this._releaseUnlinkedTree(link);
   };
 
   protected closeFile(file: File) {

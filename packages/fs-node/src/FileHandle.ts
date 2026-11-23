@@ -50,15 +50,18 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     return this.fd;
   }
 
-  appendFile(data: TData, options?: opts.IAppendFileOptions | string): Promise<void> {
+  async appendFile(data: TData, options?: opts.IAppendFileOptions | string): Promise<void> {
+    assertOpen(this.fd, 'writeFile');
     return promisify(this.fs, 'appendFile')(this.fd, data, options);
   }
 
-  chmod(mode: TMode): Promise<void> {
+  async chmod(mode: TMode): Promise<void> {
+    assertOpen(this.fd, 'fchmod');
     return promisify(this.fs, 'fchmod')(this.fd, mode);
   }
 
-  chown(uid: number, gid: number): Promise<void> {
+  async chown(uid: number, gid: number): Promise<void> {
+    assertOpen(this.fd, 'fchown');
     return promisify(this.fs, 'fchown')(this.fd, uid, gid);
   }
 
@@ -96,7 +99,8 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     return this.closePromise;
   }
 
-  datasync(): Promise<void> {
+  async datasync(): Promise<void> {
+    assertOpen(this.fd, 'fdatasync');
     return promisify(this.fs, 'fdatasync')(this.fd);
   }
 
@@ -199,23 +203,28 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     return { __proto__: null, bytesRead, buffers } as TFileHandleReadvResult;
   }
 
-  readFile(options?: opts.IReadFileOptions | string): Promise<TDataOut> {
+  async readFile(options?: opts.IReadFileOptions | string): Promise<TDataOut> {
+    assertOpen(this.fd, 'readFile');
     return promisify(this.fs, 'readFile')(this.fd, options);
   }
 
-  stat(options?: opts.IFStatOptions): Promise<IStats> {
+  async stat(options?: opts.IFStatOptions): Promise<IStats> {
+    assertOpen(this.fd, 'fstat');
     return promisify(this.fs, 'fstat')(this.fd, options);
   }
 
-  sync(): Promise<void> {
+  async sync(): Promise<void> {
+    assertOpen(this.fd, 'fsync');
     return promisify(this.fs, 'fsync')(this.fd);
   }
 
-  truncate(len?: number): Promise<void> {
+  async truncate(len?: number): Promise<void> {
+    assertOpen(this.fd, 'ftruncate');
     return promisify(this.fs, 'ftruncate')(this.fd, len);
   }
 
-  utimes(atime: TTime, mtime: TTime): Promise<void> {
+  async utimes(atime: TTime, mtime: TTime): Promise<void> {
+    assertOpen(this.fd, 'futimes');
     return promisify(this.fs, 'futimes')(this.fd, atime, mtime);
   }
 
@@ -255,7 +264,8 @@ export class FileHandle extends EventEmitter implements IFileHandle {
     return { __proto__: null, bytesWritten, buffers } as TFileHandleWritevResult;
   }
 
-  writeFile(data: TData, options?: opts.IWriteFileOptions): Promise<void> {
+  async writeFile(data: TData, options?: opts.IWriteFileOptions): Promise<void> {
+    assertOpen(this.fd, 'writeFile');
     return promisify(this.fs, 'writeFile')(this.fd, data, options);
   }
 

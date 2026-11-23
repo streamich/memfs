@@ -476,4 +476,40 @@ describe('FileHandle', () => {
       await expect(handle.close()).resolves.toBeUndefined();
     });
   });
+
+  describe('after close()', () => {
+    const calls: [string, string, (handle: any) => Promise<unknown>][] = [
+      ['appendFile', 'writeFile', handle => handle.appendFile('x')],
+      ['chmod', 'fchmod', handle => handle.chmod(0o644)],
+      ['chown', 'fchown', handle => handle.chown(0, 0)],
+      ['datasync', 'fdatasync', handle => handle.datasync()],
+      ['read', 'read', handle => handle.read(Buffer.alloc(1), 0, 1, 0)],
+      ['readFile', 'readFile', handle => handle.readFile()],
+      ['readv', 'readv', handle => handle.readv([Buffer.alloc(1)])],
+      ['stat', 'fstat', handle => handle.stat()],
+      ['sync', 'fsync', handle => handle.sync()],
+      ['truncate', 'ftruncate', handle => handle.truncate(1)],
+      ['utimes', 'futimes', handle => handle.utimes(1, 1)],
+      ['write', 'write', handle => handle.write('x')],
+      ['writeFile', 'writeFile', handle => handle.writeFile('x')],
+      ['writev', 'writev', handle => handle.writev([Buffer.from('x')])],
+    ];
+
+    it.each(calls)('%s() works while the handle is open', async (_name, _syscall, call) => {
+      const fs = createFs();
+      fs.writeFileSync('/test', 'content');
+      const handle = await fs.promises.open('/test', 'r+');
+      await call(handle);
+      await handle.close();
+    });
+
+    it.each(calls)('%s() rejects with EBADF', async (_name, syscall, call) => {
+      const fs = createFs();
+      fs.writeFileSync('/test', 'content');
+      const handle = await fs.promises.open('/test', 'r+');
+      await handle.close();
+      await expect(call(handle)).rejects.toMatchObject({ code: 'EBADF', syscall, message: 'file closed' });
+      expect(fs.readFileSync('/test', 'utf8')).toBe('content');
+    });
+  });
 });
